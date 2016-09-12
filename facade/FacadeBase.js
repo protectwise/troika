@@ -39,6 +39,7 @@ export default class FacadeBase {
   constructor(parent) {
     this.$facadeId = `facade${ idCounter++ }`
     this.parent = parent
+    this.ref = this._lastRef = null
 
     // If the subclass has not implemented an onNotify method, copy the parent's implementation.
     // This allows bubbling notifications up to the topmost impl without having to explicitly
@@ -54,6 +55,19 @@ export default class FacadeBase {
    * Called at the end of an update batch, after all individual properties have been assigned.
    */
   afterUpdate() {
+    // Handle calling ref function
+    let ref = this.ref
+    if (ref !== this._lastRef) {
+      if (typeof this._lastRef === 'function') {
+        this._lastRef.call(null, null)
+      }
+      if (typeof ref === 'function') {
+        ref.call(null, this)
+        this._lastRef = ref
+      } else {
+        this._lastRef = null
+      }
+    }
   }
 
   /**
@@ -76,6 +90,9 @@ export default class FacadeBase {
    */
   destructor() {
     delete this.parent
+    if (typeof this.ref === 'function') {
+      this.ref.call(null, null)
+    }
   }
 }
 

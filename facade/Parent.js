@@ -20,6 +20,7 @@ export default class Parent extends FacadeBase {
     if (this.children) {
       this.updateChildren(this.children)
     }
+    super.afterUpdate()
   }
 
   updateChildren(children) {

@@ -90,5 +90,7 @@ export default class List extends FacadeBase {
         oldDict[key].destructor()
       }
     }
+
+    super.afterUpdate()
   }
 }
