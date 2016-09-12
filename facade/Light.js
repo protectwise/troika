@@ -30,20 +30,6 @@ function createLightSubclass(ThreeJsLightClass) {
 
 
 export const AmbientLight = createLightSubclass(THREE.AmbientLight)
-// export const DirectionalLight = createLightSubclass(THREE.DirectionalLight)
-// DirectionalLight.prototype.afterUpdate = function() {
-//   this.threeObject.position.normalize()
-//   super.afterUpdate()
-// }
-export class DirectionalLight extends Light {
-  constructor(parent) {
-    super(parent, new THREE.DirectionalLight())
-  }
-
-  afterUpdate() {
-    this.threeObject.position.normalize()
-    super.afterUpdate()
-  }
-}
+export const DirectionalLight = createLightSubclass(THREE.DirectionalLight)
 export const SpotLight = createLightSubclass(THREE.SpotLight)
 export const PointLight = createLightSubclass(THREE.PointLight)
