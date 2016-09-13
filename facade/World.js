@@ -56,25 +56,35 @@ class World extends Parent {
       renderer.setSize(this.width, this.height, true)
     }
 
-    this.queueRender()
+    this.requestRender()
   }
 
-  queueRender() {
-    if (!this._renderDelay) {
-      this._renderDelay = requestAnimationFrame(this.doRender.bind(this))
+  // Requests a ThreeJS render pass. If one has already been done this frame, queue up a render on
+  // the next frame; otherwise do it immediately.
+  requestRender() {
+    if (this._hasRenderedThisFrame) {
+      this._needsRenderNextFrame = true
+    } else {
+      this._threeRenderer.render(this.getChildByKey('scene').threeObject, this.getChildByKey('camera').threeObject)
+      this._hasRenderedThisFrame = true
     }
-  }
-
-  doRender() {
-    this._renderDelay = null
-    this._threeRenderer.render(this.getChildByKey('scene').threeObject, this.getChildByKey('camera').threeObject)
+    if (!this._renderNextFrameTimer) {
+      this._renderNextFrameTimer = requestAnimationFrame(() => {
+        this._renderNextFrameTimer = null
+        this._hasRenderedThisFrame = false
+        if (this._needsRenderNextFrame) {
+          this.requestRender()
+        }
+        this._needsRenderNextFrame = false
+      })
+    }
   }
 
 
   onNotify(source, message, data) {
     switch(message) {
       case 'needsRender':
-        this.queueRender()
+        this.requestRender()
         break
       case 'addEventListener':
         let registry = this.$eventRegistry || (this.$eventRegistry = Object.create(null))
@@ -177,7 +187,10 @@ class World extends Parent {
   }
 
   destructor() {
-    delete this._renderDelay
+    if (this._renderNextFrameTimer) {
+      cancelAnimationFrame(this._renderNextFrameTimer)
+    }
+    delete this._renderNextFrameTimer
   }
 
 }
