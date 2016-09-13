@@ -1,5 +1,5 @@
 import FacadeBase, {isSpecialDescriptorProperty} from './FacadeBase'
-import Transitionable from './Transitionable'
+import Animatable from './Animatable'
 
 
 /**
@@ -42,19 +42,22 @@ export default class Parent extends FacadeBase {
         }
       }
 
-      // If a transition is present, upgrade the class to a Transitionable wrapper class on demand.
-      // NOTE: changing between transitionable/non-transitionable results in a full teardown/recreation
+      // If a transition/animation is present, upgrade the class to a Animatable wrapper class on demand.
+      // NOTE: changing between animatable/non-animatable results in a full teardown/recreation
       // of this instance *and its entire subtree*, so try to avoid that by always including the `transition`
       // definition if the object is expected to ever need transitions, even if it's temporarily empty.
       let transition = childDesc.transition
-      if (transition) {
-        cla$$ = cla$$.$transitionableClass || (cla$$.$transitionableClass = Transitionable(cla$$))
+      let animation = childDesc.animation
+      if (transition || animation) {
+        cla$$ = cla$$.$animatableWrapperClass || (cla$$.$animatableWrapperClass = Animatable(cla$$))
       }
 
       // If we have an old instance with the same key and class, update it, otherwise instantiate a new one
       let oldImpl = oldDict[key]
       let newImpl = oldImpl && (oldImpl.constructor === cla$$) ? oldImpl : new cla$$(this)
-      newImpl.transition = transition //always set transition first
+      //always set transition/animation before any other props
+      newImpl.transition = transition
+      newImpl.animation = animation
       for (let prop in childDesc) {
         if (childDesc.hasOwnProperty(prop) && !isSpecialDescriptorProperty(prop)) {
           newImpl[prop] = childDesc[prop]

@@ -32,8 +32,8 @@
  *   - `class`: (required) a reference to the Facade class that will be instantiated.
  *   - `children`: (optional) for `Parent` facade subclasses, defines the child object descriptors.
  *   - `transition`: (optional) defines a set of properties that should be transitioned smoothly
- *     when their value changes. See `Transitionable` for more details.
- *   - `data`/`template`: (optional)
+ *     when their value changes. See `Animatable` for more details.
+ *   - `animation`: (optional) defines one or more keyframe animations. See `Animatable` for more details.
  */
 export default class FacadeBase {
   constructor(parent) {

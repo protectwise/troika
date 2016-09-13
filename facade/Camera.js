@@ -1,6 +1,5 @@
 import THREE from 'three'
 import Object3D from './Object3D'
-import Transitionable from './Transitionable'
 
 class Camera extends Object3D {
   constructor(parent) {
@@ -19,7 +18,7 @@ class Camera extends Object3D {
 }
 
 // Setters for properties which require a matrix update
-;['fov', 'aspect', 'near', 'far'].forEach(prop => {
+['fov', 'aspect', 'near', 'far'].forEach(prop => {
   Object.defineProperty(Camera.prototype, prop, {
     set(val) {
       if (val !== this.threeObject[prop]) {
@@ -34,5 +33,4 @@ class Camera extends Object3D {
 })
 
 
-
-export default Transitionable(Camera) //auto-enable transitions
+export default Camera

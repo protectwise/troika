@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import FacadeBase, {isSpecialDescriptorProperty} from './FacadeBase'
-import Transitionable from './Transitionable'
+import Animatable from './Animatable'
 
 
 /**
@@ -62,19 +62,22 @@ export default class List extends FacadeBase {
         }
       }
 
-      // If a transition is present, upgrade the class to a Transitionable wrapper class on demand.
-      // NOTE: changing between transitionable/non-transitionable results in a full teardown/recreation
+      // If a transition/animation is present, upgrade the class to a Animatable wrapper class on demand.
+      // NOTE: changing between animatable/non-animatable results in a full teardown/recreation
       // of this instance *and its entire subtree*, so try to avoid that by always including the `transition`
       // definition if the object is expected to ever need transitions, even if it's temporarily empty.
       let transition = typeof template.transition === 'function' ? template.transition(childData, i, data) : template.transition
-      if (transition) {
-        cla$$ = cla$$.$transitionableClass || (cla$$.$transitionableClass = Transitionable(cla$$))
+      let animation = typeof template.animation === 'function' ? template.animation(childData, i, data) : template.animation
+      if (transition || animation) {
+        cla$$ = cla$$.$animatableWrapperClass || (cla$$.$animatableWrapperClass = Animatable(cla$$))
       }
 
       // If we have an old instance with the same key and class, reuse it; otherwise instantiate a new one
       let oldImpl = oldDict[key]
       let newImpl = oldImpl && oldImpl.constructor === cla$$ ? oldImpl : new cla$$(this)
-      newImpl.transition = transition //always set transition before any other props
+      //always set transition/animation before any other props
+      newImpl.transition = transition
+      newImpl.animation = animation
       for (let prop in template) {
         if (template.hasOwnProperty(prop) && !isSpecialDescriptorProperty(prop)) {
           newImpl[prop] = typeof template[prop] === 'function' ? template[prop](childData, i, data) : template[prop]
