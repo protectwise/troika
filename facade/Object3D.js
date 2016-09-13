@@ -82,6 +82,12 @@ _.forOwn({
     y: 'scaleY',
     z: 'scaleZ'
   },
+  rotation: {
+    x: 'rotateX',
+    y: 'rotateY',
+    z: 'rotateZ',
+    order: 'rotateOrder'
+  },
   quaternion: {
     x: 'quaternionX',
     y: 'quaternionY',
