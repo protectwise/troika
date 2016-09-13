@@ -161,7 +161,7 @@ export default function(WrappedClass) {
                     let propTween = TweenLite.fromTo(
                       this, (keyframe.time - prevKeyframe.time) * duration,
                       { [prop]: prevKeyframe.props[prop] },
-                      { [prop]: props[prop], ease: 'linear' }
+                      { [prop]: props[prop], ease: 'linear', immediateRender: false }
                     )
                     animTimeline.add(propTween, prevKeyframe.time * duration)
                   }
