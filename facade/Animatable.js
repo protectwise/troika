@@ -1,12 +1,10 @@
 import _ from 'lodash'
-//import 'gsap/src/uncompressed/TweenLite'
-import 'gsap/src/uncompressed/TweenMax'
-import 'gsap/src/uncompressed/TimelineLite'
-//import TimelineMax from 'gsap/src/uncompressed/TimelineMax'
-
+import PropertyTween from '../animation/PropertyTween'
+import MultiTween from '../animation/MultiTween'
+import {start as startTween, stop as stopTween} from '../animation/Runner'
 
 const DEFAULT_DURATION = 750
-const DEFAULT_EASE = 'easeOutPower2'
+const DEFAULT_EASE = 'easeOutCubic'
 
 
 function findSuperSetter(WrappedClass, propName) {
@@ -33,7 +31,7 @@ export default function(WrappedClass) {
          "height.transitionTarget": 100, //target value for a property transition
          "height.transitionTween": {} //tween object for a property transition
          "animatingProps": {} //list of props currently being controlled by an active animation
-         "animationTimeline": {} //master timeline for active animations
+         "animationTween": {} //master tween for active animations
        }
        */
       this.$animationState = Object.create(null)
@@ -79,26 +77,26 @@ export default function(WrappedClass) {
      *     delay: 0, //starting delay in ms
      *     duration: 2000, //total anim duration in ms, defaults to 750
      *     ease: 'linear', //easing for the whole animation, defaults to 'linear'
-     *     iterations: 5 //number of times to loop the animation, defaults to 1. Set to Infinity for endless loop.
+     *     iterations: 5, //number of times to loop the animation, defaults to 1. Set to Infinity for endless loop.
+     *     direction: 'forward' //either 'forward', 'backward', or 'alternate'
      *   }, ...]
      *
-     * Internally the animations will be built into a set of nested timelines/tweens:
+     * Internally the animations will be built into a set of nested tweens:
      *
-     * |--------------------------- Main Timeline -------------------------------|
-     * |------------- Anim 1 Tween w/ easing+repeat ---------------|
-     * |-------------------- Anim 1 Timeline ----------------------|
-     * |-- prop1 tween 1 --|-- prop1 tween 2 --|-- prop1 tween 3 --|
-     * |------- prop2 tween 1 -------|------- prop2 tween 2 -------|
-     *                             |------- Anim 2 Tween w/ easing+repeat -------|
-     *                             |-------------- Anim 2 Timeline --------------|
-     *                             |--- prop3 tween 1 ----|--- prop3 tween 2 ----|
+     * |--------------------------- Main MultiTween ------------------------------------|
+     * |------------- Anim 1 MultiTween w/ easing+repeat ----------------|
+     * |--- prop1 tween 1 ---|--- prop1 tween 2 ---|--- prop1 tween 3 ---|
+     * |--------- prop2 tween 1 --------|--------- prop2 tween 2 --------|
+     *                             |-------- Anim 2 MultiTween w/ easing+repeat --------|
+     *                             |----- prop3 tween 1 -----|----- prop3 tween 2 ------|
      */
     set animation(descriptor) {
       if (!_.isEqual(descriptor, this.$animationDef)) {
-        // Kill any existing master timeline
+        // Kill any existing master tween
         let animationState = this.$animationState
-        if (animationState.animationTimeline) {
-          animationState.animationTimeline.kill()
+        if (animationState.animationTween) {
+          stopTween(animationState.animationTween)
+          animationState.animationTween = null
           animationState.animatingProps = null
         }
 
@@ -111,6 +109,7 @@ export default function(WrappedClass) {
             let ease = 'linear'
             let iterations = 1
             let keyframes = []
+            let direction = 'forward'
 
             for (let prop in animDesc) {
               if (animDesc.hasOwnProperty(prop)) {
@@ -123,6 +122,8 @@ export default function(WrappedClass) {
                     ease = animDesc[prop]; break
                   case 'iterations':
                     iterations = animDesc[prop]; break
+                  case 'direction':
+                    direction = animDesc[prop]; break
                   default:
                     let percent = prop === 'from' ? 0 : prop === 'to' ? 100 : parseFloat(prop)
                     if (!isNaN(percent) && percent >= 0 && percent <= 100) {
@@ -136,15 +137,13 @@ export default function(WrappedClass) {
                 }
               }
             }
-            duration /= 1000 //gsap uses seconds
-            delay /= 1000 //gsap uses seconds
             keyframes.sort((a, b) => a.time - b.time)
             if (keyframes[0].time > 0) {
               keyframes.unshift(_.defaults({time: 0}, keyframes[0]))
             }
 
-            // Build a timeline with tweens for each keyframe+property
-            let animTimeline = new TimelineMax({paused: true})
+            // Build a MultiTween with tweens for each keyframe+property
+            let keyframePropTweens = []
             for (let i = 1, len = keyframes.length; i < len; i++) {
               let keyframe = keyframes[i]
               let props = keyframe.props
@@ -158,22 +157,20 @@ export default function(WrappedClass) {
                     }
                   }
                   if (prevKeyframe) {
-                    let propTween = TweenLite.fromTo(
-                      this, (keyframe.time - prevKeyframe.time) * duration,
-                      { [prop]: prevKeyframe.props[prop] },
-                      { [prop]: props[prop], ease: 'linear', immediateRender: false }
-                    )
-                    animTimeline.add(propTween, prevKeyframe.time * duration)
+                    keyframePropTweens.push(new PropertyTween(
+                      this, //target
+                      prop, //propertyName
+                      prevKeyframe.props[prop], //fromValue
+                      props[prop], //toValue
+                      (keyframe.time - prevKeyframe.time) * duration, //duration
+                      prevKeyframe.time * duration, //delay
+                      'linear' //easing
+                    ))
                   }
                 }
               }
             }
-            // Tween the timeline's progress, applying easing/repeat/etc to the whole
-            return animTimeline.tweenTo(duration, {
-              ease: ease,
-              delay: delay,
-              repeat: isFinite(iterations) ? Math.max(0, iterations - 1) : -1
-            })
+            return new MultiTween(keyframePropTweens, delay, ease, iterations, direction)
           }
           let animTweens = _.isArray(descriptor) ? descriptor.map(buildTweenForAnim) : [buildTweenForAnim(descriptor)]
 
@@ -181,25 +178,24 @@ export default function(WrappedClass) {
           for (let prop in animationState.animatingProps) {
             let tweenKey = prop + '.tween'
             if (animationState[tweenKey]) {
-              animationState[tweenKey].kill()
-              delete animationState[tweenKey]
+              stopTween(animationState[tweenKey])
+              animationState[tweenKey] = null
             }
           }
 
-          // Wrap all individual animations in a master timeline to handle overall lifecycle
-          let mainTimeline = new TimelineLite({
-            tweens: animTweens,
-            onUpdate: () => {
-              this.afterUpdate()
-              this.notify('needsRender')
-            },
-            onComplete: () => {
-              delete animationState.animationTimeline
-              delete animationState.animatingProps
-            }
-          })
+          // Wrap all individual animations in a master MultiTween to handle overall lifecycle
+          let mainTween = new MultiTween(animTweens)
+          mainTween.onUpdate = () => {
+            this.afterUpdate()
+            this.notify('needsRender')
+          }
+          mainTween.onDone = () => {
+            delete animationState.animationTween
+            delete animationState.animatingProps
+          }
+          startTween(mainTween)
 
-          animationState.animationTimeline = mainTimeline
+          animationState.animationTween = mainTween
         }
       }
       this.$animationDef = descriptor
@@ -209,10 +205,10 @@ export default function(WrappedClass) {
       let animState = this.$animationState
       for (let key in animState) {
         if (animState[key] && /\.tween$/.test(key)) {
-          animState[key].kill()
+          stopTween(animState[key])
         }
-        if (animState.animationTimeline) {
-          animState.animationTimeline.kill()
+        if (animState.animationTween) {
+          stopTween(animState.animationTween)
         }
       }
       delete this.$animationState
@@ -246,27 +242,32 @@ export default function(WrappedClass) {
 
             // Kill any existing tweens
             let tween = animState[tweenKey]
-            if (tween) tween.kill()
+            if (tween) stopTween(tween)
 
             // If current transition descriptor defines a tween and there's a previous value, and
             // it's not being controlled by an `animation`, start a new transition tween
             let txDef = this.$transitionDef && this.$transitionDef[propName]
             if (txDef && animState[currentKey] != null && !(animState.animatingProps && propName in animState.animatingProps)) {
-              tween = TweenLite.to(animState, (txDef.duration || DEFAULT_DURATION) / 1000, {
-                [currentKey]: value,
-                delay: (txDef.delay || 0) / 1000,
-                ease: txDef.ease || DEFAULT_EASE,
-                onUpdate: () => {
-                  if (superSetter) {
-                    superSetter.call(this, animState[currentKey])
-                  }
-                  this.afterUpdate()
-                  this.notify('needsRender')
-                },
-                onComplete: () => {
-                  delete animState[tweenKey]
+              tween = new PropertyTween(
+                animState, //target
+                currentKey, //propertyName
+                animState[currentKey], //fromValue
+                value, //toValue
+                txDef.duration || DEFAULT_DURATION, //duration
+                txDef.delay || 0, //delay
+                txDef.ease || DEFAULT_EASE //easing
+              )
+              tween.onUpdate = () => {
+                if (superSetter) {
+                  superSetter.call(this, animState[currentKey])
                 }
-              })
+                this.afterUpdate()
+                this.notify('needsRender')
+              }
+              tween.onDone = () => {
+                animState[tweenKey] = null
+              }
+              startTween(tween)
             }
             // Not starting a tween; set directly to end state
             else {
