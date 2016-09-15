@@ -8,15 +8,6 @@ import {MOUSE_EVENT_PROPS} from './Object3D'
 
 const raycaster = new THREE.Raycaster()
 
-const cameraDefDefaults = {
-  key: 'camera',
-  class: Camera
-}
-const sceneDefDefaults = {
-  key: 'scene',
-  class: Scene
-}
-
 
 class World extends Parent {
   constructor(canvas, threeJsRendererConfig) {
@@ -41,9 +32,12 @@ class World extends Parent {
 
 
   afterUpdate() {
-    _.defaults(this.camera, cameraDefDefaults)
-    _.defaults(this.scene, sceneDefDefaults)
-    this.children = [this.camera, this.scene]
+    let {camera, scene, width, height} = this
+    camera.key = 'camera'
+    camera.class = camera.class || Camera
+    scene.key = 'scene'
+    scene.class = scene.class || Scene
+    this.children = [camera, scene]
 
     super.afterUpdate()
 
@@ -55,8 +49,8 @@ class World extends Parent {
     }
 
     let lastSize = renderer.getSize()
-    if (lastSize.width !== this.width || lastSize.height !== this.height) {
-      renderer.setSize(this.width, this.height, true)
+    if (lastSize.width !== width || lastSize.height !== height) {
+      renderer.setSize(width, height, true)
     }
 
     this.requestRender()
