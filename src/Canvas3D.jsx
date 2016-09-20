@@ -1,6 +1,5 @@
 import React, {PropTypes as T} from 'react'
 import World from './facade/World'
-import threejsUtils from 'utils/threejs/threejsUtils'
 
 
 
