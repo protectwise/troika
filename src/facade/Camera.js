@@ -1,9 +1,9 @@
-import THREE from 'three'
+import {PerspectiveCamera} from 'three'
 import Object3D from './Object3D'
 
 class Camera extends Object3D {
   constructor(parent) {
-    super(parent, new THREE.PerspectiveCamera())
+    super(parent, new PerspectiveCamera())
     this._projectionChanged = false
   }
 

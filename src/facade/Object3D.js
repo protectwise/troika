@@ -1,13 +1,13 @@
 import _ from 'lodash'
-import THREE from 'three'
+import {Vector3, Matrix4, Quaternion, Object3D} from 'three'
 import Parent from './Parent'
 
 const MOUSE_EVENT_PROPS = ['onMouseOver', 'onMouseOut', 'onClick']
 
-const lookAtRotationMatrix = new THREE.Matrix4()
-const lookAtPos = new THREE.Vector3()
-const lookAtUp = new THREE.Vector3(0, 1, 0)
-const lookAtQuaternion = new THREE.Quaternion()
+const lookAtRotationMatrix = new Matrix4()
+const lookAtPos = new Vector3()
+const lookAtUp = new Vector3(0, 1, 0)
+const lookAtQuaternion = new Quaternion()
 
 class Object3D extends Parent {
   constructor(parent, threeObject) {
@@ -39,7 +39,7 @@ class Object3D extends Parent {
     let lookAt = this.lookAt
     if (lookAt) {
       lookAtPos.copy(lookAt)
-      lookAtUp.copy(this.up || THREE.Object3D.DefaultUp)
+      lookAtUp.copy(this.up || Object3D.DefaultUp)
       lookAtRotationMatrix.lookAt(threeObject.position, lookAtPos, lookAtUp)
       lookAtQuaternion.setFromRotationMatrix(lookAtRotationMatrix)
       this.quaternionX = lookAtQuaternion.x

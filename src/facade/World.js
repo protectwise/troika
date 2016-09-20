@@ -1,12 +1,12 @@
 import _ from 'lodash'
-import THREE from 'three'
+import {WebGLRenderer, Raycaster, Color, Vector2} from 'three'
 import Parent from './Parent'
 import Scene from './Scene'
 import Camera from './Camera'
 import {MOUSE_EVENT_PROPS} from './Object3D'
 
 
-const raycaster = new THREE.Raycaster()
+const raycaster = new Raycaster()
 
 
 class World extends Parent {
@@ -15,14 +15,14 @@ class World extends Parent {
 
     this.width = this.height = 500
 
-    this._threeRenderer = new THREE.WebGLRenderer(_.assign({
+    this._threeRenderer = new WebGLRenderer(_.assign({
       canvas: canvas
     }, threeJsRendererConfig))
   }
 
   set backgroundColor(color) {
     if (color !== this._bgColor) {
-      this._threeRenderer.setClearColor(new THREE.Color(color))
+      this._threeRenderer.setClearColor(new Color(color))
       this._bgColor = color
     }
   }
@@ -164,7 +164,7 @@ class World extends Parent {
   findHoveredFacade(e) {
     // convert mouse position to normalized device coords (-1 to 1)
     let canvasRect = e.target.getBoundingClientRect()
-    let coords = new THREE.Vector2(
+    let coords = new Vector2(
       (e.clientX - canvasRect.left) / canvasRect.width * 2 - 1,
       (e.clientY - canvasRect.top) / canvasRect.height * -2 + 1
     )

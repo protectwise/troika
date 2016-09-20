@@ -1,4 +1,4 @@
-import THREE from 'three'
+import {AmbientLight, DirectionalLight, SpotLight, PointLight} from 'three'
 import Object3D from './Object3D'
 
 // Common superclass with setters for all possible light properties
@@ -29,7 +29,7 @@ function createLightSubclass(ThreeJsLightClass) {
 }
 
 
-export const AmbientLight = createLightSubclass(THREE.AmbientLight)
-export const DirectionalLight = createLightSubclass(THREE.DirectionalLight)
-export const SpotLight = createLightSubclass(THREE.SpotLight)
-export const PointLight = createLightSubclass(THREE.PointLight)
+export const AmbientLight = createLightSubclass(AmbientLight)
+export const DirectionalLight = createLightSubclass(DirectionalLight)
+export const SpotLight = createLightSubclass(SpotLight)
+export const PointLight = createLightSubclass(PointLight)

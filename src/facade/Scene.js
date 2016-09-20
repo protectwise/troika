@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import THREE from 'three'
+import {Scene} from 'three'
 import Object3D, {MOUSE_EVENTS} from './Object3D'
 import {AmbientLight, SpotLight, DirectionalLight, PointLight} from './Light'
 
@@ -14,7 +14,7 @@ const LIGHT_TYPES = {
 
 class Scene extends Object3D {
   constructor(parent) {
-    let scene = new THREE.Scene()
+    let scene = new Scene()
 
     super(parent, scene)
 
