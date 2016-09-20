@@ -53,35 +53,49 @@ class World extends Parent {
       renderer.setSize(width, height, true)
     }
 
-    this.requestRender()
+    this.queueRender()
   }
 
-  // Requests a ThreeJS render pass. If one has already been done this frame, queue up a render on
-  // the next frame; otherwise do it immediately.
+  // Requests a ThreeJS render pass as soon as possible. Tries to do it immediately, unless a render has
+  // already happened this frame in which case it will queue one up for next frame.
   requestRender() {
     if (this._hasRenderedThisFrame) {
       this._needsRenderNextFrame = true
     } else {
-      this._threeRenderer.render(this.getChildByKey('scene').threeObject, this.getChildByKey('camera').threeObject)
-      this._hasRenderedThisFrame = true
+      this._doRender()
     }
-    if (!this._renderNextFrameTimer) {
-      this._renderNextFrameTimer = requestAnimationFrame(() => {
-        this._renderNextFrameTimer = null
-        this._hasRenderedThisFrame = false
+    this._queueNextFrame()
+  }
+
+  // Requests a ThreeJS render pass on the next animation frame.
+  queueRender() {
+    this._needsRenderNextFrame = true
+    this._queueNextFrame()
+  }
+
+  _queueNextFrame() {
+    if (!this._nextFrameTimer) {
+      this._nextFrameTimer = requestAnimationFrame(() => {
+        this._nextFrameTimer = null
         if (this._needsRenderNextFrame) {
-          this.requestRender()
+          this._needsRenderNextFrame = false
+          this._hasRenderedThisFrame = false
+          this._doRender()
         }
-        this._needsRenderNextFrame = false
       })
     }
+  }
+
+  _doRender() {
+    this._threeRenderer.render(this.getChildByKey('scene').threeObject, this.getChildByKey('camera').threeObject)
+    this._hasRenderedThisFrame = true
   }
 
 
   onNotify(source, message, data) {
     switch(message) {
       case 'needsRender':
-        this.requestRender()
+        this.queueRender()
         break
       case 'addEventListener':
         let registry = this.$eventRegistry || (this.$eventRegistry = Object.create(null))
@@ -184,10 +198,9 @@ class World extends Parent {
   }
 
   destructor() {
-    if (this._renderNextFrameTimer) {
-      cancelAnimationFrame(this._renderNextFrameTimer)
+    if (this._nextFrameTimer) {
+      cancelAnimationFrame(this._nextFrameTimer)
     }
-    delete this._renderNextFrameTimer
   }
 
 }
