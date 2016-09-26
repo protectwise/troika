@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import {Vector3, Matrix4, Quaternion, Object3D} from 'three'
+import {Vector3, Matrix4, Quaternion, Object3D as ThreeObject3D} from 'three'
 import Parent from './Parent'
 
 const MOUSE_EVENT_PROPS = ['onMouseOver', 'onMouseOut', 'onClick']
@@ -39,7 +39,7 @@ class Object3D extends Parent {
     let lookAt = this.lookAt
     if (lookAt) {
       lookAtPos.copy(lookAt)
-      lookAtUp.copy(this.up || Object3D.DefaultUp)
+      lookAtUp.copy(this.up || ThreeObject3D.DefaultUp)
       lookAtRotationMatrix.lookAt(threeObject.position, lookAtPos, lookAtUp)
       lookAtQuaternion.setFromRotationMatrix(lookAtRotationMatrix)
       this.quaternionX = lookAtQuaternion.x

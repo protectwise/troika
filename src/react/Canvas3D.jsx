@@ -1,5 +1,5 @@
 import React, {PropTypes as T} from 'react'
-import World from './facade/World'
+import World from '../facade/World'
 
 
 
