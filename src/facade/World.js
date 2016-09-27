@@ -2,7 +2,7 @@ import _ from 'lodash'
 import {WebGLRenderer, Raycaster, Color, Vector2} from 'three'
 import Parent from './Parent'
 import Scene from './Scene'
-import Camera from './Camera'
+import {PerspectiveCamera} from './Camera'
 import {MOUSE_EVENT_PROPS} from './Object3D'
 
 
@@ -40,7 +40,7 @@ class World extends Parent {
   afterUpdate() {
     let {camera, scene, width, height} = this
     camera.key = 'camera'
-    camera.class = camera.class || Camera
+    camera.class = camera.class || PerspectiveCamera
     scene.key = 'scene'
     scene.class = scene.class || Scene
     this.children = [camera, scene]

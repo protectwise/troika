@@ -3,7 +3,7 @@ export {default as Runner} from './animation/Runner.js'
 export {default as Tween} from './animation/Tween.js'
 
 export {default as Animatable} from './facade/Animatable.js'
-export {default as Camera} from './facade/Camera.js'
+export {PerspectiveCamera, OrthographicCamera} from './facade/Camera.js'
 export {default as FacadeBase} from './facade/FacadeBase.js'
 export {default as Group} from './facade/Group.js'
 export {AmbientLight, DirectionalLight, PointLight, SpotLight} from './facade/Light.js'
