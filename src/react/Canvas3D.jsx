@@ -15,7 +15,6 @@ const Canvas3D = React.createClass({
     camera: T.object.isRequired,
     objects: T.array.isRequired,
     antialias: T.bool,
-    //shadowMapType: T.oneOf([THREE.BasicShadowMap, THREE.PCFShadowMap, THREE.PCFSoftShadowMap]),
     showStats: T.bool,
     onBackgroundClick: T.func
   },
@@ -68,11 +67,11 @@ const Canvas3D = React.createClass({
 
 
   _onMouseMove(e) {
-    this._world.handleMouseMove(e)
+    this._world.handleMouseMoveEvent(e)
   },
 
-  _onClick(e) {
-    this._world.handleClick(e)
+  _onMouseButton(e) {
+    this._world.handleMouseButtonEvent(e)
   },
 
 
@@ -82,7 +81,11 @@ const Canvas3D = React.createClass({
         <canvas
           ref={ this._bindCanvasRef }
           onMouseMove={ this._onMouseMove }
-          onClick={ this._onClick }
+          onMouseOut={ this._onMouseMove }
+          onClick={ this._onMouseButton }
+          onMouseDown={ this._onMouseButton }
+          onMouseUp={ this._onMouseButton }
+          onDoubleClick={ this._onMouseButton }
         />
         
         { /*props.showStats && this._threeJsRenderer ? (

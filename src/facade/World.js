@@ -7,6 +7,12 @@ import {MOUSE_EVENT_PROPS} from './Object3D'
 
 
 const raycaster = new Raycaster()
+const eventTypesToProps = {
+  'click': 'onClick',
+  'dblclick': 'onDoubleClick',
+  'mousedown': 'onMouseDown',
+  'mouseup': 'onMouseUp'
+}
 
 
 class World extends Parent {
@@ -114,11 +120,11 @@ class World extends Parent {
     }
   }
 
-  handleMouseMove(e) {
+  handleMouseMoveEvent(e) {
     let registry = this.$eventRegistry
     if (registry && (registry.onMouseOver || registry.onMouseOut)) {
       let lastHovered = this.$hoveredFacade
-      let hovered = this.$hoveredFacade = this.findHoveredFacade(e)
+      let hovered = this.$hoveredFacade = e.type === 'mouseout' ? null : this.findHoveredFacade(e)
       if (hovered !== lastHovered && registry) {
         if (lastHovered) {
           let handler = registry.onMouseOut && registry.onMouseOut[lastHovered.$facadeId]
@@ -142,20 +148,21 @@ class World extends Parent {
     }
   }
 
-  handleClick(e) {
+  handleMouseButtonEvent(e) {
     var handler
+    let eventProp = eventTypesToProps[e.type]
     let registry = this.$eventRegistry
-    if (registry && registry.onClick) {
-      let clicked = this.findHoveredFacade(e)
-      if (!clicked) {
-        clicked = this.getChildByKey('scene')
-        handler = clicked.onClick
+    if (registry && eventProp && registry[eventProp]) {
+      let facade = this.findHoveredFacade(e)
+      if (!facade) {
+        facade = this.getChildByKey('scene')
+        handler = facade[eventProp]
       } else {
-        handler = registry.onClick && registry.onClick[clicked.$facadeId]
+        handler = registry[eventProp] && registry[eventProp][facade.$facadeId]
       }
       if (handler) {
         e = _.clone(e)
-        e.target = e.currentTarget = clicked
+        e.target = e.currentTarget = facade
         handler(e)
       }
     }

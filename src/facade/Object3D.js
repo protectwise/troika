@@ -2,7 +2,7 @@ import _ from 'lodash'
 import {Vector3, Matrix4, Quaternion, Object3D as ThreeObject3D} from 'three'
 import Parent from './Parent'
 
-const MOUSE_EVENT_PROPS = ['onMouseOver', 'onMouseOut', 'onClick']
+const MOUSE_EVENT_PROPS = ['onMouseOver', 'onMouseOut', 'onMouseDown', 'onMouseUp', 'onClick', 'onDoubleClick']
 
 const lookAtRotationMatrix = new Matrix4()
 const lookAtPos = new Vector3()
@@ -57,7 +57,7 @@ class Object3D extends Parent {
 
   destructor() {
     MOUSE_EVENT_PROPS.forEach(type => {
-      this[`_handler_${type}`] = null
+      this[`${type}➤handler`] = null
     })
     let threeObject = this.threeObject
     if (threeObject.parent) {
@@ -115,7 +115,7 @@ _.forOwn({
 
 // Setup handlers for mouse event properties
 MOUSE_EVENT_PROPS.forEach(eventName => {
-  let privateProp = `_handler_${ eventName }`
+  let privateProp = `${ eventName }➤handler`
   Object.defineProperty(Object3D.prototype, eventName, {
     get() {
       return this[privateProp]
