@@ -11,6 +11,7 @@ export {default as List} from './facade/List.js'
 export {default as Object3D} from './facade/Object3D.js'
 export {default as Parent} from './facade/Parent.js'
 export {default as Scene} from './facade/Scene.js'
+export {default as Text} from './facade/Text.js'
 export {default as World} from './facade/World.js'
 
 export {default as Canvas3D} from './react/Canvas3D.jsx'
