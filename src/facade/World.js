@@ -129,19 +129,21 @@ class World extends Parent {
         if (lastHovered) {
           let handler = registry.onMouseOut && registry.onMouseOut[lastHovered.$facadeId]
           if (handler) {
-            e = _.clone(e)
-            e.target = e.currentTarget = lastHovered
-            e.relatedTarget = hovered || null
-            handler(e)
+            let newEvent = _.clone(e)
+            newEvent.target = newEvent.currentTarget = lastHovered
+            newEvent.relatedTarget = hovered || null
+            newEvent.originalEvent = e
+            handler(newEvent)
           }
         }
         if (hovered) {
           let handler = registry.onMouseOver && registry.onMouseOver[hovered.$facadeId]
           if (handler) {
-            e = _.clone(e)
-            e.target = e.currentTarget = hovered
-            e.relatedTarget = lastHovered || null
-            handler(e)
+            let newEvent = _.clone(e)
+            newEvent.target = newEvent.currentTarget = hovered
+            newEvent.relatedTarget = lastHovered || null
+            newEvent.originalEvent = e
+            handler(newEvent)
           }
         }
       }
@@ -161,9 +163,10 @@ class World extends Parent {
         handler = registry[eventProp] && registry[eventProp][facade.$facadeId]
       }
       if (handler) {
-        e = _.clone(e)
-        e.target = e.currentTarget = facade
-        handler(e)
+        let newEvent = _.clone(e)
+        newEvent.target = newEvent.currentTarget = facade
+        newEvent.originalEvent = e
+        handler(newEvent)
       }
     }
   }
