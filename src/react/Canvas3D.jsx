@@ -16,7 +16,8 @@ const Canvas3D = React.createClass({
     objects: T.array.isRequired,
     antialias: T.bool,
     showStats: T.bool,
-    onBackgroundClick: T.func
+    onBackgroundClick: T.func,
+    className: T.string
   },
 
   componentDidUpdate() {
@@ -77,7 +78,7 @@ const Canvas3D = React.createClass({
 
   render() {
     return (
-      <div>
+      <div className={ this.props.className }>
         <canvas
           ref={ this._bindCanvasRef }
           onMouseMove={ this._onMouseMove }
