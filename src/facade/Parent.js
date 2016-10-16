@@ -29,6 +29,7 @@ export default class Parent extends FacadeBase {
 
     for (let i = 0, len = children.length; i < len; i++) {
       let childDesc = children[i]
+      if (!childDesc) continue //child members can be null
       let key = childDesc.key
       let cla$$ = childDesc.class
 
