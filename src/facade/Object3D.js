@@ -55,6 +55,12 @@ class Object3D extends Parent {
     super.afterUpdate()
   }
 
+  getCameraPosition() {
+    var _pos = null
+    this.notify('getCameraPosition', pos => _pos = pos)
+    return _pos
+  }
+
   destructor() {
     MOUSE_EVENT_PROPS.forEach(type => {
       this[`${type}➤handler`] = null

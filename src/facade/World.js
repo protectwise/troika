@@ -22,13 +22,14 @@ class World extends Parent {
     this.width = this.height = 500
 
     this._threeRenderer = new WebGLRenderer(_.assign({
-      canvas: canvas
+      canvas: canvas,
+      alpha: true
     }, threeJsRendererConfig))
   }
 
   set backgroundColor(color) {
     if (color !== this._bgColor) {
-      this._threeRenderer.setClearColor(new Color(color))
+      this._threeRenderer.setClearColor(new Color(color || 0), color ? 1 : 0)
       this._bgColor = color
     }
   }
@@ -102,6 +103,9 @@ class World extends Parent {
     switch(message) {
       case 'needsRender':
         this.queueRender()
+        break
+      case 'getCameraPosition':
+        data(this.camera.threeObject.position) //callback function
         break
       case 'addEventListener':
         let registry = this.$eventRegistry || (this.$eventRegistry = Object.create(null))
