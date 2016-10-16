@@ -57,7 +57,7 @@ class Object3D extends Parent {
 
   getCameraPosition() {
     var _pos = null
-    this.notify('getCameraPosition', pos => _pos = pos)
+    this.notifyWorld('getCameraPosition', pos => _pos = pos)
     return _pos
   }
 
@@ -131,7 +131,7 @@ MOUSE_EVENT_PROPS.forEach(eventName => {
         this[privateProp] = handler
 
         // Add/remove from the global event registry
-        this.notify(handler ? 'addEventListener' : 'removeEventListener', {
+        this.notifyWorld(handler ? 'addEventListener' : 'removeEventListener', {
           type: eventName,
           handler: handler
         })

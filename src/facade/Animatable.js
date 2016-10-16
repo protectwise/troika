@@ -24,7 +24,7 @@ export default function(WrappedClass) {
       this[runnerKey] = new Runner()
       this[runnerKey].onTick = () => {
         this.afterUpdate()
-        this.notify('needsRender')
+        this.notifyWorld('needsRender')
       }
     }
 

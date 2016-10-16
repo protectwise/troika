@@ -3,6 +3,45 @@ import World from '../facade/World'
 
 
 
+const HtmlOverlay = React.createClass({
+  displayName: 'Canvas3D.HtmlOverlay',
+
+  ctStyles: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    pointerEvents: 'none'
+  },
+
+  getInitialState() {
+    return {
+      items: []
+    }
+  },
+
+  setItems(items) {
+    this.setState({items: items || []})
+  },
+
+  render() {
+    return (
+      <div style={ this.ctStyles }>
+        { this.state.items.map(({key, html, x, y}) => {
+          return (
+            <div key={ key } style={ {
+              position: 'absolute',
+              transform: `translate(${ x }px, ${ y }px)`}
+            }>
+              { html }
+            </div>
+          )
+        }) }
+      </div>
+    )
+  }
+})
+
+
 
 const Canvas3D = React.createClass({
   displayName: 'Canvas3D',
@@ -42,6 +81,7 @@ const Canvas3D = React.createClass({
     this._world = new World(canvas, {
       antialias: props.antialias
     })
+    this._world.renderHtmlItems = this.renderHtmlItems
   },
 
   updateWorld() {
@@ -66,6 +106,15 @@ const Canvas3D = React.createClass({
     }
   },
 
+  renderHtmlItems(items) {
+    if (this._htmlOverlayRef) {
+      this._htmlOverlayRef.setItems(items)
+    }
+  },
+
+  _bindHtmlOverlayRef(cmp) {
+    this._htmlOverlayRef = cmp
+  },
 
   _onMouseMove(e) {
     this._world.handleMouseMoveEvent(e)
@@ -95,6 +144,8 @@ const Canvas3D = React.createClass({
             renderer={ this._threeJsRenderer }
           />
         ) : null*/ }
+
+        <HtmlOverlay ref={ this._bindHtmlOverlayRef } />
       </div>
     )
   }

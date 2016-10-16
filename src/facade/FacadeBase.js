@@ -46,8 +46,8 @@ export default class FacadeBase {
     // walk all the way up the chain on each call. It assumes implementations will not be added
     // after the fact anywhere in the prototype chain.
     // TODO see if this is worthwhile, has issues with 'this' binding
-    // if (!this.onNotify) {
-    //   this.onNotify = parent && parent.onNotify && parent.onNotify.bind(parent)
+    // if (!this.onNotifyWorld) {
+    //   this.onNotifyWorld = parent && parent.onNotifyWorld && parent.onNotifyWorld.bind(parent)
     // }
   }
 
@@ -73,15 +73,15 @@ export default class FacadeBase {
   /**
    * Dispatch a message with optional data up the facade parent tree.
    */
-  notify(message, data) {
-    this.parent.onNotify(this, message, data)
+  notifyWorld(message, data) {
+    this.parent.onNotifyWorld(this, message, data)
   }
 
   /**
-   * Default notify handler just bubbles it up
+   * Default notifyWorld handler just bubbles it up
    */
-  onNotify(...args) {
-    this.parent.onNotify(...args)
+  onNotifyWorld(...args) {
+    this.parent.onNotifyWorld(...args)
   }
 
   /**

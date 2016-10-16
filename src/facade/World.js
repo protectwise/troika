@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import {WebGLRenderer, Raycaster, Color, Vector2} from 'three'
+import {WebGLRenderer, Raycaster, Color, Vector2, Vector3} from 'three'
 import Parent from './Parent'
 import Scene from './Scene'
 import {PerspectiveCamera} from './Camera'
@@ -20,6 +20,7 @@ class World extends Parent {
     super(null)
 
     this.width = this.height = 500
+    this._htmlOverlays = Object.create(null)
 
     this._threeRenderer = new WebGLRenderer(_.assign({
       canvas: canvas,
@@ -95,11 +96,29 @@ class World extends Parent {
 
   _doRender() {
     this._threeRenderer.render(this.getChildByKey('scene').threeObject, this.getChildByKey('camera').threeObject)
+    this._doRenderHtmlItems()
     this._hasRenderedThisFrame = true
   }
 
+  _doRenderHtmlItems() {
+    if (this.renderHtmlItems) {
+      let posVec = new Vector3()
+      let htmlItems = _.map(this._htmlOverlays, (overlay, key) => {
+        posVec.setFromMatrixPosition(overlay.threeObject.matrixWorld)
+        posVec.project(this.getChildByKey('camera').threeObject)
+        return {
+          key: key,
+          html: overlay.html,
+          x: (posVec.x + 1) * this.width / 2,
+          y: (1 - posVec.y) * this.height / 2
+        }
+      })
+      this.renderHtmlItems(htmlItems)
+    }
+  }
 
-  onNotify(source, message, data) {
+
+  onNotifyWorld(source, message, data) {
     switch(message) {
       case 'needsRender':
         this.queueRender()
@@ -120,6 +139,12 @@ class World extends Parent {
             delete this.$eventRegistry[data.type]
           }
         }
+        break
+      case 'addHtmlOverlay':
+        this._htmlOverlays[data.$facadeId] = data
+        break
+      case 'removeHtmlOverlay':
+        delete this._htmlOverlays[data.$facadeId]
         break
     }
   }
