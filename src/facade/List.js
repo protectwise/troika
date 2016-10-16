@@ -96,4 +96,14 @@ export default class List extends FacadeBase {
 
     super.afterUpdate()
   }
+
+  destructor() {
+    // Destroy all child instances
+    if (this._itemsDict) {
+      for (let key in this._itemsDict) {
+        this._itemsDict[key].destructor()
+      }
+    }
+    super.destructor()
+  }
 }
