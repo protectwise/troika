@@ -103,14 +103,17 @@ class World extends Parent {
   _doRenderHtmlItems() {
     if (this.renderHtmlItems) {
       let posVec = new Vector3()
+      let camera = this.getChildByKey('camera').threeObject
       let htmlItems = _.map(this._htmlOverlays, (overlay, key) => {
         posVec.setFromMatrixPosition(overlay.threeObject.matrixWorld)
-        posVec.project(this.getChildByKey('camera').threeObject)
+        let distance = posVec.distanceTo(camera.position)
+        posVec.project(camera)
         return {
           key: key,
           html: overlay.html,
           x: (posVec.x + 1) * this.width / 2,
-          y: (1 - posVec.y) * this.height / 2
+          y: (1 - posVec.y) * this.height / 2,
+          z: distance
         }
       })
       this.renderHtmlItems(htmlItems)

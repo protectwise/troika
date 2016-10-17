@@ -10,7 +10,8 @@ const HtmlOverlay = React.createClass({
     position: 'absolute',
     top: 0,
     left: 0,
-    pointerEvents: 'none'
+    pointerEvents: 'none',
+    transformStyle: 'preserve-3d'
   },
 
   getInitialState() {
@@ -26,11 +27,11 @@ const HtmlOverlay = React.createClass({
   render() {
     return (
       <div style={ this.ctStyles }>
-        { this.state.items.map(({key, html, x, y}) => {
+        { this.state.items.map(({key, html, x, y, z}) => {
           return (
             <div key={ key } style={ {
               position: 'absolute',
-              transform: `translate(${ x }px, ${ y }px)`}
+              transform: `translate3d(${ x }px, ${ y }px, ${-z}px)`}
             }>
               { html }
             </div>
