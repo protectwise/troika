@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import {isEqual, defaults} from 'lodash-es'
 import Tween from '../animation/Tween'
 import MultiTween from '../animation/MultiTween'
 import Runner from '../animation/Runner'
@@ -90,7 +90,7 @@ export default function(WrappedClass) {
      */
     set animation(descriptor) {
       // Is the animation descriptor new or changed?
-      if (!_.isEqual(descriptor, this[animationDescriptorKey])) {
+      if (!isEqual(descriptor, this[animationDescriptorKey])) {
         // Clear any existing animation state
         let runner = this[runnerKey]
         let animTweens = this[animationTweensKey]
@@ -149,7 +149,7 @@ export default function(WrappedClass) {
             // Sort the keyframes by time
             keyframes.sort((a, b) => a.time - b.time)
             if (keyframes[0].time > 0) {
-              keyframes.unshift(_.defaults({time: 0}, keyframes[0]))
+              keyframes.unshift(defaults({time: 0}, keyframes[0]))
             }
 
             // Build a MultiTween with tweens for each keyframe+property
@@ -183,7 +183,7 @@ export default function(WrappedClass) {
           }
 
           // Build and start a tween for each animation
-          let animTweens = this[animationTweensKey] = _.isArray(descriptor) ? descriptor.map(buildTweenForAnim) : [buildTweenForAnim(descriptor)]
+          let animTweens = this[animationTweensKey] = Array.isArray(descriptor) ? descriptor.map(buildTweenForAnim) : [buildTweenForAnim(descriptor)]
           animTweens.forEach(runner.start, runner)
         }
 

@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import FacadeBase, {isSpecialDescriptorProperty} from './FacadeBase'
 import Animatable from './Animatable'
 
@@ -36,16 +35,16 @@ export default class List extends FacadeBase {
 
     // Some basic validation in dev mode
     if (process.env.NODE_ENV !== 'production') {
-      if (!_.isArray(data)) {
+      if (!Array.isArray(data)) {
         throw 'List "data" must be an array.'
       }
-      if (!_.isObject(template)) {
+      if (!template || typeof template !== 'object') {
         throw 'List "template" must be an object.'
       }
-      if (!_.isFunction(template.key)) {
+      if (!template || typeof template.key !== 'function') {
         throw 'List template must define a "key" function.'
       }
-      if (!_.isFunction(template.class)) {
+      if (!template || typeof template.class !== 'function') {
         throw 'List template must define a "class".'
       }
     }
@@ -57,7 +56,7 @@ export default class List extends FacadeBase {
 
       // Some basic validation in dev mode
       if (process.env.NODE_ENV !== 'production') {
-        if (!key || !_.isString(key)) {
+        if (!key || typeof key !== 'string') {
           throw 'List template "key" function must return a string.'
         }
       }

@@ -1,5 +1,5 @@
-import _ from 'lodash'
-import {WebGLRenderer, Raycaster, Color, Vector2, Vector3} from 'three'
+import {assign, clone, isEmpty, map} from 'lodash-es'
+import {WebGLRenderer, Raycaster, Color, Vector2, Vector3} from 'three/src/Three'
 import Parent from './Parent'
 import Scene from './Scene'
 import {PerspectiveCamera} from './Camera'
@@ -22,7 +22,7 @@ class World extends Parent {
     this.width = this.height = 500
     this._htmlOverlays = Object.create(null)
 
-    this._threeRenderer = new WebGLRenderer(_.assign({
+    this._threeRenderer = new WebGLRenderer(assign({
       canvas: canvas,
       alpha: true
     }, threeJsRendererConfig))
@@ -64,32 +64,12 @@ class World extends Parent {
     this.queueRender()
   }
 
-  // Requests a ThreeJS render pass as soon as possible. Tries to do it immediately, unless a render has
-  // already happened this frame in which case it will queue one up for next frame.
-  requestRender() {
-    if (this._hasRenderedThisFrame) {
-      this._needsRenderNextFrame = true
-    } else {
-      this._doRender()
-    }
-    this._queueNextFrame()
-  }
-
   // Requests a ThreeJS render pass on the next animation frame.
   queueRender() {
-    this._needsRenderNextFrame = true
-    this._queueNextFrame()
-  }
-
-  _queueNextFrame() {
     if (!this._nextFrameTimer) {
       this._nextFrameTimer = requestAnimationFrame(() => {
         this._nextFrameTimer = null
-        if (this._needsRenderNextFrame) {
-          this._needsRenderNextFrame = false
-          this._hasRenderedThisFrame = false
-          this._doRender()
-        }
+        this._doRender()
       })
     }
   }
@@ -97,14 +77,13 @@ class World extends Parent {
   _doRender() {
     this._threeRenderer.render(this.getChildByKey('scene').threeObject, this.getChildByKey('camera').threeObject)
     this._doRenderHtmlItems()
-    this._hasRenderedThisFrame = true
   }
 
   _doRenderHtmlItems() {
     if (this.renderHtmlItems) {
       let posVec = new Vector3()
       let camera = this.getChildByKey('camera').threeObject
-      let htmlItems = _.map(this._htmlOverlays, (overlay, key) => {
+      let htmlItems = map(this._htmlOverlays, (overlay, key) => {
         posVec.setFromMatrixPosition(overlay.threeObject.matrixWorld)
         let distance = posVec.distanceTo(camera.position)
         posVec.project(camera)
@@ -138,7 +117,7 @@ class World extends Parent {
         listeners = this.$eventRegistry[data.type]
         if (listeners) {
           delete listeners[source.$facadeId]
-          if (_.isEmpty(listeners)) {
+          if (isEmpty(listeners)) {
             delete this.$eventRegistry[data.type]
           }
         }
@@ -161,7 +140,7 @@ class World extends Parent {
         if (lastHovered) {
           let handler = registry.onMouseOut && registry.onMouseOut[lastHovered.$facadeId]
           if (handler) {
-            let newEvent = _.clone(e)
+            let newEvent = clone(e)
             newEvent.target = newEvent.currentTarget = lastHovered
             newEvent.relatedTarget = hovered || null
             newEvent.originalEvent = e
@@ -171,7 +150,7 @@ class World extends Parent {
         if (hovered) {
           let handler = registry.onMouseOver && registry.onMouseOver[hovered.$facadeId]
           if (handler) {
-            let newEvent = _.clone(e)
+            let newEvent = clone(e)
             newEvent.target = newEvent.currentTarget = hovered
             newEvent.relatedTarget = lastHovered || null
             newEvent.originalEvent = e
@@ -195,7 +174,7 @@ class World extends Parent {
         handler = registry[eventProp] && registry[eventProp][facade.$facadeId]
       }
       if (handler) {
-        let newEvent = _.clone(e)
+        let newEvent = clone(e)
         newEvent.target = newEvent.currentTarget = facade
         newEvent.originalEvent = e
         handler(newEvent)

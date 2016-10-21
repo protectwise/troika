@@ -1,4 +1,4 @@
 node_modules
-dist
+build
 .tmp
 .DS_store

@@ -3,7 +3,7 @@ import {
   DirectionalLight as ThreeDirectionalLight,
   SpotLight as ThreeSpotLight,
   PointLight as ThreePointLight
-} from 'three'
+} from 'three/src/Three'
 import Object3D from './Object3D'
 
 // Common superclass with setters for all possible light properties

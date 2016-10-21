@@ -1,6 +1,6 @@
-import _ from 'lodash'
+import {forOwn} from 'lodash-es'
 import Object3D from './Object3D'
-import {Mesh, PlaneGeometry, MeshBasicMaterial, Texture, DoubleSide, LinearFilter} from 'three'
+import {Mesh, PlaneGeometry, MeshBasicMaterial, Texture, DoubleSide, LinearFilter} from 'three/src/Three'
 
 
 const canvas = document.createElement('canvas')
@@ -80,7 +80,7 @@ class Text extends Object3D {
 }
 
 // Setters for properties that trigger a texture rebuild
-_.each({
+forOwn({
   'text': '',
   'color': '#ffffff',
   'backgroundColor': null,
@@ -100,10 +100,10 @@ _.each({
       function(value) {
         let lastValue = this[privateProp] //stored value will always be an array
         let equal = true
-        if (_.isNumber(value)) {
+        if (typeof value === 'number') {
           equal = value === lastValue[0] && value === lastValue[1] && value === lastValue[2] && value === lastValue[3]
         }
-        else if (_.isArray(value)) {
+        else if (Array.isArray(value)) {
           // check equality without creating transient array
           equal = value[0] === lastValue[0] &&
             value[value.length > 1 ? 1 : 0] === lastValue[1] &&
@@ -115,7 +115,7 @@ _.each({
         }
         if (!equal) {
           // normalize to 4-item array
-          if (_.isNumber(value)) {
+          if (typeof value === 'number') {
             value = [value, value, value, value]
           } else if (value.length < 4) {
             value = value.slice()

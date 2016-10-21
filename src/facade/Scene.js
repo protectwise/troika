@@ -1,6 +1,6 @@
-import _ from 'lodash'
-import {Scene as ThreeScene} from 'three'
-import Object3D, {MOUSE_EVENTS} from './Object3D'
+import {omit} from 'lodash-es'
+import {Scene as ThreeScene} from 'three/src/Three'
+import Object3D from './Object3D'
 import {AmbientLight, SpotLight, DirectionalLight, PointLight} from './Light'
 
 
@@ -25,7 +25,7 @@ class Scene extends Object3D {
   afterUpdate() {
     // Map light definitions to their appropriate classes
     let lights = (this.lights || [{type: 'ambient'}]).map((def, i) => {
-      let realDef = _.omit(def, 'type')
+      let realDef = omit(def, 'type')
       realDef.key = `$$$light_${ i }`
       realDef.class = LIGHT_TYPES[def.type] || AmbientLight
       return realDef

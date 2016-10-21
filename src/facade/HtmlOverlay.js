@@ -1,4 +1,4 @@
-import {Object3D as ThreeObject3D} from 'three'
+import {Object3D as ThreeObject3D} from 'three/src/Three'
 import Object3D from './Object3D'
 
 

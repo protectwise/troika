@@ -1,5 +1,5 @@
-import _ from 'lodash'
-import {Vector3, Matrix4, Quaternion, Object3D as ThreeObject3D} from 'three'
+import {forOwn} from 'lodash-es'
+import {Vector3, Matrix4, Quaternion, Object3D as ThreeObject3D} from 'three/src/Three'
 import Parent from './Parent'
 
 const MOUSE_EVENT_PROPS = ['onMouseOver', 'onMouseOut', 'onMouseDown', 'onMouseUp', 'onClick', 'onDoubleClick']
@@ -77,7 +77,7 @@ class Object3D extends Parent {
 
 
 // Create flat property setters for individual position/scale/rotation properties
-_.forOwn({
+forOwn({
   position: {
     x: 'x',
     y: 'y',
@@ -101,7 +101,7 @@ _.forOwn({
     w: 'quaternionW'
   }
 }, (attrs, aspect) => {
-  _.forOwn(attrs, (propName, attr) => {
+  forOwn(attrs, (propName, attr) => {
     Object.defineProperty(Object3D.prototype, propName, {
       get() {
         return this.threeObject[aspect][attr]

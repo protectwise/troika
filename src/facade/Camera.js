@@ -1,4 +1,4 @@
-import {PerspectiveCamera as ThreePerspective, OrthographicCamera as ThreeOrthographic} from 'three'
+import {PerspectiveCamera as ThreePerspective, OrthographicCamera as ThreeOrthographic} from 'three/src/Three'
 import Object3D from './Object3D'
 
 
