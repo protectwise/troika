@@ -222,6 +222,7 @@ class World extends Parent {
     if (this._nextFrameTimer) {
       cancelAnimationFrame(this._nextFrameTimer)
     }
+    super.destructor()
   }
 
 }
