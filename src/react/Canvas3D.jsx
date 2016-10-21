@@ -1,48 +1,7 @@
-import React, {PropTypes as T} from 'react'
+import React from 'react'
 import World from '../facade/World'
-
-
-
-const HtmlOverlay = React.createClass({
-  displayName: 'Canvas3D.HtmlOverlay',
-
-  ctStyles: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    pointerEvents: 'none',
-    transformStyle: 'preserve-3d'
-  },
-
-  getInitialState() {
-    return {
-      items: []
-    }
-  },
-
-  setItems(items) {
-    this.setState({items: items || []})
-  },
-
-  render() {
-    return (
-      <div style={ this.ctStyles }>
-        { this.state.items.map(({key, html, x, y, z}) => {
-          return (
-            <div key={ key } style={ {
-              position: 'absolute',
-              transform: `translate3d(${ x }px, ${ y }px, ${-z}px)`}
-            }>
-              { html }
-            </div>
-          )
-        }) }
-      </div>
-    )
-  }
-})
+import HtmlOverlay from './HtmlOverlay.jsx'
+const T = React.PropTypes
 
 
 
@@ -129,8 +88,14 @@ const Canvas3D = React.createClass({
 
 
   render() {
+    let {props} = this
     return (
-      <div className={ this.props.className }>
+      <div className={ props.className } style={ {
+        position: 'relative',
+        overflow: 'hidden',
+        width: props.width,
+        height: props.height
+      } }>
         <canvas
           ref={ this._bindCanvasRef }
           onMouseMove={ this._onMouseMove }
@@ -140,13 +105,6 @@ const Canvas3D = React.createClass({
           onMouseUp={ this._onMouseButton }
           onDoubleClick={ this._onMouseButton }
         />
-        
-        { /*props.showStats && this._threeJsRenderer ? (
-          <threejsUtils.WebGlStats
-            ref={ this.bindStatsRef }
-            renderer={ this._threeJsRenderer }
-          />
-        ) : null*/ }
 
         <HtmlOverlay ref={ this._bindHtmlOverlayRef } />
       </div>
