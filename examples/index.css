@@ -1,0 +1,33 @@
+
+html, body {
+  background: #222;
+  color: #FFF;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+}
+
+.examples {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.examples_header {
+  background: #666;
+  padding: 10px 20px;
+}
+
+h1 {
+  font-size: 16px;
+  display: inline;
+  margin-right: 20px;
+}
+
+.examples_body {
+  position: relative;
+  flex: 1;
+}
