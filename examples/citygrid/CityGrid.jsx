@@ -196,7 +196,7 @@ const CityGrid = React.createClass({
       <div className="the_grid" onWheel={ this._onMouseWheel }
         style={ {position: 'absolute', top: 0, right: 0, bottom: 0, left: 0} }
       >
-        <div style={ {position: 'absolute', right: 0, zIndex: 10, display: 'flex', flexDirection: 'column'} }>
+        <div style={ {position: 'absolute', top: 10, right: 10, zIndex: 10, display: 'flex', flexDirection: 'column'} }>
           <button onClick={ this._changeHeights }>Change Heights</button>
           <button onClick={ this._changeThreatLevels }>Change Threats</button>
           <button onClick={ this._generateData }>Regen Full</button>

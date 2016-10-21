@@ -31,3 +31,7 @@ h1 {
   position: relative;
   flex: 1;
 }
+
+a {
+  color: #00b3ee;
+}
