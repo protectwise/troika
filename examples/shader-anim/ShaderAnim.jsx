@@ -1,6 +1,7 @@
 import React from 'react'
 import {Canvas3D} from '../../src/index'
 import {LavaCube, WaterCube} from './Cube'
+import {Fireball} from './Fireball'
 
 const TRANS = {
   duration: 700,
@@ -47,7 +48,7 @@ export default React.createClass({
               key: 'lava',
               class: LavaCube,
               x: -100,
-              y: 50,
+              y: 75,
               rotateX: state.rotateX,
               rotateY: state.rotateY,
               rotateZ: state.rotateZ,
@@ -67,7 +68,26 @@ export default React.createClass({
               key: 'water',
               class: WaterCube,
               x: 100,
-              y: 50,
+              y: 75,
+              rotateX: state.rotateX,
+              rotateY: state.rotateY,
+              rotateZ: state.rotateZ,
+              animation: {
+                from: {time: 0},
+                to: {time: 1e97},
+                duration: 1e100
+              },
+              transition: {
+                rotateX: TRANS,
+                rotateY: TRANS,
+                rotateZ: TRANS
+              }
+            },
+            {
+              key: 'fireball',
+              class: Fireball,
+              x: 0,
+              y: -75,
               rotateX: state.rotateX,
               rotateY: state.rotateY,
               rotateZ: state.rotateZ,
@@ -86,10 +106,10 @@ export default React.createClass({
         />
 
         <p>Demonstration of shaders using an animated 'time' uniform.</p>
-        <p>Based off <a href="https://stemkoski.github.io/Three.js/Shader-Animate.html">Lee Stemkoski's Example</a>.</p>
+        <p>Based off Lee Stemkoski's <a href="https://stemkoski.github.io/Three.js/Shader-Animate.html">Shader - Animated Materials</a> and <a href="https://stemkoski.github.io/Three.js/Shader-Fireball.html">Shader - Animated Fireball</a> examples.</p>
 
         <div style={ {position: 'absolute', top: 10, right: 10} }>
-          <button onClick={ this._randomRotate }>Rotate Cubes</button>
+          <button onClick={ this._randomRotate }>Rotate Items</button>
         </div>
       </div>
     )
