@@ -68,11 +68,11 @@ export default React.createClass({
           startAngle: d => baseAngle + d.startAngle,
           endAngle: d => baseAngle + d.endAngle,
           startRadius: baseRadius,
-          scaleZ: state.deep ? 20 : 0,
+          scaleZ: state.deep ? 20 : .0001,
           animation: (d, i) => ({
             from: {
               opacity: 0,
-              endRadius: baseRadius
+              endRadius: baseRadius + 1
             },
             to: {
               opacity: 1,
