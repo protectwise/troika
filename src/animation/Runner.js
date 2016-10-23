@@ -81,11 +81,6 @@ class Runner {
   stop(tween) {
     // queue tween for removal from list on next tick
     tween[stoppedKey] = true
-
-    // remove runner from running runners if it has no tweens left
-    if (!this.tweens.length) {
-      stopRunner(this)
-    }
   }
 
   _tick(now) {
@@ -116,6 +111,11 @@ class Runner {
     // TODO perhaps batch this up so it happens less often
     if (hasStoppedTweens) {
       this.tweens = tweens.filter(tween => !tween[stoppedKey])
+
+      // remove runner from running runners if it has no tweens left
+      if (!this.tweens.length) {
+        stopRunner(this)
+      }
     }
 
     this.onTick()
