@@ -19,11 +19,13 @@ const randomHostHeight = () => Math.max(1, random(-10, 20))
 const CityGrid = React.createClass({
   displayName: 'CityGrid',
 
-  propTypes: {},
+  propTypes: {
+    width: React.PropTypes.number,
+    height: React.PropTypes.number
+  },
 
   getInitialState() {
     return {
-      boundingRect: null,
       isLoading: true,
       data: null,
       cameraElevation: 50,
@@ -42,17 +44,9 @@ const CityGrid = React.createClass({
     this._generateData()
   },
 
-  componentDidMount() {
-    this._updateDimensions()
-  },
-
   componentWillUnmount() {
     cancelAnimationFrame(this._wheelRAF)
     cancelAnimationFrame(this._cameraRotateRAF)
-  },
-
-  componentDidUpdate() {
-    this._updateDimensions()
   },
 
   _generateData() {
@@ -112,17 +106,6 @@ const CityGrid = React.createClass({
       })
     })
     this.setState({data})
-  },
-
-  _updateDimensions() {
-    let oldRect = this.state.boundingRect
-    let newRect = ReactDOM.findDOMNode(this).getBoundingClientRect()
-    newRect = pick(newRect, 'top', 'right', 'bottom', 'left', 'width', 'height', 'x', 'y')
-    if (!isEqual(oldRect, newRect)) {
-      this.setState({
-        boundingRect: newRect
-      })
-    }
   },
 
   _onMouseWheel(e) {
@@ -187,16 +170,12 @@ const CityGrid = React.createClass({
 
 
   render() {
-    let {state} = this
-    let {boundingRect} = state
-
+    let {props, state} = this
     let zoneHierarchy = state.hierarchy
 
     return (
-      <div className="the_grid" onWheel={ this._onMouseWheel }
-        style={ {position: 'absolute', top: 0, right: 0, bottom: 0, left: 0} }
-      >
-        <div style={ {position: 'absolute', top: 10, right: 10, zIndex: 10, display: 'flex', flexDirection: 'column'} }>
+      <div className="the_grid" onWheel={ this._onMouseWheel }>
+        <div className="example_controls">
           <button onClick={ this._changeHeights }>Change Heights</button>
           <button onClick={ this._changeThreatLevels }>Change Threats</button>
           <button onClick={ this._generateData }>Regen Full</button>
@@ -206,152 +185,150 @@ const CityGrid = React.createClass({
           <button onClick={ this._toggleZoneLabels }>Zone Labels: { state.showZoneLabels ? 'on' : 'off' }</button>
         </div>
 
-        { boundingRect ? (
-          state.isLoading ? 'Loading...' : state.data ? (
-            <Canvas3D
-              width={ boundingRect.width }
-              height={ boundingRect.height }
-              antialias
-              backgroundColor={ 0x222222 }
-              lights={ [
-                {
-                  type: 'ambient',
-                  color: 0xffffff,
-                  intensity: 0.8
-                },
-                {
-                  type: 'point',
-                  x: 0,
-                  y: 0,
-                  z: 200,
-                  color: 0xffffff,
-                  intensity: 1
-                }
-              ] }
-              camera={ {
-                class: Camera,
-                aspect: boundingRect.width / boundingRect.height,
-                elevation: state.cameraElevation,
-                angle: state.cameraAngle,
-                distance: state.cameraDistance,
-                lookAt: state.cameraLookAt,
-                up: CAMERA_UP,
-                transition: state.enableTransitions ? {
-                  angle: 1,
-                  distance: 1,
-                  elevation: 1
-                } : null,
-                animation: state.rotatingCamera === 'animation' ? {
-                  0: {angle: state.cameraAngle},
-                  100: {angle: state.cameraAngle + Math.PI * 2},
-                  duration: 30000,
-                  iterations: Infinity
-                } : null
-              } }
-              objects={ [
-                {
-                  key: 'main',
-                  class: Group,
-                  x: -state.center[0],
-                  y: -state.center[1],
-                  z: 0,
-                  children: [
-                    {
-                      key: 'ground',
-                      class: Ground,
-                      width: state.layoutSideLength,
-                      height: state.layoutSideLength,
-                      z: state.selectedHostIp ? DROPAWAY_Z : 0,
-                      transition: state.enableTransitions && {
-                        width: true,
-                        height: true,
-                        z: {delay: state.selectedHostIp ? 0 : 1000}
-                      }
-                    },
-                    {
-                      key: 'hosts',
-                      class: List,
-                      data: zoneHierarchy.leaves(),
-                      template: {
-                        key: (host, i) => `host${ i }`,
-                        class: Host,
-                        ip: (host) => host.data.ip,
-                        x: host => host.x0,
-                        y: host => host.y0,
-                        z: state.selectedHostIp ? (host => host.data.ip === state.selectedHostIp ? 0 : DROPAWAY_Z) : 0,
-                        rotateZ: 0,
-                        height: host => host.data.height,
-                        threatLevel: host => host.data.threatLevel,
-                        transition: state.enableTransitions ? (host, i, arr) => {
-                          let tx = {
-                            delay: host.data.ip === state.selectedHostIp ? 0 : Math.round(1000 * i / arr.length)
-                          }
-                          return {
-                            x: tx,
-                            y: tx,
-                            z: tx,
-                            height: tx,
-                            rotateZ: true
-                          }
-                        } : null,
-                        animation: host => host.data.ip === state.hoveredHostIp ? [
-                          {
-                            0: {rotateZ: 0},
-                            100: {rotateZ: Math.PI / 2},
-                            duration: 500,
-                            iterations: Infinity
-                          },
-                          {
-                            0: {height: host.data.height},
-                            50: {height: host.data.height + 1},
-                            100: {height: host.data.height},
-                            duration: 1000,
-                            delay: 1000,
-                            easing: 'easeOutBounce',
-                            iterations: Infinity
-                          }
-                        ] : null,
-                        highlight: (host) => host.data.ip === state.hoveredHostIp,
-                        onMouseOver: () => this._onHostMouseOver,
-                        onMouseOut: () => this._onHostMouseOut,
-                        onClick: () => this._onHostClick
-                      }
-                    },
-                    {
-                      key: 'zones',
-                      class: List,
-                      data: zoneHierarchy.children,
-                      template: {
-                        key: (zone, i) => `zone${ i }`,
-                        class: Zone,
-                        x: zone => zone.x0,
-                        y: zone => zone.y0,
-                        z: zone => state.selectedHostIp ? DROPAWAY_Z : 0,
-                        width: zone => zone.x1 - zone.x0,
-                        length: zone => zone.y1 - zone.y0,
-                        height: zone => zone.data.height,
-                        label: state.showZoneLabels ? (zone, i) => `Zone ${i}` : null,
-                        transition: state.enableTransitions ? (zone, i, arr) => {
-                          let tx = {
-                            delay: Math.round(1000 * i / arr.length)
-                          }
-                          return {
-                            x: tx,
-                            y: tx,
-                            z: tx,
-                            width: tx,
-                            length: tx,
-                            height: tx
-                          }
-                        } : null
-                      }
+        { state.data ? (
+          <Canvas3D
+            width={ props.width }
+            height={ props.height }
+            antialias
+            backgroundColor={ 0x222222 }
+            lights={ [
+              {
+                type: 'ambient',
+                color: 0xffffff,
+                intensity: 0.8
+              },
+              {
+                type: 'point',
+                x: 0,
+                y: 0,
+                z: 200,
+                color: 0xffffff,
+                intensity: 1
+              }
+            ] }
+            camera={ {
+              class: Camera,
+              aspect: props.width / props.height,
+              elevation: state.cameraElevation,
+              angle: state.cameraAngle,
+              distance: state.cameraDistance,
+              lookAt: state.cameraLookAt,
+              up: CAMERA_UP,
+              transition: state.enableTransitions ? {
+                angle: 1,
+                distance: 1,
+                elevation: 1
+              } : null,
+              animation: state.rotatingCamera === 'animation' ? {
+                0: {angle: state.cameraAngle},
+                100: {angle: state.cameraAngle + Math.PI * 2},
+                duration: 30000,
+                iterations: Infinity
+              } : null
+            } }
+            objects={ [
+              {
+                key: 'main',
+                class: Group,
+                x: -state.center[0],
+                y: -state.center[1],
+                z: 0,
+                children: [
+                  {
+                    key: 'ground',
+                    class: Ground,
+                    width: state.layoutSideLength,
+                    height: state.layoutSideLength,
+                    z: state.selectedHostIp ? DROPAWAY_Z : 0,
+                    transition: state.enableTransitions && {
+                      width: true,
+                      height: true,
+                      z: {delay: state.selectedHostIp ? 0 : 1000}
                     }
-                  ]
-                }
-              ] }
-              onBackgroundClick={ this._onSceneClick }
-            />
-          ) : 'Oops'
+                  },
+                  {
+                    key: 'hosts',
+                    class: List,
+                    data: zoneHierarchy.leaves(),
+                    template: {
+                      key: (host, i) => `host${ i }`,
+                      class: Host,
+                      ip: (host) => host.data.ip,
+                      x: host => host.x0,
+                      y: host => host.y0,
+                      z: state.selectedHostIp ? (host => host.data.ip === state.selectedHostIp ? 0 : DROPAWAY_Z) : 0,
+                      rotateZ: 0,
+                      height: host => host.data.height,
+                      threatLevel: host => host.data.threatLevel,
+                      transition: state.enableTransitions ? (host, i, arr) => {
+                        let tx = {
+                          delay: host.data.ip === state.selectedHostIp ? 0 : Math.round(1000 * i / arr.length)
+                        }
+                        return {
+                          x: tx,
+                          y: tx,
+                          z: tx,
+                          height: tx,
+                          rotateZ: true
+                        }
+                      } : null,
+                      animation: host => host.data.ip === state.hoveredHostIp ? [
+                        {
+                          0: {rotateZ: 0},
+                          100: {rotateZ: Math.PI / 2},
+                          duration: 500,
+                          iterations: Infinity
+                        },
+                        {
+                          0: {height: host.data.height},
+                          50: {height: host.data.height + 1},
+                          100: {height: host.data.height},
+                          duration: 1000,
+                          delay: 1000,
+                          easing: 'easeOutBounce',
+                          iterations: Infinity
+                        }
+                      ] : null,
+                      highlight: (host) => host.data.ip === state.hoveredHostIp,
+                      onMouseOver: () => this._onHostMouseOver,
+                      onMouseOut: () => this._onHostMouseOut,
+                      onClick: () => this._onHostClick
+                    }
+                  },
+                  {
+                    key: 'zones',
+                    class: List,
+                    data: zoneHierarchy.children,
+                    template: {
+                      key: (zone, i) => `zone${ i }`,
+                      class: Zone,
+                      x: zone => zone.x0,
+                      y: zone => zone.y0,
+                      z: zone => state.selectedHostIp ? DROPAWAY_Z : 0,
+                      width: zone => zone.x1 - zone.x0,
+                      length: zone => zone.y1 - zone.y0,
+                      height: zone => zone.data.height,
+                      label: state.showZoneLabels ? (zone, i) => `Zone ${i}` : null,
+                      transition: state.enableTransitions ? (zone, i, arr) => {
+                        let tx = {
+                          delay: Math.round(1000 * i / arr.length)
+                        }
+                        return {
+                          x: tx,
+                          y: tx,
+                          z: tx,
+                          width: tx,
+                          length: tx,
+                          height: tx
+                        }
+                      } : null
+                    }
+                  }
+                ]
+              }
+            ] }
+            onBackgroundClick={ this._onSceneClick }
+          />
         ) : null }
       </div>
     )

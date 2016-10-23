@@ -11,6 +11,11 @@ const TRANS = {
 
 
 export default React.createClass({
+  propTypes: {
+    width: React.PropTypes.number,
+    height: React.PropTypes.number
+  },
+
   componentWillMount() {
     this._randomRotate()
   },
@@ -25,8 +30,7 @@ export default React.createClass({
 
   render() {
     let state = this.state
-    let width = 1200
-    let height = 800
+    let {width, height} = this.props
     return (
       <div style={ {padding: 20} }>
         <Canvas3D
@@ -105,10 +109,12 @@ export default React.createClass({
           ] }
         />
 
-        <p>Demonstration of shaders using an animated 'time' uniform.</p>
-        <p>Based off Lee Stemkoski's <a href="https://stemkoski.github.io/Three.js/Shader-Animate.html">Shader - Animated Materials</a> and <a href="https://stemkoski.github.io/Three.js/Shader-Fireball.html">Shader - Animated Fireball</a> examples.</p>
+        <div className="example_desc">
+          <p>Demonstration of shaders using an animated 'time' uniform.</p>
+          <p>Based off Lee Stemkoski's <a href="https://stemkoski.github.io/Three.js/Shader-Animate.html">Shader - Animated Materials</a> and <a href="https://stemkoski.github.io/Three.js/Shader-Fireball.html">Shader - Animated Fireball</a> examples.</p>
+        </div>
 
-        <div style={ {position: 'absolute', top: 10, right: 10} }>
+        <div className="example_controls">
           <button onClick={ this._randomRotate }>Rotate Items</button>
         </div>
       </div>

@@ -12,12 +12,32 @@ const EXAMPLES = [
 const ExamplesApp = React.createClass({
   componentWillMount() {
     window.addEventListener('hashchange', this._onHashChange, false)
+    window.addEventListener('resize', this._onWindowResize, false)
+  },
+
+  componentWillUnmount() {
+    window.removeEventListener('hashchange', this._onHashChange, false)
+    window.removeEventListener('resize', this._onWindowResize, false)
   },
 
   getInitialState() {
     return {
-      selectedExampleId: (location.hash && location.hash.replace(/^#/, '')) || EXAMPLES[0].id
+      selectedExampleId: (location.hash && location.hash.replace(/^#/, '')) || EXAMPLES[0].id,
+      bodyWidth: null,
+      bodyHeight: null
     }
+  },
+
+  _onBodyElRef(el) {
+    this._bodyEl = el
+    if (el) {
+      this._onWindowResize()
+    }
+  },
+
+  _onWindowResize() {
+    let box = this._bodyEl.getBoundingClientRect()
+    this.setState({bodyWidth: box.width, bodyHeight: box.height})
   },
 
   _onHashChange() {
@@ -31,8 +51,9 @@ const ExamplesApp = React.createClass({
   },
 
   render() {
-    let {selectedExampleId} = this.state
+    let {selectedExampleId, bodyWidth, bodyHeight} = this.state
     let example = EXAMPLES.filter(({id}) => id === selectedExampleId)[0]
+    let ExampleCmp = example && example.component
 
     return (
       <div className="examples">
@@ -44,9 +65,9 @@ const ExamplesApp = React.createClass({
             ) }
           </select>
         </header>
-        <section className="examples_body">
-          { example ?
-            React.createElement(example.component) :
+        <section className="examples_body" ref={ this._onBodyElRef }>
+          { ExampleCmp ?
+            (bodyWidth && bodyHeight ? <ExampleCmp width={ bodyWidth } height={ bodyHeight } /> : null) :
             `Unknown example: ${selectedExampleId}`
           }
         </section>
