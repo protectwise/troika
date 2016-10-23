@@ -25,7 +25,7 @@ export default React.createClass({
     ;['ne1', 'nw1', 'sw1', 'se1', 'ne2', 'nw2', 'sw2', 'se2'].forEach(key => {
       data[key] = []
       let angle = 0
-      let numArcs = Math.round(Math.random() * 10)
+      let numArcs = Math.round(Math.random() * 15)
       let marginAngle = 0.0075
       for (let i = 0; i < numArcs; i++) {
         data[key].push({
@@ -106,6 +106,11 @@ export default React.createClass({
 
         <div className="example_controls">
           <button onClick={ this._randomizeData }>Randomize Data</button>
+        </div>
+
+        <div className="example_desc">
+          <p>Each arc is defined and animated using four logical properties: start/end angle and start/end radius.</p>
+          <p>The arc meshes all share a 1x1 plane geometry, whose vertices are transformed to form the arc shapes on the GPU by a vertex shader.</p>
         </div>
       </div>
     )
