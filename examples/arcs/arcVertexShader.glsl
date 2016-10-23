@@ -3,9 +3,12 @@ uniform float endAngle;
 uniform float startRadius;
 uniform float endRadius;
 
+varying float zeeness;
 
 void main()
 {
+  zeeness = normal.z; //used for lighting in fragment shader
+
   // Translate the position x and y, which are in the range [-0.5, 0.5], to angle and radius
   float angle = endAngle + ((position.x + 0.5) * (startAngle - endAngle));
   float radius = startRadius + ((position.y + 0.5) * (endRadius - startRadius));

@@ -16,6 +16,14 @@ export default React.createClass({
     height: React.PropTypes.number
   },
 
+  getInitialState() {
+    return {
+      deep: false,
+      cameraAngle: 0,
+      data: {}
+    }
+  },
+
   componentWillMount() {
     this._randomizeData()
   },
@@ -37,8 +45,16 @@ export default React.createClass({
     this.setState({data})
   },
 
+  _toggleDepth() {
+    this.setState({deep: !this.state.deep})
+  },
+
+  _toggleCameraAngle() {
+    this.setState({cameraAngle: !this.state.cameraAngle ? -Math.PI / 4 : 0})
+  },
+
   render() {
-    let state = this.state || {data: {}}
+    let state = this.state
     let {width, height} = this.props
 
     function quadrant(key, baseAngle, baseRadius) {
@@ -52,6 +68,7 @@ export default React.createClass({
           startAngle: d => baseAngle + d.startAngle,
           endAngle: d => baseAngle + d.endAngle,
           startRadius: baseRadius,
+          scaleZ: state.deep ? 20 : 0,
           animation: (d, i) => ({
             from: {
               opacity: 0,
@@ -67,7 +84,8 @@ export default React.createClass({
           }),
           transition: {
             startAngle: TRANS,
-            endAngle: TRANS
+            endAngle: TRANS,
+            scaleZ: TRANS
           }
         }
       }
@@ -80,17 +98,23 @@ export default React.createClass({
           width={ width }
           height={ height }
           camera={ {
-            class: OrthographicCamera,
-            left: -width / 2,
-            right: width / 2,
-            top: height / 2,
-            bottom: -height / 2,
+            //class: OrthographicCamera,
+            //left: -width / 2,
+            //right: width / 2,
+            //top: height / 2,
+            //bottom: -height / 2,
+            fov: 75,
+            aspect: width / height,
             near: 0.1,
             far: 20000,
             x: 0,
-            y: 0,
-            z: 1,
-            lookAt: {x: 0, y: 0, z: 0}
+            y: Math.sin(state.cameraAngle || 0) * 400,
+            z: Math.cos(state.cameraAngle || 0) * 400,
+            lookAt: {x: 0, y: 0, z: 0},
+            transition: {
+              y: TRANS,
+              z: TRANS
+            }
           } }
           objects={ [
             quadrant('ne1', 0, 100),
@@ -106,11 +130,13 @@ export default React.createClass({
 
         <div className="example_controls">
           <button onClick={ this._randomizeData }>Randomize Data</button>
+          <button onClick={ this._toggleCameraAngle }>Toggle Angle</button>
+          <button onClick={ this._toggleDepth }>Toggle Depth</button>
         </div>
 
         <div className="example_desc">
           <p>Each arc is defined and animated using four logical properties: start/end angle and start/end radius.</p>
-          <p>The arc meshes all share a 1x1 plane geometry, whose vertices are transformed to form the arc shapes on the GPU by a vertex shader.</p>
+          <p>The arc meshes all share a 1x1x1 box geometry, whose vertices are transformed to form the arc shapes. That transformation is done entirely on the GPU in a vertex shader, with those four logical properties passed in as uniforms.</p>
         </div>
       </div>
     )

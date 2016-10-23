@@ -1,10 +1,10 @@
-import {Mesh, ShaderMaterial, PlaneBufferGeometry, Color} from 'three/src/Three'
+import {Mesh, ShaderMaterial, BoxBufferGeometry, Color} from 'three/src/Three'
 import {Object3D} from '../../src/index'
 import arcVertexShader from './arcVertexShader.glsl'
 import arcFragmentShader from './arcFragmentShader.glsl'
 
 
-const baseGeometry = new PlaneBufferGeometry(1, 1, 16, 1)
+const baseGeometry = new BoxBufferGeometry(1, 1, 1, 16, 1, 1)
 
 const baseMaterial = new ShaderMaterial({
   uniforms: {
