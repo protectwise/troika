@@ -52,7 +52,19 @@ export default React.createClass({
           startAngle: d => baseAngle + d.startAngle,
           endAngle: d => baseAngle + d.endAngle,
           startRadius: baseRadius,
-          endRadius: baseRadius + 30,
+          animation: (d, i) => ({
+            from: {
+              opacity: 0,
+              endRadius: baseRadius
+            },
+            to: {
+              opacity: 1,
+              endRadius: baseRadius + 30
+            },
+            duration: TRANS.duration,
+            easing: TRANS.easing,
+            delay: i * 50
+          }),
           transition: {
             startAngle: TRANS,
             endAngle: TRANS
@@ -93,7 +105,7 @@ export default React.createClass({
         />
 
         <div className="example_controls">
-          <button onClick={ this._randomizeData }>Change</button>
+          <button onClick={ this._randomizeData }>Randomize Data</button>
         </div>
       </div>
     )
