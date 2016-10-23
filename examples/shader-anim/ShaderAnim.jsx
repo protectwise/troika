@@ -32,7 +32,7 @@ export default React.createClass({
     let state = this.state
     let {width, height} = this.props
     return (
-      <div style={ {padding: 20} }>
+      <div>
         <Canvas3D
           antialias
           width={ width }

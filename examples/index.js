@@ -2,11 +2,13 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import CityGrid from './citygrid/CityGrid'
 import ShaderAnim from './shader-anim/ShaderAnim'
+import Arcs from './arcs/Arcs'
 
 
 const EXAMPLES = [
   {id: 'citygrid', name: 'City', component: CityGrid},
-  {id: 'shaderanim', name: 'Animated Shaders', component: ShaderAnim}
+  {id: 'shaderanim', name: 'Animated Shaders', component: ShaderAnim},
+  {id: 'arcs', name: 'Arcs', component: Arcs}
 ]
 
 const ExamplesApp = React.createClass({
