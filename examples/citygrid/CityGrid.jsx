@@ -109,14 +109,14 @@ const CityGrid = React.createClass({
   },
 
   _onMouseWheel(e) {
-    let {shiftKey, wheelDelta} = e.nativeEvent
+    let {shiftKey, deltaY} = e.nativeEvent
     e.preventDefault()
     cancelAnimationFrame(this._wheelRAF)
     this._wheelRAF = requestAnimationFrame(() => {
       if (shiftKey) {
-        this.setState({cameraElevation: Math.max(1, this.state.cameraElevation + wheelDelta / 10)})
+        this.setState({cameraElevation: Math.max(1, this.state.cameraElevation + deltaY / 10)})
       } else {
-        this.setState({cameraDistance: Math.max(1, this.state.cameraDistance + wheelDelta / 5)})
+        this.setState({cameraDistance: Math.max(1, this.state.cameraDistance + deltaY / 5)})
       }
     })
   },
