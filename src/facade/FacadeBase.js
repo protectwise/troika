@@ -81,8 +81,10 @@ export default class FacadeBase {
   /**
    * Default notifyWorld handler just bubbles it up
    */
-  onNotifyWorld(...args) {
-    this.parent.onNotifyWorld(...args)
+  onNotifyWorld(source, message, data) {
+    if (this.parent) {
+      this.parent.onNotifyWorld(source, message, data)
+    }
   }
 
   /**
@@ -90,7 +92,7 @@ export default class FacadeBase {
    * custom cleanup logic.
    */
   destructor() {
-    delete this.parent
+    this.parent = null
     if (typeof this.ref === 'function') {
       this.ref.call(null, null)
     }

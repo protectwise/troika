@@ -84,6 +84,7 @@ export default class Parent extends FacadeBase {
   destructor() {
     // Destroy all child instances
     if (this._childrenDict) {
+      this.isDestroying = true
       for (let key in this._childrenDict) {
         this._childrenDict[key].destructor()
       }

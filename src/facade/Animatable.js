@@ -199,7 +199,7 @@ export default function(WrappedClass) {
     }
 
     destructor() {
-      if (this.exitAnimation) {
+      if (this.exitAnimation && !this.parent.isDestroying) {
         this[runnerKey].stopAll()
         this.animation = this.exitAnimation
         this.exitAnimation = this.transition = null

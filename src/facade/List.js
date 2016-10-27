@@ -100,6 +100,7 @@ export default class List extends FacadeBase {
   destructor() {
     // Destroy all child instances
     if (this._itemsDict) {
+      this.isDestroying = true
       for (let key in this._itemsDict) {
         this._itemsDict[key].destructor()
       }
