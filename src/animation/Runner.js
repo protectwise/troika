@@ -11,7 +11,7 @@ function tick() {
 
   // Sync each runner, filtering out empty ones as we go
   runners = runners.filter(runner => {
-    if (!runner.tweens || runner.tweens.length === 0) {
+    if (!runner.running) {
       return false
     }
     else {
@@ -83,9 +83,19 @@ class Runner {
     tween[stoppedKey] = true
   }
 
+  /**
+   * Stop all running tweens.
+   */
+  stopAll() {
+    if (this.tweens) {
+      this.tweens.forEach(this.stop, this)
+    }
+  }
+
   _tick(now) {
     let tweens = this.tweens
     let hasStoppedTweens = false
+    let hasRunningTweens = false
 
     // Sync each tween, filtering out old finished ones as we go
     for (let i = 0, len = tweens.length; i < len; i++) {
@@ -96,6 +106,7 @@ class Runner {
         // Sync the tween to current time
         let time = now - tween[startedKey]
         tween.gotoTime(time)
+        hasRunningTweens = true
 
         // Queue for removal if we're past its end time
         if (tween.isDoneAtTime(time)) {
@@ -115,10 +126,15 @@ class Runner {
       // remove runner from running runners if it has no tweens left
       if (!this.tweens.length) {
         stopRunner(this)
+        if (this.onDone) {
+          this.onDone()
+        }
       }
     }
 
-    this.onTick()
+    if (hasRunningTweens) {
+      this.onTick()
+    }
   }
 
   /**
@@ -126,6 +142,13 @@ class Runner {
    * tweens have been updated.
    */
   onTick() {
+    // abstract
+  }
+
+  /**
+   * Override to specify a function that will be called after all running tweens have completed.
+   */
+  onDone() {
     // abstract
   }
 }

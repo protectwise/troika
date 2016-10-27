@@ -51,6 +51,10 @@ class Tween {
     }
   }
 
+  gotoEnd() {
+    this.gotoTime(this.getTotalDuration())
+  }
+
   getTotalDuration() {
     return this.delay + (this.duration * this.iterations)
   }
