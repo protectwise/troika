@@ -48,7 +48,7 @@ export default class Parent extends FacadeBase {
         // definition if the object is expected to ever need transitions, even if it's temporarily empty.
         let transition = childDesc.transition
         let animation = childDesc.animation
-        if (transition || animation) {
+        if (transition || animation || childDesc.exitAnimation) {
           cla$$ = cla$$.$animatableWrapperClass || (cla$$.$animatableWrapperClass = Animatable(cla$$))
         }
 

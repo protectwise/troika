@@ -67,7 +67,8 @@ export default class List extends FacadeBase {
       // definition if the object is expected to ever need transitions, even if it's temporarily empty.
       let transition = typeof template.transition === 'function' ? template.transition(childData, i, data) : template.transition
       let animation = typeof template.animation === 'function' ? template.animation(childData, i, data) : template.animation
-      if (transition || animation) {
+      let exitAnimation = typeof template.exitAnimation === 'function' ? template.exitAnimation(childData, i, data) : template.exitAnimation
+      if (transition || animation || exitAnimation) {
         cla$$ = cla$$.$animatableWrapperClass || (cla$$.$animatableWrapperClass = Animatable(cla$$))
       }
 

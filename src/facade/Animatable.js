@@ -95,7 +95,10 @@ export default function(WrappedClass) {
         let runner = this[runnerKey]
         let animTweens = this[animationTweensKey]
         if (animTweens) {
-          animTweens.forEach(runner.stop, runner)
+          for (let i = animTweens.length; i--;) {
+            animTweens[i].gotoEnd() //force to end value so it doesn't stick partway through
+            runner.stop(animTweens[i])
+          }
           this[animTweens] = null
         }
         let animatingProps = null
@@ -196,8 +199,18 @@ export default function(WrappedClass) {
     }
 
     destructor() {
-      this[runnerKey].destructor()
-      super.destructor()
+      if (this.exitAnimation) {
+        this[runnerKey].stopAll()
+        this.animation = this.exitAnimation
+        this.exitAnimation = this.transition = null
+        this[runnerKey].onDone = () => {
+          this.notifyWorld('needsRender')
+          this.destructor()
+        }
+      } else {
+        this[runnerKey].destructor()
+        super.destructor()
+      }
     }
   }
 
