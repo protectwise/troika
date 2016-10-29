@@ -3,12 +3,14 @@ import ReactDOM from 'react-dom'
 import CityGrid from './citygrid/CityGrid'
 import ShaderAnim from './shader-anim/ShaderAnim'
 import Arcs from './arcs/Arcs'
+import GlobeExample from './globe/GlobeExample'
 
 
 const EXAMPLES = [
   {id: 'citygrid', name: 'City', component: CityGrid},
   {id: 'shaderanim', name: 'Animated Shaders', component: ShaderAnim},
-  {id: 'arcs', name: 'Arcs', component: Arcs}
+  {id: 'arcs', name: 'Arcs', component: Arcs},
+  {id: 'globe', name: 'Globe', component: GlobeExample}
 ]
 
 const ExamplesApp = React.createClass({
