@@ -63,7 +63,21 @@ export default React.createClass({
         return 0x004989
       case 'night':
         return 0x000000
+      case 'bluemarble':
+        return 0xffffff
+      case 'pumpkin':
+        return 0x666666
     }
+  },
+
+  _getOceanTexture() {
+    switch (this.state.colorScheme) {
+      case 'bluemarble':
+        return 'globe/texture_bluemarble.jpg'
+      case 'pumpkin':
+        return 'globe/texture_pumpkin.jpg'
+    }
+    return null
   },
 
   _getCountryColor(d, i, arr) {
@@ -82,6 +96,10 @@ export default React.createClass({
         return hovering ? 0x3ba7db : 0xffffff
       case 'night':
         return hovering ? 0x0000ff : 0xffffff
+      case 'bluemarble':
+        return hovering ? 0x999999 : 0xffffff
+      case 'pumpkin':
+        return hovering ? 0xffffff : 0xcccccc
     }
   },
 
@@ -91,6 +109,10 @@ export default React.createClass({
         return 'globe/texture_day.jpg'
       case 'night':
         return 'globe/texture_night.jpg'
+      case 'bluemarble':
+        return 'globe/texture_bluemarble.jpg'
+      case 'pumpkin':
+        return 'globe/texture_pumpkin.jpg'
     }
     return null
   },
@@ -134,11 +156,12 @@ export default React.createClass({
               //highlightCountry: state.hoveredCountry,
               wireframe: state.wireframe,
               oceanColor: this._getOceanColor(),
+              oceanTexture: this._getOceanTexture(),
               getCountryColor: this._getCountryColor,
               countryTexture: this._getCountryTexture(),
               animation: state.trackMouse ? null : {
-                from: {rotateY: 0},
-                to: {rotateY: Math.PI * 2},
+                from: {rotateY: -Math.PI},
+                to: {rotateY: Math.PI},
                 duration: 24000,
                 iterations: Infinity
               }
@@ -157,7 +180,9 @@ export default React.createClass({
             <option value="technicolor">Technicolor</option>
             <option value="greyscale">Greyscale</option>
             <option value="satellite">Satellite</option>
+            <option value="bluemarble">Blue Marble</option>
             <option value="night">Night Lights</option>
+            <option value="pumpkin">Pumpkin</option>
           </select>
         </div>
       </div>

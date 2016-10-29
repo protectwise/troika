@@ -46,6 +46,15 @@ class Earth extends Object3D {
     this.threeObject.material.color.set(c)
   }
 
+  set oceanTexture(t) {
+    if (t !== this._oceanTextureUrl) {
+      let material = this.threeObject.material
+      material.map = t ? textureLoader.load(t) : null
+      material.needsUpdate = true
+      this._oceanTextureUrl = t
+    }
+  }
+
   set countryTexture(t) {
     if (t !== this._countryTextureUrl) {
       this._countryTexture = t ? textureLoader.load(t) : null
