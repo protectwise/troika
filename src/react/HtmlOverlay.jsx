@@ -17,7 +17,8 @@ const HtmlOverlayContent = React.createClass({
     return newProps.html !== this.props.html
   },
   render() {
-    return this.props.html
+    let html = this.props.html
+    return typeof html === 'string' ? <span>{ html }</span> : html
   }
 })
 
