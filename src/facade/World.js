@@ -106,7 +106,7 @@ class World extends Parent {
         this.queueRender()
         break
       case 'getCameraPosition':
-        data(this.camera.threeObject.position) //callback function
+        data(this.getChildByKey('camera').threeObject.position) //callback function
         break
       case 'addEventListener':
         let registry = this.$eventRegistry || (this.$eventRegistry = Object.create(null))
