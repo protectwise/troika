@@ -147,7 +147,7 @@ export default React.createClass({
               key: 'earth',
               class: Earth,
               scaleX: 100,
-              scaleY: 100,
+              scaleY: state.colorScheme === 'pumpkin' ? 70 : 100,
               scaleZ: 100,
               rotateY: state.trackMouse ? state.rotateY : 0,
               rotateX: state.trackMouse ? state.rotateX : 0,
@@ -164,6 +164,9 @@ export default React.createClass({
                 to: {rotateY: Math.PI},
                 duration: 24000,
                 iterations: Infinity
+              },
+              transition: {
+                scaleY: true
               }
             }
           ] }
