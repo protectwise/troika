@@ -1,0 +1,21 @@
+image: node:5
+
+before_script:
+  - node --version
+  - npm --version
+  - npm config set unsafe-perm true
+  - npm config set loglevel warn --global
+  - npm config set registry https://internal-npm/content/repositories/npm-all/
+  - echo "branch ${CI_BUILD_REF_NAME}"
+  - echo "commit ${CI_BUILD_REF}"
+  - export SHORT_REF=`echo ${CI_BUILD_REF} | cut -b 1-7`
+  - echo "short ${SHORT_REF}"
+  - echo "tag ${CI_BUILD_TAG}"
+  - echo "build ${CI_BUILD_ID}"
+
+build:
+  only:
+    - master
+  script:
+    - npm install
+    - npm publish --registry https://internal-npm/content/repositories/npm/
