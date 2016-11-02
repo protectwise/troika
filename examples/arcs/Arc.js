@@ -1,4 +1,4 @@
-import {Mesh, ShaderMaterial, BoxBufferGeometry, Color} from 'three/src/Three'
+import {Mesh, ShaderMaterial, BoxBufferGeometry, Color} from 'three'
 import {Object3D} from '../../src/index'
 import arcVertexShader from './arcVertexShader.glsl'
 import arcFragmentShader from './arcFragmentShader.glsl'

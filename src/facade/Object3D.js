@@ -1,5 +1,5 @@
 import {forOwn} from 'lodash-es'
-import {Vector3, Matrix4, Quaternion, Object3D as ThreeObject3D} from 'three/src/Three'
+import {Vector3, Matrix4, Quaternion, Object3D as ThreeObject3D} from 'three'
 import Parent from './Parent'
 
 const MOUSE_EVENT_PROPS = ['onMouseOver', 'onMouseOut', 'onMouseDown', 'onMouseUp', 'onClick', 'onDoubleClick']

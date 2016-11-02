@@ -1,4 +1,4 @@
-import {Mesh, MeshPhongMaterial} from 'three/src/Three'
+import {Mesh, MeshPhongMaterial} from 'three'
 import {Object3D} from '../../src/index'
 import CountryBufferGeometry from './CountryBufferGeometry'
 

@@ -1,4 +1,4 @@
-import {Mesh, DoubleSide, PlaneGeometry, MeshPhongMaterial} from 'three/src/Three'
+import {Mesh, DoubleSide, PlaneGeometry, MeshPhongMaterial} from 'three'
 import {Object3D} from '../../src/index'
 
 

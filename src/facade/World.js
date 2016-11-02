@@ -1,5 +1,5 @@
 import {assign, clone, isEmpty, map} from 'lodash-es'
-import {WebGLRenderer, Raycaster, Color, Vector2, Vector3} from 'three/src/Three'
+import {WebGLRenderer, Raycaster, Color, Vector2, Vector3} from 'three'
 import Parent from './Parent'
 import Scene from './Scene'
 import {PerspectiveCamera} from './Camera'

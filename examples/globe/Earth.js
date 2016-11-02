@@ -1,5 +1,5 @@
 import {List, Object3D} from '../../src/index'
-import {Mesh, MeshPhongMaterial, SphereBufferGeometry, TextureLoader} from 'three/src/Three'
+import {Mesh, MeshPhongMaterial, SphereBufferGeometry, TextureLoader} from 'three'
 import Country from './Country'
 import geojson from './countries.geojson.js'
 

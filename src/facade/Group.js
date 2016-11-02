@@ -1,4 +1,4 @@
-import {Group as ThreeGroup} from 'three/src/Three'
+import {Group as ThreeGroup} from 'three'
 import Object3D from './Object3D'
 
 

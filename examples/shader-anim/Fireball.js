@@ -1,4 +1,4 @@
-import {ShaderMaterial, Mesh, SphereGeometry, TextureLoader, RepeatWrapping} from 'three/src/Three'
+import {ShaderMaterial, Mesh, SphereGeometry, TextureLoader, RepeatWrapping} from 'three'
 import {Object3D} from '../../src/index'
 
 

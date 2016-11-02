@@ -1,4 +1,4 @@
-import {BoxBufferGeometry, MeshLambertMaterial, Color, Mesh, BufferGeometry, BufferAttribute} from 'three/src/Three'
+import {BoxBufferGeometry, MeshLambertMaterial, Color, Mesh, BufferGeometry, BufferAttribute} from 'three'
 import {Object3D} from '../../src/index'
 
 /*

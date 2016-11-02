@@ -1,5 +1,5 @@
 import React from 'react'
-import {Group, Mesh, Line, BufferGeometry, BufferAttribute, MeshLambertMaterial, LineBasicMaterial, DoubleSide} from 'three/src/Three'
+import {Group, Mesh, Line, BufferGeometry, BufferAttribute, MeshLambertMaterial, LineBasicMaterial, DoubleSide} from 'three'
 import {Object3D, Text, HtmlOverlay} from '../../src/index'
 import Tooltip from './Tooltip.jsx'
 

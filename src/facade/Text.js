@@ -1,6 +1,6 @@
 import {forOwn} from 'lodash-es'
 import Object3D from './Object3D'
-import {Mesh, PlaneGeometry, MeshBasicMaterial, Texture, DoubleSide, LinearFilter} from 'three/src/Three'
+import {Mesh, PlaneGeometry, MeshBasicMaterial, Texture, DoubleSide, LinearFilter} from 'three'
 
 
 const canvas = document.createElement('canvas')

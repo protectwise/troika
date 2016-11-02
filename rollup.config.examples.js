@@ -8,6 +8,11 @@ import importStrings from 'rollup-plugin-string'
 
 export default {
   entry: 'examples/index.js',
+
+  // TODO temporary workaround for lingering use of `exports` in three.modules.js: https://github.com/mrdoob/three.js/pull/9901
+  intro: `window.exports = {};`,
+  outro: `delete window.exports;`,
+
   plugins: [
     importStrings({
       include: '**/*.glsl',

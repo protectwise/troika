@@ -1,4 +1,4 @@
-import {BufferGeometry, BufferAttribute} from 'three/src/Three'
+import {BufferGeometry, BufferAttribute} from 'three'
 import {voronoi} from 'd3-voronoi'
 
 
