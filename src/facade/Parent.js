@@ -1,5 +1,8 @@
+import {isArray} from 'lodash-es'
 import FacadeBase, {isSpecialDescriptorProperty} from './FacadeBase'
 import Animatable from './Animatable'
+
+const TEMP_ARRAY = [null]
 
 
 /**
@@ -26,6 +29,12 @@ export default class Parent extends FacadeBase {
     let newDict = this._childrenDict = Object.create(null)
 
     if (children) {
+      // Allow single child without wrapper array
+      if (!isArray(children)) {
+        TEMP_ARRAY[0] = children
+        children = TEMP_ARRAY
+      }
+
       for (let i = 0, len = children.length; i < len; i++) {
         let childDesc = children[i]
         if (!childDesc) continue //child members can be null
