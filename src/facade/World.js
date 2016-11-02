@@ -43,6 +43,9 @@ class World extends Parent {
     let {camera, scene, width, height} = this
     camera.key = 'camera'
     camera.class = camera.class || PerspectiveCamera
+    if (typeof camera.aspect !== 'number') {
+      camera.aspect = width / height
+    }
     scene.key = 'scene'
     scene.class = scene.class || Scene
     this.children = [camera, scene]
