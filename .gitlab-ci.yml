@@ -18,4 +18,5 @@ build:
     - master
   script:
     - npm install
+    - npm run build
     - npm publish --registry https://internal-npm/content/repositories/npm/

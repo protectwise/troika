@@ -15,7 +15,7 @@ export default {
       moduleName: 'Troika',
       globals: {
         easingjs: 'easing',
-        lodash: '_',
+        'lodash-es': '_',
         react: 'React',
         three: 'THREE'
       }
