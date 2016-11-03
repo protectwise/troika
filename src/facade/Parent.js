@@ -1,4 +1,4 @@
-import {isArray} from 'lodash-es'
+import isArray from 'lodash/isArray'
 import FacadeBase, {isSpecialDescriptorProperty} from './FacadeBase'
 import Animatable from './Animatable'
 

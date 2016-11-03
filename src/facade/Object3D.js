@@ -1,4 +1,4 @@
-import {forOwn} from 'lodash-es'
+import forOwn from 'lodash/forOwn'
 import {Vector3, Matrix4, Quaternion, Object3D as ThreeObject3D} from 'three'
 import Parent from './Parent'
 

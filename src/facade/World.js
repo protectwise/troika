@@ -1,4 +1,7 @@
-import {assign, clone, isEmpty, map} from 'lodash-es'
+import assign from 'lodash/assign'
+import clone from 'lodash/clone'
+import isEmpty from 'lodash/isEmpty'
+import map from 'lodash/map'
 import {WebGLRenderer, Raycaster, Color, Vector2, Vector3} from 'three'
 import Parent from './Parent'
 import Scene from './Scene'

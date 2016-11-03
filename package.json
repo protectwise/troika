@@ -7,7 +7,7 @@
   "jsnext:main": "build/troika.esmodule.js",
   "dependencies": {
     "easingjs": "^1.0.1",
-    "lodash-es": "^4.16.4",
+    "lodash": "^4.16.6",
     "three": "^0.82.0"
   },
   "peerDependencies": {
@@ -31,11 +31,15 @@
     "rollup-plugin-node-resolve": "^2.0.0",
     "rollup-plugin-replace": "^1.1.1",
     "rollup-plugin-string": "^2.0.2",
+    "rollup-watch": "^2.5.0",
     "uglify-js": "^2.7.3"
   },
   "scripts": {
-    "build": "rollup -c && uglifyjs --compress --mangle -- build/troika.js > build/troika.min.js",
+    "build": "rollup -c",
     "build-examples": "rollup -c rollup.config.examples.js",
+    "build-compressed": "rollup -c && uglifyjs --compress --mangle -- build/troika.js > build/troika.min.js",
+    "watch": "rollup -w -c",
+    "watch-examples": "rollup -w -c rollup.config.examples.js",
     "clean": "rm -rf build"
   },
   "publishConfig": {

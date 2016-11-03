@@ -1,4 +1,5 @@
-import {isEqual, defaults} from 'lodash-es'
+import isEqual from 'lodash/isEqual'
+import defaults from 'lodash/defaults'
 import Tween from '../animation/Tween'
 import MultiTween from '../animation/MultiTween'
 import Runner from '../animation/Runner'

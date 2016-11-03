@@ -1,4 +1,4 @@
-import {omit} from 'lodash-es'
+import omit from 'lodash/omit'
 import {Scene as ThreeScene} from 'three'
 import Object3D from './Object3D'
 import {AmbientLight, SpotLight, DirectionalLight, PointLight} from './Light'
