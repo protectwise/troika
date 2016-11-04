@@ -10,15 +10,19 @@ function tick() {
   let now = Date.now()
 
   // Sync each runner, filtering out empty ones as we go
-  runners = runners.filter(runner => {
-    if (!runner.running) {
-      return false
-    }
-    else {
+  let hasStoppedRunners = false
+  for (let i = 0, len = runners.length; i < len; i++) {
+    let runner = runners[i]
+    if (runner.running) {
       runner._tick(now)
-      return true
     }
-  })
+    if (!runner.running) {
+      hasStoppedRunners = true
+    }
+  }
+  if (hasStoppedRunners) {
+    runners = runners.filter(runner => runner.running)
+  }
 
   // Queue next tick if there are still active runners
   nextFrameTimer = null
@@ -100,9 +104,7 @@ class Runner {
     // Sync each tween, filtering out old finished ones as we go
     for (let i = 0, len = tweens.length; i < len; i++) {
       let tween = tweens[i]
-      if (tween[stoppedKey]) {
-        hasStoppedTweens = true
-      } else {
+      if (!tween[stoppedKey]) {
         // Sync the tween to current time
         let time = now - tween[startedKey]
         tween.gotoTime(time)
@@ -116,6 +118,13 @@ class Runner {
           }
         }
       }
+      if (tween[stoppedKey]) {
+        hasStoppedTweens = true
+      }
+    }
+
+    if (hasRunningTweens) {
+      this.onTick()
     }
 
     // Prune list if needed
@@ -130,10 +139,6 @@ class Runner {
           this.onDone()
         }
       }
-    }
-
-    if (hasRunningTweens) {
-      this.onTick()
     }
   }
 
