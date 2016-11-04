@@ -279,8 +279,18 @@ export default function(WrappedClass) {
             // If there's no active transition tween, or the new value is different than the active tween's
             // target value, initiate a new transition tween. Otherwise ignore it.
             let tween = this[activeTweenKey]
-            if (!tween || value !== tween.toValue) {
-              if (tween) runner.stop(tween)
+            let needsNewTween = false
+            if (tween) {
+              // Active tween - start new one if new value is different than the old tween's target value
+              if (value !== tween.toValue) {
+                runner.stop(tween)
+                needsNewTween = true
+              }
+            } else if (value !== this[propName]) {
+              // No active tween - only start one if the value is changing
+              needsNewTween = true
+            }
+            if (needsNewTween) {
               tween = this[activeTweenKey] = new Tween(
                 actuallySet.bind(this), //callback
                 this[propName], //fromValue
