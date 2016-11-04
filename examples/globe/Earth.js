@@ -1,16 +1,29 @@
 import {List, Object3D} from '../../src/index'
 import {Mesh, MeshPhongMaterial, SphereBufferGeometry, TextureLoader} from 'three'
 import Country from './Country'
-import geojson from './countries.geojson.js'
+import 'whatwg-fetch' //polyfill
 
+const geojsonUrl = 'globe/countries.geojson.json'
 
-
-const countriesData = []
-Object.keys(geojson).forEach(region => {
-  geojson[region].forEach(country => {
-    countriesData.push(country)
-  })
-})
+var countriesData = null
+function loadCountriesData(onLoad) {
+  fetch(geojsonUrl)
+    .then(function(response) {
+      return response.json()
+    })
+    .catch(function() {
+      alert('Could not load countries geojson data')
+    })
+    .then(function(geojson) {
+      countriesData = []
+      Object.keys(geojson).forEach(region => {
+        geojson[region].forEach(country => {
+          countriesData.push(country)
+        })
+      })
+      onLoad(countriesData)
+    })
+}
 
 
 const textureLoader = new TextureLoader()
@@ -24,10 +37,10 @@ class Earth extends Object3D {
     )
     super(parent, mesh)
 
-    this.children = [{
+    this.children = {
       key: 'countries',
       class: List,
-      data: countriesData,
+      data: countriesData || [],
       template: {
         key: d => d.id,
         class: Country,
@@ -39,7 +52,14 @@ class Earth extends Object3D {
         onMouseOver: () => this._onCountryMouseOver,
         onMouseOut: () => this._onCountryMouseOut
       }
-    }]
+    }
+
+    if (!countriesData) {
+      loadCountriesData((data) => {
+        this.children.data = data
+        this.afterUpdate()
+      })
+    }
   }
 
   set oceanColor(c) {
