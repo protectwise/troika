@@ -8,16 +8,15 @@ import Object3D from './Object3D'
  * labels, and pieces of UI that follow a given object around.
  */
 class HtmlOverlay extends Object3D {
+  /**
+   * Defines the HTML content to be rendered. The type/format of this value is dependent
+   * on the wrapping implementation; for example the Canvas3D.jsx React-based wrapper will
+   * expect a React element descriptor, while other wrappers might expect a HTML string.
+   */
+  html = null
+
   constructor(parent) {
     super(parent, new ThreeObject3D())
-
-    /**
-     * Defines the HTML content to be rendered. The type/format of this value is dependent
-     * on the wrapping implementation; for example the Canvas3D.jsx React-based wrapper will
-     * expect a React element descriptor.
-     */
-    this.html = null
-
     this.notifyWorld('addHtmlOverlay', this)
   }
 

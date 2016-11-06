@@ -4,13 +4,15 @@ import CityGrid from './citygrid/CityGrid'
 import ShaderAnim from './shader-anim/ShaderAnim'
 import Arcs from './arcs/Arcs'
 import GlobeExample from './globe/GlobeExample'
+import HtmlOverlays from './html-overlays/HtmlOverlaysExample'
 
 
 const EXAMPLES = [
   {id: 'citygrid', name: 'City', component: CityGrid},
   {id: 'shaderanim', name: 'Animated Shaders', component: ShaderAnim},
   {id: 'arcs', name: 'Arcs', component: Arcs},
-  {id: 'globe', name: 'Globe', component: GlobeExample}
+  {id: 'globe', name: 'Globe', component: GlobeExample},
+  {id: 'htmlOverlays', name: 'HTML Overlays', component: HtmlOverlays}
 ]
 
 const ExamplesApp = React.createClass({
