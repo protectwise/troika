@@ -44,7 +44,7 @@ class Tween {
       time = Math.min(time, this.getTotalDuration()) //never go past final value
       let progress = time - delay === 0 ? 0 : (time - delay) % duration === 0 ? 1 : ((time - delay) % duration) / duration
       progress = this.easing(progress)
-      if (this.direction === 'reverse' || (this.direction === 'alternate' && Math.floor((time - delay) / duration) % 2 > 0)) {
+      if (this.direction === 'reverse' || (this.direction === 'alternate' && Math.ceil((time - delay) / duration) % 2 === 0)) {
         progress = 1 - progress
       }
       this.callback(this.interpolate(this.fromValue, this.toValue, progress))
