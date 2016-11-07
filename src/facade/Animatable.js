@@ -43,7 +43,8 @@ export default function(WrappedClass) {
      *     height: {
      *       duration: n, //in ms, defaults to 750
      *       easing: e, //easing function, defaults to 'easeOutCubic'
-     *       delay: n //in ms, defaults to 0
+     *       delay: n, //in ms, defaults to 0
+     *       interpolate: 'number' //one of the named functions in Interpolators.js ('number', 'color', etc.) or a custom Function
      *     }
      *   }
      */
@@ -70,13 +71,14 @@ export default function(WrappedClass) {
      * property values for that keyframe.
      *
      *   animation: [{
-     *     0: {rotateZ: 0}, //can also use key "from"
-     *     100: {rotateZ: Math.PI * 2}, //can also use key "to"
+     *     0: {rotateZ: 0, color: 0x000000}, //can also use key "from"
+     *     100: {rotateZ: Math.PI * 2, color: 0xffffff}, //can also use key "to"
      *     delay: 0, //starting delay in ms
      *     duration: 2000, //total anim duration in ms, defaults to 750
      *     easing: 'linear', //easing for the whole animation, defaults to 'linear'
      *     iterations: 5, //number of times to loop the animation, defaults to 1. Set to Infinity for endless loop.
      *     direction: 'forward', //either 'forward', 'backward', or 'alternate'
+     *     interpolate: {color: 'color'}, //mapping of property names to Interpolators.js names or custom functions
      *     paused: false //if true the animation will be paused at its current position until set back to false
      *   }, ...]
      *

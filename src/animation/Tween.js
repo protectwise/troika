@@ -24,6 +24,9 @@ const linear = v => v
  *        specify `Infinity`.
  * @param [direction] {String} direction to run the tween; one of 'forward', 'reverse', or 'alternate'. For
  *        'alternate', it will toggle between forward and reverse on each iteration.
+ * @param [interpolate] {String|Function} how tweened values should be calculated between the fromValue and toValue.
+ *        Can be the string name for one of the built-in interpolators in Interpolators.js, or a custom function that
+ *        will be passed 3 arguments: `fromValue`, `toValue`, and `progress` from 0 to 1.
  */
 class Tween {
   constructor(callback, fromValue, toValue, duration=750, delay=0, easing=linear, iterations=1, direction='forward', interpolate='number') {
@@ -35,7 +38,7 @@ class Tween {
     this.easing = typeof easing === 'string' ? (easings[easing] || linear) : easing
     this.iterations = iterations
     this.direction = direction
-    this.interpolate = Interpolators[interpolate] || Interpolators.number
+    this.interpolate = typeof interpolate === 'function' ? interpolate : Interpolators[interpolate] || Interpolators.number
   }
 
   gotoTime(time) {
