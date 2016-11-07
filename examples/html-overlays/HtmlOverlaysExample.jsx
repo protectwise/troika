@@ -2,77 +2,11 @@ import React from 'react'
 import {
   Canvas3D,
   Group,
-  Object3D,
   HtmlOverlay
 } from '../../src/index'
-import {
-  BoxBufferGeometry,
-  SphereBufferGeometry,
-  Mesh,
-  MeshBasicMaterial,
-  MeshPhongMaterial,
-  BackSide,
-  DoubleSide
-} from 'three'
-
-const boxSize = 40
-
-class Box extends Object3D {
-  constructor(parent) {
-    super(parent, new Mesh(
-      new BoxBufferGeometry(boxSize, boxSize, boxSize),
-      new MeshPhongMaterial({
-        color: 0x003300,
-        opacity: 0.6,
-        side: DoubleSide,
-        transparent: true
-      })
-    ))
-  }
-}
-
-class Dot extends Object3D {
-  constructor(parent) {
-    super(parent, new Mesh(
-      new SphereBufferGeometry(1),
-      new MeshPhongMaterial({
-        color: 0x993333
-      })
-    ))
-  }
-}
-
-class Glow extends Object3D {
-  constructor(parent) {
-    super(parent, new Mesh(
-      parent.threeObject.geometry,
-      new MeshBasicMaterial({
-        color: 0xffffff,
-        opacity: 0,
-        side: BackSide,
-        transparent: true
-      })
-    ))
-  }
-
-  set distance(d) {
-    if (d !== this._dist) {
-      this.scaleX = this.scaleY = this.scaleZ = 1 + d / boxSize / 2
-      this._dist = d
-    }
-  }
-  get distance() {
-    return this._dist
-  }
-
-  set opacity(o) {
-    this.threeObject.material.opacity = o
-  }
-  get opacity() {
-    return this.threeObject.material.opacity
-  }
-}
-
+import Box from './Box'
+import Dot from './Dot'
+import Glow from './Glow'
 
 
 export default React.createClass({
@@ -86,7 +20,6 @@ export default React.createClass({
       hoveredBox: null
     }
   },
-
 
   _onBoxMouseOver(e) {
     this.setState({hoveredBox: e.target.id})
@@ -103,24 +36,7 @@ export default React.createClass({
 
     return (
       <div>
-        <style type="text/css">{ `
-          .tip {
-            background: #111;
-            color: #eee;
-            box-shadow: 0 0 2px #000;
-            transform: translate(-50%,calc(-100% - 10px));
-            padding: 5px 10px;
-            border-radius: 3px;
-          }
-          .tip::after {
-            content: "";
-            position: absolute;
-            left: calc(50% - 10px);
-            top: 100%;
-            border: 10px solid transparent;
-            border-top-color: #111;
-          }
-        ` }</style>
+        <style type="text/css">@import url("html-overlays/styles.css")</style>
 
         <Canvas3D
           antialias
@@ -174,8 +90,8 @@ export default React.createClass({
                       class: Glow,
                       color: 0xffffff,
                       opacity: 0,
-                      distance: i === state.hoveredBox ? 4 : 0,
-                      transition: {distance: true, opacity: true},
+                      amount: i === state.hoveredBox ? .05 : 0,
+                      transition: {amount: true, opacity: true},
                       animation: i === state.hoveredBox ? {
                         from: {opacity: 0.5},
                         to: {opacity: 1},

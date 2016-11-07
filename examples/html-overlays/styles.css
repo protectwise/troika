@@ -1,0 +1,16 @@
+.tip {
+  background: #ccc;
+  color: #333;
+  transform: translate(-50%, -100%);
+  margin-top: -10px;
+  padding: 5px 10px;
+  border-radius: 3px;
+}
+.tip::after {
+  content: "";
+  position: absolute;
+  left: calc(50% - 10px);
+  top: 100%;
+  border: 10px solid transparent;
+  border-top-color: #ccc;
+}
