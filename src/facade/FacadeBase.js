@@ -101,7 +101,7 @@ export default class FacadeBase {
 
 
 let idCounter = 0
-const DEF_SPECIAL_PROPS = {key:1, class:1, transition:1}
+const DEF_SPECIAL_PROPS = {key:1, class:1, transition:1, animation:1}
 
 /**
  * Determine if a certain property name is one of the special descriptor properties

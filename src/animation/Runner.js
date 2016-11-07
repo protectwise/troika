@@ -1,4 +1,5 @@
 const startedKey = 'runner➤started'
+const pausedKey = 'runner➤paused'
 const stoppedKey = 'runner➤stopped'
 
 let runners = []
@@ -70,8 +71,14 @@ class Runner {
    * @param {Tween} tween
    */
   start(tween) {
-    // add tween to list
-    tween[startedKey] = Date.now()
+    // If previously paused, update start time to account for the duration of the pause
+    if (tween[pausedKey] && tween[startedKey]) {
+      tween[startedKey] += (Date.now() - tween[pausedKey])
+    } else if (!tween[startedKey]) {
+      tween[startedKey] = Date.now()
+    }
+    tween[pausedKey] = null
+    tween[stoppedKey] = false
     this.tweens.push(tween)
 
     // add runner to running runners
@@ -85,6 +92,17 @@ class Runner {
   stop(tween) {
     // queue tween for removal from list on next tick
     tween[stoppedKey] = true
+    tween[pausedKey] = null
+  }
+
+  /**
+   * Pause a tween; call `runner.start(tween)` to unpause it
+   * @param tween
+   */
+  pause(tween) {
+    if (!tween[pausedKey]) {
+      tween[pausedKey] = Date.now()
+    }
   }
 
   /**
@@ -104,7 +122,7 @@ class Runner {
     // Sync each tween, filtering out old finished ones as we go
     for (let i = 0, len = tweens.length; i < len; i++) {
       let tween = tweens[i]
-      if (!tween[stoppedKey]) {
+      if (!tween[stoppedKey] && !tween[pausedKey]) {
         // Sync the tween to current time
         let time = now - tween[startedKey]
         tween.gotoTime(time)

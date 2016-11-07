@@ -1,4 +1,3 @@
-import isEqual from 'lodash/isEqual'
 import defaults from 'lodash/defaults'
 import Tween from '../animation/Tween'
 import MultiTween from '../animation/MultiTween'
@@ -12,7 +11,11 @@ const runnerKey = 'animation➤runner'
 const animationTweensKey = 'animation➤tweens'
 const animatingPropsKey = 'animation➤animatingProps'
 
+const TEMP_ARRAY = [null]
 
+function animationIdJsonReplacer(key, value) {
+  return key === 'paused' ? undefined : value === Infinity ? 'Infinity' : value
+}
 
 
 export default function(WrappedClass) {
@@ -73,7 +76,8 @@ export default function(WrappedClass) {
      *     duration: 2000, //total anim duration in ms, defaults to 750
      *     easing: 'linear', //easing for the whole animation, defaults to 'linear'
      *     iterations: 5, //number of times to loop the animation, defaults to 1. Set to Infinity for endless loop.
-     *     direction: 'forward' //either 'forward', 'backward', or 'alternate'
+     *     direction: 'forward', //either 'forward', 'backward', or 'alternate'
+     *     paused: false //if true the animation will be paused at its current position until set back to false
      *   }, ...]
      *
      * Internally the animations will be built into a set of nested tweens:
@@ -90,25 +94,39 @@ export default function(WrappedClass) {
      *                                            |----------- prop5 tween -------------|
      */
     set animation(descriptor) {
-      // Is the animation descriptor new or changed?
-      if (!isEqual(descriptor, this[animationDescriptorKey])) {
-        // Clear any existing animation state
-        let runner = this[runnerKey]
-        let animTweens = this[animationTweensKey]
-        if (animTweens) {
-          for (let i = animTweens.length; i--;) {
-            animTweens[i].gotoEnd() //force to end value so it doesn't stick partway through
-            runner.stop(animTweens[i])
+      if (this[animationDescriptorKey] === descriptor) return
+      this[animationDescriptorKey] = descriptor
+      let oldAnimTweens = this[animationTweensKey] || null
+      let newAnimTweens = this[animationTweensKey] = descriptor ? Object.create(null) : null
+      let runner = this[runnerKey]
+      let hasChanged = false
+
+      // Handle single object not wrapped in array
+      if (descriptor && !Array.isArray(descriptor)) {
+        TEMP_ARRAY[0] = descriptor
+        descriptor = TEMP_ARRAY
+      }
+
+      if (descriptor) {
+        for (let i = 0, len = descriptor.length; i < len; i++) {
+          let animDesc = descriptor[i]
+
+          // Calculate an identifier for this animation based on properties whose modification requires a new tween
+          let animId = JSON.stringify(animDesc, animationIdJsonReplacer)
+          //console.log(`${animId} - is ${oldAnimTweens && oldAnimTweens[animId] ? '' : 'not'} in old tweens`)
+
+          // If a matching tween already exists, update it
+          if (oldAnimTweens && (animId in oldAnimTweens)) {
+            let tween = oldAnimTweens[animId]
+            if (animDesc.paused) {
+              runner.pause(tween)
+            } else {
+              runner.start(tween)
+            }
+            newAnimTweens[animId] = tween
           }
-          this[animTweens] = null
-        }
-        let animatingProps = null
-
-        // Set up new animation if defined
-        if (descriptor) {
-          animatingProps = Object.create(null)
-
-          let buildTweenForAnim = (animDesc) => {
+          // Otherwise create a new tween
+          else {
             let delay = 0
             let duration = DEFAULT_DURATION
             let easing = 'linear'
@@ -135,8 +153,7 @@ export default function(WrappedClass) {
                       keyframes.push({time: percent / 100, props: animDesc[key]})
                       for (let animProp in animDesc[key]) {
                         if (animDesc[key].hasOwnProperty(animProp)) {
-                          // Collect list of properties being animated
-                          animatingProps[animProp] = true
+                          // Ensure setter is in place
                           defineTransitionPropInterceptor(animProp)
                           // Stop any active transition tweens for this property
                           let tweenKey = animProp + '➤tween'
@@ -158,42 +175,66 @@ export default function(WrappedClass) {
 
             // Build a MultiTween with tweens for each keyframe+property
             let keyframePropTweens = []
-            for (let i = 1, len = keyframes.length; i < len; i++) {
-              let keyframe = keyframes[i]
+            for (let j = 1, len = keyframes.length; j < len; j++) {
+              let keyframe = keyframes[j]
               let props = keyframe.props
               for (let prop in props) {
                 if (props.hasOwnProperty(prop)) {
                   let prevKeyframe = null
-                  for (let j = i; j--;) {
-                    if (prop in keyframes[j].props) {
-                      prevKeyframe = keyframes[j]
+                  for (let k = j; k--;) {
+                    if (prop in keyframes[k].props) {
+                      prevKeyframe = keyframes[k]
                       break
                     }
                   }
                   if (prevKeyframe) {
-                    keyframePropTweens.push(new Tween(
+                    let propTween = new Tween(
                       this[prop + '➤actuallySet'].bind(this), //callback
                       prevKeyframe.props[prop], //fromValue
                       props[prop], //toValue
                       (keyframe.time - prevKeyframe.time) * duration, //duration
                       prevKeyframe.time * duration, //delay
                       'linear' //easing
-                    ))
+                    )
+                    propTween.$$property = prop
+                    keyframePropTweens.push(propTween)
                   }
                 }
               }
             }
-            return new MultiTween(keyframePropTweens, delay, easing, iterations, direction)
+            let tween = newAnimTweens[animId] = new MultiTween(keyframePropTweens, delay, easing, iterations, direction)
+            runner.start(tween)
+            hasChanged = true
           }
-
-          // Build and start a tween for each animation
-          let animTweens = this[animationTweensKey] = Array.isArray(descriptor) ? descriptor.map(buildTweenForAnim) : [buildTweenForAnim(descriptor)]
-          animTweens.forEach(runner.start, runner)
         }
-
-        this[animatingPropsKey] = animatingProps
       }
-      this[animationDescriptorKey] = descriptor
+
+      // Stop any obsolete tweens
+      if (oldAnimTweens) {
+        for (let animId in oldAnimTweens) {
+          if (!newAnimTweens || !newAnimTweens[animId]) {
+            let tween = oldAnimTweens[animId]
+            tween.gotoEnd() //force to end value so it doesn't stick partway through
+            runner.stop(tween)
+            hasChanged = true
+          }
+        }
+      }
+
+      // If the total set of animations has changed, recalc the set of animating properties
+      if (hasChanged) {
+        if (newAnimTweens) {
+          let animatingProps = this[animatingPropsKey] = Object.create(null)
+          for (let animId in newAnimTweens) {
+            let propTweens = newAnimTweens[animId].tweens
+            for (let i = propTweens.length; i--;) {
+              animatingProps[propTweens[i].$$property] = true
+            }
+          }
+        } else {
+          this[animatingPropsKey] = null
+        }
+      }
     }
     get animation() {
       return this[animationDescriptorKey]
