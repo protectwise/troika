@@ -194,7 +194,10 @@ export default function(WrappedClass) {
                       props[prop], //toValue
                       (keyframe.time - prevKeyframe.time) * duration, //duration
                       prevKeyframe.time * duration, //delay
-                      'linear' //easing
+                      'linear', //easing
+                      1, //iterations
+                      'forward', //direction
+                      animDesc.interpolate && animDesc.interpolate[prop] || 'number'
                     )
                     propTween.$$property = prop
                     keyframePropTweens.push(propTween)
@@ -314,8 +317,7 @@ export default function(WrappedClass) {
           // Does this value have a transition defined, and are the old/new values transitionable?
           let runner = this[runnerKey]
           let transition = this.transition
-          if (transition && transition.hasOwnProperty(propName) && transition[propName] && this[hasBeenSetKey]
-              && typeof value === 'number' && typeof this[propName] === 'number') { //TODO allow non-numeric value interpolation
+          if (transition && transition.hasOwnProperty(propName) && transition[propName] && this[hasBeenSetKey]) {
             transition = transition[propName]
             // If there's no active transition tween, or the new value is different than the active tween's
             // target value, initiate a new transition tween. Otherwise ignore it.
@@ -338,7 +340,10 @@ export default function(WrappedClass) {
                 value, //toValue
                 transition.duration || DEFAULT_DURATION, //duration
                 transition.delay || 0, //delay
-                transition.easing || DEFAULT_EASING //easing
+                transition.easing || DEFAULT_EASING, //easing
+                1, //iterations
+                'forward', //direction
+                transition.interpolate || 'number' //interpolate
               )
               runner.start(tween)
             }

@@ -50,7 +50,10 @@ class Earth extends Object3D {
         textureMap: this._getCountryTextureMap.bind(this),
         wireframe: () => this.wireframe,
         onMouseOver: () => this._onCountryMouseOver,
-        onMouseOut: () => this._onCountryMouseOut
+        onMouseOut: () => this._onCountryMouseOut,
+        transition: {
+          color: {interpolate: 'color'}
+        }
       }
     }
 

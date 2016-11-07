@@ -1,5 +1,5 @@
 import easings from 'easingjs'
-
+import * as Interpolators from './Interpolators'
 
 const linear = v => v
 
@@ -26,7 +26,7 @@ const linear = v => v
  *        'alternate', it will toggle between forward and reverse on each iteration.
  */
 class Tween {
-  constructor(callback, fromValue, toValue, duration=750, delay=0, easing=linear, iterations=1, direction='forward') {
+  constructor(callback, fromValue, toValue, duration=750, delay=0, easing=linear, iterations=1, direction='forward', interpolate='number') {
     this.callback = callback
     this.fromValue = fromValue
     this.toValue = toValue
@@ -35,6 +35,7 @@ class Tween {
     this.easing = typeof easing === 'string' ? (easings[easing] || linear) : easing
     this.iterations = iterations
     this.direction = direction
+    this.interpolate = Interpolators[interpolate] || Interpolators.number
   }
 
   gotoTime(time) {
@@ -64,7 +65,7 @@ class Tween {
   }
 
   interpolate(fromValue, toValue, progress) {
-    return this.fromValue + (this.toValue - this.fromValue) * progress
+    return fromValue + (toValue - fromValue) * progress
   }
 }
 
