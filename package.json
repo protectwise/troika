@@ -30,6 +30,7 @@
     "rollup-plugin-commonjs": "^5.0.5",
     "rollup-plugin-node-resolve": "^2.0.0",
     "rollup-plugin-replace": "^1.1.1",
+    "rollup-plugin-serve": "^0.1.0",
     "rollup-plugin-string": "^2.0.2",
     "rollup-watch": "^2.5.0",
     "uglify-js": "^2.7.3",
@@ -37,10 +38,9 @@
   },
   "scripts": {
     "build": "rollup -c",
-    "build-examples": "rollup -c rollup.config.examples.js",
     "build-compressed": "rollup -c && uglifyjs --compress --mangle -- build/troika.js > build/troika.min.js",
     "watch": "rollup -w -c",
-    "watch-examples": "rollup -w -c rollup.config.examples.js",
+    "examples": "rollup -w -c rollup.config.examples.js",
     "clean": "rm -rf build"
   },
   "publishConfig": {

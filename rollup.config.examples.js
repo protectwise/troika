@@ -4,6 +4,7 @@ import nodeResolve from 'rollup-plugin-node-resolve'
 import commonjs from 'rollup-plugin-commonjs'
 import replace from 'rollup-plugin-replace'
 import importStrings from 'rollup-plugin-string'
+import serve from 'rollup-plugin-serve'
 
 
 export default {
@@ -44,7 +45,8 @@ export default {
     nodeResolve({
       jsnext: true,
       main: true
-    })
+    }),
+    serve()
   ],
   format: 'iife',
   dest: 'build/examples-bundle.js'
