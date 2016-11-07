@@ -1,4 +1,3 @@
-import isArray from 'lodash/isArray'
 import FacadeBase, {isSpecialDescriptorProperty} from './FacadeBase'
 import Animatable from './Animatable'
 
@@ -25,12 +24,12 @@ export default class Parent extends FacadeBase {
   }
 
   updateChildren(children) {
-    let oldDict = this._childrenDict || Object.create(null)
-    let newDict = this._childrenDict = Object.create(null)
+    let oldDict = this._childrenDict || null
+    let newDict = this._childrenDict = children ? Object.create(null) : null
 
     if (children) {
       // Allow single child without wrapper array
-      if (!isArray(children)) {
+      if (!Array.isArray(children)) {
         TEMP_ARRAY[0] = children
         children = TEMP_ARRAY
       }
@@ -62,7 +61,7 @@ export default class Parent extends FacadeBase {
         }
 
         // If we have an old instance with the same key and class, update it, otherwise instantiate a new one
-        let oldImpl = oldDict[key]
+        let oldImpl = oldDict && oldDict[key]
         let newImpl = oldImpl && (oldImpl.constructor === cla$$) ? oldImpl : new cla$$(this)
         //always set transition/animation before any other props
         newImpl.transition = transition
@@ -78,9 +77,11 @@ export default class Parent extends FacadeBase {
     }
 
     // Destroy all old child instances that weren't reused
-    for (let key in oldDict) {
-      if (newDict[key] !== oldDict[key]) {
-        oldDict[key].destructor()
+    if (oldDict) {
+      for (let key in oldDict) {
+        if (!newDict || newDict[key] !== oldDict[key]) {
+          oldDict[key].destructor()
+        }
       }
     }
   }
