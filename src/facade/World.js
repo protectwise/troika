@@ -33,7 +33,7 @@ class World extends Parent {
 
   set backgroundColor(color) {
     if (color !== this._bgColor) {
-      this._threeRenderer.setClearColor(new Color(color || 0), color ? 1 : 0)
+      this._threeRenderer.setClearColor(new Color(color || 0), color != null ? 1 : 0)
       this._bgColor = color
     }
   }
