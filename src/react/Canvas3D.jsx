@@ -14,7 +14,7 @@ const Canvas3D = React.createClass({
     backgroundColor: T.any,
     lights: T.array,
     camera: T.object.isRequired,
-    objects: T.array.isRequired,
+    objects: T.oneOfType([T.array, T.object]).isRequired,
     antialias: T.bool,
     showStats: T.bool,
     onBackgroundClick: T.func,
