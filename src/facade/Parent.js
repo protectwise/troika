@@ -19,8 +19,19 @@ export default class Parent extends FacadeBase {
   }
 
   afterUpdate() {
-    this.updateChildren(this.children)
+    if (this.shouldUpdateChildren()) {
+      this.updateChildren(this.children)
+    }
     super.afterUpdate()
+  }
+
+  /**
+   * Override to selectively prevent traversing to child nodes on `afterUpdate`, for
+   * potential performance gain.
+   * @returns {boolean}
+   */
+  shouldUpdateChildren() {
+    return true
   }
 
   updateChildren(children) {
