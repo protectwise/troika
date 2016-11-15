@@ -30,12 +30,9 @@ export default class List extends FacadeBase {
     let {data, template} = this
     let hasData = data && data.length && Array.isArray(data)
 
-    let oldDict = this._itemsDict || null
-    let newDict = this._itemsDict = hasData ? Object.create(null) : null
-
     // Some basic validation in dev mode
     if (process.env.NODE_ENV !== 'production') {
-      if (!Array.isArray(data)) {
+      if (data && !Array.isArray(data)) {
         throw 'List "data" must be an array.'
       }
       if (!template || typeof template !== 'object') {
@@ -50,6 +47,9 @@ export default class List extends FacadeBase {
     }
 
     if (this.shouldUpdateChildren()) {
+      let oldDict = this._itemsDict || null
+      let newDict = this._itemsDict = hasData ? Object.create(null) : null
+
       if (hasData) {
         for (let i = 0, len = data.length; i < len; i++) {
           let childData = data[i]
