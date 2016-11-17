@@ -41,6 +41,9 @@ class World extends Parent {
     return this._bgColor
   }
 
+  set shadows(val) {
+    this._threeRenderer.shadowMap.enabled = !!val
+  }
 
   afterUpdate() {
     let {camera, scene, width, height} = this

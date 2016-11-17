@@ -52,6 +52,7 @@ const Canvas3D = React.createClass({
     world.width = props.width
     world.height = props.height
     world.backgroundColor = props.backgroundColor
+    world.shadows = props.shadows
     world.camera = props.camera
     world.scene = {
       lights: props.lights,

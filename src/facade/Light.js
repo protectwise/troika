@@ -13,7 +13,7 @@ class Light extends Object3D {
   }
 }
 // Setters for simple properties to be copied
-['intensity', 'distance', 'angle', 'penumbra', 'decay'].forEach(propName => {
+['intensity', 'distance', 'angle', 'penumbra', 'decay', 'castShadow'].forEach(propName => {
   Object.defineProperty(Light.prototype, propName, {
     get() {
       return this.threeObject[propName]
