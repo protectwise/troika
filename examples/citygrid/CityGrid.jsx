@@ -78,6 +78,7 @@ const CityGrid = React.createClass({
     layout.size([layoutSideLength, layoutSideLength])
     layout(zoneHierarchy)
 
+    this._hostsChanged = true
     this.setState({
       data: data,
       layoutSideLength,
@@ -96,6 +97,7 @@ const CityGrid = React.createClass({
         h.height = randomHostHeight()
       })
     })
+    this._hostsChanged = true
     this.setState({data})
   },
 
@@ -106,6 +108,7 @@ const CityGrid = React.createClass({
         h.threatLevel = randomThreatLevel()
       })
     })
+    this._hostsChanged = true
     this.setState({data})
   },
 
@@ -133,6 +136,7 @@ const CityGrid = React.createClass({
   _toggleRotation() {
     let rotating = this.state.rotatingCamera
     rotating = !rotating ? 'state' : rotating === 'state' ? 'animation' : null
+    this._lastRotationTime = null
     this.setState({rotatingCamera: rotating}, this._tickCameraRotation)
   },
 
@@ -146,25 +150,34 @@ const CityGrid = React.createClass({
 
   _tickCameraRotation() {
     if (this.state.rotatingCamera === 'state') {
-      this.setState({cameraAngle: this.state.cameraAngle + Math.PI / 300})
+      let now = Date.now()
+      if (this._lastRotationTime) {
+        let dur = now - this._lastRotationTime
+        this.setState({cameraAngle: this.state.cameraAngle + (Math.PI * 2 * (dur / 30000))}) // 30s around
+      }
+      this._lastRotationTime = now
       this._cameraRotateRAF = requestAnimationFrame(this._tickCameraRotation)
     }
   },
 
 
   _onHostMouseOver(e) {
+    this._hostsChanged = true
     this.setState({hoveredHostIp: e.target.ip})
   },
 
   _onHostMouseOut(e) {
+    this._hostsChanged = true
     this.setState({hoveredHostIp: null})
   },
 
   _onHostClick(e) {
+    this._hostsChanged = true
     this.setState({selectedHostIp: e.target.ip})
   },
 
   _onSceneClick(e) {
+    this._hostsChanged = true
     this.setState({selectedHostIp: null})
   },
 
@@ -173,6 +186,8 @@ const CityGrid = React.createClass({
   render() {
     let {props, state} = this
     let zoneHierarchy = state.hierarchy
+    let hostsChanged = this._hostsChanged
+    this._hostsChanged = false
 
     return (
       <div className="the_grid" onWheel={ this._onMouseWheel }>
@@ -216,7 +231,7 @@ const CityGrid = React.createClass({
               lookAt: state.cameraLookAt,
               up: CAMERA_UP,
               transition: state.enableTransitions ? {
-                angle: 1,
+                angle: !state.rotatingCamera,
                 distance: 1,
                 elevation: 1
               } : null,
@@ -251,6 +266,7 @@ const CityGrid = React.createClass({
                     key: 'hosts',
                     class: List,
                     data: zoneHierarchy.leaves(),
+                    shouldUpdateChildren: () => hostsChanged,
                     template: {
                       key: (host, i) => `host${ i }`,
                       class: Host,
