@@ -87,6 +87,10 @@ export default class FacadeBase {
     }
   }
 
+  traverse(fn) {
+    fn(this)
+  }
+
   /**
    * Called when the instance is being removed from the scene. Override this to implement any
    * custom cleanup logic.

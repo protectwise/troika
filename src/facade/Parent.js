@@ -102,12 +102,23 @@ export default class Parent extends FacadeBase {
     return dict && dict[key]
   }
 
+  traverse(fn) {
+    fn(this)
+    let dict = this._childrenDict
+    if (dict) {
+      for (let key in dict) {
+        dict[key].traverse(fn)
+      }
+    }
+  }
+
   destructor() {
     // Destroy all child instances
-    if (this._childrenDict) {
+    let dict = this._childrenDict
+    if (dict) {
       this.isDestroying = true
-      for (let key in this._childrenDict) {
-        this._childrenDict[key].destructor()
+      for (let key in dict) {
+        dict[key].destructor()
       }
     }
     super.destructor()

@@ -61,6 +61,17 @@ class Object3D extends Parent {
     return _pos
   }
 
+  /**
+   * Determine if this facade's threeObject intersects a Raycaster. Return format is the same
+   * as that of `Raycaster.intersectObject`. Override this method to provide custom raycasting
+   * logic, for example when additional meshes need to be checked or a vertex shader manipulates
+   * the geometry.
+   */
+  raycast(raycaster) {
+    let threeObject = this.threeObject
+    return threeObject && raycaster.intersectObject(threeObject, false) || null
+  }
+
   destructor() {
     MOUSE_EVENT_PROPS.forEach(type => {
       this[`${type}➤handler`] = null

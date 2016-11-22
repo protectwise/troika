@@ -8,7 +8,7 @@ const TRANS = {
   easing: 'easeOutExpo',
   delay: 200
 }
-let idCtr = 0
+let idCtr = 1
 
 
 export default React.createClass({
@@ -21,6 +21,7 @@ export default React.createClass({
     return {
       deep: false,
       cameraAngle: 0,
+      highlightedArc: null,
       data: {}
     }
   },
@@ -44,7 +45,7 @@ export default React.createClass({
         })
       }
       let angle = 0
-      let numArcs = Math.max(data[key].length, Math.round(Math.random() * 15))
+      let numArcs = Math.max(data[key].length, Math.round(Math.random() * 20))
       let marginAngle = 0.0075
       for (let i = 0; i < numArcs; i++) {
         if (!data[key][i]) {
@@ -68,10 +69,20 @@ export default React.createClass({
     this.setState({cameraAngle: !this.state.cameraAngle ? -Math.PI / 4 : 0})
   },
 
+  _onArcMouseOver(e) {
+    this.setState({highlightedArc: e.target.id})
+  },
+
+  _onArcMouseOut() {
+    this.setState({highlightedArc: null})
+  },
+
   render() {
     let state = this.state
     let {width, height} = this.props
     let angled = state.cameraAngle != 0
+    let onArcMouseOver = () => this._onArcMouseOver
+    let onArcMouseOut = () => this._onArcMouseOut
 
     function quadrant(key, baseAngle, baseRadius) {
       return {
@@ -79,12 +90,16 @@ export default React.createClass({
         class: List,
         data: state.data[key] || [],
         template: {
-          key: (d, i) => d.id,
+          key: d => d.id,
           class: Arc,
+          id: d => d.id,
           startAngle: d => baseAngle + d.startAngle,
           endAngle: d => baseAngle + d.endAngle,
           startRadius: baseRadius,
           scaleZ: state.deep ? 20 : .0001,
+          highlight: d => d.id === state.highlightedArc,
+          onMouseOver: onArcMouseOver,
+          onMouseOut: onArcMouseOut,
           animation: (d, i) => (d.isNew ? {
             from: {
               opacity: 0,

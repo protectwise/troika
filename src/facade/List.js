@@ -112,12 +112,27 @@ export default class List extends FacadeBase {
     return true
   }
 
+  /**
+   * Walk this facade's descendant tree, invoking a function for it and each descendant.
+   * @param {Function} fn
+   */
+  traverse(fn) {
+    fn(this)
+    let dict = this._itemsDict
+    if (dict) {
+      for (let key in dict) {
+        dict[key].traverse(fn)
+      }
+    }
+  }
+
   destructor() {
     // Destroy all child instances
-    if (this._itemsDict) {
+    let dict = this._itemsDict
+    if (dict) {
       this.isDestroying = true
-      for (let key in this._itemsDict) {
-        this._itemsDict[key].destructor()
+      for (let key in dict) {
+        dict[key].destructor()
       }
     }
     super.destructor()

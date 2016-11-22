@@ -206,24 +206,33 @@ class World extends Parent {
     // prep raycaster
     raycaster.setFromCamera(coords, camera)
 
-    // Find intersecting objects; the first item returned should be the closest to the camera
-    var allHovered = raycaster.intersectObjects(this.getChildByKey('scene').threeObject.children, true)
-    for (let i = 0; i < allHovered.length; i++) {
-      let nearest3Obj = allHovered[i]
-      nearest3Obj = nearest3Obj && nearest3Obj.object
-      // Find the object's facade - the nearest threejs parent with a $facade pointer
-      let nearestFacade
-      while (nearest3Obj) {
-        nearestFacade = nearest3Obj.$facade
-        // By default only facades with a mouse event listener assigned will be counted, to prevent being blocked by unwanted objects
-        // If an object should definitely block events from objects behind it, set `pointerEvents:true`
-        // If an object has one of the mouse event properties but should be ignored in raycasting, set `pointerEvents:false`
-        if (nearestFacade && nearestFacade.pointerEvents !== false && (nearestFacade.pointerEvents || MOUSE_EVENT_PROPS.some(e => nearestFacade[e]))) {
-          return nearestFacade
+    // traverse tree to collect hits
+    let allHits = null
+    this.getChildByKey('scene').traverse(facade => {
+      let hits = facade.raycast && facade.raycast(raycaster)
+      if (hits && hits[0]) {
+        (allHits || (allHits = [])).push({
+          facade: facade,
+          distance: hits[0].distance //ignore all but closest
+        })
+      }
+    })
+    if (allHits) {
+      // Sort by distance
+      allHits.sort((a, b) => a.distance - b.distance)
+
+      // Find nearest that should intercept mouse events
+      // - By default only facades with a mouse event listener assigned will be counted, to prevent being blocked by unwanted objects
+      // - If an object should definitely block events from objects behind it, set `pointerEvents:true`
+      // - If an object has one of the mouse event properties but should be ignored in raycasting, set `pointerEvents:false`
+      for (let i = 0; i < allHits.length; i++) {
+        let facade = allHits[i].facade
+        if (facade && facade.pointerEvents !== false && (facade.pointerEvents || MOUSE_EVENT_PROPS.some(e => facade[e]))) {
+          return facade
         }
-        nearest3Obj = nearest3Obj.parent
       }
     }
+
     return null
   }
 
