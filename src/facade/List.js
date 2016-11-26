@@ -61,6 +61,12 @@ export default class List extends FacadeBase {
             if (!key || typeof key !== 'string') {
               throw 'List template "key" function must return a string.'
             }
+            if (newDict[key]) {
+              console.warn(`Duplicate key in list: ${key}`)
+            }
+          }
+          while(newDict[key]) {
+            key += '|dupe'
           }
 
           // If a transition/animation is present, upgrade the class to a Animatable wrapper class on demand.

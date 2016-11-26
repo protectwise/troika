@@ -59,6 +59,12 @@ export default class Parent extends FacadeBase {
           if (typeof cla$$ !== 'function') {
             throw 'The "class" property must point to a constructor function.'
           }
+          if (newDict[key]) {
+            console.warn(`Duplicate key in children: ${key}`)
+          }
+        }
+        while(newDict[key]) {
+          key += '|dupe'
         }
 
         // If a transition/animation is present, upgrade the class to a Animatable wrapper class on demand.
