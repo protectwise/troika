@@ -2,7 +2,7 @@ import forOwn from 'lodash/forOwn'
 import {Vector3, Matrix4, Quaternion, Object3D as ThreeObject3D} from 'three'
 import Parent from './Parent'
 
-const MOUSE_EVENT_PROPS = ['onMouseOver', 'onMouseOut', 'onMouseDown', 'onMouseUp', 'onClick', 'onDoubleClick']
+const MOUSE_EVENT_PROPS = ['onMouseOver', 'onMouseOut', 'onMouseMove', 'onMouseDown', 'onMouseUp', 'onClick', 'onDoubleClick']
 
 const lookAtRotationMatrix = new Matrix4()
 const lookAtPos = new Vector3()

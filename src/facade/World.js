@@ -142,10 +142,10 @@ class World extends Parent {
 
   handleMouseMoveEvent(e) {
     let registry = this.$eventRegistry
-    if (registry && (registry.onMouseOver || registry.onMouseOut)) {
+    if (registry && (registry.onMouseOver || registry.onMouseOut || registry.onMouseMove)) {
       let lastHovered = this.$hoveredFacade
       let hovered = this.$hoveredFacade = e.type === 'mouseout' ? null : this.findHoveredFacade(e)
-      if (hovered !== lastHovered && registry) {
+      if (hovered !== lastHovered) {
         if (lastHovered) {
           let handler = registry.onMouseOut && registry.onMouseOut[lastHovered.$facadeId]
           if (handler) {
@@ -165,6 +165,15 @@ class World extends Parent {
             newEvent.originalEvent = e
             handler(newEvent)
           }
+        }
+      }
+      if (hovered) {
+        let handler = registry.onMouseMove && registry.onMouseMove[hovered.$facadeId]
+        if (handler) {
+          let newEvent = clone(e)
+          newEvent.target = newEvent.currentTarget = hovered
+          newEvent.originalEvent = e
+          handler(newEvent)
         }
       }
     }
