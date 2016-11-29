@@ -74,8 +74,6 @@ class Runner {
     // If previously paused, update start time to account for the duration of the pause
     if (tween[pausedKey] && tween[startedKey]) {
       tween[startedKey] += (Date.now() - tween[pausedKey])
-    } else if (!tween[startedKey]) {
-      tween[startedKey] = Date.now()
     }
     tween[pausedKey] = null
     tween[stoppedKey] = false
@@ -124,7 +122,7 @@ class Runner {
       let tween = tweens[i]
       if (!tween[stoppedKey] && !tween[pausedKey]) {
         // Sync the tween to current time
-        let time = now - tween[startedKey]
+        let time = now - (tween[startedKey] || (tween[startedKey] = now))
         tween.gotoTime(time)
         hasRunningTweens = true
 
