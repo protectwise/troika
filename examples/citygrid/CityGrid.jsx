@@ -46,7 +46,6 @@ const CityGrid = React.createClass({
   },
 
   componentWillUnmount() {
-    cancelAnimationFrame(this._wheelRAF)
     cancelAnimationFrame(this._cameraRotateRAF)
   },
 
@@ -115,14 +114,15 @@ const CityGrid = React.createClass({
   _onMouseWheel(e) {
     let {shiftKey, deltaY} = e.nativeEvent
     e.preventDefault()
-    cancelAnimationFrame(this._wheelRAF)
-    this._wheelRAF = requestAnimationFrame(() => {
-      if (shiftKey) {
-        this.setState({cameraElevation: Math.max(1, this.state.cameraElevation + deltaY / 10)})
-      } else {
-        this.setState({cameraDistance: Math.max(1, this.state.cameraDistance + deltaY / 5)})
-      }
-    })
+    this._isWheeling = true
+    let after = () => {
+      this._isWheeling = false
+    }
+    if (shiftKey) {
+      this.setState({cameraElevation: Math.max(1, this.state.cameraElevation + deltaY / 10)}, after)
+    } else {
+      this.setState({cameraDistance: Math.max(1, this.state.cameraDistance + deltaY / 5)}, after)
+    }
   },
 
   _gotoRandomCameraPos() {
@@ -230,7 +230,7 @@ const CityGrid = React.createClass({
               distance: state.cameraDistance,
               lookAt: state.cameraLookAt,
               up: CAMERA_UP,
-              transition: state.enableTransitions ? {
+              transition: state.enableTransitions && !this._isWheeling ? {
                 angle: !state.rotatingCamera,
                 distance: 1,
                 elevation: 1
