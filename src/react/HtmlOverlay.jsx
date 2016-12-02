@@ -32,7 +32,10 @@ const HtmlOverlay = React.createClass({
   },
 
   setItems(items) {
-    this.setState({items: items || null})
+    let lastItems = this.state.items
+    if ((items && items.length) || (lastItems && lastItems.length)) {
+      this.setState({items: items || null})
+    }
   },
 
   shouldComponentUpdate(newProps, newState) {
