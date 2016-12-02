@@ -207,7 +207,7 @@ export default function(WrappedClass) {
                 }
               }
             }
-            let tween = newAnimTweens[animId] = new MultiTween(keyframePropTweens, delay, easing, iterations, direction)
+            let tween = newAnimTweens[animId] = new MultiTween(keyframePropTweens, duration, delay, easing, iterations, direction)
             runner.start(tween)
             hasChanged = true
           }

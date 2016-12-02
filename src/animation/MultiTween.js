@@ -6,16 +6,18 @@ import Tween from './Tween'
  * single unit and the easing/iterations/etc. are applied across the total duration of all tweens.
  */
 class MultiTween extends Tween {
-  constructor(tweens, delay, easing, iterations, direction) {
-    // Calculate duration based on the longest individual total duration
-    let longestDuration = tweens.reduce((dur, tween) => Math.max(dur, tween.getTotalDuration()), 0)
-    if (longestDuration === Infinity) {
+  constructor(tweens, duration, delay, easing, iterations, direction) {
+    if (typeof duration !== 'number') {
+      // Calculate duration based on the longest individual total duration
+      duration = tweens.reduce((dur, tween) => Math.max(dur, tween.getTotalDuration()), 0)
+    }
+    if (duration === Infinity) {
       // Make an infinite duration finite, so easing math still works
-      longestDuration = Number.MAX_VALUE
+      duration = Number.MAX_VALUE
     }
 
     // Tween the total duration time
-    super(val => this.syncTweens(val), 0, longestDuration, longestDuration, delay, easing, iterations, direction)
+    super(val => this.syncTweens(val), 0, duration, duration, delay, easing, iterations, direction)
 
     this.tweens = tweens
   }
