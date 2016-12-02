@@ -9,6 +9,7 @@ import {PerspectiveCamera} from './Camera'
 import {MOUSE_EVENT_PROPS} from './Object3D'
 
 
+const posVec = new Vector3()
 const raycaster = new Raycaster()
 const eventTypesToProps = {
   'click': 'onClick',
@@ -76,10 +77,10 @@ class World extends Parent {
   // Requests a ThreeJS render pass on the next animation frame.
   queueRender() {
     if (!this._nextFrameTimer) {
-      this._nextFrameTimer = requestAnimationFrame(() => {
+      this._nextFrameTimer = requestAnimationFrame(this._nextFrameHandler || (this._nextFrameHandler = () => {
         this._nextFrameTimer = null
         this._doRender()
-      })
+      }))
     }
   }
 
@@ -90,10 +91,10 @@ class World extends Parent {
 
   _doRenderHtmlItems() {
     if (this.renderHtmlItems) {
-      let posVec = new Vector3()
-      let camera = this.getChildByKey('camera').threeObject
+      let camera = null
       let htmlItems = map(this._htmlOverlays, (overlay, key) => {
         posVec.setFromMatrixPosition(overlay.threeObject.matrixWorld)
+        if (!camera) camera = this.getChildByKey('camera').threeObject
         let distance = posVec.distanceTo(camera.position)
         posVec.project(camera)
         return {

@@ -7,6 +7,9 @@ let nextFrameTimer = null
 
 function noop() {}
 
+function isRunnerRunning(runner) {return runner.running}
+function isTweenNotStopped(tween) {return !tween[stoppedKey]}
+
 function tick() {
   let now = Date.now()
 
@@ -22,7 +25,7 @@ function tick() {
     }
   }
   if (hasStoppedRunners) {
-    runners = runners.filter(runner => runner.running)
+    runners = runners.filter(isRunnerRunning)
   }
 
   // Queue next tick if there are still active runners
@@ -146,7 +149,7 @@ class Runner {
     // Prune list if needed
     // TODO perhaps batch this up so it happens less often
     if (hasStoppedTweens) {
-      this.tweens = tweens.filter(tween => !tween[stoppedKey])
+      this.tweens = tweens.filter(isTweenNotStopped)
 
       // remove runner from running runners if it has no tweens left
       if (!this.tweens.length) {
