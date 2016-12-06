@@ -5,6 +5,7 @@ import ShaderAnim from './shader-anim/ShaderAnim'
 import Arcs from './arcs/Arcs'
 import GlobeExample from './globe/GlobeExample'
 import HtmlOverlays from './html-overlays/HtmlOverlaysExample'
+import DragDrop from './dragdrop/DragDropExample'
 
 
 const EXAMPLES = [
@@ -12,7 +13,8 @@ const EXAMPLES = [
   {id: 'shaderanim', name: 'Animated Shaders', component: ShaderAnim},
   {id: 'arcs', name: 'Arcs', component: Arcs},
   {id: 'globe', name: 'Globe', component: GlobeExample},
-  {id: 'htmlOverlays', name: 'HTML Overlays', component: HtmlOverlays}
+  {id: 'htmlOverlays', name: 'HTML Overlays', component: HtmlOverlays},
+  {id: 'dragdrop', name: 'Drag and Drop', component: DragDrop}
 ]
 
 const ExamplesApp = React.createClass({
