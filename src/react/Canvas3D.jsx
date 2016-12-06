@@ -18,7 +18,8 @@ const Canvas3D = React.createClass({
     antialias: T.bool,
     showStats: T.bool,
     onBackgroundClick: T.func,
-    className: T.string
+    className: T.string,
+    cursor: T.string
   },
 
   componentDidUpdate() {
@@ -79,15 +80,6 @@ const Canvas3D = React.createClass({
     this._htmlOverlayRef = cmp
   },
 
-  _onMouseMove(e) {
-    this._world.handleMouseMoveEvent(e)
-  },
-
-  _onMouseButton(e) {
-    this._world.handleMouseButtonEvent(e)
-  },
-
-
   render() {
     let {props} = this
     return (
@@ -95,18 +87,11 @@ const Canvas3D = React.createClass({
         position: 'relative',
         overflow: 'hidden',
         width: props.width,
-        height: props.height
+        height: props.height,
+        cursor: props.cursor,
+        userSelect: 'none'
       } }>
-        <canvas
-          ref={ this._bindCanvasRef }
-          onMouseMove={ this._onMouseMove }
-          onMouseOut={ this._onMouseMove }
-          onClick={ this._onMouseButton }
-          onMouseDown={ this._onMouseButton }
-          onMouseUp={ this._onMouseButton }
-          onDoubleClick={ this._onMouseButton }
-        />
-
+        <canvas ref={ this._bindCanvasRef } />
         <HtmlOverlay ref={ this._bindHtmlOverlayRef } />
       </div>
     )

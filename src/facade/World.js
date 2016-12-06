@@ -1,21 +1,40 @@
 import assign from 'lodash/assign'
-import clone from 'lodash/clone'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import {WebGLRenderer, Raycaster, Color, Vector2, Vector3} from 'three'
 import Parent from './Parent'
 import Scene from './Scene'
 import {PerspectiveCamera} from './Camera'
-import {MOUSE_EVENT_PROPS} from './Object3D'
+import {POINTER_EVENT_PROPS, POINTER_MOTION_EVENT_PROPS, POINTER_ACTION_EVENT_PROPS} from './Object3D'
 
 
 const posVec = new Vector3()
 const raycaster = new Raycaster()
-const eventTypesToProps = {
+const pointerActionEventTypesToProps = {
   'click': 'onClick',
   'dblclick': 'onDoubleClick',
   'mousedown': 'onMouseDown',
   'mouseup': 'onMouseUp'
+}
+
+function cloneEvent(e) {
+  let newEvent = {}
+  Object.keys(e.constructor.prototype).forEach(key => {
+    newEvent[key] = e[key]
+  })
+  return newEvent
+}
+
+function firePointerEvent(handlerProp, nativeEvent, targetFacade, relatedTargetFacade) {
+  let handler = targetFacade[handlerProp]
+  if (handler) {
+    let newEvent = cloneEvent(nativeEvent)
+    newEvent.type = handlerProp.replace(/^on/, '').toLowerCase()
+    newEvent.target = newEvent.currentTarget = targetFacade
+    newEvent.relatedTarget = relatedTargetFacade || null
+    newEvent.nativeEvent = nativeEvent
+    handler(newEvent)
+  }
 }
 
 
@@ -26,10 +45,22 @@ class World extends Parent {
     this.width = this.height = 500
     this._htmlOverlays = Object.create(null)
 
+    this._canvas = canvas
     this._threeRenderer = new WebGLRenderer(assign({
       canvas: canvas,
       alpha: true
     }, threeJsRendererConfig))
+
+    // Bind events
+    this._onPointerMotionEvent = this._onPointerMotionEvent.bind(this)
+    this._onPointerActionEvent = this._onPointerActionEvent.bind(this)
+    this._onDropEvent = this._onDropEvent.bind(this)
+    ;['mousemove', 'mouseout'].forEach(type => {
+      canvas.addEventListener(type, this._onPointerMotionEvent, false)
+    })
+    Object.keys(pointerActionEventTypesToProps).forEach(type => {
+      canvas.addEventListener(type, this._onPointerActionEvent, false)
+    })
   }
 
   set backgroundColor(color) {
@@ -141,67 +172,78 @@ class World extends Parent {
     }
   }
 
-  handleMouseMoveEvent(e) {
+  _onPointerMotionEvent(e) {
     let registry = this.$eventRegistry
-    if (registry && (registry.onMouseOver || registry.onMouseOut || registry.onMouseMove)) {
+    if (registry && POINTER_MOTION_EVENT_PROPS.some(prop => !!registry[prop])) {
+      let dragInfo = this.$dragInfo
+      if (dragInfo) {
+        if (!dragInfo.dragStartFired) {
+          firePointerEvent('onDragStart', dragInfo.dragStartEvent, dragInfo.draggedFacade)
+          dragInfo.dragStartFired = true
+        }
+        firePointerEvent('onDrag', e, dragInfo.draggedFacade)
+      }
+
       let lastHovered = this.$hoveredFacade
-      let hovered = this.$hoveredFacade = e.type === 'mouseout' ? null : this.findHoveredFacade(e)
+      let hovered = this.$hoveredFacade = e.type === 'mouseout' ? null : this._findHoveredFacade(e)
       if (hovered !== lastHovered) {
         if (lastHovered) {
-          let handler = registry.onMouseOut && registry.onMouseOut[lastHovered.$facadeId]
-          if (handler) {
-            let newEvent = clone(e)
-            newEvent.target = newEvent.currentTarget = lastHovered
-            newEvent.relatedTarget = hovered || null
-            newEvent.originalEvent = e
-            handler(newEvent)
+          firePointerEvent('onMouseOut', e, lastHovered, hovered)
+          if (dragInfo) {
+            firePointerEvent('onDragLeave', e, lastHovered, hovered)
           }
         }
         if (hovered) {
-          let handler = registry.onMouseOver && registry.onMouseOver[hovered.$facadeId]
-          if (handler) {
-            let newEvent = clone(e)
-            newEvent.target = newEvent.currentTarget = hovered
-            newEvent.relatedTarget = lastHovered || null
-            newEvent.originalEvent = e
-            handler(newEvent)
+          firePointerEvent('onMouseOver', e, hovered, lastHovered)
+          if (dragInfo) {
+            firePointerEvent('onDragEnter', e, hovered, lastHovered)
           }
         }
       }
       if (hovered) {
-        let handler = registry.onMouseMove && registry.onMouseMove[hovered.$facadeId]
-        if (handler) {
-          let newEvent = clone(e)
-          newEvent.target = newEvent.currentTarget = hovered
-          newEvent.originalEvent = e
-          handler(newEvent)
+        firePointerEvent('onMouseMove', e, hovered)
+        if (dragInfo) {
+          firePointerEvent('onDragOver', e, hovered)
         }
       }
     }
   }
 
-  handleMouseButtonEvent(e) {
-    var handler
-    let eventProp = eventTypesToProps[e.type]
+  _onPointerActionEvent(e) {
     let registry = this.$eventRegistry
-    if (registry && eventProp && registry[eventProp]) {
-      let facade = this.findHoveredFacade(e)
-      if (!facade) {
-        facade = this.getChildByKey('scene')
-        handler = facade[eventProp]
-      } else {
-        handler = registry[eventProp] && registry[eventProp][facade.$facadeId]
-      }
-      if (handler) {
-        let newEvent = clone(e)
-        newEvent.target = newEvent.currentTarget = facade
-        newEvent.originalEvent = e
-        handler(newEvent)
+    if (registry && (POINTER_ACTION_EVENT_PROPS.some(prop => !!registry[prop]) || registry.onDragStart)) {
+      let facade = this._findHoveredFacade(e)
+      if (facade) {
+        firePointerEvent(pointerActionEventTypesToProps[e.type], e, facade)
+
+        // Mousedown could be prepping for drag gesture
+        if (e.type === 'mousedown' && facade.onDragStart) {
+          let dragStartEvent = cloneEvent(e)
+          this.$dragInfo = {
+            draggedFacade: facade,
+            dragStartFired: false,
+            dragStartEvent: dragStartEvent
+          }
+          document.addEventListener('mouseup', this._onDropEvent, false) //handle mouseup outside canvas
+        }
       }
     }
   }
 
-  findHoveredFacade(e) {
+  _onDropEvent(e) {
+    let dragInfo = this.$dragInfo
+    if (dragInfo) {
+      let targetFacade = e.target === this._canvas && this._findHoveredFacade(e)
+      if (targetFacade) {
+        firePointerEvent('onDrop', e, targetFacade)
+      }
+      firePointerEvent('onDragEnd', e, dragInfo.draggedFacade)
+      document.removeEventListener('mouseup', this._onDropEvent, false) //handle mouseup outside canvas
+      this.$dragInfo = null
+    }
+  }
+
+  _findHoveredFacade(e) {
     // convert mouse position to normalized device coords (-1 to 1)
     let canvasRect = e.target.getBoundingClientRect()
     let coords = new Vector2(
@@ -235,9 +277,11 @@ class World extends Parent {
       // - By default only facades with a mouse event listener assigned will be counted, to prevent being blocked by unwanted objects
       // - If an object should definitely block events from objects behind it, set `pointerEvents:true`
       // - If an object has one of the mouse event properties but should be ignored in raycasting, set `pointerEvents:false`
+      let facade = null
+      let facadeHasProp = prop => !!facade[prop]
       for (let i = 0; i < allHits.length; i++) {
-        let facade = allHits[i].facade
-        if (facade && facade.pointerEvents !== false && (facade.pointerEvents || MOUSE_EVENT_PROPS.some(e => facade[e]))) {
+        facade = allHits[i].facade
+        if (facade && facade.pointerEvents !== false && (facade.pointerEvents || POINTER_EVENT_PROPS.some(facadeHasProp))) {
           return facade
         }
       }
@@ -250,6 +294,18 @@ class World extends Parent {
     if (this._nextFrameTimer) {
       cancelAnimationFrame(this._nextFrameTimer)
     }
+
+    let canvas = this._canvas
+    if (canvas) {
+      ;['mousemove', 'mouseout'].forEach(type => {
+        canvas.removeEventListener(type, this._onPointerMotionEvent, false)
+      })
+      Object.keys(pointerActionEventTypesToProps).forEach(type => {
+        canvas.removeEventListener(type, this._onPointerActionEvent, false)
+      })
+    }
+    document.removeEventListener('mouseup', this._onDropEvent, false)
+
     super.destructor()
   }
 

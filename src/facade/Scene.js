@@ -11,15 +11,14 @@ const LIGHT_TYPES = {
   point: PointLight
 }
 
+const RAY_INTERSECTION = [{distance: Infinity}]
+
 
 class Scene extends Object3D {
   constructor(parent) {
     let scene = new ThreeScene()
 
     super(parent, scene)
-
-    //should not count in raycasting even though it can have onClick etc defined
-    this.pointerEvents = false
   }
 
   afterUpdate() {
@@ -35,6 +34,11 @@ class Scene extends Object3D {
     this.children = lights.concat(this.children)
 
     super.afterUpdate()
+  }
+
+  raycast(raycaster) {
+    // Scene will always intersect, but as the furthest from the camera
+    return RAY_INTERSECTION
   }
 }
 

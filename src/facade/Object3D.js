@@ -2,7 +2,25 @@ import forOwn from 'lodash/forOwn'
 import {Vector3, Matrix4, Quaternion, Object3D as ThreeObject3D} from 'three'
 import Parent from './Parent'
 
-const MOUSE_EVENT_PROPS = ['onMouseOver', 'onMouseOut', 'onMouseMove', 'onMouseDown', 'onMouseUp', 'onClick', 'onDoubleClick']
+export const POINTER_MOTION_EVENT_PROPS = [
+  'onMouseOver',
+  'onMouseOut',
+  'onMouseMove',
+  'onDragStart',
+  'onDrag',
+  'onDragEnter',
+  'onDragOver',
+  'onDragLeave'
+]
+export const POINTER_ACTION_EVENT_PROPS = [
+  'onMouseDown',
+  'onMouseUp',
+  'onClick',
+  'onDoubleClick',
+  'onDrop',
+  'onDragEnd',
+]
+export const POINTER_EVENT_PROPS = POINTER_MOTION_EVENT_PROPS.concat(POINTER_ACTION_EVENT_PROPS)
 
 const lookAtRotationMatrix = new Matrix4()
 const lookAtPos = new Vector3()
@@ -73,7 +91,7 @@ class Object3D extends Parent {
   }
 
   destructor() {
-    MOUSE_EVENT_PROPS.forEach(type => {
+    POINTER_EVENT_PROPS.forEach(type => {
       this[`${type}➤handler`] = null
     })
     let threeObject = this.threeObject
@@ -131,7 +149,7 @@ forOwn({
 
 
 // Setup handlers for mouse event properties
-MOUSE_EVENT_PROPS.forEach(eventName => {
+POINTER_EVENT_PROPS.forEach(eventName => {
   let privateProp = `${ eventName }➤handler`
   Object.defineProperty(Object3D.prototype, eventName, {
     get() {
@@ -153,4 +171,3 @@ MOUSE_EVENT_PROPS.forEach(eventName => {
 
 
 export default Object3D
-export {MOUSE_EVENT_PROPS}
