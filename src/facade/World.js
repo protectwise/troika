@@ -14,7 +14,10 @@ const pointerActionEventTypesToProps = {
   'click': 'onClick',
   'dblclick': 'onDoubleClick',
   'mousedown': 'onMouseDown',
-  'mouseup': 'onMouseUp'
+  'mouseup': 'onMouseUp',
+  'touchstart': 'onMouseDown',
+  'touchend': 'onMouseUp',
+  'touchcancel': 'onMouseUp'
 }
 
 function cloneEvent(e) {
@@ -33,6 +36,17 @@ function firePointerEvent(handlerProp, nativeEvent, targetFacade, relatedTargetF
     newEvent.target = newEvent.currentTarget = targetFacade
     newEvent.relatedTarget = relatedTargetFacade || null
     newEvent.nativeEvent = nativeEvent
+
+    // normalize drag events invoked by touch
+    if (newEvent.type.indexOf('drag') === 0 && nativeEvent.touches) {
+      let touch = nativeEvent.touches[0] || nativeEvent.changedTouches[0]
+      if (touch) {
+        ;['clientX', 'clientY', 'screenX', 'screenY', 'pageX', 'pageY'].forEach(prop => {
+          newEvent[prop] = touch[prop]
+        })
+      }
+    }
+
     handler(newEvent)
   }
 }
@@ -55,12 +69,7 @@ class World extends Parent {
     this._onPointerMotionEvent = this._onPointerMotionEvent.bind(this)
     this._onPointerActionEvent = this._onPointerActionEvent.bind(this)
     this._onDropEvent = this._onDropEvent.bind(this)
-    ;['mousemove', 'mouseout'].forEach(type => {
-      canvas.addEventListener(type, this._onPointerMotionEvent, false)
-    })
-    Object.keys(pointerActionEventTypesToProps).forEach(type => {
-      canvas.addEventListener(type, this._onPointerActionEvent, false)
-    })
+    this._togglePointerListeners(true)
   }
 
   set backgroundColor(color) {
@@ -216,17 +225,19 @@ class World extends Parent {
       if (facade) {
         firePointerEvent(pointerActionEventTypesToProps[e.type], e, facade)
 
-        // Mousedown could be prepping for drag gesture
-        if (e.type === 'mousedown' && facade.onDragStart) {
+        // mousedown/touchstart could be prepping for drag gesture
+        if (facade.onDragStart && (e.type === 'mousedown' || e.type === 'touchstart')) {
           let dragStartEvent = cloneEvent(e)
           this.$dragInfo = {
             draggedFacade: facade,
             dragStartFired: false,
             dragStartEvent: dragStartEvent
           }
-          document.addEventListener('mouseup', this._onDropEvent, false) //handle mouseup outside canvas
+          // handle release outside canvas
+          this._toggleDropListeners(true)
         }
       }
+      e.preventDefault() //prevent e.g. touch scroll
     }
   }
 
@@ -238,17 +249,43 @@ class World extends Parent {
         firePointerEvent('onDrop', e, targetFacade)
       }
       firePointerEvent('onDragEnd', e, dragInfo.draggedFacade)
-      document.removeEventListener('mouseup', this._onDropEvent, false) //handle mouseup outside canvas
+      this._toggleDropListeners(false)
       this.$dragInfo = null
     }
   }
 
+  _toggleDropListeners(on) {
+    ['mouseup', 'touchend', 'touchcancel'].forEach(type => {
+      document[(on ? 'add' : 'remove') + 'EventListener'](type, this._onDropEvent, false)
+    })
+  }
+
+  _togglePointerListeners(on) {
+    let canvas = this._canvas
+    if (canvas) {
+      let method = (on ? 'add' : 'remove') + 'EventListener'
+      ;['mousemove', 'mouseout', 'touchmove'].forEach(type => {
+        canvas[method](type, this._onPointerMotionEvent, false)
+      })
+      Object.keys(pointerActionEventTypesToProps).forEach(type => {
+        canvas[method](type, this._onPointerActionEvent, false)
+      })
+    }
+  }
+
   _findHoveredFacade(e) {
+    // handle touch events
+    let posInfo = e
+    if (e.touches) {
+      if (e.touches.length > 1) return null //only handle single touches for now
+      posInfo = e.touches[0] || e.changedTouches[0]
+    }
+
     // convert mouse position to normalized device coords (-1 to 1)
     let canvasRect = e.target.getBoundingClientRect()
     let coords = new Vector2(
-      (e.clientX - canvasRect.left) / canvasRect.width * 2 - 1,
-      (e.clientY - canvasRect.top) / canvasRect.height * -2 + 1
+      (posInfo.clientX - canvasRect.left) / canvasRect.width * 2 - 1,
+      (posInfo.clientY - canvasRect.top) / canvasRect.height * -2 + 1
     )
 
     // ensure camera's matrix is updated
@@ -295,16 +332,8 @@ class World extends Parent {
       cancelAnimationFrame(this._nextFrameTimer)
     }
 
-    let canvas = this._canvas
-    if (canvas) {
-      ;['mousemove', 'mouseout'].forEach(type => {
-        canvas.removeEventListener(type, this._onPointerMotionEvent, false)
-      })
-      Object.keys(pointerActionEventTypesToProps).forEach(type => {
-        canvas.removeEventListener(type, this._onPointerActionEvent, false)
-      })
-    }
-    document.removeEventListener('mouseup', this._onDropEvent, false)
+    this._togglePointerListeners(false)
+    this._toggleDropListeners(false)
 
     super.destructor()
   }
