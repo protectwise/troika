@@ -37,6 +37,10 @@ export default React.createClass({
     }
   },
 
+  _reset() {
+    this.setState(this.getInitialState())
+  },
+
   _onCameraRef(ref) {
     this._cameraFacade = ref
   },
@@ -194,6 +198,7 @@ export default React.createClass({
         </div>
 
         <div className="example_controls">
+          <button onClick={ this._reset }>Reset</button>
         </div>
       </div>
     )
