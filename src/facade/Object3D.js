@@ -73,10 +73,28 @@ class Object3D extends Parent {
     super.afterUpdate()
   }
 
+  /**
+   * Get the current position vector of the world's camera.
+   * @returns {Vector3}
+   */
   getCameraPosition() {
     var _pos = null
     this.notifyWorld('getCameraPosition', pos => _pos = pos)
     return _pos
+  }
+
+  /**
+   * Calculate the distance in world units between this object's origin and the camera.
+   * @returns {Number}
+   */
+  getCameraDistance() {
+    if (this._matrixChanged) {
+      this.threeObject.updateMatrix()
+      this._matrixChanged = false
+    }
+    let cameraPos = this.getCameraPosition()
+    let objectPos = this.threeObject.getWorldPosition()
+    return cameraPos.distanceTo(objectPos)
   }
 
   /**
