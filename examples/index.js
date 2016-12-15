@@ -6,6 +6,7 @@ import Arcs from './arcs/Arcs'
 import GlobeExample from './globe/GlobeExample'
 import HtmlOverlays from './html-overlays/HtmlOverlaysExample'
 import DragDrop from './dragdrop/DragDropExample'
+import LevelOfDetail from './lod/LevelOfDetailExample'
 
 
 const EXAMPLES = [
@@ -14,7 +15,8 @@ const EXAMPLES = [
   {id: 'arcs', name: 'Arcs', component: Arcs},
   {id: 'globe', name: 'Globe', component: GlobeExample},
   {id: 'htmlOverlays', name: 'HTML Overlays', component: HtmlOverlays},
-  {id: 'dragdrop', name: 'Drag and Drop', component: DragDrop}
+  {id: 'dragdrop', name: 'Drag and Drop', component: DragDrop},
+  {id: 'lod', name: 'Level of Detail', component: LevelOfDetail}
 ]
 
 const ExamplesApp = React.createClass({
