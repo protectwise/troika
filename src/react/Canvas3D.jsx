@@ -58,6 +58,7 @@ const Canvas3D = React.createClass({
     world.scene = {
       lights: props.lights,
       children: props.objects,
+      fog: props.fog,
       onClick: props.onBackgroundClick
     }
     world.afterUpdate()

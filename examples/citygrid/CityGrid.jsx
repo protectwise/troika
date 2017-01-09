@@ -242,6 +242,10 @@ const CityGrid = React.createClass({
                 iterations: Infinity
               } : null
             } }
+            fog={ {
+              color: 0x222222,
+              density: 0.003,
+            } }
             objects={ [
               {
                 key: 'main',

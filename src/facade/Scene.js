@@ -1,5 +1,5 @@
 import omit from 'lodash/omit'
-import {Scene as ThreeScene} from 'three'
+import {Scene as ThreeScene, Fog, FogExp2} from 'three'
 import Object3D from './Object3D'
 import {AmbientLight, SpotLight, DirectionalLight, PointLight} from './Light'
 
@@ -34,6 +34,27 @@ class Scene extends Object3D {
     this.children = lights.concat(this.children)
 
     super.afterUpdate()
+  }
+
+  set fog(def) {
+    let fogObj = this._fogObj
+    if (def) {
+      let isExp2 = 'density' in def
+      let fogClass = isExp2 ? FogExp2 : Fog
+      if (!fogObj || !(fogObj instanceof fogClass)) {
+        fogObj = this._fogObj = new fogClass()
+      }
+      fogObj.color.set(def.color)
+      if (isExp2) {
+        fogObj.density = def.density
+      } else {
+        fogObj.near = def.near
+        fogObj.far = def.far
+      }
+    } else {
+      fogObj = this._fogObj = null
+    }
+    this.threeObject.fog = fogObj
   }
 
   raycast(raycaster) {
