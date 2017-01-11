@@ -60,7 +60,7 @@ class Tween {
   }
 
   getTotalDuration() {
-    return this.delay + (this.duration * this.iterations)
+    return isFinite(this.iterations) ? this.delay + (this.duration * this.iterations) : Number.MAX_SAFE_INTEGER
   }
 
   isDoneAtTime(time) {
