@@ -15,6 +15,7 @@
     "react-dom": "^15.3.0"
   },
   "devDependencies": {
+    "adaptive-bezier-curve": "^1.0.3",
     "babel-core": "^6.7.4",
     "babel-eslint": "^6.0.0",
     "babel-plugin-external-helpers": "^6.8.0",
@@ -33,6 +34,7 @@
     "rollup-plugin-serve": "^0.1.0",
     "rollup-plugin-string": "^2.0.2",
     "rollup-watch": "^2.5.0",
+    "three-line-2d": "^1.1.6",
     "uglify-js": "^2.7.3",
     "whatwg-fetch": "latest"
   },

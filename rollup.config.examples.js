@@ -44,7 +44,8 @@ export default {
     }),
     nodeResolve({
       jsnext: true,
-      main: true
+      main: true,
+      browser: true
     }),
     serve()
   ],

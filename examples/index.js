@@ -7,6 +7,7 @@ import GlobeExample from './globe/GlobeExample'
 import HtmlOverlays from './html-overlays/HtmlOverlaysExample'
 import DragDrop from './dragdrop/DragDropExample'
 import LevelOfDetail from './lod/LevelOfDetailExample'
+import CurveAnim from './curve-anim/CurveAnimExample'
 
 
 const EXAMPLES = [
@@ -16,7 +17,8 @@ const EXAMPLES = [
   {id: 'globe', name: 'Globe', component: GlobeExample},
   {id: 'htmlOverlays', name: 'HTML Overlays', component: HtmlOverlays},
   {id: 'dragdrop', name: 'Drag and Drop', component: DragDrop},
-  {id: 'lod', name: 'Level of Detail', component: LevelOfDetail}
+  {id: 'lod', name: 'Level of Detail', component: LevelOfDetail},
+  {id: 'curveAnim', name: 'Curve Animation', component: CurveAnim}
 ]
 
 const ExamplesApp = React.createClass({
