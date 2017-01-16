@@ -4,6 +4,8 @@ import Curve from './Curve'
 
 
 const RAND_STRATEGIES = ['absolute', 'distance']
+const PATH_SHAPES = ['curve', 'step']
+const GRADIENT_SCALES = ['per-value', 'max-value']
 
 // Custom interpolator function for transitioning the values array
 function interpolateArray(fromValue, toValue, progress) {
@@ -45,7 +47,9 @@ export default React.createClass({
       strokeOpacity: 1,
       fillOpacity: 0.5,
       fillGradientPercent: 1,
-      fillGradientFade: 3,
+      fillGradientExp: 3,
+      pathShape: PATH_SHAPES[0],
+      fillGradientScale: GRADIENT_SCALES[0],
       randomStrategy: RAND_STRATEGIES[0]
     }
   },
@@ -81,8 +85,8 @@ export default React.createClass({
     this._timer = setTimeout(this._randomizeValues, 1000)
   },
 
-  _onRandomStrategyChange(e) {
-    this.setState({randomStrategy: RAND_STRATEGIES[e.target.selectedIndex]})
+  _onDropdownChange(e) {
+    this.setState({[e.target.name]: e.target.options[e.target.selectedIndex].value})
   },
 
   _onSliderChange(e) {
@@ -116,11 +120,13 @@ export default React.createClass({
 
             values: state.values,
 
+            pathShape: state.pathShape,
             strokeWidth: state.strokeWidth,
             strokeOpacity: state.strokeOpacity,
             fillOpacity: state.fillOpacity,
             fillGradientPercent: state.fillGradientPercent,
-            fillGradientFade: state.fillGradientFade,
+            fillGradientExp: state.fillGradientExp,
+            fillGradientScale: state.fillGradientScale,
 
             transition: {
               values: {
@@ -139,9 +145,23 @@ export default React.createClass({
 
         <div className="example_controls">
           <div>
-            <select onChange={ this._onRandomStrategyChange }>
+            <select name="randomStrategy" onChange={ this._onDropdownChange }>
               { RAND_STRATEGIES.map(name => (
                 <option value={ name } selected={ name === this.state.randomStrategy }>Randomize: { name }</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <select name="pathShape" onChange={ this._onDropdownChange }>
+              { PATH_SHAPES.map(name => (
+                <option value={ name } selected={ name === this.state.pathShape }>Path shape: { name }</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <select name="fillGradientScale" onChange={ this._onDropdownChange }>
+              { GRADIENT_SCALES.map(name => (
+                <option value={ name } selected={ name === this.state.fillGradientScale }>Gradient scale: { name }</option>
               ))}
             </select>
           </div>
@@ -158,10 +178,10 @@ export default React.createClass({
             Fill opacity: <input type="range" name="fillOpacity" onChange={ this._onSliderChange } value={ state.fillOpacity } min="0" max="1" step="0.1" /> { state.fillOpacity }
           </div>
           <div>
-            Fill gradient %: <input type="range" name="fillGradientPercent" onChange={ this._onSliderChange } value={ state.fillGradientPercent } min="0" max="1" step="0.1" /> { state.fillGradientPercent }
+            Fill gradient height: <input type="range" name="fillGradientPercent" onChange={ this._onSliderChange } value={ state.fillGradientPercent } min="0" max="1" step="0.1" /> { state.fillGradientPercent }
           </div>
           <div>
-            Fill gradient fade: <input type="range" name="fillGradientFade" onChange={ this._onSliderChange } value={ state.fillGradientFade } min="1" max="10" step="1" /> { state.fillGradientFade }
+            Fill gradient exponent: <input type="range" name="fillGradientExp" onChange={ this._onSliderChange } value={ state.fillGradientExp } min="1" max="10" step="1" /> { state.fillGradientExp }
           </div>
         </div>
       </div>

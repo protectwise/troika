@@ -40,6 +40,21 @@ function valuesToCurvePoints(values, totalWidth, totalHeight) {
   return curveValues
 }
 
+// Given an array of y values, construct a step path connecting those points.
+function valuesToSquarePoints(values, totalWidth, totalHeight) {
+  let maxValue = Math.max.apply(Math, values)
+  let curveValues = []
+  for (let i = 0; i < values.length; i++) {
+    let xMult = totalWidth / (values.length - 1)
+    let yMult = totalHeight / maxValue
+    if (i > 0) {
+      curveValues.push([i * xMult, values[i - 1] * yMult])
+    }
+    curveValues.push([i * xMult, values[i] * yMult])
+  }
+  return curveValues
+}
+
 
 // Facade for the curve.
 export default class Curve extends Group {
@@ -67,8 +82,10 @@ export default class Curve extends Group {
       uniforms: {
         color: {value: new Color()},
         opacity: {value: 1},
+        gradientScale: {value: 1},
         gradientPercent: {value: 1},
-        gradientFade: {value: 1}
+        gradientExp: {value: 1},
+        maxY: {value: 1}
       },
       transparent: true,
       vertexShader: fillVertexShader,
@@ -83,7 +100,11 @@ export default class Curve extends Group {
   afterUpdate() {
     // Update the shared geometry
     let geometry = this.strokeMesh.geometry
-    geometry.update(valuesToCurvePoints(this.values, this.width, this.height))
+    geometry.update(
+      this.pathShape === 'step' ?
+        valuesToSquarePoints(this.values, this.width, this.height) :
+        valuesToCurvePoints(this.values, this.width, this.height)
+    )
 
     // Update the stroke mesh
     let hasStroke = this.strokeWidth && this.strokeColor && this.strokeOpacity > 0
@@ -101,8 +122,10 @@ export default class Curve extends Group {
       let fillUniforms = this.fillMesh.material.uniforms
       fillUniforms.color.value.set(this.fillColor)
       fillUniforms.opacity.value = this.fillOpacity
+      fillUniforms.gradientScale.value = this.fillGradientScale === 'max-value' ? 1 : 0
+      fillUniforms.maxY.value = this.height
       fillUniforms.gradientPercent.value = this.fillGradientPercent || 0
-      fillUniforms.gradientFade.value = this.fillGradientFade || 1
+      fillUniforms.gradientExp.value = this.fillGradientExp || 1
     }
     this.fillMesh.visible = !!hasFill
 
@@ -119,6 +142,8 @@ Object.assign(Curve.prototype, {
   strokeOpacity: 1,
   fillColor: 0xffffff,
   fillOpacity: 0.5,
+  fillGradientScale: 'per-value', //or 'max-value'
   fillGradientPercent: 1,
-  fillGradientFade: 3
+  fillGradientExp: 3,
+  pathShape: 'curve' //or 'step'
 })
