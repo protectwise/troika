@@ -216,6 +216,7 @@ class World extends Parent {
         }
       }
     }
+    this.$tapInfo = null
   }
 
   _onPointerActionEvent(e) {
@@ -224,6 +225,20 @@ class World extends Parent {
       let facade = this._findHoveredFacade(e)
       if (facade) {
         firePointerEvent(pointerActionEventTypesToProps[e.type], e, facade)
+
+        // touchstart/touchend could be start/end of a tap - map to onClick
+        if (facade.onClick) {
+          if (e.type === 'touchstart' && e.touches.length === 1) {
+            this.$tapInfo = {x: e.clientX, y: e.clientY, facade: facade}
+          }
+          else {
+            let tapInfo = this.$tapInfo
+            if (tapInfo && tapInfo.facade === facade && e.type === 'touchend' && e.changedTouches.length === 1) {
+              firePointerEvent('onClick', e, facade)
+            }
+            this.$tapInfo = null
+          }
+        }
 
         // mousedown/touchstart could be prepping for drag gesture
         if (facade.onDragStart && (e.type === 'mousedown' || e.type === 'touchstart')) {
