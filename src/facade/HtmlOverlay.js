@@ -12,6 +12,10 @@ class HtmlOverlay extends Object3D {
    * Defines the HTML content to be rendered. The type/format of this value is dependent
    * on the wrapping implementation; for example the Canvas3D.jsx React-based wrapper will
    * expect a React element descriptor, while other wrappers might expect a HTML string.
+   *
+   * When using the React-based wrapper, the rendered React component will not be updated
+   * when the overlay is repositioned, unless (a) the `html` element descriptor changes, or
+   * (b) that element descriptor has a `shouldUpdateOnMove` prop.
    */
   html = null
 

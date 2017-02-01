@@ -14,11 +14,12 @@ const CT_STYLES = {
 const HtmlOverlayContent = React.createClass({
   displayName: 'Canvas3D.HtmlOverlayContent',
   shouldComponentUpdate(newProps) {
-    return newProps.html !== this.props.html
+    return newProps.html !== this.props.html ||
+      (newProps.html.props && newProps.html.props.shouldUpdateOnMove)
   },
   render() {
     let html = this.props.html
-    return typeof html === 'string' ? <span>{ html }</span> : html
+    return typeof html === 'string' ? <span>{ html }</span> : React.cloneElement(html)
   }
 })
 
