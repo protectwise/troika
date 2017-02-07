@@ -15,7 +15,7 @@ const HtmlOverlayContent = React.createClass({
   displayName: 'Canvas3D.HtmlOverlayContent',
   shouldComponentUpdate(newProps) {
     return newProps.html !== this.props.html ||
-      (newProps.html.props && newProps.html.props.shouldUpdateOnMove)
+      (newProps.html.props && newProps.html.props.shouldUpdateOnMove) === true
   },
   render() {
     let html = this.props.html
