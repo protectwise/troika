@@ -26,7 +26,7 @@ class Scene extends Object3D {
     let lights = (this.lights || [{type: 'ambient'}]).map((def, i) => {
       let realDef = omit(def, 'type')
       realDef.key = `$$$light_${ i }`
-      realDef.class = LIGHT_TYPES[def.type] || AmbientLight
+      realDef.class = realDef.class || LIGHT_TYPES[def.type] || AmbientLight
       return realDef
     })
 
