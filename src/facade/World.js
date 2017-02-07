@@ -8,6 +8,8 @@ import {PerspectiveCamera} from './Camera'
 import {POINTER_EVENT_PROPS, POINTER_MOTION_EVENT_PROPS, POINTER_ACTION_EVENT_PROPS} from './Object3D'
 
 
+const TAP_DISTANCE_THRESHOLD = 10
+
 const posVec = new Vector3()
 const raycaster = new Raycaster()
 const pointerActionEventTypesToProps = {
@@ -216,7 +218,15 @@ class World extends Parent {
         }
       }
     }
-    this.$tapInfo = null
+
+    // Cancel tap gesture if moving past threshold
+    let tapInfo = this.$tapInfo
+    if (tapInfo && e.type === 'touchmove') {
+      let touch = e.changedTouches[0]
+      if (touch && Math.sqrt(Math.pow(touch.clientX - tapInfo.x, 2) + Math.pow(touch.clientY - tapInfo.y, 2)) > TAP_DISTANCE_THRESHOLD) {
+        this.$tapInfo = null
+      }
+    }
   }
 
   _onPointerActionEvent(e) {
@@ -229,11 +239,12 @@ class World extends Parent {
         // touchstart/touchend could be start/end of a tap - map to onClick
         if (facade.onClick) {
           if (e.type === 'touchstart' && e.touches.length === 1) {
-            this.$tapInfo = {x: e.clientX, y: e.clientY, facade: facade}
+            this.$tapInfo = {x: e.touches[0].clientX, y: e.touches[0].clientY, facade: facade}
           }
           else {
             let tapInfo = this.$tapInfo
-            if (tapInfo && tapInfo.facade === facade && e.type === 'touchend' && e.changedTouches.length === 1) {
+            if (tapInfo && tapInfo.facade === facade && e.type === 'touchend' &&
+                e.touches.length === 0 && e.changedTouches.length === 1) {
               firePointerEvent('onClick', e, facade)
             }
             this.$tapInfo = null
