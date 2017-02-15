@@ -5,7 +5,8 @@ export default {
   entry: 'src/index.js',
   plugins: [
     babel({
-      exclude: 'node_modules/**'
+      exclude: 'node_modules/**',
+      runtimeHelpers: true
     })
   ],
   targets: [

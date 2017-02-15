@@ -4,7 +4,7 @@
     "react"
   ],
   "plugins": [
-    "external-helpers",
+    "transform-runtime",
     "transform-class-properties"
   ]
 }

@@ -21,7 +21,8 @@ export default {
       'process.env.NODE_ENV': '"production"'
     }),
     babel({
-      exclude: 'node_modules/**'
+      exclude: 'node_modules/**',
+      runtimeHelpers: true
     }),
     commonjs({
       // non-CommonJS modules will be ignored, but you can also specifically include/exclude files
