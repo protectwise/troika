@@ -1,5 +1,5 @@
 import forOwn from 'lodash/forOwn'
-import Object3D from './Object3D'
+import Object3DFacade from './Object3D'
 import {Mesh, PlaneGeometry, MeshBasicMaterial, Texture, DoubleSide, LinearFilter} from 'three'
 
 
@@ -8,7 +8,7 @@ const context = canvas.getContext('2d')
 const geometry = new PlaneGeometry(1, 1)
 
 
-class Text extends Object3D {
+class Text3DFacade extends Object3DFacade {
   constructor(parent) {
     let img = new Image()
     let texture = new Texture(img)
@@ -92,9 +92,9 @@ forOwn({
   'textureHeight': 50
 }, (defaultValue, prop) => {
   let privateProp = `➤${ prop }`
-  Text.prototype[privateProp] = defaultValue
+  Text3DFacade.prototype[privateProp] = defaultValue
 
-  Object.defineProperty(Text.prototype, prop, {
+  Object.defineProperty(Text3DFacade.prototype, prop, {
     set: prop === 'padding' ?
       // special setter for padding
       function(value) {
@@ -111,7 +111,7 @@ forOwn({
             value[value.length > 3 ? 3 : value.length > 1 ? 1 : 0] === lastValue[3]
         }
         else {
-          throw new Error('Text.padding must be a number or an array of numbers')
+          throw new Error('Text3DFacade.padding must be a number or an array of numbers')
         }
         if (!equal) {
           // normalize to 4-item array
@@ -144,4 +144,4 @@ forOwn({
 
 
 
-export default Text
+export default Text3DFacade

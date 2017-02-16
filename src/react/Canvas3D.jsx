@@ -1,5 +1,5 @@
 import React from 'react'
-import World from '../facade/World'
+import World3DFacade from '../facade/threejs/World3D'
 import HtmlOverlay from './HtmlOverlay.jsx'
 const T = React.PropTypes
 
@@ -41,7 +41,7 @@ const Canvas3D = React.createClass({
 
   initWorld(canvas) {
     let props = this.props
-    this._world = new World(canvas, {
+    this._world = new World3DFacade(canvas, {
       antialias: props.antialias
     })
     this._world.renderHtmlItems = this.renderHtmlItems

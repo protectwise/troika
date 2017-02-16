@@ -1,5 +1,5 @@
 import {BoxBufferGeometry, MeshLambertMaterial, Color, Mesh, BufferGeometry, BufferAttribute} from 'three'
-import {Object3D} from '../../src/index'
+import {Object3DFacade} from '../../src/index'
 
 /*
 const hostGeometry = new BufferGeometry()
@@ -60,7 +60,7 @@ const threatColors = {
 }
 
 
-class Host extends Object3D {
+class Host extends Object3DFacade {
   constructor(parent) {
     let material = hostMaterials.None //.clone()
 

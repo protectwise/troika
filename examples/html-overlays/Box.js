@@ -5,7 +5,7 @@ import {
   DoubleSide
 } from 'three'
 import {
-  Object3D
+  Object3DFacade
 } from '../../src/index'
 
 
@@ -19,7 +19,7 @@ const material = new MeshPhongMaterial({
   transparent: true
 })
 
-export default class Box extends Object3D {
+export default class Box extends Object3DFacade {
   constructor(parent) {
     super(parent, new Mesh(geometry, material))
   }

@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import {Canvas3D, Group} from '../../src/index'
+import {Canvas3D, Group3DFacade} from '../../src/index'
 import {Plane, Vector2, Matrix4, Raycaster} from 'three'
 import Planet from './Planet'
 import Sun from './Sun'
@@ -129,7 +129,7 @@ export default React.createClass({
           } }
           objects={ {
             key: 'system',
-            class: Group,
+            class: Group3DFacade,
             rotateX: ORBITAL_PLANE_ROTATEX,
             children: state.planets.map((planet, i) => {
               let isDraggedPlanet = state.draggedPlanet === planet.id
@@ -138,7 +138,7 @@ export default React.createClass({
               
               return {
                 key: planet.id,
-                class: Group,
+                class: Group3DFacade,
 
                 rotateZ: planet.initialAngle,
 

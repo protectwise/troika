@@ -1,5 +1,5 @@
 import {Mesh, MeshPhongMaterial} from 'three'
-import {Object3D} from '../../src/index'
+import {Object3DFacade} from '../../src/index'
 import CountryBufferGeometry from './CountryBufferGeometry'
 
 
@@ -7,7 +7,7 @@ import CountryBufferGeometry from './CountryBufferGeometry'
 const baseCountryMaterial = new MeshPhongMaterial()
 
 
-export default class Country extends Object3D {
+export default class Country extends Object3DFacade {
   constructor(parent) {
     let mesh = new Mesh(
       new CountryBufferGeometry(),

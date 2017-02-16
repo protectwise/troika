@@ -1,5 +1,5 @@
 import {Mesh, ShaderMaterial, BoxBufferGeometry, Color} from 'three'
-import {Object3D} from '../../src/index'
+import {Object3DFacade} from '../../src/index'
 import arcVertexShader from './arcVertexShader.glsl'
 import arcFragmentShader from './arcFragmentShader.glsl'
 
@@ -23,7 +23,7 @@ const baseMaterial = new ShaderMaterial({
 })
 
 
-export default class Arc extends Object3D {
+export default class Arc extends Object3DFacade {
   constructor(parent) {
     let mesh = new Mesh(
       baseGeometry,

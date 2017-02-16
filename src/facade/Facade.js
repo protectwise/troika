@@ -36,7 +36,7 @@
  *   - `animation`: (optional) defines one or more keyframe animations. See `Animatable` for more details.
  *   - `exitAnimation`: (optional) defines a keyframe animation to run when the facade is removed from its parent.
  */
-export default class FacadeBase {
+export default class Facade {
   constructor(parent) {
     this.$facadeId = `facade${ idCounter++ }`
     this.parent = parent

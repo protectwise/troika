@@ -1,6 +1,6 @@
 import React from 'react'
 import {Group, Mesh, Line, BufferGeometry, BufferAttribute, MeshLambertMaterial, LineBasicMaterial, DoubleSide} from 'three'
-import {Object3D, Text, HtmlOverlay} from '../../src/index'
+import {Object3DFacade, Text3DFacade, HtmlOverlay3DFacade} from '../../src/index'
 import Tooltip from './Tooltip.jsx'
 
 
@@ -59,7 +59,7 @@ const wallsOutlineMaterial = new LineBasicMaterial({
   linewidth: 1
 })
 
-export default class Zone extends Object3D {
+export default class Zone extends Object3DFacade {
   constructor(parent) {
     let group = new Group()
 
@@ -75,7 +75,7 @@ export default class Zone extends Object3D {
     super(parent, group)
 
     // text label
-    //this.text = new Text(this.parent)
+    //this.text = new Text3DFacade(this.parent)
   }
 
   set width(w) {
@@ -105,7 +105,7 @@ export default class Zone extends Object3D {
         if (!this.children) {
           this.children = [{
             key: 'tooltip',
-            class: HtmlOverlay,
+            class: HtmlOverlay3DFacade,
             //center - will move along with transform of zone box:
             x: 0.5,
             y: 0.5,

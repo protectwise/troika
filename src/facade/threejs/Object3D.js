@@ -1,6 +1,6 @@
 import forOwn from 'lodash/forOwn'
-import {Vector3, Matrix4, Quaternion, Object3D as ThreeObject3D} from 'three'
-import Parent from './Parent'
+import {Vector3, Matrix4, Quaternion, Object3D} from 'three'
+import ParentFacade from '../Parent'
 
 export const POINTER_MOTION_EVENT_PROPS = [
   'onMouseOver',
@@ -27,7 +27,7 @@ const lookAtPos = new Vector3()
 const lookAtUp = new Vector3(0, 1, 0)
 const lookAtQuaternion = new Quaternion()
 
-class Object3D extends Parent {
+class Object3DFacade extends ParentFacade {
   constructor(parent, threeObject) {
     super(parent)
 
@@ -41,7 +41,7 @@ class Object3D extends Parent {
 
     // Add it as a child of the nearest parent threeObject, if one exists
     while (parent) {
-      if (parent instanceof Object3D) {
+      if (parent instanceof Object3DFacade) {
         parent.threeObject.add(threeObject)
         break
       }
@@ -57,7 +57,7 @@ class Object3D extends Parent {
     let lookAt = this.lookAt
     if (lookAt) {
       lookAtPos.copy(lookAt)
-      lookAtUp.copy(this.up || ThreeObject3D.DefaultUp)
+      lookAtUp.copy(this.up || Object3D.DefaultUp)
       lookAtRotationMatrix.lookAt(threeObject.position, lookAtPos, lookAtUp)
       lookAtQuaternion.setFromRotationMatrix(lookAtRotationMatrix)
       this.quaternionX = lookAtQuaternion.x
@@ -149,7 +149,7 @@ forOwn({
   }
 }, (attrs, aspect) => {
   forOwn(attrs, (propName, attr) => {
-    Object.defineProperty(Object3D.prototype, propName, {
+    Object.defineProperty(Object3DFacade.prototype, propName, {
       get() {
         return this.threeObject[aspect][attr]
       },
@@ -169,7 +169,7 @@ forOwn({
 // Setup handlers for mouse event properties
 POINTER_EVENT_PROPS.forEach(eventName => {
   let privateProp = `${ eventName }➤handler`
-  Object.defineProperty(Object3D.prototype, eventName, {
+  Object.defineProperty(Object3DFacade.prototype, eventName, {
     get() {
       return this[privateProp]
     },
@@ -188,4 +188,4 @@ POINTER_EVENT_PROPS.forEach(eventName => {
 })
 
 
-export default Object3D
+export default Object3DFacade

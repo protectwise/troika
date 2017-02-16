@@ -3,7 +3,7 @@ import sample from 'lodash/sample'
 import clone from 'lodash/clone'
 import React from 'react'
 import {hierarchy, treemap, treemapResquarify} from 'd3-hierarchy'
-import {Canvas3D, Group, List} from '../../src/index'
+import {Canvas3D, Group3DFacade, ListFacade} from '../../src/index'
 import Ground from './Ground'
 import Host from './Host'
 import Zone from './Zone'
@@ -249,7 +249,7 @@ const CityGrid = React.createClass({
             objects={ [
               {
                 key: 'main',
-                class: Group,
+                class: Group3DFacade,
                 x: -state.center[0],
                 y: -state.center[1],
                 z: 0,
@@ -268,7 +268,7 @@ const CityGrid = React.createClass({
                   },
                   {
                     key: 'hosts',
-                    class: List,
+                    class: ListFacade,
                     data: zoneHierarchy.leaves(),
                     shouldUpdateChildren: () => hostsChanged,
                     template: {
@@ -318,7 +318,7 @@ const CityGrid = React.createClass({
                   },
                   {
                     key: 'zones',
-                    class: List,
+                    class: ListFacade,
                     data: zoneHierarchy.children,
                     template: {
                       key: (zone, i) => `zone${ i }`,

@@ -1,5 +1,5 @@
 import React from 'react'
-import {Canvas3D, Group} from '../../src/index'
+import {Canvas3D, Group3DFacade} from '../../src/index'
 import Sphere from './Sphere'
 
 

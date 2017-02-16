@@ -1,4 +1,4 @@
-import {List, Object3D} from '../../src/index'
+import {ListFacade, Object3DFacade} from '../../src/index'
 import {Mesh, MeshPhongMaterial, SphereBufferGeometry, TextureLoader} from 'three'
 import Country from './Country'
 import 'whatwg-fetch' //polyfill
@@ -29,7 +29,7 @@ function loadCountriesData(onLoad) {
 const textureLoader = new TextureLoader()
 
 
-class Earth extends Object3D {
+class Earth extends Object3DFacade {
   constructor(parent) {
     var mesh = new Mesh(
       new SphereBufferGeometry(.995, 64, 64),
@@ -39,7 +39,7 @@ class Earth extends Object3D {
 
     this.children = {
       key: 'countries',
-      class: List,
+      class: ListFacade,
       data: countriesData || [],
       template: {
         key: d => d.id,

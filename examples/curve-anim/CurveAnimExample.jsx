@@ -1,5 +1,5 @@
 import React from 'react'
-import {Canvas3D, OrthographicCamera} from '../../src/index'
+import {Canvas3D, OrthographicCamera3DFacade} from '../../src/index'
 import Curve from './Curve'
 
 
@@ -104,7 +104,7 @@ export default React.createClass({
           width={ width }
           height={ height }
           camera={ {
-            class: OrthographicCamera,
+            class: OrthographicCamera3DFacade,
             z: 1,
             top: height / 2,
             bottom: -height / 2,

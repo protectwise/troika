@@ -1,5 +1,5 @@
-import FacadeBase, {isSpecialDescriptorProperty} from './FacadeBase'
-import Animatable from './Animatable'
+import Facade, {isSpecialDescriptorProperty} from './Facade'
+import AnimatableDecorator from './AnimatableDecorator'
 
 const TEMP_ARRAY = [null]
 
@@ -9,10 +9,10 @@ const TEMP_ARRAY = [null]
  * facade instances as needed as its `children` array changes.
  *
  * If you need to create a large number of child objects based on an array of incoming data,
- * consider using a `List` instead of a parent object with a large `children` array, since
+ * consider using a `ListFacade` instead of a parent object with a large `children` array, since
  * that requires only a single template descriptor object instead of one for every child.
  */
-export default class Parent extends FacadeBase {
+export default class ParentFacade extends Facade {
   constructor(parent) {
     super(parent)
     this.children = null
@@ -67,14 +67,14 @@ export default class Parent extends FacadeBase {
           key += '|dupe'
         }
 
-        // If a transition/animation is present, upgrade the class to a Animatable wrapper class on demand.
+        // If a transition/animation is present, upgrade the class to a AnimatableDecorator class on demand.
         // NOTE: changing between animatable/non-animatable results in a full teardown/recreation
         // of this instance *and its entire subtree*, so try to avoid that by always including the `transition`
         // definition if the object is expected to ever need transitions, even if it's temporarily empty.
         let transition = childDesc.transition
         let animation = childDesc.animation
         if (transition || animation || childDesc.exitAnimation) {
-          cla$$ = cla$$.$animatableWrapperClass || (cla$$.$animatableWrapperClass = Animatable(cla$$))
+          cla$$ = cla$$.$animatableDecoratorClass || (cla$$.$animatableDecoratorClass = AnimatableDecorator(cla$$))
         }
 
         // If we have an old instance with the same key and class, update it, otherwise instantiate a new one

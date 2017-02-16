@@ -6,7 +6,7 @@ import {
   ShaderMaterial,
   DoubleSide
 } from 'three'
-import {Group} from '../../src/index'
+import {Group3DFacade} from '../../src/index'
 import adaptiveBezierCurve from 'adaptive-bezier-curve'
 import initLine2DGeometry from 'three-line-2d'
 import strokeVertexShader from './strokeVertex.glsl'
@@ -57,7 +57,7 @@ function valuesToSquarePoints(values, totalWidth, totalHeight) {
 
 
 // Facade for the curve.
-export default class Curve extends Group {
+export default class Curve extends Group3DFacade {
   constructor(parent) {
     super(parent)
 

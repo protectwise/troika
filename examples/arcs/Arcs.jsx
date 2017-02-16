@@ -1,5 +1,5 @@
 import React from 'react'
-import {Canvas3D, OrthographicCamera, List} from '../../src/index'
+import {Canvas3D, ListFacade} from '../../src/index'
 import Arc from './Arc'
 
 
@@ -87,7 +87,7 @@ export default React.createClass({
     function quadrant(key, baseAngle, baseRadius) {
       return {
         key: key,
-        class: List,
+        class: ListFacade,
         data: state.data[key] || [],
         template: {
           key: d => d.id,
@@ -143,11 +143,6 @@ export default React.createClass({
           width={ width }
           height={ height }
           camera={ {
-            //class: OrthographicCamera,
-            //left: -width / 2,
-            //right: width / 2,
-            //top: height / 2,
-            //bottom: -height / 2,
             fov: 75,
             aspect: width / height,
             near: 0.1,

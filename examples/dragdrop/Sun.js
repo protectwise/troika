@@ -4,7 +4,7 @@ import {
   MeshBasicMaterial
 } from 'three'
 import {
-  Object3D
+  Object3DFacade
 } from '../../src/index'
 
 
@@ -13,7 +13,7 @@ const material = new MeshBasicMaterial({
   color: 0xffffff
 })
 
-export default class Sun extends Object3D {
+export default class Sun extends Object3DFacade {
   constructor(parent) {
     super(parent, new Mesh(geometry, material.clone()))
   }

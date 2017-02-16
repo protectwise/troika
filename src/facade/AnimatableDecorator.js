@@ -19,7 +19,7 @@ function animationIdJsonReplacer(key, value) {
 
 
 export default function(WrappedClass) {
-  class AnimatableWrapper extends WrappedClass {
+  class AnimatableDecorator extends WrappedClass {
 
     constructor(...args) {
       super(...args)
@@ -265,7 +265,7 @@ export default function(WrappedClass) {
   // on the wrapper prototype allows us to avoid per-instance overhead as well as avoid collisions with
   // other custom setters anywhere else in the prototype chain.
   function defineTransitionPropInterceptor(propName) {
-    if (!AnimatableWrapper.prototype.hasOwnProperty(propName)) {
+    if (!AnimatableDecorator.prototype.hasOwnProperty(propName)) {
       let actualValueKey = `${ propName }➤actualValue`
       let actuallySetKey = `${ propName }➤actuallySet`
       let hasBeenSetKey = `${ propName }➤hasBeenSet`
@@ -300,11 +300,11 @@ export default function(WrappedClass) {
           this[hasBeenSetKey] = true
         }
       }
-      Object.defineProperty(AnimatableWrapper.prototype, actuallySetKey, { value: actuallySet })
+      Object.defineProperty(AnimatableDecorator.prototype, actuallySetKey, { value: actuallySet })
 
 
       // Add the custom getter/setter for this property
-      Object.defineProperty(AnimatableWrapper.prototype, propName, {
+      Object.defineProperty(AnimatableDecorator.prototype, propName, {
         get() {
           // Always return the current actual value
           return superGetter ? superGetter.call(this) : this[actualValueKey]
@@ -364,5 +364,5 @@ export default function(WrappedClass) {
     }
   }
 
-  return AnimatableWrapper
+  return AnimatableDecorator
 }

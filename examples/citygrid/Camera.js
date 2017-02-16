@@ -1,6 +1,6 @@
-import {PerspectiveCamera} from '../../src/index'
+import {PerspectiveCamera3DFacade} from '../../src/index'
 
-class GridCamera extends PerspectiveCamera {
+class GridCamera extends PerspectiveCamera3DFacade {
   constructor(...args) {
     super(...args)
     this.fov = 75

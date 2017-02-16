@@ -1,8 +1,8 @@
 import React from 'react'
 import {
   Canvas3D,
-  Group,
-  HtmlOverlay
+  Group3DFacade,
+  HtmlOverlay3DFacade
 } from '../../src/index'
 import Box from './Box'
 import Dot from './Dot'
@@ -52,10 +52,10 @@ export default React.createClass({
           } }
           objects={ {
             key: 'main',
-            class: Group,
+            class: Group3DFacade,
             children: {
               key: 'boxes',
-              class: Group,
+              class: Group3DFacade,
               children: ['One', 'Two', 'Three', 'Four', 'Five', 'Six'].map((num, i, arr) => {
                 let angle = Math.PI * 2 * i / arr.length
                 return {
@@ -102,7 +102,7 @@ export default React.createClass({
                     },
                     {
                       key: 'html',
-                      class: HtmlOverlay,
+                      class: HtmlOverlay3DFacade,
                       x: 20,
                       y: 20,
                       z: 20,

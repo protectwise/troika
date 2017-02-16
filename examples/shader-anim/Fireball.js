@@ -1,5 +1,5 @@
 import {ShaderMaterial, Mesh, SphereGeometry, TextureLoader, RepeatWrapping} from 'three'
-import {Object3D} from '../../src/index'
+import {Object3DFacade} from '../../src/index'
 
 
 const vertexShader = `
@@ -103,7 +103,7 @@ var bumpSpeed   = 0.15;
 var bumpScale   = 40.0;
 
 
-export class Fireball extends Object3D {
+export class Fireball extends Object3DFacade {
   constructor(parent) {
     super(parent, new Mesh(
       new SphereGeometry( 60, 64, 64 ),

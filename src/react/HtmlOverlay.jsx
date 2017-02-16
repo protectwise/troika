@@ -24,7 +24,7 @@ const HtmlOverlayContent = React.createClass({
 })
 
 const HtmlOverlay = React.createClass({
-  displayName: 'Canvas3D.HtmlOverlay',
+  displayName: 'Canvas3D.HtmlOverlay3DFacade',
 
   getInitialState() {
     return {

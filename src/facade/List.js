@@ -1,10 +1,10 @@
-import FacadeBase, {isSpecialDescriptorProperty} from './FacadeBase'
-import Animatable from './Animatable'
+import Facade, {isSpecialDescriptorProperty} from './Facade'
+import AnimatableDecorator from './AnimatableDecorator'
 
 
 /**
- * List is an optimized way to define a large number of scene objects based on an array of data.
- * Unlike mapping a data array to `children` objects in the scene descriptor, List allows you to
+ * ListFacade is an optimized way to define a large number of scene objects based on an array of data.
+ * Unlike mapping a data array to `children` objects in the scene descriptor, ListFacade allows you to
  * define only a single "template" descriptor object whose properties are either constant values
  * or accessor functions that get invoked for each data item. The resulting property values are
  * then applied directly to the implementation objects, without creating any intermediary objects.
@@ -13,7 +13,7 @@ import Animatable from './Animatable'
  *
  *     {
  *       key: 'balls',
- *       class: List,
+ *       class: ListFacade,
  *       data: itemsData,
  *       template: {
  *         key: (item, i, all) => `ball_${ item.id }`,
@@ -25,7 +25,7 @@ import Animatable from './Animatable'
  *       }
  *     }
  */
-export default class List extends FacadeBase {
+export default class List extends Facade {
   afterUpdate() {
     let {data, template} = this
     let hasData = data && data.length && Array.isArray(data)
@@ -33,16 +33,16 @@ export default class List extends FacadeBase {
     // Some basic validation in dev mode
     if (process.env.NODE_ENV !== 'production') {
       if (data && !Array.isArray(data)) {
-        throw 'List "data" must be an array.'
+        throw 'ListFacade "data" must be an array.'
       }
       if (!template || typeof template !== 'object') {
-        throw 'List "template" must be an object.'
+        throw 'ListFacade "template" must be an object.'
       }
       if (!template || typeof template.key !== 'function') {
-        throw 'List template must define a "key" function.'
+        throw 'ListFacade template must define a "key" function.'
       }
       if (!template || typeof template.class !== 'function') {
-        throw 'List template must define a "class".'
+        throw 'ListFacade template must define a "class".'
       }
     }
 
@@ -59,7 +59,7 @@ export default class List extends FacadeBase {
           // Some basic validation in dev mode
           if (process.env.NODE_ENV !== 'production') {
             if (!key || typeof key !== 'string') {
-              throw 'List template "key" function must return a string.'
+              throw 'ListFacade template "key" function must return a string.'
             }
             if (newDict[key]) {
               console.warn(`Duplicate key in list: ${key}`)
@@ -69,7 +69,7 @@ export default class List extends FacadeBase {
             key += '|dupe'
           }
 
-          // If a transition/animation is present, upgrade the class to a Animatable wrapper class on demand.
+          // If a transition/animation is present, upgrade the class to a AnimatableDecorator class on demand.
           // NOTE: changing between animatable/non-animatable results in a full teardown/recreation
           // of this instance *and its entire subtree*, so try to avoid that by always including the `transition`
           // definition if the object is expected to ever need transitions, even if it's temporarily empty.
@@ -77,7 +77,7 @@ export default class List extends FacadeBase {
           let animation = typeof template.animation === 'function' ? template.animation(childData, i, data) : template.animation
           let exitAnimation = typeof template.exitAnimation === 'function' ? template.exitAnimation(childData, i, data) : template.exitAnimation
           if (transition || animation || exitAnimation) {
-            cla$$ = cla$$.$animatableWrapperClass || (cla$$.$animatableWrapperClass = Animatable(cla$$))
+            cla$$ = cla$$.$animatableDecoratorClass || (cla$$.$animatableDecoratorClass = AnimatableDecorator(cla$$))
           }
 
           // If we have an old instance with the same key and class, reuse it; otherwise instantiate a new one
@@ -110,7 +110,7 @@ export default class List extends FacadeBase {
   }
 
   /**
-   * Override to selectively prevent updating the List's items on `afterUpdate`, for
+   * Override to selectively prevent updating the ListFacade's items on `afterUpdate`, for
    * potential performance gain.
    * @returns {boolean}
    */

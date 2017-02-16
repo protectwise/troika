@@ -1,5 +1,5 @@
 import {Mesh, DoubleSide, PlaneGeometry, MeshPhongMaterial} from 'three'
-import {Object3D} from '../../src/index'
+import {Object3DFacade} from '../../src/index'
 
 
 const groundGeometry = new PlaneGeometry(1, 1)
@@ -9,7 +9,7 @@ const groundMaterial = new MeshPhongMaterial({
   side: DoubleSide
 })
 
-export default class Ground extends Object3D {
+export default class Ground extends Object3DFacade {
   constructor(parent) {
     let mesh = new Mesh(groundGeometry, groundMaterial)
     super(parent, mesh)

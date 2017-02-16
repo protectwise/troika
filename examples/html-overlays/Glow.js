@@ -4,11 +4,11 @@ import {
   BackSide
 } from 'three'
 import {
-  Object3D
+  Object3DFacade
 } from '../../src/index'
 
 
-export default class Glow extends Object3D {
+export default class Glow extends Object3DFacade {
   constructor(parent) {
     super(parent, new Mesh(
       parent.threeObject.geometry,

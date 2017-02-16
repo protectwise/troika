@@ -1,5 +1,5 @@
 import {ShaderMaterial, Mesh, CubeGeometry, TextureLoader, RepeatWrapping} from 'three'
-import {Object3D} from '../../src/index'
+import {Object3DFacade} from '../../src/index'
 
 
 const noiseTexture = new TextureLoader().load('shader-anim/cloud.png')
@@ -56,7 +56,7 @@ const waterUniforms = {
 
 
 
-class Cube extends Object3D {
+class Cube extends Object3DFacade {
   constructor(parent) {
     super(parent, new Mesh(
       new CubeGeometry(100, 100, 100),

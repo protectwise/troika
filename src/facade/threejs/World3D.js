@@ -2,9 +2,9 @@ import assign from 'lodash/assign'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import {WebGLRenderer, Raycaster, Color, Vector2, Vector3} from 'three'
-import Parent from './Parent'
-import Scene from './Scene'
-import {PerspectiveCamera} from './Camera'
+import ParentFacade from '../Parent'
+import Scene3DFacade from './Scene3D'
+import {PerspectiveCamera3DFacade} from './Camera3D'
 import {POINTER_EVENT_PROPS, POINTER_MOTION_EVENT_PROPS, POINTER_ACTION_EVENT_PROPS} from './Object3D'
 
 
@@ -54,7 +54,7 @@ function firePointerEvent(handlerProp, nativeEvent, targetFacade, relatedTargetF
 }
 
 
-class World extends Parent {
+class World3DFacade extends ParentFacade {
   constructor(canvas, threeJsRendererConfig) {
     super(null)
 
@@ -91,12 +91,12 @@ class World extends Parent {
   afterUpdate() {
     let {camera, scene, width, height} = this
     camera.key = 'camera'
-    camera.class = camera.class || PerspectiveCamera
+    camera.class = camera.class || PerspectiveCamera3DFacade
     if (typeof camera.aspect !== 'number') {
       camera.aspect = width / height
     }
     scene.key = 'scene'
-    scene.class = scene.class || Scene
+    scene.class = scene.class || Scene3DFacade
     this.children = [camera, scene]
 
     super.afterUpdate()
@@ -368,4 +368,4 @@ class World extends Parent {
 
 
 
-export default World
+export default World3DFacade

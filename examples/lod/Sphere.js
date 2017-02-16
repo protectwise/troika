@@ -4,7 +4,7 @@ import {
   MeshPhongMaterial
 } from 'three'
 import {
-  Object3D
+  Object3DFacade
 } from '../../src/index'
 
 const MAX_DISTANCE = 50
@@ -28,7 +28,7 @@ const material = new MeshPhongMaterial({
   wireframe: true
 })
 
-export default class Sphere extends Object3D {
+export default class Sphere extends Object3DFacade {
   constructor(parent) {
     super(parent, new Mesh(LOD_GEOMETRIES[0], material.clone()))
   }

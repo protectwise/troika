@@ -5,7 +5,7 @@ import {
   Vector3
 } from 'three'
 import {
-  Object3D
+  Object3DFacade
 } from '../../src/index'
 
 
@@ -22,7 +22,7 @@ const material = new LineBasicMaterial({
   color: 0x333344
 })
 
-export default class Orbit extends Object3D {
+export default class Orbit extends Object3DFacade {
   constructor(parent) {
     super(parent, new Line(geometry, material))
   }

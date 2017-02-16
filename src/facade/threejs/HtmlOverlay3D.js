@@ -1,5 +1,5 @@
-import {Object3D as ThreeObject3D} from 'three'
-import Object3D from './Object3D'
+import {Object3D} from 'three'
+import Object3DFacade from './Object3D'
 
 
 /**
@@ -7,7 +7,7 @@ import Object3D from './Object3D'
  * xyz as projected by the scene's camera. This is a convenient way to display tooltips,
  * labels, and pieces of UI that follow a given object around.
  */
-class HtmlOverlay extends Object3D {
+class HtmlOverlay3DFacade extends Object3DFacade {
   /**
    * Defines the HTML content to be rendered. The type/format of this value is dependent
    * on the wrapping implementation; for example the Canvas3D.jsx React-based wrapper will
@@ -20,7 +20,7 @@ class HtmlOverlay extends Object3D {
   html = null
 
   constructor(parent) {
-    super(parent, new ThreeObject3D())
+    super(parent, new Object3D())
     this.notifyWorld('addHtmlOverlay', this)
   }
 
@@ -30,4 +30,4 @@ class HtmlOverlay extends Object3D {
   }
 }
 
-export default HtmlOverlay
+export default HtmlOverlay3DFacade

@@ -4,7 +4,7 @@ import {
   MeshPhongMaterial
 } from 'three'
 import {
-  Object3D
+  Object3DFacade
 } from '../../src/index'
 
 
@@ -13,7 +13,7 @@ const material = new MeshPhongMaterial({
   color: 0x993333
 })
 
-export default class Dot extends Object3D {
+export default class Dot extends Object3DFacade {
   constructor(parent) {
     super(parent, new Mesh(geometry, material))
   }

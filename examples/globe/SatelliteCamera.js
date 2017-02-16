@@ -1,8 +1,8 @@
-import {PerspectiveCamera} from '../../src/index'
+import {PerspectiveCamera3DFacade} from '../../src/index'
 
 
 
-class SatelliteCamera extends PerspectiveCamera {
+class SatelliteCamera extends PerspectiveCamera3DFacade {
   latitude = 0
   longitude = 0
   altitude = 10

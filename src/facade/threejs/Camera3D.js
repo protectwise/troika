@@ -1,9 +1,9 @@
-import {PerspectiveCamera as ThreePerspective, OrthographicCamera as ThreeOrthographic} from 'three'
-import Object3D from './Object3D'
+import {PerspectiveCamera, OrthographicCamera} from 'three'
+import Object3DFacade from './Object3D'
 
 
-function createCameraSubclass(threeJsCameraClass, projectionProps) {
-  class Camera extends Object3D {
+export function createCameraFacade(threeJsCameraClass, projectionProps) {
+  class Camera3DFacade extends Object3DFacade {
     constructor(parent) {
       super(parent, new threeJsCameraClass())
       this._projectionChanged = false
@@ -21,7 +21,7 @@ function createCameraSubclass(threeJsCameraClass, projectionProps) {
 
   // Setters for properties which require a matrix update
   projectionProps.forEach(prop => {
-    Object.defineProperty(Camera.prototype, prop, {
+    Object.defineProperty(Camera3DFacade.prototype, prop, {
       set(val) {
         if (val !== this.threeObject[prop]) {
           this.threeObject[prop] = val
@@ -34,9 +34,9 @@ function createCameraSubclass(threeJsCameraClass, projectionProps) {
     })
   })
 
-  return Camera
+  return Camera3DFacade
 }
 
 
-export const PerspectiveCamera = createCameraSubclass(ThreePerspective, ['fov', 'aspect', 'near', 'far'])
-export const OrthographicCamera = createCameraSubclass(ThreeOrthographic, ['left', 'right', 'top', 'bottom', 'near', 'far'])
+export const PerspectiveCamera3DFacade = createCameraFacade(PerspectiveCamera, ['fov', 'aspect', 'near', 'far'])
+export const OrthographicCamera3DFacade = createCameraFacade(OrthographicCamera, ['left', 'right', 'top', 'bottom', 'near', 'far'])
