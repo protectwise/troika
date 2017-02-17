@@ -1,33 +1,13 @@
 import forOwn from 'lodash/forOwn'
 import {Vector3, Matrix4, Quaternion, Object3D} from 'three'
-import ParentFacade from '../Parent'
-
-export const POINTER_MOTION_EVENT_PROPS = [
-  'onMouseOver',
-  'onMouseOut',
-  'onMouseMove',
-  'onDragStart',
-  'onDrag',
-  'onDragEnter',
-  'onDragOver',
-  'onDragLeave'
-]
-export const POINTER_ACTION_EVENT_PROPS = [
-  'onMouseDown',
-  'onMouseUp',
-  'onClick',
-  'onDoubleClick',
-  'onDrop',
-  'onDragEnd',
-]
-export const POINTER_EVENT_PROPS = POINTER_MOTION_EVENT_PROPS.concat(POINTER_ACTION_EVENT_PROPS)
+import PointerEventTarget from '../PointerEventTarget'
 
 const lookAtRotationMatrix = new Matrix4()
 const lookAtPos = new Vector3()
 const lookAtUp = new Vector3(0, 1, 0)
 const lookAtQuaternion = new Quaternion()
 
-class Object3DFacade extends ParentFacade {
+class Object3DFacade extends PointerEventTarget {
   constructor(parent, threeObject) {
     super(parent)
 
@@ -109,9 +89,6 @@ class Object3DFacade extends ParentFacade {
   }
 
   destructor() {
-    POINTER_EVENT_PROPS.forEach(type => {
-      this[`${type}➤handler`] = null
-    })
     let threeObject = this.threeObject
     if (threeObject.parent) {
       threeObject.parent.remove(threeObject)
@@ -162,28 +139,6 @@ forOwn({
         }
       }
     })
-  })
-})
-
-
-// Setup handlers for mouse event properties
-POINTER_EVENT_PROPS.forEach(eventName => {
-  let privateProp = `${ eventName }➤handler`
-  Object.defineProperty(Object3DFacade.prototype, eventName, {
-    get() {
-      return this[privateProp]
-    },
-    set(handler) {
-      if ((handler || null) !== (this[eventName] || null)) {
-        this[privateProp] = handler
-
-        // Add/remove from the global event registry
-        this.notifyWorld(handler ? 'addEventListener' : 'removeEventListener', {
-          type: eventName,
-          handler: handler
-        })
-      }
-    }
   })
 })
 
