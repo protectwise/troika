@@ -8,6 +8,7 @@ import HtmlOverlays from './html-overlays/HtmlOverlaysExample'
 import DragDrop from './dragdrop/DragDropExample'
 import LevelOfDetail from './lod/LevelOfDetailExample'
 import CurveAnim from './curve-anim/CurveAnimExample'
+import Canvas2DExample from './canvas2d/Canvas2DExample'
 
 
 const EXAMPLES = [
@@ -18,7 +19,8 @@ const EXAMPLES = [
   {id: 'htmlOverlays', name: 'HTML Overlays', component: HtmlOverlays},
   {id: 'dragdrop', name: 'Drag and Drop', component: DragDrop},
   {id: 'lod', name: 'Level of Detail', component: LevelOfDetail},
-  {id: 'curveAnim', name: 'Curve Animation', component: CurveAnim}
+  {id: 'curveAnim', name: 'Curve Animation', component: CurveAnim},
+  {id: 'twoDee', name: 'Canvas2D', component: Canvas2DExample}
 ]
 
 const ExamplesApp = React.createClass({
