@@ -307,7 +307,7 @@ export default function(WrappedClass) {
       Object.defineProperty(AnimatableDecorator.prototype, propName, {
         get() {
           // Always return the current actual value
-          return superGetter ? superGetter.call(this) : this[actualValueKey]
+          return superGetter ? superGetter.call(this) : this[hasBeenSetKey] ? this[actualValueKey] : WrappedClass.prototype[propName]
         },
 
         set(value) {

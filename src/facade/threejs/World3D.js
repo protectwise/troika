@@ -48,8 +48,6 @@ class World3DFacade extends WorldBaseFacade {
     scene.class = scene.class || Scene3DFacade
     this.children = [camera, scene]
 
-    super.afterUpdate()
-
     let renderer = this._threeRenderer
 
     let pixelRatio = window.devicePixelRatio
@@ -62,20 +60,10 @@ class World3DFacade extends WorldBaseFacade {
       renderer.setSize(width, height, true)
     }
 
-    this.queueRender()
+    super.afterUpdate()
   }
 
-  // Requests a ThreeJS render pass on the next animation frame.
-  queueRender() {
-    if (!this._nextFrameTimer) {
-      this._nextFrameTimer = requestAnimationFrame(this._nextFrameHandler || (this._nextFrameHandler = () => {
-        this._nextFrameTimer = null
-        this._doRender()
-      }))
-    }
-  }
-
-  _doRender() {
+  doRender() {
     this._threeRenderer.render(this.getChildByKey('scene').threeObject, this.getChildByKey('camera').threeObject)
     this._doRenderHtmlItems()
   }
@@ -103,9 +91,6 @@ class World3DFacade extends WorldBaseFacade {
 
   onNotifyWorld(source, message, data) {
     switch(message) {
-      case 'needsRender':
-        this.queueRender()
-        return
       case 'getCameraPosition':
         data(this.getChildByKey('camera').threeObject.position) //callback function
         return
@@ -152,12 +137,6 @@ class World3DFacade extends WorldBaseFacade {
     return allHits
   }
 
-  destructor() {
-    if (this._nextFrameTimer) {
-      cancelAnimationFrame(this._nextFrameTimer)
-    }
-    super.destructor()
-  }
 }
 
 export default World3DFacade

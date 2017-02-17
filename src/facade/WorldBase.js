@@ -60,9 +60,16 @@ class WorldBaseFacade extends ParentFacade {
     this._togglePointerListeners(true)
   }
 
+  afterUpdate() {
+    this._queueRender()
+    super.afterUpdate()
+  }
 
   onNotifyWorld(source, message, data) {
     switch(message) {
+      case 'needsRender':
+        this._queueRender()
+        break
       case 'addEventListener':
         let registry = this.$eventRegistry || (this.$eventRegistry = Object.create(null))
         let listeners = registry[data.type] || (registry[data.type] = Object.create(null))
@@ -79,6 +86,24 @@ class WorldBaseFacade extends ParentFacade {
         break
     }
   }
+
+  // Schedule a render pass on the next frame
+  _queueRender() {
+    if (!this._nextFrameTimer) {
+      this._nextFrameTimer = requestAnimationFrame(this._nextFrameHandler || (this._nextFrameHandler = () => {
+        this._nextFrameTimer = null
+        this.doRender()
+      }))
+    }
+  }
+
+  /**
+   * @abstract
+   */
+  doRender() {
+    throw new Error('doRender: no impl')
+  }
+
 
   _onPointerMotionEvent(e) {
     let registry = this.$eventRegistry
@@ -229,6 +254,9 @@ class WorldBaseFacade extends ParentFacade {
   }
 
   destructor() {
+    if (this._nextFrameTimer) {
+      cancelAnimationFrame(this._nextFrameTimer)
+    }
     this._togglePointerListeners(false)
     this._toggleDropListeners(false)
     super.destructor()

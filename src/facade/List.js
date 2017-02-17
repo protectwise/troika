@@ -119,6 +119,19 @@ export default class List extends Facade {
   }
 
   /**
+   * Invoke a function for each of this facade's direct children
+   * @param {Function} fn
+   */
+  forEachChild(fn) {
+    let dict = this._itemsDict
+    if (dict) {
+      for (let key in dict) {
+        fn(dict[key])
+      }
+    }
+  }
+
+  /**
    * Walk this facade's descendant tree, invoking a function for it and each descendant.
    * @param {Function} fn
    */
