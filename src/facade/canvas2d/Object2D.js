@@ -1,6 +1,8 @@
 import PointerEventTarget from '../PointerEventTarget'
+import hitTestContext from './HitTestContext'
 
 const IDENTITY_MATRIX = [1, 0, 0, 1, 0, 0]
+const reusableArray = []
 
 
 class Object2DFacade extends PointerEventTarget {
@@ -34,9 +36,34 @@ class Object2DFacade extends PointerEventTarget {
 
   afterRender(ctx) {
   }
+
+  hitTest(x, y) {
+    hitTestContext.startHitTesting(x, y)
+
+    reusableArray.length = 0
+    let obj = this
+    while (obj) {
+      if (obj.transformMatrix) {
+        reusableArray.push(obj.transformMatrix)
+      }
+      obj = obj.parent
+    }
+    for (let i = reusableArray.length; i--;) {
+      let mat = reusableArray[i]
+      hitTestContext.transform(mat[0], mat[1], mat[2], mat[3], mat[4], mat[5])
+    }
+
+    this.beforeRender(hitTestContext)
+    this.render(hitTestContext)
+    this.afterRender(hitTestContext)
+
+    return hitTestContext.didHit
+  }
 }
 
-Object2DFacade.prototype.isObject2D = true
+const proto = Object2DFacade.prototype
+proto.isObject2D = true
+proto.z = 0
 
 
 // Define props that affect the object's local transform matrix

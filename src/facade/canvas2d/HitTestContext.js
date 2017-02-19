@@ -1,75 +1,52 @@
 /**
- * HitTestContext
+ * hitTestContext
  *
- * This is an object that has the same exact shape as a CanvasRenderContext2D, but
- * has special hooks that fire a callback whenever an object is drawn at a given x/y
- * coordinate. This allows us to use a HitTestContext as the context object in the
- * standard render pass and be notified which objects are under the mouse pointer.
+ * This is a hidden CanvasRenderContext2D instance that has been overridden to track
+ * whenever something is drawn at a given x/y coordinate. This can be used for testing
+ * whether an Object2DFacade is under the mouse cursor, by passing this as the context
+ * to its render() method.
  */
 
 
-// A real context to back our fake one
-const CTX = document.createElement('canvas').getContext('2d')
+const hitTestContext = document.createElement('canvas').getContext('2d')
+hitTestContext.save()
 
-
-class HitTestContext {
-  constructor(x, y, onHit) {
-    this.x = x
-    this.y = y
-    this.onHit = onHit
-  }
-
-  fill(...args) {
-    CTX.fill(...args)
-    if (CTX.isPointInPath(this.x, this.y)) {
-      this.onHit()
-    }
-  }
-
-  fillRect(...args) {
-    CTX.fillRect(...args)
-    if (CTX.isPointInPath(this.x, this.y)) {
-      this.onHit()
-    }
-  }
-
-  stroke(...args) {
-    CTX.stroke(...args)
-    if (CTX.isPointInStroke(this.x, this.y)) {
-      this.onHit()
-    }
-  }
-
-  // TODO fillText...?
+/**
+ * Start hit testing for the given x/y coordinate. The x/y should be relative to the canvas.
+ * @param x
+ * @param y
+ */
+hitTestContext.startHitTesting = function(x, y) {
+  this._x = x
+  this._y = y
+  this.didHit = false
+  this.restore()
+  this.save()
 }
 
-
-// For any CanvasRenderContext2D methods/properties that weren't overridden
-// above, proxy them to the real context instance
 const ctxProto = CanvasRenderingContext2D.prototype
-for (let key in ctxProto) {
-  if (!HitTestContext.prototype[key]) {
-    let descriptor = Object.getOwnPropertyDescriptor(ctxProto, key)
-    // methods
-    if (typeof descriptor.value === 'function') {
-      HitTestContext.prototype[key] = function(...args) {
-        CTX[key](...args)
-      }
-    }
-    // properties
-    else {
-      Object.defineProperty(HitTestContext.prototype, key, {
-        get() {
-          return CTX[key]
-        },
-        set(val) {
-          CTX[key] = val
-        }
-      })
-    }
+
+hitTestContext.fill = function(...args) {
+  ctxProto.fill.apply(this, ...args)
+  if (this.isPointInPath(this._x, this._y)) {
+    this.didHit = true
   }
 }
 
+hitTestContext.fillRect = function(...args) {
+  ctxProto.fillRect.apply(this, ...args)
+  if (this.isPointInPath(this._x, this._y)) {
+    this.didHit = true
+  }
+}
 
-export default HitTestContext
+hitTestContext.stroke = function(...args) {
+  ctxProto.stroke.apply(this, ...args)
+  if (this.isPointInStroke(this._x, this._y)) {
+    this.didHit = true
+  }
+}
+
+export default hitTestContext
+
 
