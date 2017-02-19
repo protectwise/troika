@@ -5,8 +5,10 @@ import HitTestContext from './HitTestContext'
 
 class BackgroundFacade extends Object2DFacade {
   render(ctx) {
-    ctx.fillStyle = this.color
-    ctx.fillRect(0, 0, this.width, this.height)
+    if (this.color != null) {
+      ctx.fillStyle = this.color
+      ctx.fillRect(0, 0, this.width, this.height)
+    }
   }
 }
 BackgroundFacade.prototype.z = -Infinity
