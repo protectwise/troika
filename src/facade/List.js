@@ -123,10 +123,16 @@ export default class List extends Facade {
    * @param {Function} fn
    */
   forEachChild(fn) {
+    let data = this.data
+    let template = this.template
     let dict = this._itemsDict
-    if (dict) {
-      for (let key in dict) {
-        fn(dict[key])
+    let hasData = data && data.length && Array.isArray(data)
+    if (hasData && template && dict) {
+      for (let i = 0, len = data.length; i < len; i++) {
+        let key = template.key(data[i], i, data)
+        if (key && dict[key]) {
+          fn(dict[key], i)
+        }
       }
     }
   }

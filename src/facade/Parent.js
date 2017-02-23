@@ -114,9 +114,18 @@ export default class ParentFacade extends Facade {
    */
   forEachChild(fn) {
     let dict = this._childrenDict
-    if (dict) {
-      for (let key in dict) {
-        fn(dict[key])
+    let children = this.children
+    if (dict && children) {
+      // Allow single child without wrapper array
+      if (!Array.isArray(children)) {
+        TEMP_ARRAY[0] = children
+        children = TEMP_ARRAY
+      }
+      for (let i = 0, len = children.length; i < len; i++) {
+        let key = children[i].key
+        if (key && dict[key]) {
+          fn(dict[key], i)
+        }
       }
     }
   }
