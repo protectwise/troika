@@ -29,6 +29,31 @@ class CircleFacade extends Object2DFacade {
   }
 }
 
+class RectFacade extends Object2DFacade {
+  constructor(...args) {
+    super(...args)
+    this.onMouseOver = e => {
+      this.hovered = true
+    }
+    this.onMouseOut = e => {
+      this.hovered = false
+    }
+  }
+
+  render(ctx) {
+    ctx.beginPath()
+    ctx.rect(0, 0, this.width, this.height)
+    if (this.fill) {
+      ctx.fillStyle = this.hovered ? '#fff' : this.fill
+      ctx.fill()
+    }
+    if (this.stroke) {
+      ctx.lineWidth = 5
+      ctx.strokeStyle = this.hovered ? '#fff' : this.stroke
+      ctx.stroke()
+    }
+  }
+}
 
 
 export default React.createClass({
@@ -124,6 +149,62 @@ export default React.createClass({
                   }
                 }
               ]
+            },
+            {
+              key: 'hitTest',
+              class: Group2DFacade,
+              children: [
+                {
+                  key: '1',
+                  class: RectFacade,
+                  x: 0,
+                  y: 600,
+                  width: 100,
+                  height: 100,
+                  fill: '#600'
+                },
+                {
+                  key: '2',
+                  class: RectFacade,
+                  x: 50,
+                  y: 650,
+                  width: 100,
+                  height: 100,
+                  fill: '#900'
+                },
+                {
+                  key: '3',
+                  class: RectFacade,
+                  x: 100,
+                  y: 700,
+                  width: 100,
+                  height: 100,
+                  fill: '#c00'
+                }
+              ]
+            },
+            {
+              key: 'zIndexChanges',
+              class: Group2DFacade,
+              x: 300,
+              y: 500,
+              children: [0,1,2,3,4,5,6,7].map(i => ({
+                key: `${i}`,
+                class: RectFacade,
+                x: i * 20,
+                y: 0,
+                width: 50,
+                height: 50,
+                fill: `rgb(100, ${Math.floor(255 * i / 8)}, 100)`,
+                animation: {
+                  from: {y: 0, z: 0},
+                  to: {y: 100, z: 100},
+                  duration: 2000,
+                  iterations: Infinity,
+                  direction: 'alternate',
+                  delay: 2000 * i / 8
+                }
+              }))
             }
           ] }
         />
