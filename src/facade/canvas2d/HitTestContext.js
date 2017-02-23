@@ -7,6 +7,7 @@
  * to its render() method.
  */
 
+import forOwn from 'lodash/forOwn'
 
 const hitTestContext = document.createElement('canvas').getContext('2d')
 hitTestContext.save()
@@ -24,28 +25,19 @@ hitTestContext.startHitTesting = function(x, y) {
   this.save()
 }
 
-const ctxProto = CanvasRenderingContext2D.prototype
-
-hitTestContext.fill = function(...args) {
-  ctxProto.fill.apply(this, ...args)
-  if (this.isPointInPath(this._x, this._y)) {
-    this.didHit = true
+forOwn({
+  fill: 'Path',
+  fillRect: 'Path',
+  stroke: 'Stroke'
+}, function(testType, paintMethod) {
+  let testMethod = `isPointIn${testType}`
+  hitTestContext[paintMethod] = function(...args) {
+    if (this[testMethod](this._x, this._y)) {
+      this.didHit = true
+    }
+    CanvasRenderingContext2D.prototype[paintMethod].apply(this, args)
   }
-}
-
-hitTestContext.fillRect = function(...args) {
-  ctxProto.fillRect.apply(this, ...args)
-  if (this.isPointInPath(this._x, this._y)) {
-    this.didHit = true
-  }
-}
-
-hitTestContext.stroke = function(...args) {
-  ctxProto.stroke.apply(this, ...args)
-  if (this.isPointInStroke(this._x, this._y)) {
-    this.didHit = true
-  }
-}
+})
 
 export default hitTestContext
 
