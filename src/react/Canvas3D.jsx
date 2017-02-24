@@ -40,28 +40,36 @@ const Canvas3D = React.createClass({
   },
 
   initWorld(canvas) {
-    let props = this.props
-    this._world = new World3DFacade(canvas, {
-      antialias: props.antialias
-    })
-    this._world.renderHtmlItems = this.renderHtmlItems
+    try {
+      this._world = new World3DFacade(canvas, {
+        antialias: this.props.antialias
+      })
+      this._world.renderHtmlItems = this.renderHtmlItems
+    } catch(e) {
+      console.error('World3DFacade init failed', e)
+      this._world = null
+      this._failedWorldInit = true
+      this.forceUpdate()
+    }
   },
 
   updateWorld() {
     let props = this.props
     let world = this._world
-    world.width = props.width
-    world.height = props.height
-    world.backgroundColor = props.backgroundColor
-    world.shadows = props.shadows
-    world.camera = props.camera
-    world.scene = {
-      lights: props.lights,
-      children: props.objects,
-      fog: props.fog,
-      onClick: props.onBackgroundClick
+    if (world) {
+      world.width = props.width
+      world.height = props.height
+      world.backgroundColor = props.backgroundColor
+      world.shadows = props.shadows
+      world.camera = props.camera
+      world.scene = {
+        lights: props.lights,
+        children: props.objects,
+        fog: props.fog,
+        onClick: props.onBackgroundClick
+      }
+      world.afterUpdate()
     }
-    world.afterUpdate()
   },
 
   destroyWorld() { //just to see it burn
@@ -92,7 +100,9 @@ const Canvas3D = React.createClass({
         cursor: props.cursor,
         userSelect: 'none'
       } }>
-        <canvas ref={ this._bindCanvasRef } />
+        { this._failedWorldInit ? this.props.children : (
+          <canvas ref={ this._bindCanvasRef } />
+        ) }
         <HtmlOverlay ref={ this._bindHtmlOverlayRef } />
       </div>
     )
