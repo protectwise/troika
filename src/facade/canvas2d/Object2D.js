@@ -12,6 +12,20 @@ class Object2DFacade extends PointerEventTarget {
   }
 
   afterUpdate() {
+    this.updateMatrix()
+    super.afterUpdate()
+  }
+
+  beforeRender(ctx) {
+  }
+
+  render(ctx) {
+  }
+
+  afterRender(ctx) {
+  }
+
+  updateMatrix() {
     if (this._matrixChanged) {
       let mat = this.transformMatrix
       let {x, y, rotate, scaleX, scaleY} = this
@@ -25,16 +39,6 @@ class Object2DFacade extends PointerEventTarget {
       mat[5] = y
       this._matrixChanged = false
     }
-    super.afterUpdate()
-  }
-
-  beforeRender(ctx) {
-  }
-
-  render(ctx) {
-  }
-
-  afterRender(ctx) {
   }
 
   hitTest(x, y) {
@@ -58,6 +62,33 @@ class Object2DFacade extends PointerEventTarget {
     this.afterRender(hitTestContext)
 
     return hitTestContext.didHit
+  }
+
+  getUserSpaceXY() {
+    let matrix = new Float32Array(IDENTITY_MATRIX)
+    reusableArray.length = 0
+    let obj = this
+    while (obj) {
+      if (obj.transformMatrix) {
+        reusableArray.push(obj.transformMatrix)
+      }
+      obj = obj.parent
+    }
+    for (let i = reusableArray.length; i--;) {
+      let [a0, a1, a2, a3, a4, a5] = matrix
+      let [b0, b1, b2, b3, b4, b5] = reusableArray[i]
+      matrix[0] = a0 * b0 + a2 * b1
+      matrix[1] = a1 * b0 + a3 * b1
+      matrix[2] = a0 * b2 + a2 * b3
+      matrix[3] = a1 * b2 + a3 * b3
+      matrix[4] = a0 * b4 + a2 * b5 + a4
+      matrix[5] = a1 * b4 + a3 * b5 + a5
+    }
+
+    return {
+      x: matrix[4],
+      y: matrix[5]
+    }
   }
 }
 

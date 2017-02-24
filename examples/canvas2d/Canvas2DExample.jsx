@@ -1,5 +1,5 @@
 import React from 'react'
-import {Canvas2D, Group2DFacade, Object2DFacade} from '../../src/index'
+import {Canvas2D, Group2DFacade, Object2DFacade, HtmlOverlay2DFacade} from '../../src/index'
 
 
 
@@ -141,6 +141,13 @@ export default React.createClass({
                   r: 25,
                   stroke: '#090',
                   scaleY: 2,
+                  children: [0, 1, 2, 3].map(i => ({
+                    key: `html${i}`,
+                    class: HtmlOverlay2DFacade,
+                    x: 25 * Math.cos(Math.PI * i / 2),
+                    y: 25 * Math.sin(Math.PI * i / 2),
+                    html: <em style={ {color: '#fff', textShadow: '0 0 1px #000'} }>{ i }</em>
+                  })),
                   animation: {
                     from: {rotate: 0},
                     to: {rotate: Math.PI * -2},

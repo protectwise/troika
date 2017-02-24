@@ -21,8 +21,9 @@ export {default as Text3DFacade} from './facade/threejs/Text3D.js'
 export {default as World3DFacade} from './facade/threejs/World3D.js'
 
 // 2D Facades
-export {default as Object2DFacade} from './facade/canvas2d/Object2D.js'
 export {default as Group2DFacade} from './facade/canvas2d/Group2D.js'
+export {default as HtmlOverlay2DFacade} from './facade/canvas2d/HtmlOverlay2D.js'
+export {default as Object2DFacade} from './facade/canvas2d/Object2D.js'
 export {default as World2DFacade} from './facade/canvas2d/World2D.js'
 
 // React entry points

@@ -108,6 +108,18 @@ class World2DFacade extends WorldBaseFacade {
   /**
    * Implementation of abstract
    */
+  getFacadeUserSpaceXYZ(facade) {
+    let {x, y} = facade.getUserSpaceXY()
+    return {
+      x: x,
+      y: y,
+      z: -facade.z //TODO honor cascaded z
+    }
+  }
+
+  /**
+   * Implementation of abstract
+   */
   getFacadesAtPosition(clientX, clientY, canvasRect) {
     let rect = this._element.getBoundingClientRect()
     let x = clientX - rect.left

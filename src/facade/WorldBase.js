@@ -52,6 +52,7 @@ class WorldBaseFacade extends ParentFacade {
 
     this.width = this.height = 1
     this._element = element
+    this._htmlOverlays = Object.create(null)
 
     // Bind events
     this._onPointerMotionEvent = this._onPointerMotionEvent.bind(this)
@@ -84,6 +85,12 @@ class WorldBaseFacade extends ParentFacade {
           }
         }
         break
+      case 'addHtmlOverlay':
+        this._htmlOverlays[data.$facadeId] = data
+        return
+      case 'removeHtmlOverlay':
+        delete this._htmlOverlays[data.$facadeId]
+        return
     }
   }
 
@@ -93,6 +100,7 @@ class WorldBaseFacade extends ParentFacade {
       this._nextFrameTimer = requestAnimationFrame(this._nextFrameHandler || (this._nextFrameHandler = () => {
         this._nextFrameTimer = null
         this.doRender()
+        this._doRenderHtmlItems()
       }))
     }
   }
@@ -101,9 +109,28 @@ class WorldBaseFacade extends ParentFacade {
    * @abstract
    */
   doRender() {
-    throw new Error('doRender: no impl')
   }
 
+  /**
+   * @abstract
+   */
+  getFacadeUserSpaceXYZ(facade) {
+  }
+
+  _doRenderHtmlItems() {
+    if (this.renderHtmlItems) {
+      let htmlItemsData = []
+      let overlayFacades = this._htmlOverlays
+      for (let key in overlayFacades) {
+        let facade = overlayFacades[key]
+        let data = this.getFacadeUserSpaceXYZ(facade)
+        data.key = facade.$facadeId
+        data.html = facade.html
+        htmlItemsData.push(data)
+      }
+      this.renderHtmlItems(htmlItemsData)
+    }
+  }
 
   _onPointerMotionEvent(e) {
     let registry = this.$eventRegistry

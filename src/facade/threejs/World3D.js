@@ -15,8 +15,6 @@ class World3DFacade extends WorldBaseFacade {
   constructor(canvas, threeJsRendererConfig) {
     super(canvas)
 
-    this._htmlOverlays = Object.create(null)
-
     this._threeRenderer = new WebGLRenderer(assign({
       canvas: canvas,
       alpha: true
@@ -65,40 +63,27 @@ class World3DFacade extends WorldBaseFacade {
 
   doRender() {
     this._threeRenderer.render(this.getChildByKey('scene').threeObject, this.getChildByKey('camera').threeObject)
-    this._doRenderHtmlItems()
   }
 
-  _doRenderHtmlItems() {
-    if (this.renderHtmlItems) {
-      let camera = null
-      let htmlItems = map(this._htmlOverlays, (overlay, key) => {
-        posVec.setFromMatrixPosition(overlay.threeObject.matrixWorld)
-        if (!camera) camera = this.getChildByKey('camera').threeObject
-        let distance = posVec.distanceTo(camera.position)
-        posVec.project(camera)
-        return {
-          key: key,
-          html: overlay.html,
-          x: (posVec.x + 1) * this.width / 2,
-          y: (1 - posVec.y) * this.height / 2,
-          z: distance
-        }
-      })
-      this.renderHtmlItems(htmlItems)
+  /**
+   * Implementation of abstract
+   */
+  getFacadeUserSpaceXYZ(facade) {
+    let camera = this.getChildByKey('camera').threeObject
+    posVec.setFromMatrixPosition(facade.threeObject.matrixWorld)
+    let distance = posVec.distanceTo(camera.position)
+    posVec.project(camera)
+    return {
+      x: (posVec.x + 1) * this.width / 2,
+      y: (1 - posVec.y) * this.height / 2,
+      z: distance
     }
   }
-
 
   onNotifyWorld(source, message, data) {
     switch(message) {
       case 'getCameraPosition':
         data(this.getChildByKey('camera').threeObject.position) //callback function
-        return
-      case 'addHtmlOverlay':
-        this._htmlOverlays[data.$facadeId] = data
-        return
-      case 'removeHtmlOverlay':
-        delete this._htmlOverlays[data.$facadeId]
         return
     }
     super.onNotifyWorld(source, message, data)
