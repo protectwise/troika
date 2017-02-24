@@ -122,7 +122,7 @@ export default class ParentFacade extends Facade {
         children = TEMP_ARRAY
       }
       for (let i = 0, len = children.length; i < len; i++) {
-        let key = children[i].key
+        let key = children[i] && children[i].key
         if (key && dict[key]) {
           fn(dict[key], i)
         }
