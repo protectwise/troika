@@ -56,6 +56,7 @@ export default class Arc extends Object3DFacade {
       let radius = startRadius + ((posAttr.getY(i) + 0.5) * (endRadius - startRadius));
       posAttr.setXY(i, Math.cos(angle) * radius, Math.sin(angle) * radius)
     }
+    raycastGeometry.computeBoundingSphere()
 
     // Temporarily replace geometry with the modified one
     threeObject.geometry = raycastGeometry
