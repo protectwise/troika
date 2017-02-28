@@ -53,7 +53,7 @@ export default function(WrappedClass) {
         // Ensure setter/getter has been created for all props in transition
         for (let propName in descriptor) {
           if (descriptor.hasOwnProperty(propName)) {
-            defineTransitionPropInterceptor(propName)
+            defineTransitionPropInterceptor(propName, this)
           }
         }
       }
@@ -156,7 +156,7 @@ export default function(WrappedClass) {
                       for (let animProp in animDesc[key]) {
                         if (animDesc[key].hasOwnProperty(animProp)) {
                           // Ensure setter is in place
-                          defineTransitionPropInterceptor(animProp)
+                          defineTransitionPropInterceptor(animProp, this)
                           // Stop any active transition tweens for this property
                           let tweenKey = animProp + '➤tween'
                           if (this[tweenKey]) {
@@ -264,7 +264,7 @@ export default function(WrappedClass) {
   // Add get/set interceptor to the wrapper's prototype if this is the first time seeing this prop. Putting it
   // on the wrapper prototype allows us to avoid per-instance overhead as well as avoid collisions with
   // other custom setters anywhere else in the prototype chain.
-  function defineTransitionPropInterceptor(propName) {
+  function defineTransitionPropInterceptor(propName, currentInstance) {
     if (!AnimatableDecorator.prototype.hasOwnProperty(propName)) {
       let actualValueKey = `${ propName }➤actualValue`
       let actuallySetKey = `${ propName }➤actuallySet`
@@ -362,6 +362,15 @@ export default function(WrappedClass) {
         }
       })
     }
+
+
+    // If the instance had this property set before the intercepting setter was added to the
+    // prototype, that would continue to take precedence, so move its value to the private property.
+    if (currentInstance.hasOwnProperty(propName)) {
+      currentInstance[`${ propName }➤actualValue`] = currentInstance[propName]
+      delete currentInstance[propName]
+    }
+
   }
 
   return AnimatableDecorator
