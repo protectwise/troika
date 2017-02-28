@@ -35,7 +35,6 @@ forOwn({
     if (this[testMethod](this._x, this._y)) {
       this.didHit = true
     }
-    CanvasRenderingContext2D.prototype[paintMethod].apply(this, args)
   }
 })
 
