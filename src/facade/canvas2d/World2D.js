@@ -3,8 +3,8 @@ import Object2DFacade from './Object2D'
 
 
 
-function traverseInZOrder(facade, preCallback, postCallback) {
-  preCallback && preCallback(facade)
+function traverseInZOrder(facade, callback) {
+  callback && callback(facade)
 
   // visit children, ordered by z
   let kids = []
@@ -22,10 +22,8 @@ function traverseInZOrder(facade, preCallback, postCallback) {
     kids.sort((a, b) => a.z - b.z || a.$tmpIndexOf - b.$tmpIndexOf)
   }
   for (let i = 0, len = kids.length; i < len; i++) {
-    traverseInZOrder(kids[i], preCallback, postCallback)
+    traverseInZOrder(kids[i], callback)
   }
-
-  postCallback && postCallback(facade)
 }
 
 
@@ -53,14 +51,15 @@ class World2DFacade extends WorldBaseFacade {
   }
 
   afterUpdate() {
-    this.children = [{
+    this.children = {
       key: 'bg',
       class: BackgroundFacade,
       color: this.backgroundColor,
       width: this.width,
       height: this.height,
-      onClick: this.onBackgroundClick
-    }].concat(this.children)
+      onClick: this.onBackgroundClick,
+      children: this.children
+    }
 
     super.afterUpdate()
   }
@@ -83,22 +82,21 @@ class World2DFacade extends WorldBaseFacade {
     }
     ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0)
 
+    // Update all world matrices that need it (recursive)
+    this.getChildByKey('bg').updateWorldMatrix()
+
     // Walk tree in z order and render each Object2DFacade
     traverseInZOrder(this, facade => {
       if (facade.isObject2D) {
         ctx.save()
 
         // update transform
-        let mat = facade.transformMatrix
+        let mat = facade.worldTransformMatrix
         ctx.transform(mat[0], mat[1], mat[2], mat[3], mat[4], mat[5])
 
         // render
-        facade.beforeRender(ctx)
         facade.render(ctx)
-      }
-    }, facade => {
-      if (facade.isObject2D) {
-        facade.afterRender(ctx)
+
         ctx.restore()
       }
     })

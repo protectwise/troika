@@ -2,30 +2,68 @@ import PointerEventTarget from '../PointerEventTarget'
 import hitTestContext from './HitTestContext'
 
 const IDENTITY_MATRIX = [1, 0, 0, 1, 0, 0]
-const reusableArray = []
+
+
+
+function multiplyMatrices(a, b, target) {
+  let [a0, a1, a2, a3, a4, a5] = a
+  let [b0, b1, b2, b3, b4, b5] = b
+  target[0] = a0 * b0 + a2 * b1
+  target[1] = a1 * b0 + a3 * b1
+  target[2] = a0 * b2 + a2 * b3
+  target[3] = a1 * b2 + a3 * b3
+  target[4] = a0 * b4 + a2 * b5 + a4
+  target[5] = a1 * b4 + a3 * b5 + a5
+}
+
+
+function doUpdateWorldMatrix(facade) {
+  if (facade.isObject2D) {
+    let parentFacade = facade.parent
+    while (parentFacade && !parentFacade.isObject2D) {
+      parentFacade = parentFacade.parent
+    }
+    if (parentFacade) {
+      multiplyMatrices(parentFacade.worldTransformMatrix, facade.transformMatrix, facade.worldTransformMatrix)
+    } else {
+      facade.worldTransformMatrix.set(facade.transformMatrix)
+    }
+  }
+}
+
+function recurseWorldMatrixUpdate(facade) {
+  if (facade.isObject2D) {
+    facade.updateWorldMatrix()
+  } else if (facade.forEachChild) { //e.g. List
+    facade.forEachChild(recurseWorldMatrixUpdate)
+  }
+}
+
 
 
 class Object2DFacade extends PointerEventTarget {
   constructor(parent) {
     super(parent)
     this.transformMatrix = new Float32Array(IDENTITY_MATRIX)
+    this.worldTransformMatrix = new Float32Array(IDENTITY_MATRIX)
+    this._worldMatrixChanged = true
   }
 
   afterUpdate() {
-    this.updateMatrix()
+    this.updateLocalMatrix()
     super.afterUpdate()
   }
 
-  beforeRender(ctx) {
-  }
-
+  /**
+   * @template
+   * Implement this to render this object's content into the given canvas 2d context.
+   *
+   * @param {CanvasRenderingContext2D} ctx
+   */
   render(ctx) {
   }
 
-  afterRender(ctx) {
-  }
-
-  updateMatrix() {
+  updateLocalMatrix() {
     if (this._matrixChanged) {
       let mat = this.transformMatrix
       let {x, y, rotate, scaleX, scaleY} = this
@@ -38,53 +76,39 @@ class Object2DFacade extends PointerEventTarget {
       mat[4] = x
       mat[5] = y
       this._matrixChanged = false
+      this._worldMatrixChanged = true
+    }
+  }
+
+  // Conditionally syncs worldTransformMatrix for this and all child facades if needed.
+  // Should be called from the topmost level
+  updateWorldMatrix() {
+    if (this._worldMatrixChanged) {
+      // Force update of the world matrix for this and all descendants as they may be affected
+      this.traverse(doUpdateWorldMatrix)
+      this._worldMatrixChanged = false
+    } else {
+      // Check all children
+      this.forEachChild(recurseWorldMatrixUpdate)
     }
   }
 
   hitTest(x, y) {
     hitTestContext.startHitTesting(x, y)
 
-    reusableArray.length = 0
-    let obj = this
-    while (obj) {
-      if (obj.transformMatrix) {
-        reusableArray.push(obj.transformMatrix)
-      }
-      obj = obj.parent
-    }
-    for (let i = reusableArray.length; i--;) {
-      let mat = reusableArray[i]
-      hitTestContext.transform(mat[0], mat[1], mat[2], mat[3], mat[4], mat[5])
-    }
+    // Assume world matrix is up to date
+    let matrix = this.worldTransformMatrix
+    hitTestContext.setTransform(matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5])
 
-    this.beforeRender(hitTestContext)
+    // Render using hit testing context
     this.render(hitTestContext)
-    this.afterRender(hitTestContext)
 
     return hitTestContext.didHit
   }
 
   getUserSpaceXY() {
-    let matrix = new Float32Array(IDENTITY_MATRIX)
-    reusableArray.length = 0
-    let obj = this
-    while (obj) {
-      if (obj.transformMatrix) {
-        reusableArray.push(obj.transformMatrix)
-      }
-      obj = obj.parent
-    }
-    for (let i = reusableArray.length; i--;) {
-      let [a0, a1, a2, a3, a4, a5] = matrix
-      let [b0, b1, b2, b3, b4, b5] = reusableArray[i]
-      matrix[0] = a0 * b0 + a2 * b1
-      matrix[1] = a1 * b0 + a3 * b1
-      matrix[2] = a0 * b2 + a2 * b3
-      matrix[3] = a1 * b2 + a3 * b3
-      matrix[4] = a0 * b4 + a2 * b5 + a4
-      matrix[5] = a1 * b4 + a3 * b5 + a5
-    }
-
+    // Assume world matrix is up to date
+    let matrix = this.worldTransformMatrix
     return {
       x: matrix[4],
       y: matrix[5]
