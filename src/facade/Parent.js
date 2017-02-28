@@ -109,28 +109,6 @@ export default class ParentFacade extends Facade {
   }
 
   /**
-   * Invoke a function for each of this facade's direct children
-   * @param {Function} fn
-   */
-  forEachChild(fn) {
-    let dict = this._childrenDict
-    let children = this.children
-    if (dict && children) {
-      // Allow single child without wrapper array
-      if (!Array.isArray(children)) {
-        TEMP_ARRAY[0] = children
-        children = TEMP_ARRAY
-      }
-      for (let i = 0, len = children.length; i < len; i++) {
-        let key = children[i] && children[i].key
-        if (key && dict[key]) {
-          fn(dict[key], i)
-        }
-      }
-    }
-  }
-
-  /**
    * Walk this facade's descendant tree, invoking a function for it and each descendant.
    * @param {Function} fn
    */

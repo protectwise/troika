@@ -1,7 +1,9 @@
 import WorldBaseFacade from '../WorldBase'
 import Object2DFacade from './Object2D'
 
-
+function byZ(a, b) {
+  return a.z - b.z
+}
 
 function traverseInZOrder(facade, callback) {
   callback && callback(facade)
@@ -9,17 +11,15 @@ function traverseInZOrder(facade, callback) {
   // visit children, ordered by z
   let kids = []
   let hasDifferentZs = false
-  facade.forEachChild((kid, i) => {
+  facade.forEachChildObject2D((kid) => {
     if (!hasDifferentZs && kids.length && kid.z !== kids[0].z) {
       hasDifferentZs = true
     }
     kids.push(kid)
   })
   if (hasDifferentZs) {
-    for (let i = 0, len = kids.length; i < len; i++) {
-      kids.$tmpIndexOf = i
-    }
-    kids.sort((a, b) => a.z - b.z || a.$tmpIndexOf - b.$tmpIndexOf)
+    // TODO secondary sort by tree order?
+    kids.sort(byZ)
   }
   for (let i = 0, len = kids.length; i < len; i++) {
     traverseInZOrder(kids[i], callback)
@@ -80,25 +80,26 @@ class World2DFacade extends WorldBaseFacade {
       this._lastWidth = width
       this._lastHeight = height
     }
-    ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0)
 
     // Update all world matrices that need it (recursive)
-    this.getChildByKey('bg').updateWorldMatrix()
+    let root = this.getChildByKey('bg')
+    root.updateWorldMatrix()
+
+    // Set root pixel ratio transform
+    ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0)
 
     // Walk tree in z order and render each Object2DFacade
-    traverseInZOrder(this, facade => {
-      if (facade.isObject2D) {
-        ctx.save()
+    traverseInZOrder(root, facade => {
+      ctx.save()
 
-        // update transform
-        let mat = facade.worldTransformMatrix
-        ctx.transform(mat[0], mat[1], mat[2], mat[3], mat[4], mat[5])
+      // update transform
+      let mat = facade.worldTransformMatrix
+      ctx.transform(mat[0], mat[1], mat[2], mat[3], mat[4], mat[5])
 
-        // render
-        facade.render(ctx)
+      // render
+      facade.render(ctx)
 
-        ctx.restore()
-      }
+      ctx.restore()
     })
   }
 
@@ -125,8 +126,8 @@ class World2DFacade extends WorldBaseFacade {
     let hits = null
     let distance = 0
 
-    traverseInZOrder(this, facade => {
-      if (facade.isObject2D && facade.hitTest(x, y)) {
+    traverseInZOrder(this.getChildByKey('bg'), facade => {
+      if (facade.hitTest(x, y)) {
         if (!hits) hits = Object.create(null)
         hits[facade.$facadeId] = {
           facade: facade,

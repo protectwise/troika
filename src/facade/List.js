@@ -119,25 +119,6 @@ export default class List extends Facade {
   }
 
   /**
-   * Invoke a function for each of this facade's direct children
-   * @param {Function} fn
-   */
-  forEachChild(fn) {
-    let data = this.data
-    let template = this.template
-    let dict = this._itemsDict
-    let hasData = data && data.length && Array.isArray(data)
-    if (hasData && template && dict) {
-      for (let i = 0, len = data.length; i < len; i++) {
-        let key = template.key(data[i], i, data)
-        if (key && dict[key]) {
-          fn(dict[key], i)
-        }
-      }
-    }
-  }
-
-  /**
    * Walk this facade's descendant tree, invoking a function for it and each descendant.
    * @param {Function} fn
    */

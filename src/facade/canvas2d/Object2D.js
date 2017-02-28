@@ -19,10 +19,7 @@ function multiplyMatrices(a, b, target) {
 
 function doUpdateWorldMatrix(facade) {
   if (facade.isObject2D) {
-    let parentFacade = facade.parent
-    while (parentFacade && !parentFacade.isObject2D) {
-      parentFacade = parentFacade.parent
-    }
+    let parentFacade = facade.parentObject2D
     if (parentFacade) {
       multiplyMatrices(parentFacade.worldTransformMatrix, facade.transformMatrix, facade.worldTransformMatrix)
     } else {
@@ -31,12 +28,8 @@ function doUpdateWorldMatrix(facade) {
   }
 }
 
-function recurseWorldMatrixUpdate(facade) {
-  if (facade.isObject2D) {
-    facade.updateWorldMatrix()
-  } else if (facade.forEachChild) { //e.g. List
-    facade.forEachChild(recurseWorldMatrixUpdate)
-  }
+function callUpdateWorldMatrix(facade) {
+  facade.updateWorldMatrix()
 }
 
 
@@ -44,9 +37,22 @@ function recurseWorldMatrixUpdate(facade) {
 class Object2DFacade extends PointerEventTarget {
   constructor(parent) {
     super(parent)
+
+    // Find nearest Object2DFacade ancestor and add direct parent/child
+    // references. In addition to faster render tree traversal, maintaining
+    // this separate tree allows exitAnimation to keep rendering instances
+    // after removal from the facade tree.
+    while (parent && !parent.isObject2D) {
+      parent = parent.parent
+    }
+    if (parent) {
+      parent._childObjects2D[this.$facadeId] = this
+    }
+    this.parentObject2D = parent
+    this._childObjects2D = Object.create(null)
+
     this.transformMatrix = new Float32Array(IDENTITY_MATRIX)
     this.worldTransformMatrix = new Float32Array(IDENTITY_MATRIX)
-    this._worldMatrixChanged = true
   }
 
   afterUpdate() {
@@ -89,7 +95,7 @@ class Object2DFacade extends PointerEventTarget {
       this._worldMatrixChanged = false
     } else {
       // Check all children
-      this.forEachChild(recurseWorldMatrixUpdate)
+      this.forEachChildObject2D(callUpdateWorldMatrix)
     }
   }
 
@@ -114,11 +120,29 @@ class Object2DFacade extends PointerEventTarget {
       y: matrix[5]
     }
   }
+
+  // Like forEachChild but only for the Object2D render tree - skips intermediates like Lists
+  // and can include objects that have been removed but are still in their exitAnimation
+  forEachChildObject2D(fn) {
+    let kids = this._childObjects2D
+    for (let id in kids) {
+      fn(kids[id])
+    }
+  }
+
+  destructor() {
+    let parentObj2D = this.parentObject2D
+    if (parentObj2D) {
+      delete parentObj2D._childObjects2D[this.$facadeId]
+    }
+    super.destructor()
+  }
 }
 
 const proto = Object2DFacade.prototype
 proto.isObject2D = true
 proto.z = 0
+proto._worldMatrixChanged = true
 
 
 // Define props that affect the object's local transform matrix
