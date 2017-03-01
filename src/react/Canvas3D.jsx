@@ -1,112 +1,47 @@
+import defaults from 'lodash/defaults'
 import React from 'react'
 import World3DFacade from '../facade/threejs/World3D'
-import HtmlOverlay from './HtmlOverlay.jsx'
+import {commonMethods, commonPropTypes} from './CanvasBase.jsx'
 const T = React.PropTypes
 
 
 
-const Canvas3D = React.createClass({
+const Canvas3D = React.createClass(defaults({
   displayName: 'Canvas3D',
 
-  propTypes: {
-    width: T.number.isRequired,
-    height: T.number.isRequired,
+  propTypes: defaults({
     backgroundColor: T.any,
     lights: T.array,
     camera: T.object.isRequired,
     objects: T.oneOfType([T.array, T.object]).isRequired,
     antialias: T.bool,
-    showStats: T.bool,
-    onBackgroundClick: T.func,
-    className: T.string,
-    cursor: T.string
-  },
-
-  componentDidUpdate() {
-    this.updateWorld()
-  },
-
-  _bindCanvasRef(canvas) {
-    if (canvas) {
-      this.initWorld(canvas)
-      this.updateWorld()
-    } else {
-      this.destroyWorld()
-    }
-  },
-
-  _bindStatsRef(stats) {
-    this._glStats = stats
-  },
+    onBackgroundClick: T.func
+  }, commonPropTypes),
 
   initWorld(canvas) {
-    try {
-      this._world = new World3DFacade(canvas, {
-        antialias: this.props.antialias
-      })
-      this._world.renderHtmlItems = this.renderHtmlItems
-    } catch(e) {
-      console.error('World3DFacade init failed', e)
-      this._world = null
-      this._failedWorldInit = true
-      this.forceUpdate()
-    }
+    let world = new World3DFacade(canvas, {
+      antialias: this.props.antialias
+    })
+    world.renderHtmlItems = this.renderHtmlItems
+    return world
   },
 
-  updateWorld() {
+  updateWorld(world) {
     let props = this.props
-    let world = this._world
-    if (world) {
-      world.width = props.width
-      world.height = props.height
-      world.backgroundColor = props.backgroundColor
-      world.shadows = props.shadows
-      world.camera = props.camera
-      world.scene = {
-        lights: props.lights,
-        children: props.objects,
-        fog: props.fog,
-        onClick: props.onBackgroundClick
-      }
-      world.afterUpdate()
+    world.width = props.width
+    world.height = props.height
+    world.backgroundColor = props.backgroundColor
+    world.shadows = props.shadows
+    world.camera = props.camera
+    world.scene = {
+      lights: props.lights,
+      children: props.objects,
+      fog: props.fog,
+      onClick: props.onBackgroundClick
     }
-  },
-
-  destroyWorld() { //just to see it burn
-    if (this._world) {
-      this._world.destructor()
-      delete this._world
-    }
-  },
-
-  renderHtmlItems(items) {
-    if (this._htmlOverlayRef) {
-      this._htmlOverlayRef.setItems(items)
-    }
-  },
-
-  _bindHtmlOverlayRef(cmp) {
-    this._htmlOverlayRef = cmp
-  },
-
-  render() {
-    let {props} = this
-    return (
-      <div className={ props.className } style={ {
-        position: 'relative',
-        overflow: 'hidden',
-        width: props.width,
-        height: props.height,
-        cursor: props.cursor,
-        userSelect: 'none'
-      } }>
-        { this._failedWorldInit ? this.props.children : (
-          <canvas ref={ this._bindCanvasRef } />
-        ) }
-        <HtmlOverlay ref={ this._bindHtmlOverlayRef } />
-      </div>
-    )
+    world.afterUpdate()
   }
-})
+}, commonMethods))
+
 
 export default Canvas3D
