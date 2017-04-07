@@ -62,7 +62,17 @@ class World3DFacade extends WorldBaseFacade {
   }
 
   doRender() {
-    this._threeRenderer.render(this.getChildByKey('scene').threeObject, this.getChildByKey('camera').threeObject)
+    let scene = this.getChildByKey('scene').threeObject
+    let camera = this.getChildByKey('camera').threeObject
+
+    // Invoke any callbacks registered by addBeforeRenderCallback
+    let callbacks = this._beforeRenderFns
+    if (callbacks) {
+      callbacks.forEach(fn => fn(this._threeRenderer, scene, camera))
+      this._beforeRenderFns = null
+    }
+
+    this._threeRenderer.render(scene, camera)
   }
 
   /**
@@ -84,6 +94,9 @@ class World3DFacade extends WorldBaseFacade {
     switch(message) {
       case 'getCameraPosition':
         data(this.getChildByKey('camera').threeObject.position) //callback function
+        return
+      case 'addBeforeRenderCallback':
+        ;(this._beforeRenderFns || (this._beforeRenderFns = [])).push(data)
         return
     }
     super.onNotifyWorld(source, message, data)

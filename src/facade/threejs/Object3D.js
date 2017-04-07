@@ -78,6 +78,17 @@ class Object3DFacade extends PointerEventTarget {
   }
 
   /**
+   * Register a callback function to be called after the scene's state and all the underlying
+   * threeObjects have been synced, but just before the WebGL is rendered. The callback will be
+   * passed the arguments (webglRenderer, scene, camera). This is a good place to perform things
+   * like rendering a portion of the scene into a texture to be used in the final render.
+   * @param {Function} fn
+   */
+  addBeforeRenderCallback(fn) {
+    this.notifyWorld('addBeforeRenderCallback', fn)
+  }
+
+  /**
    * Determine if this facade's threeObject intersects a Raycaster. Return format is the same
    * as that of `Raycaster.intersectObject`. Override this method to provide custom raycasting
    * logic, for example when additional meshes need to be checked or a vertex shader manipulates
