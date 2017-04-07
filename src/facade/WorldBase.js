@@ -14,33 +14,38 @@ const pointerActionEventTypesToProps = {
   'touchcancel': 'onMouseUp'
 }
 
-function cloneEvent(e) {
+function createSyntheticEvent(nativeEvent, type, targetFacade, relatedTargetFacade) {
   let newEvent = {}
-  Object.keys(e.constructor.prototype).forEach(key => {
-    newEvent[key] = e[key]
+  Object.keys(nativeEvent.constructor.prototype).forEach(key => {
+    newEvent[key] = nativeEvent[key]
   })
+  newEvent.type = type
+  newEvent.target = newEvent.currentTarget = targetFacade
+  newEvent.relatedTarget = relatedTargetFacade || null
+  newEvent.nativeEvent = nativeEvent
+
+  // normalize drag events invoked by touch
+  if (type.indexOf('drag') === 0 && nativeEvent.touches) {
+    let touch = nativeEvent.touches[0] || nativeEvent.changedTouches[0]
+    if (touch) {
+      ;['clientX', 'clientY', 'screenX', 'screenY', 'pageX', 'pageY'].forEach(prop => {
+        newEvent[prop] = touch[prop]
+      })
+    }
+  }
+
   return newEvent
 }
 
 function firePointerEvent(handlerProp, nativeEvent, targetFacade, relatedTargetFacade) {
   let handler = targetFacade[handlerProp]
   if (handler) {
-    let newEvent = cloneEvent(nativeEvent)
-    newEvent.type = handlerProp.replace(/^on/, '').toLowerCase()
-    newEvent.target = newEvent.currentTarget = targetFacade
-    newEvent.relatedTarget = relatedTargetFacade || null
-    newEvent.nativeEvent = nativeEvent
-
-    // normalize drag events invoked by touch
-    if (newEvent.type.indexOf('drag') === 0 && nativeEvent.touches) {
-      let touch = nativeEvent.touches[0] || nativeEvent.changedTouches[0]
-      if (touch) {
-        ;['clientX', 'clientY', 'screenX', 'screenY', 'pageX', 'pageY'].forEach(prop => {
-          newEvent[prop] = touch[prop]
-        })
-      }
-    }
-
+    let newEvent = createSyntheticEvent(
+      nativeEvent,
+      handlerProp.replace(/^on/, '').toLowerCase(),
+      targetFacade,
+      relatedTargetFacade
+    )
     handler(newEvent)
   }
 }
@@ -138,7 +143,8 @@ class WorldBaseFacade extends ParentFacade {
       let dragInfo = this.$dragInfo
       if (dragInfo) {
         if (!dragInfo.dragStartFired) {
-          firePointerEvent('onDragStart', dragInfo.dragStartEvent, dragInfo.draggedFacade)
+          let handler = dragInfo.draggedFacade.onDragStart
+          if (handler) handler(dragInfo.dragStartEvent)
           dragInfo.dragStartFired = true
         }
         firePointerEvent('onDrag', e, dragInfo.draggedFacade)
@@ -202,7 +208,7 @@ class WorldBaseFacade extends ParentFacade {
 
         // mousedown/touchstart could be prepping for drag gesture
         if (facade.onDragStart && (e.type === 'mousedown' || e.type === 'touchstart')) {
-          let dragStartEvent = cloneEvent(e)
+          let dragStartEvent = createSyntheticEvent(e, 'dragstart', facade, null)
           this.$dragInfo = {
             draggedFacade: facade,
             dragStartFired: false,
@@ -231,7 +237,7 @@ class WorldBaseFacade extends ParentFacade {
 
   _toggleDropListeners(on) {
     ['mouseup', 'touchend', 'touchcancel'].forEach(type => {
-      document[(on ? 'add' : 'remove') + 'EventListener'](type, this._onDropEvent, false)
+      document[(on ? 'add' : 'remove') + 'EventListener'](type, this._onDropEvent, true)
     })
   }
 
