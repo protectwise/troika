@@ -60,6 +60,7 @@ class WorldBaseFacade extends ParentFacade {
     this._htmlOverlays = Object.create(null)
 
     // Bind events
+    this.$eventRegistry = Object.create(null)
     this._onPointerMotionEvent = this._onPointerMotionEvent.bind(this)
     this._onPointerActionEvent = this._onPointerActionEvent.bind(this)
     this._onDropEvent = this._onDropEvent.bind(this)
@@ -72,30 +73,35 @@ class WorldBaseFacade extends ParentFacade {
   }
 
   onNotifyWorld(source, message, data) {
+    let listeners, registry
     switch(message) {
       case 'needsRender':
         this._queueRender()
         break
       case 'addEventListener':
-        let registry = this.$eventRegistry || (this.$eventRegistry = Object.create(null))
-        let listeners = registry[data.type] || (registry[data.type] = Object.create(null))
+        registry = this.$eventRegistry
+        listeners = registry[data.type] || (registry[data.type] = Object.create(null))
         listeners[source.$facadeId] = data.handler
         break
       case 'removeEventListener':
         listeners = this.$eventRegistry[data.type]
         if (listeners) {
           delete listeners[source.$facadeId]
-          if (isEmpty(listeners)) {
-            delete this.$eventRegistry[data.type]
-          }
+        }
+        break
+      case 'removeAllEventListeners':
+        registry = this.$eventRegistry
+        for (let type in registry) {
+          let listeners = registry[type]
+          delete listeners[source.$facadeId]
         }
         break
       case 'addHtmlOverlay':
         this._htmlOverlays[data.$facadeId] = data
-        return
+        break
       case 'removeHtmlOverlay':
         delete this._htmlOverlays[data.$facadeId]
-        return
+        break
     }
   }
 
@@ -137,9 +143,13 @@ class WorldBaseFacade extends ParentFacade {
     }
   }
 
-  _onPointerMotionEvent(e) {
+  _hasEventListenersOfType(type) {
     let registry = this.$eventRegistry
-    if (registry && pointerMotionEventProps.some(prop => !!registry[prop])) {
+    return registry[type] && !isEmpty(registry[type])
+  }
+
+  _onPointerMotionEvent(e) {
+    if (pointerMotionEventProps.some(this._hasEventListenersOfType.bind(this))) {
       let dragInfo = this.$dragInfo
       if (dragInfo) {
         if (!dragInfo.dragStartFired) {
@@ -185,8 +195,7 @@ class WorldBaseFacade extends ParentFacade {
   }
 
   _onPointerActionEvent(e) {
-    let registry = this.$eventRegistry
-    if (registry && (pointerActionEventProps.some(prop => !!registry[prop]) || registry.onDragStart)) {
+    if (this._hasEventListenersOfType('onDragStart') || pointerActionEventProps.some(this._hasEventListenersOfType.bind(this))) {
       let facade = this._findHoveredFacade(e)
       if (facade) {
         firePointerEvent(pointerActionEventTypesToProps[e.type], e, facade)

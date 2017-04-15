@@ -1,4 +1,6 @@
 import ParentFacade from './Parent'
+import {defineEventProperty} from './Facade'
+
 
 
 
@@ -46,13 +48,6 @@ class PointerEventTarget extends ParentFacade {
       }
     }
   }
-
-  destructor() {
-    pointerEventProps.forEach(type => {
-      this[`${type}➤handler`] = null
-    })
-    super.destructor()
-  }
 }
 
 
@@ -61,23 +56,7 @@ Object.defineProperty(PointerEventTarget.prototype, 'isPointerEventTarget', {val
 
 // Add handlers for pointer event properties
 pointerEventProps.forEach(eventName => {
-  let privateProp = `${ eventName }➤handler`
-  Object.defineProperty(PointerEventTarget.prototype, eventName, {
-    get() {
-      return this[privateProp]
-    },
-    set(handler) {
-      if ((handler || null) !== (this[eventName] || null)) {
-        this[privateProp] = handler
-
-        // Add/remove from the global event registry
-        this.notifyWorld(handler ? 'addEventListener' : 'removeEventListener', {
-          type: eventName,
-          handler: handler
-        })
-      }
-    }
-  })
+  defineEventProperty(PointerEventTarget, eventName)
 })
 
 export default PointerEventTarget

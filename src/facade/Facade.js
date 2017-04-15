@@ -75,7 +75,9 @@ export default class Facade {
    * Dispatch a message with optional data up the facade parent tree.
    */
   notifyWorld(message, data) {
-    this.parent.onNotifyWorld(this, message, data)
+    if (this.parent) {
+      this.parent.onNotifyWorld(this, message, data)
+    }
   }
 
   /**
@@ -96,10 +98,16 @@ export default class Facade {
    * custom cleanup logic.
    */
   destructor() {
-    this.parent = null
+    // Unregister all event listeners from the world
+    if (this.parent) {
+      this.notifyWorld('removeAllEventListeners')
+    }
+
+    // Teardown refs
     if (typeof this.ref === 'function') {
       this.ref.call(null, null)
     }
+    this.parent = null
   }
 }
 
@@ -112,5 +120,31 @@ const DEF_SPECIAL_PROPS = {key:1, class:1, transition:1, animation:1}
  */
 export function isSpecialDescriptorProperty(name) {
   return DEF_SPECIAL_PROPS.hasOwnProperty(name)
+}
+
+/**
+ * Define a property name as an event handler for a given Facade class, so that it
+ * automatically updates the global event registry when set.
+ * @param facadeClass
+ * @param eventName
+ */
+export function defineEventProperty(facadeClass, eventName) {
+  let privateProp = `${eventName}➤handler`
+  Object.defineProperty(facadeClass.prototype, eventName, {
+    get() {
+      return this[privateProp]
+    },
+    set(handler) {
+      if ((handler || null) !== (this[privateProp] || null)) {
+        this[privateProp] = handler
+
+        // Add/remove from the global event registry
+        this.notifyWorld(handler ? 'addEventListener' : 'removeEventListener', {
+          type: eventName,
+          handler: handler
+        })
+      }
+    }
+  })
 }
 
