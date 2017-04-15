@@ -17,6 +17,9 @@ const RAY_INTERSECTION = [{distance: Infinity}]
 class Scene3DFacade extends Object3DFacade {
   constructor(parent) {
     let scene = new Scene()
+    // We always manually update world matrices when needed - see Object3DFacade.updateMatrices() -
+    // so the additional autoUpdate pass done by threejs before render is not needed:
+    scene.autoUpdate = false
     super(parent, scene)
   }
 

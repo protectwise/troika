@@ -1,5 +1,4 @@
 import assign from 'lodash/assign'
-import map from 'lodash/map'
 import {WebGLRenderer, Raycaster, Color, Vector2, Vector3} from 'three'
 import WorldBaseFacade from '../WorldBase'
 import Scene3DFacade from './Scene3D'
@@ -62,17 +61,29 @@ class World3DFacade extends WorldBaseFacade {
   }
 
   doRender() {
-    let scene = this.getChildByKey('scene').threeObject
+    let sceneFacade = this.getChildByKey('scene')
+    let scene = sceneFacade.threeObject
     let camera = this.getChildByKey('camera').threeObject
 
-    // Invoke any callbacks registered by addBeforeRenderCallback
-    let callbacks = this._beforeRenderFns
+    // Invoke any onBeforeRender listeners
+    let registry = this.$eventRegistry
+    let callbacks = registry && registry.onBeforeRender
     if (callbacks) {
-      callbacks.forEach(fn => fn(this._threeRenderer, scene, camera))
-      this._beforeRenderFns = null
+      for (let id in callbacks) {
+        callbacks[id](this._threeRenderer, scene, camera)
+      }
     }
 
+    // Render scene
     this._threeRenderer.render(scene, camera)
+
+    // Invoke any onAfterRender listeners
+    callbacks = registry && registry.onAfterRender
+    if (callbacks) {
+      for (let id in callbacks) {
+        callbacks[id](this._threeRenderer, scene, camera)
+      }
+    }
   }
 
   /**

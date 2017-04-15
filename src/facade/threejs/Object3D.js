@@ -1,11 +1,14 @@
 import forOwn from 'lodash/forOwn'
 import {Vector3, Matrix4, Quaternion, Object3D} from 'three'
 import PointerEventTarget from '../PointerEventTarget'
+import {defineEventProperty} from '../Facade'
 
-const lookAtRotationMatrix = new Matrix4()
-const lookAtPos = new Vector3()
+const singletonVec3 = new Vector3()
+const singletonMat4 = new Matrix4()
+const singletonQuat = new Quaternion()
 const lookAtUp = new Vector3(0, 1, 0)
-const lookAtQuaternion = new Quaternion()
+
+let _worldMatrixVersion = 0
 
 class Object3DFacade extends PointerEventTarget {
   constructor(parent, threeObject) {
@@ -14,6 +17,7 @@ class Object3DFacade extends PointerEventTarget {
     // We'll track matrix updates manually
     this._matrixChanged = false
     threeObject.matrixAutoUpdate = false
+    this._worldMatrixVersion = -1
 
     // Set bidirectional refs
     this.threeObject = threeObject
@@ -21,8 +25,11 @@ class Object3DFacade extends PointerEventTarget {
 
     // Add it as a child of the nearest parent threeObject, if one exists
     while (parent) {
-      if (parent instanceof Object3DFacade) {
-        parent.threeObject.add(threeObject)
+      if (parent.isObject3DFacade) {
+        this._parentObject3DFacade = parent //reference to nearest Object3DFacade ancestor
+        if (!this.isOrphaned) {
+          parent.threeObject.add(threeObject)
+        }
         break
       }
       parent = parent.parent
@@ -36,21 +43,84 @@ class Object3DFacade extends PointerEventTarget {
     // properties so they can selectively trigger updates, be transitioned, etc.
     let lookAt = this.lookAt
     if (lookAt) {
-      lookAtPos.copy(lookAt)
+      singletonVec3.copy(lookAt)
       lookAtUp.copy(this.up || Object3D.DefaultUp)
-      lookAtRotationMatrix.lookAt(threeObject.position, lookAtPos, lookAtUp)
-      lookAtQuaternion.setFromRotationMatrix(lookAtRotationMatrix)
-      this.quaternionX = lookAtQuaternion.x
-      this.quaternionY = lookAtQuaternion.y
-      this.quaternionZ = lookAtQuaternion.z
-      this.quaternionW = lookAtQuaternion.w
+      singletonMat4.lookAt(threeObject.position, singletonVec3, lookAtUp)
+      singletonQuat.setFromRotationMatrix(singletonMat4)
+      this.quaternionX = singletonQuat.x
+      this.quaternionY = singletonQuat.y
+      this.quaternionZ = singletonQuat.z
+      this.quaternionW = singletonQuat.w
     }
 
-    if (this._matrixChanged) {
-      threeObject.updateMatrix()
-      this._matrixChanged = false
+    // Update matrix and worldMatrix before processing children
+    let didUpdateMatrices = this.updateMatrices()
+
+    // If the world matrix was modified, and we won't be doing an update pass on child facades due
+    // to `shouldUpdateChildren` optimization, we need to manually update their matrices to match.
+    if (didUpdateMatrices && !this.shouldUpdateChildren()) {
+      this.traverse(facade => {
+        if (facade !== this && facade.updateMatrices) {
+          facade.updateMatrices()
+        }
+      })
     }
+
+    // Process children
     super.afterUpdate()
+
+    // If any children were removed during the update, remove them from the threejs
+    // object in a single batch; this avoids threejs's very expensive single-item remove.
+    let removeChildIds = this._removeChildIds
+    if (removeChildIds) {
+      threeObject.children = threeObject.children.filter(child => {
+        if (child.id in removeChildIds) {
+          child.parent = null
+          child.dispatchEvent({type: 'removed'})
+          return false
+        }
+        return true
+      })
+    }
+  }
+
+  /**
+   * Update the underlying threeObject's `matrix` and `matrixWorld` to the current state if necessary.
+   * This bypasses the `updateMatrix` and `updateMatrixWorld` methods of the threejs objects with a more
+   * efficient approach that doesn't require traversing the entire tree prior to every render. This is possible
+   * since we control the update lifecycle; as long as this is called from the `afterUpdate` lifecycle
+   * method or later, it can be safely assumed that the world matrices of all ancestors have already been
+   * similarly updated so the result should always be accurate.
+   * @returns {Boolean} true if an update was performed
+   */
+  updateMatrices() {
+    let threeObj = this.threeObject
+    let parent3DFacade = this._parentObject3DFacade
+    let needsWorldMatrixUpdate = parent3DFacade && parent3DFacade._worldMatrixVersion > this._worldMatrixVersion
+    if (this._matrixChanged) {
+      threeObj.updateMatrix()
+      this._matrixChanged = false
+      needsWorldMatrixUpdate = true
+    }
+    if (needsWorldMatrixUpdate) {
+      if (parent3DFacade) {
+        threeObj.matrixWorld.multiplyMatrices(parent3DFacade.threeObject.matrixWorld, threeObj.matrix)
+      } else {
+        threeObj.matrixWorld.copy(threeObj.matrix)
+      }
+
+      // If the threeObject has children that were manually added (not managed by facades), we'll need to update them too
+      // TODO can we determine this state without a full loop that will likely return nothing?
+      let threeKids = threeObj.children
+      for (let i = 0, len = threeKids.length; i < len; i++) {
+        if (!threeKids[i].$facade) {
+          threeKids[i].updateMatrixWorld()
+        }
+      }
+
+      this._worldMatrixVersion = ++_worldMatrixVersion
+    }
+    return needsWorldMatrixUpdate
   }
 
   /**
@@ -58,7 +128,7 @@ class Object3DFacade extends PointerEventTarget {
    * @returns {Vector3}
    */
   getCameraPosition() {
-    var _pos = null
+    let _pos = null
     this.notifyWorld('getCameraPosition', pos => _pos = pos)
     return _pos
   }
@@ -68,12 +138,9 @@ class Object3DFacade extends PointerEventTarget {
    * @returns {Number}
    */
   getCameraDistance() {
-    if (this._matrixChanged) {
-      this.threeObject.updateMatrix()
-      this._matrixChanged = false
-    }
+    this.updateMatrices()
     let cameraPos = this.getCameraPosition()
-    let objectPos = this.threeObject.getWorldPosition()
+    let objectPos = singletonVec3.setFromMatrixPosition(this.threeObject.matrixWorld)
     return cameraPos.distanceTo(objectPos)
   }
 
@@ -99,12 +166,18 @@ class Object3DFacade extends PointerEventTarget {
     return threeObject && raycaster.intersectObject(threeObject, false) || null
   }
 
-  destructor() {
-    let threeObject = this.threeObject
-    if (threeObject.parent) {
-      threeObject.parent.remove(threeObject)
+  onNotifyWorld(source, message, data) {
+    if (message === 'removeChildObject3D' && data) {
+      let removeChildIds = this._removeChildIds || (this._removeChildIds = Object.create(null))
+      removeChildIds[data.id] = true
+    } else {
+      super.onNotifyWorld(source, message, data)
     }
-    delete threeObject.$facade
+  }
+
+  destructor() {
+    this.notifyWorld('removeChildObject3D', this.threeObject)
+    delete this.threeObject.$facade
     delete this.threeObject
     super.destructor()
   }
@@ -152,6 +225,13 @@ forOwn({
     })
   })
 })
+
+
+Object.defineProperty(Object3DFacade.prototype, 'isObject3DFacade', {value: true})
+
+// Define onBeforeRender/onAfterRender event handler properties
+defineEventProperty(Object3DFacade, 'onBeforeRender')
+defineEventProperty(Object3DFacade, 'onAfterRender')
 
 
 export default Object3DFacade
