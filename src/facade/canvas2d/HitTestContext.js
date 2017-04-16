@@ -7,7 +7,7 @@
  * to its render() method.
  */
 
-import forOwn from 'lodash/forOwn'
+import {forOwn} from '../../utils'
 
 const hitTestContext = document.createElement('canvas').getContext('2d')
 hitTestContext.save()

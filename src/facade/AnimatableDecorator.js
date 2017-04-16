@@ -1,4 +1,4 @@
-import defaults from 'lodash/defaults'
+import {assignIf} from '../utils'
 import Tween from '../animation/Tween'
 import MultiTween from '../animation/MultiTween'
 import Runner from '../animation/Runner'
@@ -172,7 +172,7 @@ export default function(WrappedClass) {
             // Sort the keyframes by time
             keyframes.sort((a, b) => a.time - b.time)
             if (keyframes[0].time > 0) {
-              keyframes.unshift(defaults({time: 0}, keyframes[0]))
+              keyframes.unshift(assignIf({time: 0}, keyframes[0]))
             }
 
             // Build a MultiTween with tweens for each keyframe+property

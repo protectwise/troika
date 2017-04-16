@@ -1,4 +1,4 @@
-import omit from 'lodash/omit'
+import {assign} from '../../utils'
 import {Scene, Fog, FogExp2} from 'three'
 import Object3DFacade from './Object3D'
 import {AmbientLight3DFacade, SpotLight3DFacade, DirectionalLight3DFacade, PointLight3DFacade} from './Light3D'
@@ -27,7 +27,8 @@ class Scene3DFacade extends Object3DFacade {
     // Map light definitions to their appropriate classes
     if (this.lights && this.lights.length) {
       let lights = this.lights.map((def, i) => {
-        let realDef = omit(def, 'type')
+        let realDef = assign({}, def)
+        delete realDef.type
         realDef.key = `$$$light_${ i }`
         realDef.class = realDef.class || LIGHT_TYPES[def.type]
         return realDef.class ? realDef : null

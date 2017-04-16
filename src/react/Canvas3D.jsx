@@ -1,4 +1,4 @@
-import defaults from 'lodash/defaults'
+import {assignIf} from '../utils'
 import React from 'react'
 import World3DFacade from '../facade/threejs/World3D'
 import {commonMethods, commonPropTypes} from './CanvasBase.jsx'
@@ -6,10 +6,10 @@ const T = React.PropTypes
 
 
 
-const Canvas3D = React.createClass(defaults({
+const Canvas3D = React.createClass(assignIf({
   displayName: 'Canvas3D',
 
-  propTypes: defaults({
+  propTypes: assignIf({
     backgroundColor: T.any,
     lights: T.array,
     camera: T.object.isRequired,

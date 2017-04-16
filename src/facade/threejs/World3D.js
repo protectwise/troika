@@ -1,4 +1,4 @@
-import assign from 'lodash/assign'
+import {assign} from '../../utils'
 import {WebGLRenderer, Raycaster, Color, Vector2, Vector3} from 'three'
 import WorldBaseFacade from '../WorldBase'
 import Scene3DFacade from './Scene3D'

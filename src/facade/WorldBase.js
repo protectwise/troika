@@ -1,4 +1,4 @@
-import isEmpty from 'lodash/isEmpty'
+import {isObjectEmpty} from '../utils'
 import ParentFacade from './Parent'
 import {pointerActionEventProps, pointerMotionEventProps} from './PointerEventTarget'
 
@@ -145,7 +145,7 @@ class WorldBaseFacade extends ParentFacade {
 
   _hasEventListenersOfType(type) {
     let registry = this.$eventRegistry
-    return registry[type] && !isEmpty(registry[type])
+    return registry[type] && !isObjectEmpty(registry[type])
   }
 
   _onPointerMotionEvent(e) {

@@ -1,4 +1,4 @@
-import forOwn from 'lodash/forOwn'
+import {forOwn} from '../../utils'
 import Object3DFacade from './Object3D'
 import {Mesh, PlaneGeometry, MeshBasicMaterial, Texture, DoubleSide, LinearFilter} from 'three'
 

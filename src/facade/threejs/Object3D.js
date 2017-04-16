@@ -1,4 +1,4 @@
-import forOwn from 'lodash/forOwn'
+import {forOwn} from '../../utils'
 import {Vector3, Matrix4, Quaternion, Object3D} from 'three'
 import PointerEventTarget from '../PointerEventTarget'
 import {defineEventProperty} from '../Facade'

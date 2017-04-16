@@ -1,4 +1,4 @@
-import defaults from 'lodash/defaults'
+import {assignIf} from '../utils'
 import React from 'react'
 import World2DFacade from '../facade/canvas2d/World2D'
 import {commonMethods, commonPropTypes} from './CanvasBase.jsx'
@@ -6,10 +6,10 @@ const T = React.PropTypes
 
 
 
-const Canvas2D = React.createClass(defaults({
+const Canvas2D = React.createClass(assignIf({
   displayName: 'Canvas2D',
 
-  propTypes: defaults({
+  propTypes: assignIf({
     backgroundColor: T.any,
     objects: T.oneOfType([T.array, T.object]).isRequired,
     onBackgroundClick: T.func
