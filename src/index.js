@@ -19,6 +19,8 @@ export {default as Object3DFacade} from './facade/threejs/Object3D.js'
 export {default as Scene3DFacade} from './facade/threejs/Scene3D.js'
 export {default as Text3DFacade} from './facade/threejs/Text3D.js'
 export {default as World3DFacade} from './facade/threejs/World3D.js'
+export {default as InstancingManager} from './facade/threejs/InstancingManager.js'
+export {default as Instanceable3DFacade} from './facade/threejs/Instanceable3D.js'
 
 // 2D Facades
 export {default as Group2DFacade} from './facade/canvas2d/Group2D.js'

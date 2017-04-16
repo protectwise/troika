@@ -1,6 +1,7 @@
 import {assign} from '../../utils'
 import {Scene, Fog, FogExp2} from 'three'
 import Object3DFacade from './Object3D'
+import InstancingManager from './InstancingManager'
 import {AmbientLight3DFacade, SpotLight3DFacade, DirectionalLight3DFacade, PointLight3DFacade} from './Light3D'
 
 
@@ -34,8 +35,11 @@ class Scene3DFacade extends Object3DFacade {
         return realDef.class ? realDef : null
       })
 
-      // Add the lights to the children
-      this.children = lights.concat(this.children)
+      this.children = lights.concat({
+        key: 'instancingMgr',
+        class: InstancingManager,
+        children: this.children
+      })
     }
 
     super.afterUpdate()
