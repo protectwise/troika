@@ -25,6 +25,12 @@ class Scene3DFacade extends Object3DFacade {
   }
 
   afterUpdate() {
+    let children = {
+      key: 'instancingMgr',
+      class: InstancingManager,
+      children: this.objects
+    }
+
     // Map light definitions to their appropriate classes
     if (this.lights && this.lights.length) {
       let lights = this.lights.map((def, i) => {
@@ -34,13 +40,9 @@ class Scene3DFacade extends Object3DFacade {
         realDef.class = realDef.class || LIGHT_TYPES[def.type]
         return realDef.class ? realDef : null
       })
-
-      this.children = lights.concat({
-        key: 'instancingMgr',
-        class: InstancingManager,
-        children: this.objects
-      })
+      children = lights.concat(children)
     }
+    this.children = children
 
     super.afterUpdate()
   }
