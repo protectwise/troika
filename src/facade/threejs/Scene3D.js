@@ -38,7 +38,7 @@ class Scene3DFacade extends Object3DFacade {
       this.children = lights.concat({
         key: 'instancingMgr',
         class: InstancingManager,
-        children: this.children
+        children: this.objects
       })
     }
 

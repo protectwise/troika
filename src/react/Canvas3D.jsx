@@ -35,7 +35,7 @@ const Canvas3D = React.createClass(assignIf({
     world.camera = props.camera
     world.scene = {
       lights: props.lights,
-      children: props.objects,
+      objects: props.objects,
       fog: props.fog,
       onClick: props.onBackgroundClick
     }
