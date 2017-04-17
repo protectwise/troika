@@ -31,11 +31,21 @@ const textureLoader = new TextureLoader()
 
 class Earth extends Object3DFacade {
   constructor(parent) {
-    var mesh = new Mesh(
+    let mesh = new Mesh(
       new SphereBufferGeometry(.995, 64, 64),
       new MeshPhongMaterial()
     )
     super(parent, mesh)
+
+    this._onCountryMouseOver = (e) => {
+      let fn = this.onCountryMouseOver
+      if (fn) fn(e.target.id)
+    }
+
+    this._onCountryMouseOut = (e) => {
+      let fn = this.onCountryMouseOut
+      if (fn) fn(e.target.id)
+    }
 
     this.children = {
       key: 'countries',
@@ -92,16 +102,6 @@ class Earth extends Object3DFacade {
   _getCountryColor(d, i, arr) {
     var fn = this.getCountryColor
     return fn ? fn(d, i, arr) : 0x000000
-  }
-
-  _onCountryMouseOver = (e) => {
-    var fn = this.onCountryMouseOver
-    if (fn) fn(e.target.id)
-  }
-
-  _onCountryMouseOut = (e) => {
-    var fn = this.onCountryMouseOut
-    if (fn) fn(e.target.id)
   }
 }
 

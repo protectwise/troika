@@ -1,5 +1,6 @@
 // Rollup plugins
 import babel from 'rollup-plugin-babel'
+import buble from 'rollup-plugin-buble'
 import nodeResolve from 'rollup-plugin-node-resolve'
 import commonjs from 'rollup-plugin-commonjs'
 import replace from 'rollup-plugin-replace'
@@ -20,10 +21,11 @@ export default {
     replace({
       'process.env.NODE_ENV': '"production"'
     }),
-    babel({
-      exclude: 'node_modules/**',
-      runtimeHelpers: true
-    }),
+    // babel({
+    //   exclude: 'node_modules/**',
+    //   runtimeHelpers: true
+    // }),
+    buble(),
     commonjs({
       // non-CommonJS modules will be ignored, but you can also specifically include/exclude files
       // include: 'node_modules/**',  // Default: undefined

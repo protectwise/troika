@@ -8,19 +8,20 @@ import Object3DFacade from './Object3D'
  * labels, and pieces of UI that follow a given object around.
  */
 class HtmlOverlay3DFacade extends Object3DFacade {
-  /**
-   * Defines the HTML content to be rendered. The type/format of this value is dependent
-   * on the wrapping implementation; for example the Canvas3D.jsx React-based wrapper will
-   * expect a React element descriptor, while other wrappers might expect a HTML string.
-   *
-   * When using the React-based wrapper, the rendered React component will not be updated
-   * when the overlay is repositioned, unless (a) the `html` element descriptor changes, or
-   * (b) that element descriptor has a `shouldUpdateOnMove` prop.
-   */
-  html = null
-
   constructor(parent) {
     super(parent, new Object3D())
+
+    /**
+     * Defines the HTML content to be rendered. The type/format of this value is dependent
+     * on the wrapping implementation; for example the Canvas3D.jsx React-based wrapper will
+     * expect a React element descriptor, while other wrappers might expect a HTML string.
+     *
+     * When using the React-based wrapper, the rendered React component will not be updated
+     * when the overlay is repositioned, unless (a) the `html` element descriptor changes, or
+     * (b) that element descriptor has a `shouldUpdateOnMove` prop.
+     */
+    this.html = null
+
     this.notifyWorld('addHtmlOverlay', this)
   }
 

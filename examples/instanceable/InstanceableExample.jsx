@@ -5,7 +5,10 @@ import {InstanceableSphere, NonInstanceableSphere} from './Sphere'
 const ORIGIN = {x:0, y:0, z:0}
 
 class OrbitingCamera extends PerspectiveCamera3DFacade {
-  lookAt = ORIGIN
+  constructor(parent) {
+    super(parent)
+    this.lookAt = ORIGIN
+  }
 
   afterUpdate() {
     let {azimuth=0, inclination=0, radius=1} = this
