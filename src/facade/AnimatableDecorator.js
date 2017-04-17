@@ -319,7 +319,7 @@ export default function(WrappedClass) {
           // Does this value have a transition defined, and are the old/new values transitionable?
           let runner = this[runnerKey]
           let transition = this.transition
-          if (transition && transition.hasOwnProperty(propName) && transition[propName] && this[hasBeenSetKey]) {
+          if (transition && transition[propName] && this[hasBeenSetKey] && transition.hasOwnProperty(propName)) {
             transition = transition[propName]
             // If there's no active transition tween, or the new value is different than the active tween's
             // target value, initiate a new transition tween. Otherwise ignore it.
