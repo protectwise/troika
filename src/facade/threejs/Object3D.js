@@ -17,7 +17,7 @@ class Object3DFacade extends PointerEventTarget {
     // We'll track matrix updates manually
     this._matrixChanged = false
     threeObject.matrixAutoUpdate = false
-    this._worldMatrixVersion = -1
+    this._worldMatrixVersion = this._worldMatrixVersionAfterLastUpdate = -1
 
     // Set bidirectional refs
     this.threeObject = threeObject
@@ -54,16 +54,19 @@ class Object3DFacade extends PointerEventTarget {
     }
 
     // Update matrix and worldMatrix before processing children
-    let didUpdateMatrices = this.updateMatrices()
+    this.updateMatrices()
 
     // If the world matrix was modified, and we won't be doing an update pass on child facades due
     // to `shouldUpdateChildren` optimization, we need to manually update their matrices to match.
-    if (didUpdateMatrices && !this.shouldUpdateChildren()) {
-      this.traverse(facade => {
-        if (facade !== this && facade.updateMatrices) {
-          facade.updateMatrices()
-        }
-      })
+    if (this._worldMatrixVersion > this._worldMatrixVersionAfterLastUpdate) {
+      if (!this.shouldUpdateChildren()) {
+        this.traverse(facade => {
+          if (facade !== this && facade.updateMatrices) {
+            facade.updateMatrices()
+          }
+        })
+      }
+      this._worldMatrixVersionAfterLastUpdate = this._worldMatrixVersion
     }
 
     // Process children
@@ -96,11 +99,13 @@ class Object3DFacade extends PointerEventTarget {
   updateMatrices() {
     let threeObj = this.threeObject
     let parent3DFacade = this._parentObject3DFacade
-    let needsWorldMatrixUpdate = parent3DFacade && parent3DFacade._worldMatrixVersion > this._worldMatrixVersion
+    let needsWorldMatrixUpdate
     if (this._matrixChanged) {
       threeObj.updateMatrix()
       this._matrixChanged = false
       needsWorldMatrixUpdate = true
+    } else {
+      needsWorldMatrixUpdate = parent3DFacade && parent3DFacade._worldMatrixVersion > this._worldMatrixVersion
     }
     if (needsWorldMatrixUpdate) {
       if (parent3DFacade) {
@@ -114,13 +119,12 @@ class Object3DFacade extends PointerEventTarget {
       let threeKids = threeObj.children
       for (let i = 0, len = threeKids.length; i < len; i++) {
         if (!threeKids[i].$facade) {
-          threeKids[i].updateMatrixWorld()
+          threeKids[i].updateMatrixWorld(true)
         }
       }
 
       this._worldMatrixVersion = ++_worldMatrixVersion
     }
-    return needsWorldMatrixUpdate
   }
 
   /**
