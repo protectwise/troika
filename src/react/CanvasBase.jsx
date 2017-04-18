@@ -25,7 +25,7 @@ export const commonMethods = {
         let world = this._world = this.initWorld(canvas)
         this.updateWorld(world)
       } catch(e) {
-        console.error(`${this.constructor.displayName}: world init failed`, e)
+        console.warn(`Troika.${this.constructor.displayName}: world init failed`, e)
         this._failedWorldInit = true
         this.forceUpdate()
       }
