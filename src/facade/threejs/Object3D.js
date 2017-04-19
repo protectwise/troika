@@ -7,6 +7,15 @@ const singletonVec3 = new Vector3()
 const singletonMat4 = new Matrix4()
 const singletonQuat = new Quaternion()
 const lookAtUp = new Vector3(0, 1, 0)
+const cameraPosGetter = (function() {
+  const obj = {
+    callback: function(pos) {
+      obj.value = pos
+    },
+    value: null
+  }
+  return obj
+})()
 
 let _worldMatrixVersion = 0
 
@@ -128,13 +137,24 @@ class Object3DFacade extends PointerEventTarget {
   }
 
   /**
+   * Get this object's current position in world space
+   * @param {Vector3} vec3 - optional Vector3 object to populate with the position;
+   *                  if not passed in a new one will be created.
+   * @returns {Vector3}
+   */
+  getWorldPosition(vec3 = new Vector3()) {
+    this.updateMatrices()
+    vec3.setFromMatrixPosition(this.threeObject.matrixWorld)
+    return vec3
+  }
+
+  /**
    * Get the current position vector of the world's camera.
    * @returns {Vector3}
    */
   getCameraPosition() {
-    let _pos = null
-    this.notifyWorld('getCameraPosition', pos => _pos = pos)
-    return _pos
+    this.notifyWorld('getCameraPosition', cameraPosGetter.callback)
+    return cameraPosGetter.value
   }
 
   /**
@@ -142,9 +162,8 @@ class Object3DFacade extends PointerEventTarget {
    * @returns {Number}
    */
   getCameraDistance() {
-    this.updateMatrices()
     let cameraPos = this.getCameraPosition()
-    let objectPos = singletonVec3.setFromMatrixPosition(this.threeObject.matrixWorld)
+    let objectPos = this.getWorldPosition(singletonVec3)
     return cameraPos.distanceTo(objectPos)
   }
 
