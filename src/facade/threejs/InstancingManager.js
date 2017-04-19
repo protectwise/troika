@@ -111,7 +111,7 @@ class InstancingManager extends Group3DFacade {
     batchMaterial.defines = assign({}, batchMaterial.defines, {TROIKA_INSTANCED: ''})
 
     // Create a new mesh object to hold it all
-    let batchObject = instancedObject.clone()
+    let batchObject = Object.create(instancedObject)
     batchObject.$troikaInstancingManager = this
     batchObject.visible = true
     batchObject.frustumCulled = false
