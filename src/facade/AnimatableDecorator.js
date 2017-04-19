@@ -5,11 +5,6 @@ import Runner from '../animation/Runner'
 
 const DEFAULT_DURATION = 750
 const DEFAULT_EASING = 'easeOutCubic'
-const transitionDescriptorKey = 'transition➤descriptor'
-const animationDescriptorKey = 'animation➤descriptor'
-const runnerKey = 'animation➤runner'
-const animationTweensKey = 'animation➤tweens'
-const animatingPropsKey = 'animation➤animatingProps'
 
 const TEMP_ARRAY = [null]
 
@@ -25,8 +20,8 @@ export default function(WrappedClass) {
       super(...args)
 
       // Create root runner for all this object's animation and transition tweens
-      this[runnerKey] = new Runner()
-      this[runnerKey].onTick = () => {
+      this.animation$runner = new Runner()
+      this.animation$runner.onTick = () => {
         this.afterUpdate()
         this.notifyWorld('needsRender')
       }
@@ -57,10 +52,10 @@ export default function(WrappedClass) {
           }
         }
       }
-      this[transitionDescriptorKey] = descriptor
+      this.transition$descriptor = descriptor
     }
     get transition() {
-      return this[transitionDescriptorKey]
+      return this.transition$descriptor
     }
 
 
@@ -96,11 +91,11 @@ export default function(WrappedClass) {
      *                                            |----------- prop5 tween -------------|
      */
     set animation(descriptor) {
-      if (this[animationDescriptorKey] === descriptor) return
-      this[animationDescriptorKey] = descriptor
-      let oldAnimTweens = this[animationTweensKey] || null
-      let newAnimTweens = this[animationTweensKey] = descriptor ? Object.create(null) : null
-      let runner = this[runnerKey]
+      if (this.animation$descriptor === descriptor) return
+      this.animation$descriptor = descriptor
+      let oldAnimTweens = this.animation$tweens || null
+      let newAnimTweens = this.animation$tweens = descriptor ? Object.create(null) : null
+      let runner = this.animation$runner
       let hasChanged = false
 
       // Handle single object not wrapped in array
@@ -229,7 +224,7 @@ export default function(WrappedClass) {
       // If the total set of animations has changed, recalc the set of animating properties
       if (hasChanged) {
         if (newAnimTweens) {
-          let animatingProps = this[animatingPropsKey] = Object.create(null)
+          let animatingProps = this.animation$animatingProps = Object.create(null)
           for (let animId in newAnimTweens) {
             let propTweens = newAnimTweens[animId].tweens
             for (let i = propTweens.length; i--;) {
@@ -237,25 +232,25 @@ export default function(WrappedClass) {
             }
           }
         } else {
-          this[animatingPropsKey] = null
+          this.animation$animatingProps = null
         }
       }
     }
     get animation() {
-      return this[animationDescriptorKey]
+      return this.animation$descriptor
     }
 
     destructor() {
       if (this.exitAnimation && !this.parent.isDestroying) {
-        this[runnerKey].stopAll()
+        this.animation$runner.stopAll()
         this.animation = this.exitAnimation
         this.exitAnimation = this.transition = null
-        this[runnerKey].onDone = () => {
+        this.animation$runner.onDone = () => {
           this.notifyWorld('needsRender')
           this.destructor()
         }
       } else {
-        this[runnerKey].destructor()
+        this.animation$runner.destructor()
         super.destructor()
       }
     }
@@ -312,12 +307,12 @@ export default function(WrappedClass) {
 
         set(value) {
           // Will this value be controlled by an animation? Ignore it since animations take precedence.
-          if (this[animatingPropsKey] && this[animatingPropsKey][propName]) {
+          if (this.animation$animatingProps && this.animation$animatingProps[propName]) {
             return
           }
 
           // Does this value have a transition defined, and are the old/new values transitionable?
-          let runner = this[runnerKey]
+          let runner = this.animation$runner
           let transition = this.transition
           if (transition && transition[propName] && this[hasBeenSetKey] && transition.hasOwnProperty(propName)) {
             transition = transition[propName]

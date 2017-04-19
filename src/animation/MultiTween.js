@@ -17,8 +17,8 @@ class MultiTween extends Tween {
     }
 
     // Tween the total duration time
-    super(val => this.syncTweens(val), 0, duration, duration, delay, easing, iterations, direction)
-
+    super(null, 0, duration, duration, delay, easing, iterations, direction)
+    this.callback = this.syncTweens.bind(this)
     this.tweens = tweens
   }
 

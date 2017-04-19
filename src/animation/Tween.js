@@ -45,10 +45,11 @@ class Tween {
     let duration = this.duration
     let delay = this.delay
     if (time >= delay) {
-      time = Math.min(time, this.getTotalDuration()) //never go past final value
-      let progress = time - delay === 0 ? 0 : (time - delay) % duration === 0 ? 1 : ((time - delay) % duration) / duration
+      time = Math.min(time, this.getTotalDuration()) - delay //never go past final value
+      let progress = (time % duration) / duration
+      if (progress === 0 && time !== 0) progress = 1
       progress = this.easing(progress)
-      if (this.direction === 'reverse' || (this.direction === 'alternate' && Math.ceil((time - delay) / duration) % 2 === 0)) {
+      if (this.direction === 'reverse' || (this.direction === 'alternate' && Math.ceil(time / duration) % 2 === 0)) {
         progress = 1 - progress
       }
       this.callback(this.interpolate(this.fromValue, this.toValue, progress))
@@ -60,7 +61,8 @@ class Tween {
   }
 
   getTotalDuration() {
-    return isFinite(this.iterations) ? this.delay + (this.duration * this.iterations) : Number.MAX_SAFE_INTEGER
+    // inlined Number.MAX_SAFE_INTEGER
+    return this.iterations < 0x1fffffffffffff ? this.delay + (this.duration * this.iterations) : 0x1fffffffffffff
   }
 
   isDoneAtTime(time) {

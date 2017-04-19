@@ -1,14 +1,10 @@
-const startedKey = 'runner➤started'
-const pausedKey = 'runner➤paused'
-const stoppedKey = 'runner➤stopped'
-
 let runners = []
 let nextFrameTimer = null
 
 function noop() {}
 
 function isRunnerRunning(runner) {return runner.running}
-function isTweenNotStopped(tween) {return !tween[stoppedKey]}
+function isTweenNotStopped(tween) {return !tween.runner$stopped}
 
 function tick() {
   let now = Date.now()
@@ -75,11 +71,11 @@ class Runner {
    */
   start(tween) {
     // If previously paused, update start time to account for the duration of the pause
-    if (tween[pausedKey] && tween[startedKey]) {
-      tween[startedKey] += (Date.now() - tween[pausedKey])
+    if (tween.runner$paused && tween.runner$started) {
+      tween.runner$started += (Date.now() - tween.runner$paused)
     }
-    tween[pausedKey] = null
-    tween[stoppedKey] = false
+    tween.runner$paused = null
+    tween.runner$stopped = false
     this.tweens.push(tween)
 
     // add runner to running runners
@@ -92,8 +88,8 @@ class Runner {
    */
   stop(tween) {
     // queue tween for removal from list on next tick
-    tween[stoppedKey] = true
-    tween[pausedKey] = null
+    tween.runner$stopped = true
+    tween.runner$paused = null
   }
 
   /**
@@ -101,8 +97,8 @@ class Runner {
    * @param tween
    */
   pause(tween) {
-    if (!tween[pausedKey]) {
-      tween[pausedKey] = Date.now()
+    if (!tween.runner$paused) {
+      tween.runner$paused = Date.now()
     }
   }
 
@@ -123,9 +119,9 @@ class Runner {
     // Sync each tween, filtering out old finished ones as we go
     for (let i = 0, len = tweens.length; i < len; i++) {
       let tween = tweens[i]
-      if (!tween[stoppedKey] && !tween[pausedKey]) {
+      if (!tween.runner$stopped && !tween.runner$paused) {
         // Sync the tween to current time
-        let time = now - (tween[startedKey] || (tween[startedKey] = now))
+        let time = now - (tween.runner$started || (tween.runner$started = now))
         tween.gotoTime(time)
         hasRunningTweens = true
 
@@ -137,7 +133,7 @@ class Runner {
           }
         }
       }
-      if (tween[stoppedKey]) {
+      if (tween.runner$stopped) {
         hasStoppedTweens = true
       }
     }
