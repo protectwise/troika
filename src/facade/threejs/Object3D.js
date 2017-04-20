@@ -93,6 +93,7 @@ class Object3DFacade extends PointerEventTarget {
         }
         return true
       })
+      this._removeChildIds = null
     }
   }
 
