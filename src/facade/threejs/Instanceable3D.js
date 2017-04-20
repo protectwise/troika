@@ -56,9 +56,11 @@ class Instanceable3DFacade extends Object3DFacade {
   raycast(raycaster) {
     let instancedObj = this.instancedThreeObject
     if (instancedObj) {
-      let testerObject = Object.create(instancedObj)
-      testerObject.matrixWorld = this.threeObject.matrixWorld
-      return raycaster.intersectObject(testerObject, false)
+      let origMatrix = instancedObj.matrixWorld
+      instancedObj.matrixWorld = this.threeObject.matrixWorld
+      let result = raycaster.intersectObject(instancedObj, false)
+      instancedObj.matrixWorld = origMatrix
+      return result
     }
     return null
   }
