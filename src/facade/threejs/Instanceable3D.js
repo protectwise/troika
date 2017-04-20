@@ -38,8 +38,9 @@ class Instanceable3DFacade extends Object3DFacade {
     return this._instancedThreeObject
   }
 
-  afterUpdate() {
-    super.afterUpdate()
+  updateMatrices() {
+    super.updateMatrices()
+    // If the world matrix changed, we must notify the instancing manager
     if (this._worldMatrixVersion !== this._lastInstancedMatrixVersion) {
       this.notifyWorld('instanceableChanged')
       this._lastInstancedMatrixVersion = this._worldMatrixVersion
