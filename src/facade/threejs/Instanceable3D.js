@@ -17,6 +17,13 @@ import Object3DFacade from './Object3D'
 class Instanceable3DFacade extends Object3DFacade {
   constructor(parent) {
     let obj = new Object3D()
+
+    // Short-circuit in WebGLRenderer.projectObject but allow rendering children.
+    // TODO would be even faster if this wasn't in the threejs scene graph at all, but that
+    // breaks if this facade has any children. Look into dynamic addition to the scene graph
+    // based on presence of children?
+    obj.layers.mask = 0
+
     super(parent, obj)
     this.notifyWorld('addInstanceable', this)
   }
@@ -56,13 +63,5 @@ class Instanceable3DFacade extends Object3DFacade {
   }
 
 }
-
-// Prevent the threeObject from being added to the threejs scene graph, since it's
-// only used for its transform matrices, so it doesn't need to be visited in WebGLRenderer's
-// projectObject pass etc.
-// TODO this gives a decent speed boost but also prevents any child objects from being
-// rendered. Should either figure out a way to orphan/unorphan dynamically based on the
-// presence of children, or just disallow children altogether.
-// Object.defineProperty(Instanceable3DFacade.prototype, 'isOrphaned', {value: true})
 
 export default Instanceable3DFacade
