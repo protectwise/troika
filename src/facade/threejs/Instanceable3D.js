@@ -18,15 +18,31 @@ class Instanceable3DFacade extends Object3DFacade {
   constructor(parent) {
     let obj = new Object3D()
     super(parent, obj)
-    this.instancedThreeObject = null
     this.notifyWorld('addInstanceable', this)
+  }
+
+  set instancedThreeObject(obj) {
+    if (obj !== this._instancedThreeObject) {
+      this._instancedThreeObject = obj
+      this.notifyWorld('instanceableChanged')
+    }
+  }
+  get instancedThreeObject() {
+    return this._instancedThreeObject
+  }
+
+  afterUpdate() {
+    super.afterUpdate()
+    if (this._worldMatrixVersion !== this._lastInstancedMatrixVersion) {
+      this.notifyWorld('instanceableChanged')
+      this._lastInstancedMatrixVersion = this._worldMatrixVersion
+    }
   }
 
   destructor() {
     this.notifyWorld('removeInstanceable', this)
     super.destructor()
   }
-
 
   // Custom raycasting based on current geometry and transform
   raycast(raycaster) {

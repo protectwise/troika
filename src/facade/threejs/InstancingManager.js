@@ -14,11 +14,16 @@ const INSTANCE_BATCH_SIZE = 1024 //TODO make this an option?
  * matrices of all the batch's instances, and temporarily inserts that into the
  * scene to be rendered.
  *
+ * As an additional "turbo" optimization, the instancing batch objects/geometries will be
+ * reused untouched between rendering frames if none of the managed Instanceable3DFacade
+ * objects have changed in a way that would affect the batches or world matrix attributes.
+ *
  * There is a global InstancingManager automatically added to the main scene, and it does
  * nothing if there are no Instanceable3DFacades in the scene, so in most cases you should
  * not need to touch this yourself. But it is also possible to insert additional
  * InstancingManager facades further down in the scene if you wish to control the scope
- * of instancing.
+ * of instancing, e.g. to increase the likelihood of the aforementioned "turbo" optimization
+ * kicking in.
  *
  * Also see InstancingShaderUpgrades, which modifies all builtin ShaderChunks to support
  * grabbing the world matrices from the instancing attributes. This allows all builtin
@@ -30,6 +35,7 @@ class InstancingManager extends Group3DFacade {
     super(parent)
     this._instanceables = Object.create(null)
     this._batchGeometryPool = new BatchGeometryPool()
+    this._needsRebatch = true
     this.onBeforeRender = this._setupBatchObjects.bind(this)
     this.onAfterRender = this._teardownBatchObjects.bind(this)
   }
@@ -38,9 +44,14 @@ class InstancingManager extends Group3DFacade {
     switch (message) {
       case 'addInstanceable':
         this._instanceables[data.$facadeId] = data
+        this._needsRebatch = true
         return
       case 'removeInstanceable':
         delete this._instanceables[data.$facadeId]
+        this._needsRebatch = true
+        return
+      case 'instanceableChanged':
+        this._needsRebatch = true
         return
     }
     super.onNotifyWorld(source, message, data)
@@ -48,44 +59,61 @@ class InstancingManager extends Group3DFacade {
 
   _setupBatchObjects(renderer, scene, camera) {
     let instanceables = this._instanceables
+    let batchObjects = this._batchObjects
+    let needsRebatch = this._needsRebatch
 
-    let batchObjects = Object.create(null)
-    let geometryPool = this._batchGeometryPool
-    for (let facadeId in instanceables) {
-      let facade = instanceables[facadeId]
-      let instanceObject = facade.threeObject
-      let protoObject = facade.instancedThreeObject
-
-      if (protoObject && instanceObject.visible) {
-        // TODO perform frustum culling here?
-
-        // Find or create the batch object for this facade's instancedThreeObject
-        let batchObject = (batchObjects[protoObject.id] || (batchObjects[protoObject.id] = []))[0]
-        let batchGeometry = batchObject && batchObject.geometry
-        if (!batchGeometry || batchGeometry.maxInstancedCount === INSTANCE_BATCH_SIZE) {
-          batchObject = this._getBatchObject(protoObject)
-          batchGeometry = batchObject.geometry
-          for (let row = 0; row < 3; row++) {
-            batchGeometry._instanceMatrixAttrs[row].needsUpdate = true
-          }
-          batchObjects[protoObject.id].unshift(batchObject)
-        }
-
-        // Put the instance's world matrix into the batch geometry's instancing attributes
-        let attrOffset = batchGeometry.maxInstancedCount++
-        let attrs = batchGeometry._instanceMatrixAttrs
-        let elements = instanceObject.matrixWorld.elements //column order
-        for (let row = 0; row < 3; row++) {
-          attrs[row].setXYZW(
-            attrOffset, elements[row], elements[row + 4], elements[row + 8], elements[row + 12]
-          )
+    if (!needsRebatch) {
+      // We'll already know about most types of changes (instanceable addition/removal, instancedThreeObject
+      // changes, matrix changes) but if any of the instancedThreeObjects changed their geometry or material
+      // we'll need to detect that here and deoptimize.
+      for (let baseObjId in batchObjects) {
+        let batchObj = batchObjects[baseObjId][0]
+        let baseObj = batchObj.$troikaBatchBase
+        if (batchObj.material.$troikaBatchBase !== baseObj.material ||
+            batchObj.geometry.$troikaBatchBase !== baseObj.geometry) {
+          needsRebatch = true
+          break
         }
       }
     }
 
-    // Dispose any old batch geometries that were unused during this render pass
-    // TODO should this be delayed any to prevent thrashing?
-    geometryPool.disposeUnused()
+    if (needsRebatch) {
+      batchObjects = this._batchObjects = Object.create(null)
+      let geometryPool = this._batchGeometryPool
+      for (let facadeId in instanceables) {
+        let facade = instanceables[facadeId]
+        let instanceObject = facade.threeObject
+        let protoObject = facade.instancedThreeObject
+
+        if (protoObject && instanceObject.visible) {
+          // Find or create the batch object for this facade's instancedThreeObject
+          let batchObject = (batchObjects[protoObject.id] || (batchObjects[protoObject.id] = []))[0]
+          let batchGeometry = batchObject && batchObject.geometry
+          if (!batchGeometry || batchGeometry.maxInstancedCount === INSTANCE_BATCH_SIZE) {
+            batchObject = this._getBatchObject(protoObject)
+            batchGeometry = batchObject.geometry
+            for (let row = 0; row < 3; row++) {
+              batchGeometry._instanceMatrixAttrs[row].needsUpdate = true
+            }
+            batchObjects[protoObject.id].unshift(batchObject)
+          }
+
+          // Put the instance's world matrix into the batch geometry's instancing attributes
+          let attrOffset = batchGeometry.maxInstancedCount++
+          let attrs = batchGeometry._instanceMatrixAttrs
+          let elements = instanceObject.matrixWorld.elements //column order
+          for (let row = 0; row < 3; row++) {
+            attrs[row].setXYZW(
+              attrOffset, elements[row], elements[row + 4], elements[row + 8], elements[row + 12]
+            )
+          }
+        }
+      }
+
+      // Dispose any old batch geometries that were unused during this render pass
+      // TODO should this be delayed any to prevent thrashing?
+      geometryPool.disposeUnused()
+    }
 
     // Add the batch objects to the scene
     let count = 0
@@ -94,6 +122,8 @@ class InstancingManager extends Group3DFacade {
       count += batchObjects[id].length
     }
     //console.log(`Rendered ${count} batch instancing objects`)
+
+    this._needsRebatch = false
   }
 
   _getBatchObject(instancedObject) {
@@ -109,9 +139,11 @@ class InstancingManager extends Group3DFacade {
     // Upgrade the material to one with the defines to trigger instancing
     let batchMaterial = Object.create(material)
     batchMaterial.defines = assign({}, batchMaterial.defines, {TROIKA_INSTANCED: ''})
+    batchMaterial.$troikaBatchBase = material
 
     // Create a new mesh object to hold it all
     let batchObject = Object.create(instancedObject)
+    batchObject.$troikaBatchBase = instancedObject
     batchObject.$troikaInstancingManager = this
     batchObject.visible = true
     batchObject.frustumCulled = false
@@ -153,6 +185,7 @@ class BatchGeometryPool {
 
     if (!batchGeometry) {
       batchGeometry = new InstancedBufferGeometry()
+      batchGeometry.$troikaBatchBase = baseGeometry
       assign(batchGeometry, baseGeometry)
       batchGeometry.attributes = assign({}, baseGeometry.attributes)
       batchGeometry._instanceMatrixAttrs = []

@@ -75,6 +75,14 @@ export default React.createClass({
     let state = this.state
     let {width, height} = this.props
 
+    let anim = {
+      from: {radius: 3},
+      to: {radius: 8},
+      duration: 500,
+      iterations: Infinity,
+      direction: 'alternate'
+    }
+
     return (
       <div>
         <Canvas3D
@@ -124,7 +132,8 @@ export default React.createClass({
                 z: d => d.z,
                 radius: d => d.id === state.hoveredId ? 10 : 6,
                 onMouseOver: () => this._onSphereOver,
-                onMouseOut: () => this._onSphereOut
+                onMouseOut: () => this._onSphereOut,
+                //animation: () => anim
               }
             }
           } }
