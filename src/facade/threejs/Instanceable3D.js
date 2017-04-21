@@ -17,13 +17,7 @@ import Object3DFacade from './Object3D'
 class Instanceable3DFacade extends Object3DFacade {
   constructor(parent) {
     let obj = new Object3D()
-
-    // Short-circuit in WebGLRenderer.projectObject but allow rendering children.
-    // TODO would be even faster if this wasn't in the threejs scene graph at all, but that
-    // breaks if this facade has any children. Look into dynamic addition to the scene graph
-    // based on presence of children?
-    obj.layers.mask = 0
-
+    obj.isRenderable = false //trigger optimizations
     super(parent, obj)
     this.notifyWorld('addInstanceable', this)
   }
@@ -58,7 +52,7 @@ class Instanceable3DFacade extends Object3DFacade {
     if (instancedObj) {
       let origMatrix = instancedObj.matrixWorld
       instancedObj.matrixWorld = this.threeObject.matrixWorld
-      let result = raycaster.intersectObject(instancedObj, false)
+      let result = this._raycastObject(instancedObj, raycaster) //use optimized method
       instancedObj.matrixWorld = origMatrix
       return result
     }

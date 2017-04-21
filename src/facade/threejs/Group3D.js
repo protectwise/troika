@@ -4,6 +4,8 @@ import Object3DFacade from './Object3D'
 
 export default class Group3DFacade extends Object3DFacade {
   constructor(parent) {
-    super(parent, new Group())
+    let group = new Group()
+    group.isRenderable = false //trigger optimizations
+    super(parent, group)
   }
 }

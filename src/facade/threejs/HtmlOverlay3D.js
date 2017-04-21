@@ -9,7 +9,9 @@ import Object3DFacade from './Object3D'
  */
 class HtmlOverlay3DFacade extends Object3DFacade {
   constructor(parent) {
-    super(parent, new Object3D())
+    let obj = new Object3D()
+    obj.isRenderable = false //trigger optimizations
+    super(parent, obj)
 
     /**
      * Defines the HTML content to be rendered. The type/format of this value is dependent

@@ -16,6 +16,18 @@ const cameraPosGetter = (function() {
   }
   return obj
 })()
+const removedEvent = {type: 'removed'}
+const singletonIntersects = []
+
+function ascDistanceSort(a, b) {
+  return a.distance - b.distance
+}
+
+function canObjectBeOrphaned(obj) {
+  return obj.isRenderable === false && (
+    !obj.children.length || obj.children.every(canObjectBeOrphaned)
+  )
+}
 
 let _worldMatrixVersion = 0
 
@@ -32,11 +44,18 @@ class Object3DFacade extends PointerEventTarget {
     this.threeObject = threeObject
     threeObject.$facade = this
 
+    // Subclasses may set isRenderable=false on the threeObject, to trigger some scene graph optimizations.
+    // The first is to remove it from all layer masks to short-circuit WebGLRenderer.projectObject.
+    let isRenderable = threeObject.isRenderable !== false
+    if (!isRenderable) {
+      threeObject.layers.mask = 0
+    }
+
     // Add it as a child of the nearest parent threeObject, if one exists
     while (parent) {
       if (parent.isObject3DFacade) {
         this._parentObject3DFacade = parent //reference to nearest Object3DFacade ancestor
-        if (!this.isOrphaned) {
+        if (isRenderable) { // Don't add to scene graph by default; might be added later if it has renderable children.
           parent.threeObject.add(threeObject)
         }
         break
@@ -88,12 +107,30 @@ class Object3DFacade extends PointerEventTarget {
       threeObject.children = threeObject.children.filter(child => {
         if (child.id in removeChildIds) {
           child.parent = null
-          child.dispatchEvent({type: 'removed'})
+          child.dispatchEvent(removedEvent)
           return false
         }
         return true
       })
       this._removeChildIds = null
+    }
+
+    // Optimization for when the threeObject has been marked as non-renderable: keep it orphaned
+    // from the scene graph unless it has renderable children of its own. This avoids having to visit
+    // these objects in large loops (e.g. WebGLRenderer.projectObject) that will ignore them anyway.
+    if (threeObject.isRenderable === false) {
+      let parentThreeObject = this._parentObject3DFacade
+      parentThreeObject = parentThreeObject && parentThreeObject.threeObject
+      if (parentThreeObject) {
+        if (threeObject.parent === parentThreeObject) {
+          if (canObjectBeOrphaned(threeObject)) {
+            this.notifyWorld('removeChildObject3D', threeObject)
+          }
+        }
+        else if (!canObjectBeOrphaned(threeObject)) {
+          parentThreeObject.add(threeObject)
+        }
+      }
     }
   }
 
@@ -186,8 +223,24 @@ class Object3DFacade extends PointerEventTarget {
    * the geometry.
    */
   raycast(raycaster) {
-    let threeObject = this.threeObject
-    return threeObject && raycaster.intersectObject(threeObject, false) || null
+    return this._raycastObject(this.threeObject, raycaster)
+  }
+
+  /**
+   * Custom optimized raycast that, unlike Raycaster.intersectObject(), avoids creating a
+   * new array unless there are actually hits.
+   * @protected
+   */
+  _raycastObject(obj, raycaster) {
+    if (obj.visible) {
+      singletonIntersects.length = 0
+      obj.raycast(raycaster, singletonIntersects)
+      if (singletonIntersects.length) {
+        singletonIntersects.sort(ascDistanceSort)
+        return singletonIntersects.slice()
+      }
+    }
+    return null
   }
 
   onNotifyWorld(source, message, data) {
