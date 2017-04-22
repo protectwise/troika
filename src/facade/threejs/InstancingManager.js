@@ -42,16 +42,42 @@ class InstancingManager extends Group3DFacade {
 
   onNotifyWorld(source, message, data) {
     switch (message) {
-      case 'addInstanceable':
-        this._instanceables[data.$facadeId] = data
+      case 'instanceableAdded':
+        this._instanceables[source.$facadeId] = source
         this._needsRebatch = true
         return
-      case 'removeInstanceable':
-        delete this._instanceables[data.$facadeId]
+      case 'instanceableRemoved':
+        delete this._instanceables[source.$facadeId]
         this._needsRebatch = true
         return
       case 'instanceableChanged':
         this._needsRebatch = true
+        return
+      case 'instanceableMatrixChanged':
+        // If just the matrix changed and the batches are still otherwise valid, avoid a full
+        // rebatch by updating just this instance's values in the matrix attributes directly.
+        if (!this._needsRebatch) {
+          let protoObject = source.instancedThreeObject
+          let batchIndex = source._instancingBatchIndex
+          let attrOffset = source._instancingBatchAttrOffset
+          if (protoObject && batchIndex !== null && attrOffset !== null) {
+            let batchObjects = this._batchObjectsById[protoObject.id]
+            if (batchObjects) {
+              let batchObject = batchObjects[batchIndex]
+              if (batchObject) {
+                let attrs = batchObject.geometry._instanceMatrixAttrs
+                let elements = source.threeObject.matrixWorld.elements
+                for (let row = 0; row < 3; row++) {
+                  attrs[row].setXYZW(attrOffset, elements[row], elements[row + 4], elements[row + 8], elements[row + 12])
+                  attrs[row].needsUpdate = true
+                }
+                return //success
+              }
+            }
+          }
+          // Fallback just in case something didn't line up above - clear pointers and trigger rebatch
+          this._needsRebatch = true
+        }
         return
     }
     super.onNotifyWorld(source, message, data)
@@ -59,15 +85,15 @@ class InstancingManager extends Group3DFacade {
 
   _setupBatchObjects(renderer, scene, camera) {
     let instanceables = this._instanceables
-    let batchObjects = this._batchObjects
+    let batchObjectsById = this._batchObjectsById
     let needsRebatch = this._needsRebatch
 
     if (!needsRebatch) {
       // We'll already know about most types of changes (instanceable addition/removal, instancedThreeObject
       // changes, matrix changes) but if any of the instancedThreeObjects changed their geometry or material
       // we'll need to detect that here and deoptimize.
-      for (let baseObjId in batchObjects) {
-        let batchObj = batchObjects[baseObjId][0]
+      for (let baseObjId in batchObjectsById) {
+        let batchObj = batchObjectsById[baseObjId][0]
         let baseObj = batchObj.$troikaBatchBase
         if (batchObj.material.$troikaBatchBase !== baseObj.material ||
             batchObj.geometry.$troikaBatchBase !== baseObj.geometry) {
@@ -78,7 +104,7 @@ class InstancingManager extends Group3DFacade {
     }
 
     if (needsRebatch) {
-      batchObjects = this._batchObjects = Object.create(null)
+      batchObjectsById = this._batchObjectsById = Object.create(null)
       let geometryPool = this._batchGeometryPool
       for (let facadeId in instanceables) {
         let facade = instanceables[facadeId]
@@ -87,7 +113,8 @@ class InstancingManager extends Group3DFacade {
 
         if (protoObject && instanceObject.visible) {
           // Find or create the batch object for this facade's instancedThreeObject
-          let batchObject = (batchObjects[protoObject.id] || (batchObjects[protoObject.id] = []))[0]
+          let batchObjects = batchObjectsById[protoObject.id] || (batchObjectsById[protoObject.id] = [])
+          let batchObject = batchObjects[batchObjects.length - 1]
           let batchGeometry = batchObject && batchObject.geometry
           if (!batchGeometry || batchGeometry.maxInstancedCount === INSTANCE_BATCH_SIZE) {
             batchObject = this._getBatchObject(protoObject)
@@ -95,7 +122,7 @@ class InstancingManager extends Group3DFacade {
             for (let row = 0; row < 3; row++) {
               batchGeometry._instanceMatrixAttrs[row].needsUpdate = true
             }
-            batchObjects[protoObject.id].unshift(batchObject)
+            batchObjects.push(batchObject)
           }
 
           // Put the instance's world matrix into the batch geometry's instancing attributes
@@ -107,6 +134,12 @@ class InstancingManager extends Group3DFacade {
               attrOffset, elements[row], elements[row + 4], elements[row + 8], elements[row + 12]
             )
           }
+
+          // Save pointers for possible reuse next frame
+          facade._instancingBatchIndex = batchObjects.length - 1
+          facade._instancingBatchAttrOffset = attrOffset
+        } else {
+          facade._instancingBatchIndex = facade._instancingBatchAttrOffset = null
         }
       }
 
@@ -117,9 +150,9 @@ class InstancingManager extends Group3DFacade {
 
     // Add the batch objects to the scene
     let count = 0
-    for (let id in batchObjects) {
-      scene.children.push.apply(scene.children, batchObjects[id])
-      count += batchObjects[id].length
+    for (let id in batchObjectsById) {
+      scene.children.push.apply(scene.children, batchObjectsById[id])
+      count += batchObjectsById[id].length
     }
     //console.log(`Rendered ${count} batch instancing objects`)
 

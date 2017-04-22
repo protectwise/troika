@@ -17,9 +17,16 @@ import Object3DFacade from './Object3D'
 class Instanceable3DFacade extends Object3DFacade {
   constructor(parent) {
     let obj = new Object3D()
-    obj.isRenderable = false //trigger optimizations
+
+    // Trigger scene graph size optimizations
+    obj.isRenderable = false
+
+    // Visibility change affects batching so listen for changes
+    obj.$troikaVisible = obj.visible
+    Object.defineProperty(obj, 'visible', visibilityPropDef)
+
     super(parent, obj)
-    this.notifyWorld('addInstanceable', this)
+    this.notifyWorld('instanceableAdded')
   }
 
   set instancedThreeObject(obj) {
@@ -36,13 +43,15 @@ class Instanceable3DFacade extends Object3DFacade {
     super.updateMatrices()
     // If the world matrix changed, we must notify the instancing manager
     if (this._worldMatrixVersion !== this._lastInstancedMatrixVersion) {
-      this.notifyWorld('instanceableChanged')
+      if (this.threeObject.$troikaVisible) {
+        this.notifyWorld('instanceableMatrixChanged')
+      }
       this._lastInstancedMatrixVersion = this._worldMatrixVersion
     }
   }
 
   destructor() {
-    this.notifyWorld('removeInstanceable', this)
+    this.notifyWorld('instanceableRemoved')
     super.destructor()
   }
 
@@ -58,7 +67,18 @@ class Instanceable3DFacade extends Object3DFacade {
     }
     return null
   }
+}
 
+const visibilityPropDef = {
+  set(visible) {
+    if (visible !== this.$troikaVisible) {
+      this.$troikaVisible = visible
+      this.$facade.notifyWorld('instanceableChanged')
+    }
+  },
+  get() {
+    return this.$troikaVisible
+  }
 }
 
 export default Instanceable3DFacade

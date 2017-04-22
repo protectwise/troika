@@ -29,6 +29,7 @@ export default React.createClass({
   getInitialState() {
     return {
       useInstancing: true,
+      animate: false,
       objectCount: 50000,
       data: []
     }
@@ -60,6 +61,10 @@ export default React.createClass({
     this.setState({useInstancing: !this.state.useInstancing})
   },
 
+  _onAnimateToggle(e) {
+    this.setState({animate: !this.state.animate})
+  },
+
   _onSphereOver(e) {
     this.setState({hoveredId: e.target.id})
     cancelAnimationFrame(this._unhoverTimer)
@@ -77,7 +82,7 @@ export default React.createClass({
 
     let anim = {
       from: {radius: 3},
-      to: {radius: 8},
+      to: {radius: 20},
       duration: 500,
       iterations: Infinity,
       direction: 'alternate'
@@ -133,7 +138,7 @@ export default React.createClass({
                 radius: d => d.id === state.hoveredId ? 10 : 6,
                 onMouseOver: () => this._onSphereOver,
                 onMouseOut: () => this._onSphereOut,
-                //animation: () => anim
+                animation: state.animate ? ((d, i) => i % 4 ? null : anim) : null
               }
             }
           } }
@@ -160,6 +165,9 @@ export default React.createClass({
           </div>
           <div>
             Use instancing: <input type="checkbox" checked={ state.useInstancing } onChange={ this._onInstancingToggle } />
+          </div>
+          <div>
+            Animate: <input type="checkbox" checked={ state.animate } onChange={ this._onAnimateToggle } />
           </div>
         </div>
       </div>
