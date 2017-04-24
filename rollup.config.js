@@ -1,5 +1,4 @@
 // Rollup plugins
-import babel from 'rollup-plugin-babel'
 import buble from 'rollup-plugin-buble'
 
 export default {
