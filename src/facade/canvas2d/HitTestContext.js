@@ -28,7 +28,7 @@ hitTestContext.startHitTesting = function(x, y) {
 forOwn({
   fill: 'Path',
   fillRect: 'Path',
-  stroke: 'Stroke'
+  stroke: typeof CanvasRenderingContext2D.prototype.isPointInStroke === 'function' ? 'Stroke' : 'Path' //Ugly fallback for IE
 }, function(testType, paintMethod) {
   let testMethod = `isPointIn${testType}`
   hitTestContext[paintMethod] = function(...args) {
