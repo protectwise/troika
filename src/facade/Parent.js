@@ -36,7 +36,7 @@ export default class ParentFacade extends Facade {
 
   updateChildren(children) {
     let oldDict = this._childrenDict || null
-    let newDict = this._childrenDict = children ? Object.create(null) : null
+    let newDict = null
 
     if (children) {
       // Allow single child without wrapper array
@@ -48,6 +48,9 @@ export default class ParentFacade extends Facade {
       for (let i = 0, len = children.length; i < len; i++) {
         let childDesc = children[i]
         if (!childDesc) continue //child members can be null
+        if (!newDict) {
+          newDict = Object.create(null)
+        }
         let key = childDesc.key
         let cla$$ = childDesc.class
 
@@ -101,6 +104,8 @@ export default class ParentFacade extends Facade {
         }
       }
     }
+
+    this._childrenDict = newDict
   }
 
   getChildByKey(key) {
