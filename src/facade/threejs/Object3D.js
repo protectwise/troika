@@ -7,7 +7,7 @@ const singletonVec3 = new Vector3()
 const singletonMat4 = new Matrix4()
 const singletonQuat = new Quaternion()
 const lookAtUp = new Vector3(0, 1, 0)
-const cameraPosGetter = (function() {
+const notifyWorldGetter = (function() {
   const obj = {
     callback: function(pos) {
       obj.value = pos
@@ -191,8 +191,8 @@ class Object3DFacade extends PointerEventTarget {
    * @returns {Vector3}
    */
   getCameraPosition() {
-    this.notifyWorld('getCameraPosition', cameraPosGetter.callback)
-    return cameraPosGetter.value
+    this.notifyWorld('getCameraPosition', notifyWorldGetter)
+    return notifyWorldGetter.value
   }
 
   /**
@@ -203,6 +203,18 @@ class Object3DFacade extends PointerEventTarget {
     let cameraPos = this.getCameraPosition()
     let objectPos = this.getWorldPosition(singletonVec3)
     return cameraPos.distanceTo(objectPos)
+  }
+
+  /**
+   * Get the current projected user space position for this object, or for a specific position
+   * in its object space.
+   * @returns {Vector3} x and y are in screen pixels, z is worldspace distance from camera.
+   */
+  getProjectedPosition(x=0, y=0, z=0) {
+    this.updateMatrices()
+    notifyWorldGetter.worldPosition = singletonVec3.set(x, y, z).applyMatrix4(this.threeObject.matrixWorld)
+    this.notifyWorld('projectWorldPosition', notifyWorldGetter)
+    return notifyWorldGetter.value
   }
 
   /**

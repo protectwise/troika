@@ -90,21 +90,30 @@ class World3DFacade extends WorldBaseFacade {
    * Implementation of abstract
    */
   getFacadeUserSpaceXYZ(facade) {
+    let matrixEls = facade.threeObject.matrixWorld.elements
+    return this.projectWorldPosition(matrixEls[12], matrixEls[13], matrixEls[14])
+  }
+
+  projectWorldPosition(x, y, z) {
+    posVec.set(x, y, z)
     let camera = this.getChildByKey('camera').threeObject
-    posVec.setFromMatrixPosition(facade.threeObject.matrixWorld)
     let distance = posVec.distanceTo(camera.position)
     posVec.project(camera)
-    return {
-      x: (posVec.x + 1) * this.width / 2,
-      y: (1 - posVec.y) * this.height / 2,
-      z: distance
-    }
+    return new Vector3(
+      (posVec.x + 1) * this.width / 2,
+      (1 - posVec.y) * this.height / 2,
+      distance
+    )
   }
 
   onNotifyWorld(source, message, data) {
     switch(message) {
       case 'getCameraPosition':
-        data(this.getChildByKey('camera').threeObject.position) //callback function
+        data.callback(this.getChildByKey('camera').threeObject.position) //callback function
+        return
+      case 'projectWorldPosition':
+        let pos = data.worldPosition
+        data.callback(this.projectWorldPosition(pos.x, pos.y, pos.z))
         return
       case 'addBeforeRenderCallback':
         ;(this._beforeRenderFns || (this._beforeRenderFns = [])).push(data)
