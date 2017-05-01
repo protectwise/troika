@@ -7,7 +7,7 @@
   "jsnext:main": "build/troika.esmodule.js",
   "dependencies": {
     "easingjs": "^1.0.1",
-    "three": "^0.84.0"
+    "three": "^0.85.2"
   },
   "peerDependencies": {
     "react": "^15.3.0",
