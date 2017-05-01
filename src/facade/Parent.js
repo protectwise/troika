@@ -49,7 +49,7 @@ export default class ParentFacade extends Facade {
         let childDesc = children[i]
         if (!childDesc) continue //child members can be null
         if (!newDict) {
-          newDict = Object.create(null)
+          newDict = this._childrenDict = Object.create(null)
         }
         let key = childDesc.key
         let cla$$ = childDesc.class
@@ -104,8 +104,6 @@ export default class ParentFacade extends Facade {
         }
       }
     }
-
-    this._childrenDict = newDict
   }
 
   getChildByKey(key) {
