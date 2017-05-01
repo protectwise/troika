@@ -36,7 +36,7 @@ export default class ParentFacade extends Facade {
 
   updateChildren(children) {
     let oldDict = this._childrenDict || null
-    let newDict = null
+    let newDict = this._childrenDict = null
 
     if (children) {
       // Allow single child without wrapper array
