@@ -1,4 +1,4 @@
-import {forOwn} from '../../utils'
+import {assign, forOwn} from '../../utils'
 import {Vector3, Matrix4, Quaternion, Object3D} from 'three'
 import PointerEventTarget from '../PointerEventTarget'
 import {defineEventProperty} from '../Facade'
@@ -36,9 +36,7 @@ class Object3DFacade extends PointerEventTarget {
     super(parent)
 
     // We'll track matrix updates manually
-    this._matrixChanged = false
     threeObject.matrixAutoUpdate = false
-    this._worldMatrixVersion = this._worldMatrixVersionAfterLastUpdate = -1
 
     // Set bidirectional refs
     this.threeObject = threeObject
@@ -69,9 +67,8 @@ class Object3DFacade extends PointerEventTarget {
 
     // Apply lookAt+up as a final transform - applied as individual quaternion
     // properties so they can selectively trigger updates, be transitioned, etc.
-    let lookAt = this.lookAt
-    if (lookAt) {
-      singletonVec3.copy(lookAt)
+    if (this.lookAt) {
+      singletonVec3.copy(this.lookAt)
       lookAtUp.copy(this.up || Object3D.DefaultUp)
       singletonMat4.lookAt(threeObject.position, singletonVec3, lookAtUp)
       singletonQuat.setFromRotationMatrix(singletonMat4)
@@ -102,8 +99,8 @@ class Object3DFacade extends PointerEventTarget {
 
     // If any children were removed during the update, remove them from the threejs
     // object in a single batch; this avoids threejs's very expensive single-item remove.
-    let removeChildIds = this._removeChildIds
-    if (removeChildIds) {
+    if (this._removeChildIds) {
+      let removeChildIds = this._removeChildIds
       threeObject.children = threeObject.children.filter(child => {
         if (child.id in removeChildIds) {
           child.parent = null
@@ -317,6 +314,17 @@ forOwn({
 
 
 Object.defineProperty(Object3DFacade.prototype, 'isObject3DFacade', {value: true})
+
+// Predefine shape to facilitate JS engine optimization
+assign(Object3DFacade.prototype, {
+  lookAt: null,
+  threeObject: null,
+  _parentObject3DFacade: null,
+  _removeChildIds: null,
+  _matrixChanged: false,
+  _worldMatrixVersion: -1,
+  _worldMatrixVersionAfterLastUpdate: -1
+})
 
 // Define onBeforeRender/onAfterRender event handler properties
 defineEventProperty(Object3DFacade, 'onBeforeRender')
