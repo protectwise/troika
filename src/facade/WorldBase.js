@@ -144,8 +144,8 @@ class WorldBaseFacade extends ParentFacade {
   }
 
   _hasEventListenersOfType(type) {
-    let registry = this.$eventRegistry
-    return registry[type] && !isObjectEmpty(registry[type])
+    let listeners = this.$eventRegistry[type]
+    return listeners ? !isObjectEmpty(listeners) : false
   }
 
   _onPointerMotionEvent(e) {

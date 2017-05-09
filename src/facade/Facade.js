@@ -93,6 +93,9 @@ export default class Facade {
     fn(this)
   }
 
+  forEachChild(fn) {
+  }
+
   /**
    * Called when the instance is being removed from the scene. Override this to implement any
    * custom cleanup logic.

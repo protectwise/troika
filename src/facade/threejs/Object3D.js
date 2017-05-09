@@ -226,10 +226,16 @@ class Object3DFacade extends PointerEventTarget {
   }
 
   /**
-   * Determine if this facade's threeObject intersects a Raycaster. Return format is the same
-   * as that of `Raycaster.intersectObject`. Override this method to provide custom raycasting
-   * logic, for example when additional meshes need to be checked or a vertex shader manipulates
-   * the geometry.
+   * Determine if this facade's threeObject intersects a Raycaster. Override this method to provide
+   * custom raycasting logic, for example when additional meshes need to be checked or a vertex shader
+   * manipulates the geometry.
+   *
+   * The return value can be:
+   *   - An array of hit objects for this facade, matching the format returned by `Raycaster.intersectObject`
+   *   - `null`, if this facade has no hits
+   *   - `false`, if this facade has no hits *and* descendant facades should not be queried. This can
+   *     be implemented in overridden methods to optimize large scenes by ignoring entire groups when
+   *     a parent can safely determine the extent of all its children.
    */
   raycast(raycaster) {
     return this._raycastObject(this.threeObject, raycaster)

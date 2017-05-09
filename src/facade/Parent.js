@@ -113,6 +113,9 @@ export default class ParentFacade extends Facade {
 
   /**
    * Walk this facade's descendant tree, invoking a function for it and each descendant.
+   * The iteration order is _not_ guaranteed to match the order in which children/lists
+   * were declared. It may also include items that have been queued for removal but not
+   * yet removed, e.g. facades in the process of an `exitAnimation`.
    * @param {Function} fn
    */
   traverse(fn) {
@@ -121,6 +124,22 @@ export default class ParentFacade extends Facade {
     if (dict) {
       for (let key in dict) {
         dict[key].traverse(fn)
+      }
+    }
+  }
+
+  /**
+   * Iterate over this facade's direct child facades, invoking a function for each.
+   * The iteration order is _not_ guaranteed to match the order in which the `children`
+   * were declared. It may also include items that have been queued for removal but not
+   * yet removed, e.g. facades in the process of an `exitAnimation`.
+   * @param {Function} fn
+   */
+  forEachChild(fn) {
+    let dict = this._childrenDict
+    if (dict) {
+      for (let key in dict) {
+        fn(dict[key], key)
       }
     }
   }

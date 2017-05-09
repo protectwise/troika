@@ -142,7 +142,7 @@ class World3DFacade extends WorldBaseFacade {
 
     // traverse tree to collect hits
     let allHits = null
-    this.getChildByKey('scene').traverse(facade => {
+    function visit(facade) {
       let hits = facade.raycast && facade.raycast(raycaster)
       if (hits && hits[0]) {
         (allHits || (allHits = [])).push({
@@ -150,7 +150,12 @@ class World3DFacade extends WorldBaseFacade {
           distance: hits[0].distance //ignore all but closest
         })
       }
-    })
+      // recurse to children, unless raycast impl returned false to short-circuit
+      if (hits !== false) {
+        facade.forEachChild(visit)
+      }
+    }
+    visit(this.getChildByKey('scene'))
 
     return allHits
   }
