@@ -121,12 +121,12 @@ class Runner {
       let tween = tweens[i]
       if (!tween.runner$stopped && !tween.runner$paused) {
         // Sync the tween to current time
-        let time = now - (tween.runner$started || (tween.runner$started = now))
-        tween.gotoTime(time)
+        let elapsed = now - (tween.runner$started || (tween.runner$started = now))
+        tween.gotoElapsedTime(elapsed)
         hasRunningTweens = true
 
         // Queue for removal if we're past its end time
-        if (tween.isDoneAtTime(time)) {
+        if (elapsed > tween.totalElapsed) {
           this.stop(tween)
           if (tween.onDone) {
             tween.onDone()

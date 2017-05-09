@@ -2,7 +2,7 @@ import easings from 'easingjs'
 import * as Interpolators from './Interpolators'
 
 const linear = v => v
-
+const maxSafeInteger = 0x1fffffffffffff
 
 /**
  * @class Tween
@@ -39,13 +39,16 @@ class Tween {
     this.iterations = iterations
     this.direction = direction
     this.interpolate = typeof interpolate === 'function' ? interpolate : Interpolators[interpolate] || Interpolators.number
+
+    // precalculate total elapsed time
+    this.totalElapsed = this.iterations < maxSafeInteger ? this.delay + (this.duration * this.iterations) : maxSafeInteger
   }
 
-  gotoTime(time) {
+  gotoElapsedTime(time) {
     let duration = this.duration
     let delay = this.delay
     if (time >= delay) {
-      time = Math.min(time, this.getTotalDuration()) - delay //never go past final value
+      time = Math.min(time, this.totalElapsed) - delay //never go past final value
       let progress = (time % duration) / duration
       if (progress === 0 && time !== 0) progress = 1
       progress = this.easing(progress)
@@ -57,16 +60,7 @@ class Tween {
   }
 
   gotoEnd() {
-    this.gotoTime(this.getTotalDuration())
-  }
-
-  getTotalDuration() {
-    // inlined Number.MAX_SAFE_INTEGER
-    return this.iterations < 0x1fffffffffffff ? this.delay + (this.duration * this.iterations) : 0x1fffffffffffff
-  }
-
-  isDoneAtTime(time) {
-    return time > this.getTotalDuration()
+    this.gotoElapsedTime(this.totalElapsed)
   }
 
   interpolate(fromValue, toValue, progress) {

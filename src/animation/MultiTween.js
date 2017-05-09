@@ -9,7 +9,7 @@ class MultiTween extends Tween {
   constructor(tweens, duration, delay, easing, iterations, direction) {
     if (typeof duration !== 'number') {
       // Calculate duration based on the longest individual total duration
-      duration = tweens.reduce((dur, tween) => Math.max(dur, tween.getTotalDuration()), 0)
+      duration = tweens.reduce((dur, tween) => Math.max(dur, tween.totalElapsed), 0)
     }
     if (duration === Infinity) {
       // Make an infinite duration finite, so easing math still works
@@ -25,7 +25,7 @@ class MultiTween extends Tween {
   syncTweens(time) {
     let tweens = this.tweens
     for (let i = 0, len = tweens.length; i < len; i++) {
-      tweens[i].gotoTime(time)
+      tweens[i].gotoElapsedTime(time)
     }
   }
 }
