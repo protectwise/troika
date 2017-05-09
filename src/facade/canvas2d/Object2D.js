@@ -1,8 +1,6 @@
 import PointerEventTarget from '../PointerEventTarget'
 import hitTestContext from './HitTestContext'
 
-const IDENTITY_MATRIX = [1, 0, 0, 1, 0, 0]
-
 
 
 function multiplyMatrices(a, b, target) {
@@ -51,8 +49,8 @@ class Object2DFacade extends PointerEventTarget {
     this.parentObject2D = parent
     this._childObjects2D = Object.create(null)
 
-    this.transformMatrix = new Float32Array(IDENTITY_MATRIX)
-    this.worldTransformMatrix = new Float32Array(IDENTITY_MATRIX)
+    this.transformMatrix = [1, 0, 0, 1, 0, 0]
+    this.worldTransformMatrix = [1, 0, 0, 1, 0, 0]
   }
 
   afterUpdate() {
