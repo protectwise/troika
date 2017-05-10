@@ -15,7 +15,8 @@ const Canvas3D = React.createClass(assignIf({
     camera: T.object.isRequired,
     objects: T.oneOfType([T.array, T.object]).isRequired,
     antialias: T.bool,
-    onBackgroundClick: T.func
+    onBackgroundClick: T.func,
+    continuousRender: T.bool
   }, commonPropTypes),
 
   initWorld(canvas) {
@@ -39,6 +40,7 @@ const Canvas3D = React.createClass(assignIf({
       fog: props.fog,
       onClick: props.onBackgroundClick
     }
+    world.continuousRender = props.continuousRender
     world.afterUpdate()
   }
 }, commonMethods))
