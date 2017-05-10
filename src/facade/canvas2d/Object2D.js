@@ -21,7 +21,9 @@ function doUpdateWorldMatrix(facade) {
     if (parentFacade) {
       multiplyMatrices(parentFacade.worldTransformMatrix, facade.transformMatrix, facade.worldTransformMatrix)
     } else {
-      facade.worldTransformMatrix.set(facade.transformMatrix)
+      for (let i = 0; i < 6; i++) {
+        facade.worldTransformMatrix[i] = facade.transformMatrix[i]
+      }
     }
   }
 }
