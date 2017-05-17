@@ -1,3 +1,5 @@
+import {assign} from '../utils'
+
 /**
  * The base class for all Facade classes.
  *
@@ -40,16 +42,6 @@ export default class Facade {
   constructor(parent) {
     this.$facadeId = `facade${ idCounter++ }`
     this.parent = parent
-    this.ref = this._lastRef = null
-
-    // If the subclass has not implemented an onNotify method, copy the parent's implementation.
-    // This allows bubbling notifications up to the topmost impl without having to explicitly
-    // walk all the way up the chain on each call. It assumes implementations will not be added
-    // after the fact anywhere in the prototype chain.
-    // TODO see if this is worthwhile, has issues with 'this' binding
-    // if (!this.onNotifyWorld) {
-    //   this.onNotifyWorld = parent && parent.onNotifyWorld && parent.onNotifyWorld.bind(parent)
-    // }
   }
 
   /**
@@ -81,11 +73,23 @@ export default class Facade {
   }
 
   /**
-   * Default notifyWorld handler just bubbles it up
+   * Default onNotifyWorld handler just bubbles it up the parent chain.
    */
   onNotifyWorld(source, message, data) {
-    if (this.parent) {
-      this.parent.onNotifyWorld(source, message, data)
+    let notifiableParent = this._notifiableParent
+    if (notifiableParent) {
+      notifiableParent.onNotifyWorld.call(notifiableParent, source, message, data)
+    } else {
+      // Optimization: on first call, walk up the tree looking for the first ancestor with a
+      // non-default onNotifyWorld implementation, and save a pointer to that ancestor
+      // facade so we can just call it directly the next time without any tree walking.
+      notifiableParent = this.parent
+      let defaultImpl = Facade.prototype.onNotifyWorld
+      while (notifiableParent && notifiableParent.onNotifyWorld === defaultImpl) {
+        notifiableParent = notifiableParent.parent
+      }
+      this._notifiableParent = notifiableParent
+      notifiableParent.onNotifyWorld(source, message, data)
     }
   }
 
@@ -113,6 +117,12 @@ export default class Facade {
     this.parent = null
   }
 }
+
+assign(Facade.prototype, {
+  ref: null,
+  _lastRef: null,
+  _notifiableParent: null
+})
 
 
 let idCounter = 0
