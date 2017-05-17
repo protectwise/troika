@@ -73,35 +73,30 @@ class WorldBaseFacade extends ParentFacade {
   }
 
   onNotifyWorld(source, message, data) {
-    let listeners, registry
-    switch(message) {
-      case 'needsRender':
-        this._queueRender()
-        break
-      case 'addEventListener':
-        registry = this.$eventRegistry
-        listeners = registry[data.type] || (registry[data.type] = Object.create(null))
-        listeners[source.$facadeId] = data.handler
-        break
-      case 'removeEventListener':
-        listeners = this.$eventRegistry[data.type]
-        if (listeners) {
-          delete listeners[source.$facadeId]
-        }
-        break
-      case 'removeAllEventListeners':
-        registry = this.$eventRegistry
-        for (let type in registry) {
-          let listeners = registry[type]
-          delete listeners[source.$facadeId]
-        }
-        break
-      case 'addHtmlOverlay':
-        this._htmlOverlays[data.$facadeId] = data
-        break
-      case 'removeHtmlOverlay':
-        delete this._htmlOverlays[data.$facadeId]
-        break
+    let handler = this._notifyWorldHandlers[message]
+    if (handler) {
+      handler.call(this, source, data)
+    }
+  }
+
+  _addEventListener(source, type, handler) {
+    let registry = this.$eventRegistry
+    let listeners = registry[type] || (registry[type] = Object.create(null))
+    listeners[source.$facadeId] = handler
+  }
+
+  _removeEventListener(source, type) {
+    let listeners = this.$eventRegistry[type]
+    if (listeners) {
+      delete listeners[source.$facadeId]
+    }
+  }
+
+  _removeAllEventListeners(source) {
+    let registry = this.$eventRegistry
+    for (let type in registry) {
+      let listeners = registry[type]
+      delete listeners[source.$facadeId]
     }
   }
 
@@ -304,6 +299,28 @@ class WorldBaseFacade extends ParentFacade {
     super.destructor()
   }
 
+}
+
+
+WorldBaseFacade.prototype._notifyWorldHandlers = {
+  needsRender() {
+    this._queueRender()
+  },
+  addEventListener(source, data) {
+    this._addEventListener(source, data.type, data.handler)
+  },
+  removeEventListener(source, data) {
+    this._removeEventListener(source, data.type)
+  },
+  removeAllEventListeners(source) {
+    this._removeAllEventListeners(source)
+  },
+  addHtmlOverlay(source) {
+    this._htmlOverlays[source.$facadeId] = source
+  },
+  removeHtmlOverlay(source) {
+    delete this._htmlOverlays[source.$facadeId]
+  }
 }
 
 

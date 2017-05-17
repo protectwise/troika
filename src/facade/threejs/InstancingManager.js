@@ -41,46 +41,12 @@ class InstancingManager extends Group3DFacade {
   }
 
   onNotifyWorld(source, message, data) {
-    switch (message) {
-      case 'instanceableAdded':
-        this._instanceables[source.$facadeId] = source
-        this._needsRebatch = true
-        return
-      case 'instanceableRemoved':
-        delete this._instanceables[source.$facadeId]
-        this._needsRebatch = true
-        return
-      case 'instanceableChanged':
-        this._needsRebatch = true
-        return
-      case 'instanceableMatrixChanged':
-        // If just the matrix changed and the batches are still otherwise valid, avoid a full
-        // rebatch by updating just this instance's values in the matrix attributes directly.
-        if (!this._needsRebatch) {
-          let protoObject = source.instancedThreeObject
-          let batchIndex = source._instancingBatchIndex
-          let attrOffset = source._instancingBatchAttrOffset
-          if (protoObject && batchIndex !== null && attrOffset !== null) {
-            let batchObjects = this._batchObjectsById[protoObject.id]
-            if (batchObjects) {
-              let batchObject = batchObjects[batchIndex]
-              if (batchObject) {
-                let attrs = batchObject.geometry._instanceMatrixAttrs
-                let elements = source.threeObject.matrixWorld.elements
-                for (let row = 0; row < 3; row++) {
-                  attrs[row].setXYZW(attrOffset, elements[row], elements[row + 4], elements[row + 8], elements[row + 12])
-                  attrs[row].needsUpdate = true
-                }
-                return //success
-              }
-            }
-          }
-          // Fallback just in case something didn't line up above - clear pointers and trigger rebatch
-          this._needsRebatch = true
-        }
-        return
+    let handler = this._notifyWorldHandlers[message]
+    if (handler) {
+      handler.call(this, source, data)
+    } else {
+      this.parent.onNotifyWorld(source, message, data)
     }
-    super.onNotifyWorld(source, message, data)
   }
 
   _setupBatchObjects(renderer, scene, camera) {
@@ -157,6 +123,33 @@ class InstancingManager extends Group3DFacade {
     //console.log(`Rendered ${count} batch instancing objects`)
 
     this._needsRebatch = false
+  }
+
+  _onInstanceableMatrixChanged(source, data) {
+    // If a single instance's matrix changed and the batches are still otherwise valid, avoid a
+    // full rebatch by updating just this instance's values in the matrix attributes directly.
+    if (!this._needsRebatch) {
+      let protoObject = source.instancedThreeObject
+      let batchIndex = source._instancingBatchIndex
+      let attrOffset = source._instancingBatchAttrOffset
+      if (protoObject && batchIndex !== null && attrOffset !== null) {
+        let batchObjects = this._batchObjectsById[protoObject.id]
+        if (batchObjects) {
+          let batchObject = batchObjects[batchIndex]
+          if (batchObject) {
+            let attrs = batchObject.geometry._instanceMatrixAttrs
+            let elements = source.threeObject.matrixWorld.elements
+            for (let row = 0; row < 3; row++) {
+              attrs[row].setXYZW(attrOffset, elements[row], elements[row + 4], elements[row + 8], elements[row + 12])
+              attrs[row].needsUpdate = true
+            }
+            return //success
+          }
+        }
+      }
+      // Fallback just in case something didn't line up above - clear pointers and trigger rebatch
+      this._needsRebatch = true
+    }
   }
 
   _getBatchObject(instancedObject) {
@@ -264,6 +257,24 @@ class BatchGeometryPool {
         geometries.length = firstFree
       }
     }
+  }
+}
+
+
+InstancingManager.prototype._notifyWorldHandlers = {
+  instanceableAdded(source, data) {
+    this._instanceables[source.$facadeId] = source
+    this._needsRebatch = true
+  },
+  instanceableRemoved(source, data) {
+    delete this._instanceables[source.$facadeId]
+    this._needsRebatch = true
+  },
+  instanceableChanged(source, data) {
+    this._needsRebatch = true
+  },
+  instanceableMatrixChanged(source, data) {
+    this._onInstanceableMatrixChanged(source, data)
   }
 }
 

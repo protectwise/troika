@@ -110,22 +110,6 @@ class World3DFacade extends WorldBaseFacade {
     )
   }
 
-  onNotifyWorld(source, message, data) {
-    switch(message) {
-      case 'getCameraPosition':
-        data.callback(this.getChildByKey('camera').threeObject.position) //callback function
-        return
-      case 'projectWorldPosition':
-        let pos = data.worldPosition
-        data.callback(this.projectWorldPosition(pos.x, pos.y, pos.z))
-        return
-      case 'addBeforeRenderCallback':
-        ;(this._beforeRenderFns || (this._beforeRenderFns = [])).push(data)
-        return
-    }
-    super.onNotifyWorld(source, message, data)
-  }
-
 
   /**
    * Implementation of abstract
@@ -165,5 +149,21 @@ class World3DFacade extends WorldBaseFacade {
   }
 
 }
+
+
+
+World3DFacade.prototype._notifyWorldHandlers = assign(
+  Object.create(WorldBaseFacade.prototype._notifyWorldHandlers),
+  {
+    getCameraPosition(source, data) {
+      data.callback(this.getChildByKey('camera').threeObject.position)
+    },
+    projectWorldPosition(source, data) {
+      let pos = data.worldPosition
+      data.callback(this.projectWorldPosition(pos.x, pos.y, pos.z))
+    }
+  }
+)
+
 
 export default World3DFacade
