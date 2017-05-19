@@ -85,11 +85,14 @@ export default class Facade {
       // facade so we can just call it directly the next time without any tree walking.
       notifiableParent = this.parent
       let defaultImpl = Facade.prototype.onNotifyWorld
-      while (notifiableParent && notifiableParent.onNotifyWorld === defaultImpl) {
+      while (notifiableParent) {
+        if (notifiableParent.onNotifyWorld !== defaultImpl) {
+          this._notifiableParent = notifiableParent
+          notifiableParent.onNotifyWorld(source, message, data)
+          break
+        }
         notifiableParent = notifiableParent.parent
       }
-      this._notifiableParent = notifiableParent
-      notifiableParent.onNotifyWorld(source, message, data)
     }
   }
 
