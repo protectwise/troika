@@ -251,8 +251,10 @@ class BatchGeometryPool {
               instancingAttrs[name] = geometries[i].attributes[name]
             }
           }
-          geometries[i].dispose()
-          //console.log('disposed instancing geometry')
+          try {
+            // can throw if it's already been disposed or hasn't yet been rendered
+            geometries[i].dispose()
+          } catch(e) {}
         }
         geometries.length = firstFree
       }
