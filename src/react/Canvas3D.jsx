@@ -16,12 +16,14 @@ const Canvas3D = React.createClass(assignIf({
     objects: T.oneOfType([T.array, T.object]).isRequired,
     antialias: T.bool,
     onBackgroundClick: T.func,
+    rendererClass: T.func,
     continuousRender: T.bool
   }, commonPropTypes),
 
   initWorld(canvas) {
     let world = new World3DFacade(canvas, {
-      antialias: this.props.antialias
+      antialias: this.props.antialias,
+      rendererClass: this.props.rendererClass
     })
     world.renderHtmlItems = this.renderHtmlItems
     return world

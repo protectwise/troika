@@ -11,10 +11,11 @@ const raycaster = new Raycaster()
 
 
 class World3DFacade extends WorldBaseFacade {
-  constructor(canvas, threeJsRendererConfig) {
+  constructor(canvas, threeJsRendererConfig = {}) {
     super(canvas)
 
-    this._threeRenderer = new WebGLRenderer(assign({
+    let RendererClass = threeJsRendererConfig.rendererClass || WebGLRenderer
+    this._threeRenderer = new RendererClass(assign({
       canvas: canvas,
       alpha: true
     }, threeJsRendererConfig))
@@ -146,6 +147,11 @@ class World3DFacade extends WorldBaseFacade {
     visit(this.getChildByKey('scene'))
 
     return allHits
+  }
+
+  destructor() {
+    super.destructor()
+    this._threeRenderer.dispose()
   }
 
 }
