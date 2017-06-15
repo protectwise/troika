@@ -69,7 +69,7 @@ class World2DFacade extends WorldBaseFacade {
     let canvas = this._element
     let ctx = this._context
     let {width, height} = this
-    let pixelRatio = window.devicePixelRatio
+    let pixelRatio = this.pixelRatio || window.devicePixelRatio || 1
 
     // Clear canvas and set size/ratio
     canvas.width = width * pixelRatio

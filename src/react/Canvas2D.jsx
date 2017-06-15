@@ -25,6 +25,7 @@ const Canvas2D = React.createClass(assignIf({
     let props = this.props
     world.width = props.width
     world.height = props.height
+    world.pixelRatio = props.pixelRatio
     world.backgroundColor = props.backgroundColor
     world.onBackgroundClick = props.onBackgroundClick
     world.children = props.objects

@@ -48,7 +48,7 @@ class World3DFacade extends WorldBaseFacade {
 
     let renderer = this._threeRenderer
 
-    let pixelRatio = window.devicePixelRatio
+    let pixelRatio = this.pixelRatio || window.devicePixelRatio || 1
     if (renderer.getPixelRatio() !== pixelRatio) {
       renderer.setPixelRatio(pixelRatio)
     }

@@ -7,6 +7,7 @@ const T = React.PropTypes
 export const commonPropTypes = {
   width: T.number.isRequired,
   height: T.number.isRequired,
+  pixelRatio: T.number,
   className: T.string,
   cursor: T.string
 }

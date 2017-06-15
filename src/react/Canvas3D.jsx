@@ -33,6 +33,7 @@ const Canvas3D = React.createClass(assignIf({
     let props = this.props
     world.width = props.width
     world.height = props.height
+    world.pixelRatio = props.pixelRatio
     world.backgroundColor = props.backgroundColor
     world.shadows = props.shadows
     world.camera = props.camera
