@@ -57,7 +57,7 @@ class World2DFacade extends WorldBaseFacade {
       color: this.backgroundColor,
       width: this.width,
       height: this.height,
-      onClick: this.onBackgroundClick,
+      onClick: this.onBackgroundClick ? this._onBgClick : null,
       children: this.children
     }
 
@@ -140,6 +140,13 @@ class World2DFacade extends WorldBaseFacade {
       hits = Object.keys(hits).map(id => hits[id])
     }
     return hits
+  }
+
+  _onBgClick(e) {
+    // Ignore clicks that bubbled up
+    if (e.target === e.currentTarget) {
+      this.onBackgroundClick(e)
+    }
   }
 }
 

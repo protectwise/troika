@@ -41,10 +41,17 @@ const Canvas3D = React.createClass(assignIf({
       lights: props.lights,
       objects: props.objects,
       fog: props.fog,
-      onClick: props.onBackgroundClick
+      onClick: props.onBackgroundClick ? this._onSceneClick : null
     }
     world.continuousRender = props.continuousRender
     world.afterUpdate()
+  },
+
+  _onSceneClick(e) {
+    // Ignore events that bubbled up
+    if (e.target === e.currentTarget) {
+      this.props.onBackgroundClick(e)
+    }
   }
 }, commonMethods))
 

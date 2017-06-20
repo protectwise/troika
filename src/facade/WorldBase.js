@@ -14,39 +14,62 @@ const pointerActionEventTypesToProps = {
   'touchcancel': 'onMouseUp'
 }
 
-function createSyntheticEvent(nativeEvent, type, targetFacade, relatedTargetFacade) {
-  let newEvent = {}
-  Object.keys(nativeEvent.constructor.prototype).forEach(key => {
-    newEvent[key] = nativeEvent[key]
-  })
-  newEvent.type = type
-  newEvent.target = newEvent.currentTarget = targetFacade
-  newEvent.relatedTarget = relatedTargetFacade || null
-  newEvent.nativeEvent = nativeEvent
+const touchDragPropsToNormalize = ['clientX', 'clientY', 'screenX', 'screenY', 'pageX', 'pageY']
 
-  // normalize drag events invoked by touch
-  if (type.indexOf('drag') === 0 && nativeEvent.touches) {
-    let touch = nativeEvent.touches[0] || nativeEvent.changedTouches[0]
-    if (touch) {
-      ;['clientX', 'clientY', 'screenX', 'screenY', 'pageX', 'pageY'].forEach(prop => {
-        newEvent[prop] = touch[prop]
-      })
+class SyntheticEvent {
+  constructor(nativeEvent, type, target, relatedTarget) {
+    // Copy native event properties - TODO investigate using a Proxy
+    Object.keys(nativeEvent.constructor.prototype).forEach(key => {
+      if (typeof nativeEvent[key] !== 'function') {
+        this[key] = nativeEvent[key]
+      }
+    })
+
+    // Adjust to custom params
+    this.target = target
+    this.relatedTarget = relatedTarget
+    this.type = type
+    this.nativeEvent = nativeEvent
+
+    // normalize drag events invoked by touch
+    if (type.indexOf('drag') === 0 && nativeEvent.touches) {
+      let touch = nativeEvent.touches[0] || nativeEvent.changedTouches[0]
+      if (touch) {
+        touchDragPropsToNormalize.forEach(prop => {
+          this[prop] = touch[prop]
+        })
+      }
     }
   }
 
-  return newEvent
+  preventDefault() {
+    this.defaultPrevented = true
+    this.nativeEvent.preventDefault()
+  }
+
+  stopPropagation() {
+    this.propagationStopped = true
+    this.nativeEvent.stopPropagation()
+  }
 }
 
 function firePointerEvent(handlerProp, nativeEvent, targetFacade, relatedTargetFacade) {
-  let handler = targetFacade[handlerProp]
-  if (handler) {
-    let newEvent = createSyntheticEvent(
-      nativeEvent,
-      handlerProp.replace(/^on/, '').toLowerCase(),
-      targetFacade,
-      relatedTargetFacade
-    )
-    handler(newEvent)
+  let newEvent = new SyntheticEvent(
+    nativeEvent,
+    handlerProp.replace(/^on/, '').toLowerCase(),
+    targetFacade,
+    relatedTargetFacade
+  )
+  // Dispatch with bubbling
+  // TODO genericize bubbling for future non-pointer-related events
+  let currentTarget = targetFacade
+  while (currentTarget && !newEvent.propagationStopped) { //TODO should defaultPrevented mean anything here?
+    let handler = currentTarget[handlerProp]
+    if (handler) {
+      newEvent.currentTarget = currentTarget
+      handler.call(currentTarget, newEvent)
+    }
+    currentTarget = currentTarget.parent
   }
 }
 
@@ -212,7 +235,7 @@ class WorldBaseFacade extends ParentFacade {
 
         // mousedown/touchstart could be prepping for drag gesture
         if (facade.onDragStart && (e.type === 'mousedown' || e.type === 'touchstart')) {
-          let dragStartEvent = createSyntheticEvent(e, 'dragstart', facade, null)
+          let dragStartEvent = new SyntheticEvent(e, 'dragstart', facade, null)
           this.$dragInfo = {
             draggedFacade: facade,
             dragStartFired: false,
