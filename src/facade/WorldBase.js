@@ -73,6 +73,16 @@ function firePointerEvent(handlerProp, nativeEvent, targetFacade, relatedTargetF
   }
 }
 
+function hasEventHandlerInParentTree(targetFacade, eventProp) {
+  while (targetFacade) {
+    if (targetFacade[eventProp]) {
+      return true
+    }
+    targetFacade = targetFacade.parent
+  }
+  return false
+}
+
 
 class WorldBaseFacade extends ParentFacade {
   constructor(element) {
@@ -219,7 +229,7 @@ class WorldBaseFacade extends ParentFacade {
         firePointerEvent(pointerActionEventTypesToProps[e.type], e, facade)
 
         // touchstart/touchend could be start/end of a tap - map to onClick
-        if (facade.onClick) {
+        if (hasEventHandlerInParentTree(facade, 'onClick')) {
           if (e.type === 'touchstart' && e.touches.length === 1) {
             this.$tapInfo = {x: e.touches[0].clientX, y: e.touches[0].clientY, facade: facade}
           }
