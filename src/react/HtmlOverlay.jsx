@@ -49,11 +49,15 @@ const HtmlOverlay = React.createClass({
     let round = Math.round
     return items && items.length ? (
       <div style={ CT_STYLES }>
-        { items.map(({key, html, x, y, z}) => {
+        { items.map(({key, html, x, y, z, exact}) => {
+          if (!exact) {
+            x = round(x)
+            y = round(y)
+          }
           return (
             <div key={ key } style={ {
               position: 'absolute',
-              transform: `translate3d(${ round(x) }px, ${ round(y) }px, ${-z}px)`}
+              transform: `translate3d(${ x }px, ${ y }px, ${-z}px)`}
             }>
               <HtmlOverlayContent html={ html } />
             </div>

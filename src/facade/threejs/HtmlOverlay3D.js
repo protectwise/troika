@@ -24,6 +24,12 @@ class HtmlOverlay3DFacade extends Object3DFacade {
      */
     this.html = null
 
+    /**
+     * If set to true, the overlay's x/y position on screen will not be rounded to whole-pixel
+     * values. This can give more accurate alignment at the expense of fuzzy lines and text.
+     */
+    this.exact = false
+
     this.notifyWorld('addHtmlOverlay', this)
   }
 

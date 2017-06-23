@@ -165,6 +165,7 @@ class WorldBaseFacade extends ParentFacade {
         let data = this.getFacadeUserSpaceXYZ(facade)
         data.key = facade.$facadeId
         data.html = facade.html
+        data.exact = facade.exact
         htmlItemsData.push(data)
       }
       this.renderHtmlItems(htmlItemsData)
