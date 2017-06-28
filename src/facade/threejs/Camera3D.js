@@ -2,7 +2,7 @@ import {PerspectiveCamera, OrthographicCamera} from 'three'
 import Object3DFacade from './Object3D'
 
 
-export function createCameraFacade(threeJsCameraClass, projectionProps) {
+export function createCameraFacade(threeJsCameraClass, projectionProps, otherProps) {
   class Camera3DFacade extends Object3DFacade {
     constructor(parent) {
       super(parent, new threeJsCameraClass())
@@ -20,23 +20,33 @@ export function createCameraFacade(threeJsCameraClass, projectionProps) {
   }
 
   // Setters for properties which require a matrix update
-  projectionProps.forEach(prop => {
+  function defineProp(prop, affectsProjection) {
     Object.defineProperty(Camera3DFacade.prototype, prop, {
       set(val) {
         if (val !== this.threeObject[prop]) {
           this.threeObject[prop] = val
-          this._projectionChanged = true
+          if (affectsProjection) this._projectionChanged = true
         }
       },
       get() {
         return this.threeObject[prop]
       }
     })
+  }
+
+  projectionProps.forEach(prop => {
+    defineProp(prop, true)
   })
+
+  if (otherProps) {
+    otherProps.forEach(prop => {
+      defineProp(prop, false)
+    })
+  }
 
   return Camera3DFacade
 }
 
 
-export const PerspectiveCamera3DFacade = createCameraFacade(PerspectiveCamera, ['fov', 'aspect', 'near', 'far'])
+export const PerspectiveCamera3DFacade = createCameraFacade(PerspectiveCamera, ['fov', 'aspect', 'near', 'far'], ['focus', 'filmGauge', 'filmOffset'])
 export const OrthographicCamera3DFacade = createCameraFacade(OrthographicCamera, ['left', 'right', 'top', 'bottom', 'near', 'far'])
