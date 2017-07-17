@@ -117,7 +117,7 @@ export default class Facade {
     if (typeof this.ref === 'function') {
       this.ref.call(null, null)
     }
-    this.parent = null
+    this.parent = this._notifiableParent = null
   }
 }
 

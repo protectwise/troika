@@ -44,7 +44,7 @@ class InstancingManager extends Group3DFacade {
     let handler = this._notifyWorldHandlers[message]
     if (handler) {
       handler.call(this, source, data)
-    } else {
+    } else if (this.parent) {
       this.parent.onNotifyWorld(source, message, data)
     }
   }
