@@ -3,6 +3,7 @@ import ParentFacade from './Parent'
 import {pointerActionEventProps, pointerMotionEventProps} from './PointerEventTarget'
 
 const TAP_DISTANCE_THRESHOLD = 10
+const TAP_GESTURE_MAX_DUR = 300
 
 const pointerActionEventTypesToProps = {
   'click': 'onClick',
@@ -31,12 +32,13 @@ class SyntheticEvent {
     this.type = type
     this.nativeEvent = nativeEvent
 
-    // normalize drag events invoked by touch
-    if (type.indexOf('drag') === 0 && nativeEvent.touches) {
-      let touch = nativeEvent.touches[0] || nativeEvent.changedTouches[0]
-      if (touch) {
+    // normalize position properties on touch events with a single touch, to facilitate
+    // downstream handlers that expect them to look like mouse events
+    if (nativeEvent.touches) {
+      let touches = isTouchEndOrCancel(nativeEvent) ? nativeEvent.changedTouches : nativeEvent.touches
+      if (touches.length === 1) {
         touchDragPropsToNormalize.forEach(prop => {
-          this[prop] = touch[prop]
+          this[prop] = touches[0][prop]
         })
       }
     }
@@ -81,6 +83,15 @@ function hasEventHandlerInParentTree(targetFacade, eventProp) {
     targetFacade = targetFacade.parent
   }
   return false
+}
+
+function isTouchEndOrCancel(e) {
+  return e.type === 'touchend' || e.type === 'touchcancel'
+}
+
+function killEvent(e) {
+  e.stopPropagation()
+  e.preventDefault()
 }
 
 
@@ -190,7 +201,7 @@ class WorldBaseFacade extends ParentFacade {
       }
 
       let lastHovered = this.$hoveredFacade
-      let hovered = this.$hoveredFacade = e.type === 'mouseout' ? null : this._findHoveredFacade(e)
+      let hovered = this.$hoveredFacade = (e.type === 'mouseout' || isTouchEndOrCancel(e)) ? null : this._findHoveredFacade(e)
       if (hovered !== lastHovered) {
         if (lastHovered) {
           firePointerEvent('onMouseOut', e, lastHovered, hovered)
@@ -224,6 +235,14 @@ class WorldBaseFacade extends ParentFacade {
   }
 
   _onPointerActionEvent(e) {
+    // Map touch start to mouseover, and disable touch-hold context menu
+    if (e.type === 'touchstart') {
+      if (e.touches.length === 1) {
+        this._onPointerMotionEvent(e)
+      }
+      this._enableContextMenu(false)
+    }
+
     if (this._hasEventListenersOfType('onDragStart') || pointerActionEventProps.some(this._hasEventListenersOfType.bind(this))) {
       let facade = this._findHoveredFacade(e)
       if (facade) {
@@ -232,12 +251,20 @@ class WorldBaseFacade extends ParentFacade {
         // touchstart/touchend could be start/end of a tap - map to onClick
         if (hasEventHandlerInParentTree(facade, 'onClick')) {
           if (e.type === 'touchstart' && e.touches.length === 1) {
-            this.$tapInfo = {x: e.touches[0].clientX, y: e.touches[0].clientY, facade: facade}
+            this.$tapInfo = {
+              facade: facade,
+              x: e.touches[0].clientX,
+              y: e.touches[0].clientY,
+              startTime: Date.now()
+            }
           }
           else {
             let tapInfo = this.$tapInfo
-            if (tapInfo && tapInfo.facade === facade && e.type === 'touchend' &&
-                e.touches.length === 0 && e.changedTouches.length === 1) {
+            if (
+              tapInfo && tapInfo.facade === facade && e.type === 'touchend' &&
+              e.touches.length === 0 && e.changedTouches.length === 1 &&
+              Date.now() - tapInfo.startTime < TAP_GESTURE_MAX_DUR
+            ) {
               firePointerEvent('onClick', e, facade)
             }
             this.$tapInfo = null
@@ -257,6 +284,14 @@ class WorldBaseFacade extends ParentFacade {
         }
       }
       e.preventDefault() //prevent e.g. touch scroll
+    }
+
+    // Map touch end to mouseout
+    if (isTouchEndOrCancel(e)) {
+      if (e.changedTouches.length === 1) {
+        this._onPointerMotionEvent(e)
+      }
+      this._enableContextMenu(true)
     }
   }
 
@@ -289,6 +324,13 @@ class WorldBaseFacade extends ParentFacade {
       Object.keys(pointerActionEventTypesToProps).forEach(type => {
         canvas[method](type, this._onPointerActionEvent, false)
       })
+    }
+  }
+
+  _enableContextMenu(enable) {
+    let canvas = this._element
+    if (canvas) {
+      canvas[(enable ? 'remove' : 'add') + 'EventListener']('contextmenu', killEvent, true)
     }
   }
 
