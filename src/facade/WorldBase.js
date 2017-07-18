@@ -4,6 +4,7 @@ import {pointerActionEventProps, pointerMotionEventProps} from './PointerEventTa
 
 const TAP_DISTANCE_THRESHOLD = 10
 const TAP_GESTURE_MAX_DUR = 300
+const TAP_DBLCLICK_MAX_DUR = 300
 
 const pointerActionEventTypesToProps = {
   'click': 'onClick',
@@ -249,25 +250,27 @@ class WorldBaseFacade extends ParentFacade {
         firePointerEvent(pointerActionEventTypesToProps[e.type], e, facade)
 
         // touchstart/touchend could be start/end of a tap - map to onClick
-        if (hasEventHandlerInParentTree(facade, 'onClick')) {
+        if (hasEventHandlerInParentTree(facade, 'onClick') || hasEventHandlerInParentTree(facade, 'onDoubleClick')) {
+          let tapInfo = this.$tapInfo
           if (e.type === 'touchstart' && e.touches.length === 1) {
             this.$tapInfo = {
               facade: facade,
               x: e.touches[0].clientX,
               y: e.touches[0].clientY,
-              startTime: Date.now()
+              startTime: Date.now(),
+              isDblClick: tapInfo && Date.now() - tapInfo.startTime < TAP_DBLCLICK_MAX_DUR
             }
-          }
-          else {
-            let tapInfo = this.$tapInfo
+          } else {
             if (
               tapInfo && tapInfo.facade === facade && e.type === 'touchend' &&
               e.touches.length === 0 && e.changedTouches.length === 1 &&
               Date.now() - tapInfo.startTime < TAP_GESTURE_MAX_DUR
             ) {
               firePointerEvent('onClick', e, facade)
+              if (tapInfo.isDblClick) {
+                firePointerEvent('onDoubleClick', e, facade)
+              }
             }
-            this.$tapInfo = null
           }
         }
 
