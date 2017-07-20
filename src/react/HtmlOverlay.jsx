@@ -48,7 +48,7 @@ const HtmlOverlay = React.createClass({
     let items = this.state.items
     let round = Math.round
     return items && items.length ? (
-      <div style={ CT_STYLES }>
+      <div className="troika_html_overlay" style={ CT_STYLES }>
         { items.map(({key, html, x, y, z, exact}) => {
           if (!exact) {
             x = round(x)

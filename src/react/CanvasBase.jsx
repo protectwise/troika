@@ -65,7 +65,7 @@ export const commonMethods = {
   render() {
     let {props} = this
     return (
-      <div className={ props.className } style={ {
+      <div className={ `troika ${props.className || ''}` } style={ {
         position: 'relative',
         overflow: 'hidden',
         width: props.width,
@@ -74,7 +74,7 @@ export const commonMethods = {
         userSelect: 'none'
       } }>
         { this._failedWorldInit ? this.props.children : (
-          <canvas ref={ this._bindCanvasRef } />
+          <canvas className="troika_canvas" ref={ this._bindCanvasRef } />
         ) }
         <HtmlOverlay ref={ this._bindHtmlOverlayRef } />
       </div>
