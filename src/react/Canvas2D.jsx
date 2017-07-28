@@ -24,6 +24,7 @@ class Canvas2D extends CanvasBase {
     world.backgroundColor = props.backgroundColor
     world.onBackgroundClick = props.onBackgroundClick
     world.children = props.objects
+    world.continuousRender = props.continuousRender
     world.afterUpdate()
   }
 }

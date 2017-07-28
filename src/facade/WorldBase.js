@@ -152,6 +152,9 @@ class WorldBaseFacade extends ParentFacade {
         this._nextFrameTimer = null
         this.doRender()
         this._doRenderHtmlItems()
+        if (this.continuousRender) {
+          this._queueRender()
+        }
       }))
     }
   }

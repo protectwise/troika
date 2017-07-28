@@ -85,10 +85,6 @@ class World3DFacade extends WorldBaseFacade {
         callbacks[id](this._threeRenderer, scene, camera)
       }
     }
-
-    if (this.continuousRender) {
-      this._queueRender()
-    }
   }
 
   /**

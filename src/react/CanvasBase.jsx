@@ -7,6 +7,7 @@ export const commonPropTypes = {
   height: T.number.isRequired,
   pixelRatio: T.number,
   className: T.string,
+  continuousRender: T.bool,
   cursor: T.string
 }
 
