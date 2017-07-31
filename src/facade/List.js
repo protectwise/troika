@@ -124,13 +124,14 @@ export default class List extends Facade {
    * were declared. It may also include items that have been queued for removal but not
    * yet removed, e.g. facades in the process of an `exitAnimation`.
    * @param {Function} fn
+   * @param {Object} [thisArg]
    */
-  traverse(fn) {
-    fn(this)
+  traverse(fn, thisArg) {
+    fn.call(thisArg, this)
     let dict = this._itemsDict
     if (dict) {
       for (let key in dict) {
-        dict[key].traverse(fn)
+        dict[key].traverse(fn, thisArg)
       }
     }
   }
@@ -141,12 +142,13 @@ export default class List extends Facade {
    * were declared. It may also include items that have been queued for removal but not
    * yet removed, e.g. facades in the process of an `exitAnimation`.
    * @param {Function} fn
+   * @param {Object} [thisArg]
    */
-  forEachChild(fn) {
+  forEachChild(fn, thisArg) {
     let dict = this._itemsDict
     if (dict) {
       for (let key in dict) {
-        fn(dict[key], key)
+        fn.call(thisArg, dict[key], key)
       }
     }
   }

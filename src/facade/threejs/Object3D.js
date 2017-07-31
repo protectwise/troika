@@ -85,11 +85,11 @@ class Object3DFacade extends PointerEventTarget {
     // to `shouldUpdateChildren` optimization, we need to manually update their matrices to match.
     if (this._worldMatrixVersion > this._worldMatrixVersionAfterLastUpdate) {
       if (!this.shouldUpdateChildren()) {
-        this.traverse(facade => {
-          if (facade !== this && facade.updateMatrices) {
+        this.traverse((facade, rootFacade) => {
+          if (facade !== rootFacade && facade.updateMatrices) {
             facade.updateMatrices()
           }
-        })
+        }, this)
       }
       this._worldMatrixVersionAfterLastUpdate = this._worldMatrixVersion
     }
@@ -121,7 +121,7 @@ class Object3DFacade extends PointerEventTarget {
       if (parentThreeObject) {
         if (threeObject.parent === parentThreeObject) {
           if (canObjectBeOrphaned(threeObject)) {
-            this.notifyWorld('removeChildObject3D', threeObject)
+            this._parentObject3DFacade._queueRemoveChildObject3D(threeObject.id)
           }
         }
         else if (!canObjectBeOrphaned(threeObject)) {
