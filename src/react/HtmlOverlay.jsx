@@ -11,38 +11,40 @@ const CT_STYLES = {
   transformStyle: 'preserve-3d'
 }
 
-const HtmlOverlayContent = React.createClass({
-  displayName: 'Canvas3D.HtmlOverlayContent',
+class HtmlOverlayContent extends React.Component {
   shouldComponentUpdate(newProps) {
     return newProps.html !== this.props.html ||
       (newProps.html.props && newProps.html.props.shouldUpdateOnMove) === true
-  },
+  }
+
   render() {
     let html = this.props.html
     return typeof html === 'string' ? <span>{ html }</span> : React.cloneElement(html)
   }
-})
+}
 
-const HtmlOverlay = React.createClass({
-  displayName: 'Canvas3D.HtmlOverlay3DFacade',
+HtmlOverlayContent.displayName = 'Canvas3D.HtmlOverlayContent'
 
-  getInitialState() {
-    return {
+class HtmlOverlay extends React.Component {
+  constructor(props) {
+    super(props)
+    this.setItems = this.setItems.bind(this)
+    this.state = {
       items: null
     }
-  },
+  }
+
+  shouldComponentUpdate(newProps, newState) {
+    let oldState = this.state
+    return (newState.items && newState.items.length) || (oldState.items && oldState.items.length)
+  }
 
   setItems(items) {
     let lastItems = this.state.items
     if ((items && items.length) || (lastItems && lastItems.length)) {
       this.setState({items: items || null})
     }
-  },
-
-  shouldComponentUpdate(newProps, newState) {
-    let oldState = this.state
-    return (newState.items && newState.items.length) || (oldState.items && oldState.items.length)
-  },
+  }
 
   render() {
     let items = this.state.items
@@ -66,6 +68,9 @@ const HtmlOverlay = React.createClass({
       </div>
     ) : null
   }
-})
+}
+
+HtmlOverlay.displayName = 'Canvas3D.HtmlOverlay'
+
 
 export default HtmlOverlay

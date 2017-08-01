@@ -1,24 +1,17 @@
 import {assignIf} from '../utils'
 import React from 'react'
+import T from 'prop-types'
 import World3DFacade from '../facade/threejs/World3D'
-import {commonMethods, commonPropTypes} from './CanvasBase.jsx'
-const T = React.PropTypes
+import CanvasBase, {commonPropTypes} from './CanvasBase.jsx'
 
 
-
-const Canvas3D = React.createClass(assignIf({
-  displayName: 'Canvas3D',
-
-  propTypes: assignIf({
-    backgroundColor: T.any,
-    lights: T.array,
-    camera: T.object.isRequired,
-    objects: T.oneOfType([T.array, T.object]).isRequired,
-    antialias: T.bool,
-    onBackgroundClick: T.func,
-    rendererClass: T.func,
-    continuousRender: T.bool
-  }, commonPropTypes),
+class Canvas3D extends CanvasBase {
+  constructor(props) {
+    super(props)
+    this.initWorld = this.initWorld.bind(this)
+    this.updateWorld = this.updateWorld.bind(this)
+    this._onSceneClick = this._onSceneClick.bind(this)
+  }
 
   initWorld(canvas) {
     let world = new World3DFacade(canvas, {
@@ -27,7 +20,7 @@ const Canvas3D = React.createClass(assignIf({
     })
     world.renderHtmlItems = this.renderHtmlItems
     return world
-  },
+  }
 
   updateWorld(world) {
     let props = this.props
@@ -45,7 +38,7 @@ const Canvas3D = React.createClass(assignIf({
     }
     world.continuousRender = props.continuousRender
     world.afterUpdate()
-  },
+  }
 
   _onSceneClick(e) {
     // Ignore events that bubbled up
@@ -53,7 +46,19 @@ const Canvas3D = React.createClass(assignIf({
       this.props.onBackgroundClick(e)
     }
   }
-}, commonMethods))
+}
 
+Canvas3D.displayName = 'Canvas3D'
+
+Canvas3D.propTypes = assignIf({
+  backgroundColor: T.any,
+  lights: T.array,
+  camera: T.object.isRequired,
+  objects: T.oneOfType([T.array, T.object]).isRequired,
+  antialias: T.bool,
+  onBackgroundClick: T.func,
+  rendererClass: T.func,
+  continuousRender: T.bool
+}, commonPropTypes)
 
 export default Canvas3D
