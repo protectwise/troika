@@ -1,6 +1,7 @@
 import Facade, {isSpecialDescriptorProperty} from './Facade'
 import AnimatableDecorator from './AnimatableDecorator'
 
+let warnedAboutClassToFacade = false
 
 /**
  * ListFacade is an optimized way to define a large number of scene objects based on an array of data.
@@ -13,11 +14,11 @@ import AnimatableDecorator from './AnimatableDecorator'
  *
  *     {
  *       key: 'balls',
- *       class: ListFacade,
+ *       facade: ListFacade,
  *       data: itemsData,
  *       template: {
  *         key: (item, i, all) => `ball_${ item.id }`,
- *         class: Ball,
+ *         facade: Ball,
  *         x: (item, i, all) => item.time,
  *         y: (item, i, all) => item.count,
  *         radius: 10,
@@ -33,16 +34,24 @@ export default class List extends Facade {
     // Some basic validation in dev mode
     if (process.env.NODE_ENV !== 'production') {
       if (data && !Array.isArray(data)) {
-        throw 'ListFacade "data" must be an array.'
+        throw new Error('ListFacade "data" must be an array.')
       }
       if (!template || typeof template !== 'object') {
-        throw 'ListFacade "template" must be an object.'
+        throw new Error('ListFacade "template" must be an object.')
       }
       if (!template || typeof template.key !== 'function') {
-        throw 'ListFacade template must define a "key" function.'
+        throw new Error('ListFacade template must define a "key" function.')
       }
-      if (!template || typeof template.class !== 'function') {
-        throw 'ListFacade template must define a "class".'
+      if (!template || typeof template.facade !== 'function') {
+        if (template && typeof template.class === 'function') {
+          if (!warnedAboutClassToFacade) {
+            console.warn('The "class" property is deprecated in favor of "facade".')
+            warnedAboutClassToFacade = true
+          }
+          template.facade = template.class
+        } else {
+          throw new Error('ListFacade template must define a "facade".')
+        }
       }
     }
 
@@ -54,12 +63,12 @@ export default class List extends Facade {
         for (let i = 0, len = data.length; i < len; i++) {
           let childData = data[i]
           let key = template.key(childData, i, data)
-          let cla$$ = template.class
+          let facadeClass = template.facade
 
           // Some basic validation in dev mode
           if (process.env.NODE_ENV !== 'production') {
             if (!key || typeof key !== 'string') {
-              throw 'ListFacade template "key" function must return a string.'
+              throw new Error('ListFacade template "key" function must return a string.')
             }
             if (newDict[key]) {
               console.warn(`Duplicate key in list: ${key}`)
@@ -77,12 +86,12 @@ export default class List extends Facade {
           let animation = typeof template.animation === 'function' ? template.animation(childData, i, data) : template.animation
           let exitAnimation = typeof template.exitAnimation === 'function' ? template.exitAnimation(childData, i, data) : template.exitAnimation
           if (transition || animation || exitAnimation) {
-            cla$$ = cla$$.$animatableDecoratorClass || (cla$$.$animatableDecoratorClass = AnimatableDecorator(cla$$))
+            facadeClass = facadeClass.$animatableDecoratorClass || (facadeClass.$animatableDecoratorClass = AnimatableDecorator(facadeClass))
           }
 
           // If we have an old instance with the same key and class, reuse it; otherwise instantiate a new one
           let oldImpl = oldDict && oldDict[key]
-          let newImpl = oldImpl && oldImpl.constructor === cla$$ ? oldImpl : new cla$$(this)
+          let newImpl = oldImpl && oldImpl.constructor === facadeClass ? oldImpl : new facadeClass(this)
           //always set transition/animation before any other props
           newImpl.transition = transition
           newImpl.animation = animation

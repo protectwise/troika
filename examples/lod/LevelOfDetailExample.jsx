@@ -38,7 +38,7 @@ class LevelOfDetailExample extends React.Component {
           objects={ [[0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1]].map(([x, y], i) => (
             {
               key: `sphere${i}`,
-              class: Sphere,
+              facade: Sphere,
               x: x * 3,
               y: y * 3,
               wireframe: state.wireframe,

@@ -105,7 +105,7 @@ export default class Zone extends Object3DFacade {
         if (!this.children) {
           this.children = [{
             key: 'tooltip',
-            class: HtmlOverlay3DFacade,
+            facade: HtmlOverlay3DFacade,
             //center - will move along with transform of zone box:
             x: 0.5,
             y: 0.5,

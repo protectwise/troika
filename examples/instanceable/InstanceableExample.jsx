@@ -103,7 +103,7 @@ class InstanceableExample extends React.Component {
             { type: 'directional', color: 0xffffff, x: -1, y: -1, z: -1 }
           ] }
           camera={ {
-            class: OrbitingCamera,
+            facade: OrbitingCamera,
             far: 10000,
             radius: 2000,
             azimuth: 0, inclination: 0,
@@ -125,14 +125,14 @@ class InstanceableExample extends React.Component {
           } }
           objects={ {
             key: 'main',
-            class: Group3DFacade,
+            facade: Group3DFacade,
             children: {
               key: 'items',
-              class: ListFacade,
+              facade: ListFacade,
               data: state.data,
               template: {
                 key: (d) => d.id,
-                class: state.useInstancing ? InstanceableSphere : NonInstanceableSphere,
+                facade: state.useInstancing ? InstanceableSphere : NonInstanceableSphere,
                 id: (d) => d.id,
                 color: d => d.id === state.hoveredId ? 0xffffff : d.color,
                 x: d => d.x,

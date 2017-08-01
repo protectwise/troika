@@ -102,7 +102,7 @@ class CurveAnimExample extends React.Component {
           width={width}
           height={height}
           camera={{
-            class: OrthographicCamera3DFacade,
+            facade: OrthographicCamera3DFacade,
             z: 1,
             top: height / 2,
             bottom: -height / 2,
@@ -111,7 +111,7 @@ class CurveAnimExample extends React.Component {
           }}
           objects={{
             key: 'curve',
-            class: Curve,
+            facade: Curve,
             width: width,
             height: height * 0.4,
             y: -height * 0.2,

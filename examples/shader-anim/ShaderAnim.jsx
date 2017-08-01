@@ -50,7 +50,7 @@ class ShaderAnim extends React.Component {
           objects={ [
             {
               key: 'lava',
-              class: LavaCube,
+              facade: LavaCube,
               x: -100,
               y: 75,
               rotateX: state.rotateX,
@@ -70,7 +70,7 @@ class ShaderAnim extends React.Component {
             },
             {
               key: 'water',
-              class: WaterCube,
+              facade: WaterCube,
               x: 100,
               y: 75,
               rotateX: state.rotateX,
@@ -89,7 +89,7 @@ class ShaderAnim extends React.Component {
             },
             {
               key: 'fireball',
-              class: Fireball,
+              facade: Fireball,
               x: 0,
               y: -75,
               rotateX: state.rotateX,

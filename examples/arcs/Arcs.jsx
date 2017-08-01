@@ -89,11 +89,11 @@ class ArcsExample extends React.Component {
     function quadrant(key, baseAngle, baseRadius) {
       return {
         key: key,
-        class: ListFacade,
+        facade: ListFacade,
         data: state.data[key] || [],
         template: {
           key: d => d.id,
-          class: Arc,
+          facade: Arc,
           id: d => d.id,
           startAngle: d => baseAngle + d.startAngle,
           endAngle: d => baseAngle + d.endAngle,

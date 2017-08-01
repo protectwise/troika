@@ -27,7 +27,7 @@ class Scene3DFacade extends Object3DFacade {
   afterUpdate() {
     let children = {
       key: 'instancingMgr',
-      class: InstancingManager,
+      facade: InstancingManager,
       children: this.objects
     }
 
@@ -37,8 +37,8 @@ class Scene3DFacade extends Object3DFacade {
         let realDef = assign({}, def)
         delete realDef.type
         realDef.key = `$$$light_${ i }`
-        realDef.class = realDef.class || LIGHT_TYPES[def.type]
-        return realDef.class ? realDef : null
+        realDef.facade = realDef.facade || LIGHT_TYPES[def.type]
+        return realDef.facade ? realDef : null
       })
       children = lights.concat(children)
     }

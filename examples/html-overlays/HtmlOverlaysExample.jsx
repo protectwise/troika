@@ -51,15 +51,15 @@ class HtmlOverlaysExample extends React.Component {
           } }
           objects={ {
             key: 'main',
-            class: Group3DFacade,
+            facade: Group3DFacade,
             children: {
               key: 'boxes',
-              class: Group3DFacade,
+              facade: Group3DFacade,
               children: ['One', 'Two', 'Three', 'Four', 'Five', 'Six'].map((num, i, arr) => {
                 let angle = Math.PI * 2 * i / arr.length
                 return {
                   key: i,
-                  class: Box,
+                  facade: Box,
                   id: i,
                   x: Math.cos(angle) * 100,
                   y: Math.sin(angle) * 100,
@@ -79,14 +79,14 @@ class HtmlOverlaysExample extends React.Component {
                   children: [
                     {
                       key: 'dot',
-                      class: Dot,
+                      facade: Dot,
                       x: 20,
                       y: 20,
                       z: 20
                     },
                     {
                       key: 'glow',
-                      class: Glow,
+                      facade: Glow,
                       color: 0xffffff,
                       opacity: 0,
                       amount: i === state.hoveredBox ? .05 : 0,
@@ -101,7 +101,7 @@ class HtmlOverlaysExample extends React.Component {
                     },
                     {
                       key: 'html',
-                      class: HtmlOverlay3DFacade,
+                      facade: HtmlOverlay3DFacade,
                       x: 20,
                       y: 20,
                       z: 20,

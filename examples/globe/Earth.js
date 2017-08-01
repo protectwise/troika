@@ -49,11 +49,11 @@ class Earth extends Object3DFacade {
 
     this.children = {
       key: 'countries',
-      class: ListFacade,
+      facade: ListFacade,
       data: countriesData || [],
       template: {
         key: d => d.id,
-        class: Country,
+        facade: Country,
         id: d => d.id,
         coords: d => d.geometry.coordinates,
         color: this._getCountryColor.bind(this),

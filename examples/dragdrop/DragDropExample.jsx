@@ -143,7 +143,7 @@ class DragDropExample extends React.Component {
           } }
           objects={ {
             key: 'system',
-            class: Group3DFacade,
+            facade: Group3DFacade,
             rotateX: ORBITAL_PLANE_ROTATEX,
             children: state.planets.map((planet, i) => {
               let isDraggedPlanet = state.draggedPlanet === planet.id
@@ -152,7 +152,7 @@ class DragDropExample extends React.Component {
 
               return {
                 key: planet.id,
-                class: Group3DFacade,
+                facade: Group3DFacade,
 
                 rotateZ: planet.initialAngle,
 
@@ -167,7 +167,7 @@ class DragDropExample extends React.Component {
                 children: [
                   {
                     key: 'planet',
-                    class: Planet,
+                    facade: Planet,
                     id: planet.id,
                     x: planet.distance, //distance from sun
                     radius: planet.radius,
@@ -191,14 +191,14 @@ class DragDropExample extends React.Component {
                   },
                   {
                     key: 'orbitpath',
-                    class: Orbit,
+                    facade: Orbit,
                     distance: planet.distance
                   }
                 ]
               }
             }).concat({
               key: 'sun',
-              class: Sun,
+              facade: Sun,
               radius: 1,
               distance: 0,
               color: 0xffffff,

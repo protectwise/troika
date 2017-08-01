@@ -227,7 +227,7 @@ class CityGrid extends React.Component {
               }
             ]}
             camera={{
-              class: Camera,
+              facade: Camera,
               aspect: props.width / props.height,
               elevation: state.cameraElevation,
               angle: state.cameraAngle,
@@ -253,14 +253,14 @@ class CityGrid extends React.Component {
             objects={[
               {
                 key: 'main',
-                class: Group3DFacade,
+                facade: Group3DFacade,
                 x: -state.center[0],
                 y: -state.center[1],
                 z: 0,
                 children: [
                   {
                     key: 'ground',
-                    class: Ground,
+                    facade: Ground,
                     width: state.layoutSideLength,
                     height: state.layoutSideLength,
                     z: state.selectedHostIp ? DROPAWAY_Z : 0,
@@ -272,12 +272,12 @@ class CityGrid extends React.Component {
                   },
                   {
                     key: 'hosts',
-                    class: ListFacade,
+                    facade: ListFacade,
                     data: zoneHierarchy.leaves(),
                     shouldUpdateChildren: () => hostsChanged,
                     template: {
                       key: (host, i) => `host${i}`,
-                      class: Host,
+                      facade: Host,
                       ip: (host) => host.data.ip,
                       x: host => host.x0,
                       y: host => host.y0,
@@ -322,11 +322,11 @@ class CityGrid extends React.Component {
                   },
                   {
                     key: 'zones',
-                    class: ListFacade,
+                    facade: ListFacade,
                     data: zoneHierarchy.children,
                     template: {
                       key: (zone, i) => `zone${i}`,
-                      class: Zone,
+                      facade: Zone,
                       x: zone => zone.x0,
                       y: zone => zone.y0,
                       z: zone => state.selectedHostIp ? DROPAWAY_Z : 0,

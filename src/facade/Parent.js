@@ -2,7 +2,7 @@ import Facade, {isSpecialDescriptorProperty} from './Facade'
 import AnimatableDecorator from './AnimatableDecorator'
 
 const TEMP_ARRAY = [null]
-
+let warnedAboutClassToFacade = false
 
 /**
  * Base facade class for objects that have `children`. Manages creating and destroying child
@@ -52,15 +52,22 @@ export default class ParentFacade extends Facade {
           newDict = this._childrenDict = Object.create(null)
         }
         let key = childDesc.key
-        let cla$$ = childDesc.class
+        let facadeClass = childDesc.facade
 
         // Some basic validation in dev mode
         if (process.env.NODE_ENV !== 'production') {
-          if (!key || !cla$$) {
-            throw 'All scene objects must have a "key" and "class" defined.'
+          if (!facadeClass && childDesc.class) {
+            if (!warnedAboutClassToFacade) {
+              console.warn('The "class" property is deprecated in favor of "facade".')
+              warnedAboutClassToFacade = true
+            }
+            facadeClass = childDesc.class
           }
-          if (typeof cla$$ !== 'function') {
-            throw 'The "class" property must point to a constructor function.'
+          if (!key || !facadeClass) {
+            throw new Error('All scene objects must have a "key" and "facade" defined.')
+          }
+          if (typeof facadeClass !== 'function') {
+            throw new Error('The "facade" property must point to a constructor function.')
           }
           if (newDict[key]) {
             console.warn(`Duplicate key in children: ${key}`)
@@ -77,12 +84,12 @@ export default class ParentFacade extends Facade {
         let transition = childDesc.transition
         let animation = childDesc.animation
         if (transition || animation || childDesc.exitAnimation) {
-          cla$$ = cla$$.$animatableDecoratorClass || (cla$$.$animatableDecoratorClass = AnimatableDecorator(cla$$))
+          facadeClass = facadeClass.$animatableDecoratorClass || (facadeClass.$animatableDecoratorClass = AnimatableDecorator(facadeClass))
         }
 
         // If we have an old instance with the same key and class, update it, otherwise instantiate a new one
         let oldImpl = oldDict && oldDict[key]
-        let newImpl = oldImpl && (oldImpl.constructor === cla$$) ? oldImpl : new cla$$(this)
+        let newImpl = oldImpl && (oldImpl.constructor === facadeClass) ? oldImpl : new facadeClass(this)
         //always set transition/animation before any other props
         newImpl.transition = transition
         newImpl.animation = animation

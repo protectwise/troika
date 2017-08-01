@@ -152,7 +152,7 @@ class GlobeExample extends React.Component {
           objects={ [
             {
               key: 'earth',
-              class: Earth,
+              facade: Earth,
               scaleX: 100,
               scaleY: state.colorScheme === 'pumpkin' ? 70 : 100,
               scaleZ: 100,

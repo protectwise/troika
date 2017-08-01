@@ -75,7 +75,7 @@ class Canvas2DExample extends React.Component {
           objects={ [
             {
               key: 'circle1',
-              class: CircleFacade,
+              facade: CircleFacade,
               x: 100,
               y: 100,
               r: 50,
@@ -90,7 +90,7 @@ class Canvas2DExample extends React.Component {
             },
             {
               key: 'circle2',
-              class: CircleFacade,
+              facade: CircleFacade,
               x: 100,
               y: 300,
               r: 50,
@@ -105,7 +105,7 @@ class Canvas2DExample extends React.Component {
             },
             {
               key: 'group1',
-              class: Group2DFacade,
+              facade: Group2DFacade,
               x: 300,
               y: 300,
               scaleY: 2,
@@ -118,7 +118,7 @@ class Canvas2DExample extends React.Component {
               children: [
                 {
                   key: 'circle1',
-                  class: CircleFacade,
+                  facade: CircleFacade,
                   x: -100,
                   r: 25,
                   fill: '#090',
@@ -132,14 +132,14 @@ class Canvas2DExample extends React.Component {
                 },
                 {
                   key: 'circle2',
-                  class: CircleFacade,
+                  facade: CircleFacade,
                   x: 100,
                   r: 25,
                   stroke: '#090',
                   scaleY: 2,
                   children: [0, 1, 2, 3].map(i => ({
                     key: `html${i}`,
-                    class: HtmlOverlay2DFacade,
+                    facade: HtmlOverlay2DFacade,
                     x: 25 * Math.cos(Math.PI * i / 2),
                     y: 25 * Math.sin(Math.PI * i / 2),
                     html: <em style={ {color: '#fff', textShadow: '0 0 1px #000'} }>{ i }</em>
@@ -155,11 +155,11 @@ class Canvas2DExample extends React.Component {
             },
             {
               key: 'hitTest',
-              class: Group2DFacade,
+              facade: Group2DFacade,
               children: [
                 {
                   key: '1',
-                  class: RectFacade,
+                  facade: RectFacade,
                   x: 0,
                   y: 600,
                   width: 100,
@@ -168,7 +168,7 @@ class Canvas2DExample extends React.Component {
                 },
                 {
                   key: '2',
-                  class: RectFacade,
+                  facade: RectFacade,
                   x: 50,
                   y: 650,
                   width: 100,
@@ -177,7 +177,7 @@ class Canvas2DExample extends React.Component {
                 },
                 {
                   key: '3',
-                  class: RectFacade,
+                  facade: RectFacade,
                   x: 100,
                   y: 700,
                   width: 100,
@@ -188,12 +188,12 @@ class Canvas2DExample extends React.Component {
             },
             {
               key: 'zIndexChanges',
-              class: Group2DFacade,
+              facade: Group2DFacade,
               x: 300,
               y: 500,
               children: [0,1,2,3,4,5,6,7].map(i => ({
                 key: `${i}`,
-                class: RectFacade,
+                facade: RectFacade,
                 x: i * 20,
                 y: 0,
                 width: 50,

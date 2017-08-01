@@ -31,7 +31,7 @@ import {assign} from '../utils'
  *
  *   - `key`: (required) an identifier that is unique amongst the descriptor's siblings, which
  *     is used to associate the descriptor with its corresponding Facade instance.
- *   - `class`: (required) a reference to the Facade class that will be instantiated.
+ *   - `facade`: (required) a reference to the Facade class that will be instantiated.
  *   - `children`: (optional) for `Parent` facade subclasses, defines the child object descriptors.
  *   - `transition`: (optional) defines a set of properties that should be transitioned smoothly
  *     when their value changes. See `Animatable` for more details.
@@ -129,7 +129,7 @@ assign(Facade.prototype, {
 
 
 let idCounter = 0
-const DEF_SPECIAL_PROPS = {key:1, class:1, transition:1, animation:1}
+const DEF_SPECIAL_PROPS = {key:1, 'class':1, facade:1, transition:1, animation:1}
 
 /**
  * Determine if a certain property name is one of the special descriptor properties

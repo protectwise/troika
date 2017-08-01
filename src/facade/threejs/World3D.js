@@ -38,12 +38,12 @@ class World3DFacade extends WorldBaseFacade {
   afterUpdate() {
     let {camera, scene, width, height} = this
     camera.key = 'camera'
-    camera.class = camera.class || PerspectiveCamera3DFacade
+    camera.facade = camera.facade || PerspectiveCamera3DFacade
     if (typeof camera.aspect !== 'number') {
       camera.aspect = width / height
     }
     scene.key = 'scene'
-    scene.class = scene.class || Scene3DFacade
+    scene.facade = scene.facade || Scene3DFacade
     this.children = [camera, scene]
 
     let renderer = this._threeRenderer

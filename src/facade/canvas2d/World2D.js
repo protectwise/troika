@@ -53,7 +53,7 @@ class World2DFacade extends WorldBaseFacade {
   afterUpdate() {
     this.children = {
       key: 'bg',
-      class: BackgroundFacade,
+      facade: BackgroundFacade,
       color: this.backgroundColor,
       width: this.width,
       height: this.height,
