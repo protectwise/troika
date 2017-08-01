@@ -2,8 +2,6 @@ import React from 'react'
 import T from 'prop-types'
 import HtmlOverlay from './HtmlOverlay.jsx'
 
-
-
 export const commonPropTypes = {
   width: T.number.isRequired,
   height: T.number.isRequired,
@@ -11,7 +9,6 @@ export const commonPropTypes = {
   className: T.string,
   cursor: T.string
 }
-
 
 // export const commonMethods = {
 
@@ -42,7 +39,8 @@ export default class CanvasBase extends React.Component {
    */
   updateWorld(world) {}
 
-  destroyWorld() { //just to see it burn
+  destroyWorld() {
+    //just to see it burn
     if (this._world) {
       this._world.destructor()
       delete this._world
@@ -62,10 +60,13 @@ export default class CanvasBase extends React.Component {
   _bindCanvasRef(canvas) {
     if (canvas) {
       try {
-        let world = this._world = this.initWorld(canvas)
+        let world = (this._world = this.initWorld(canvas))
         this.updateWorld(world)
-      } catch(e) {
-        console.warn(`Troika.${this.constructor.displayName}: world init failed`, e)
+      } catch (e) {
+        console.warn(
+          `Troika.${this.constructor.displayName}: world init failed`,
+          e
+        )
         this._failedWorldInit = true
         this.forceUpdate()
       }
@@ -75,23 +76,24 @@ export default class CanvasBase extends React.Component {
   }
 
   render() {
-    let {props} = this
+    let { props } = this
     return (
-      <div className={ `troika ${props.className || ''}` } style={ {
-        position: 'relative',
-        overflow: 'hidden',
-        width: props.width,
-        height: props.height,
-        cursor: props.cursor,
-        userSelect: 'none'
-      } }>
-        { this._failedWorldInit ? this.props.children : (
-          <canvas className="troika_canvas" ref={ this._bindCanvasRef } />
-        ) }
-        <HtmlOverlay ref={ this._bindHtmlOverlayRef } />
+      <div
+        className={`troika ${props.className || ''}`}
+        style={{
+          position: 'relative',
+          overflow: 'hidden',
+          width: props.width,
+          height: props.height,
+          cursor: props.cursor,
+          userSelect: 'none'
+        }}
+      >
+        {this._failedWorldInit
+          ? this.props.children
+          : <canvas className="troika_canvas" ref={this._bindCanvasRef} />}
+        <HtmlOverlay ref={this._bindHtmlOverlayRef} />
       </div>
     )
   }
 }
-
-

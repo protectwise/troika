@@ -1,5 +1,5 @@
 import React from 'react'
-
+import T from 'prop-types'
 
 const CT_STYLES = {
   position: 'absolute',
@@ -12,21 +12,30 @@ const CT_STYLES = {
 }
 
 class HtmlOverlayContent extends React.Component {
-  shouldComponentUpdate(newProps) {
-    return newProps.html !== this.props.html ||
+  shouldComponentUpdate (newProps) {
+    return (
+      newProps.html !== this.props.html ||
       (newProps.html.props && newProps.html.props.shouldUpdateOnMove) === true
+    )
   }
 
-  render() {
+  render () {
     let html = this.props.html
-    return typeof html === 'string' ? <span>{ html }</span> : React.cloneElement(html)
+    return typeof html === 'string'
+      ? <span>
+        {html}
+      </span>
+      : React.cloneElement(html)
   }
 }
 
 HtmlOverlayContent.displayName = 'Canvas3D.HtmlOverlayContent'
+HtmlOverlayContent.propTypes = {
+  html: T.node
+}
 
 class HtmlOverlay extends React.Component {
-  constructor(props) {
+  constructor (props) {
     super(props)
     this.setItems = this.setItems.bind(this)
     this.state = {
@@ -34,43 +43,48 @@ class HtmlOverlay extends React.Component {
     }
   }
 
-  shouldComponentUpdate(newProps, newState) {
+  shouldComponentUpdate (newProps, newState) {
     let oldState = this.state
-    return (newState.items && newState.items.length) || (oldState.items && oldState.items.length)
+    return (
+      (newState.items && newState.items.length) ||
+      (oldState.items && oldState.items.length)
+    )
   }
 
-  setItems(items) {
+  setItems (items) {
     let lastItems = this.state.items
     if ((items && items.length) || (lastItems && lastItems.length)) {
-      this.setState({items: items || null})
+      this.setState({ items: items || null })
     }
   }
 
-  render() {
+  render () {
     let items = this.state.items
     let round = Math.round
-    return items && items.length ? (
-      <div className="troika_html_overlay" style={ CT_STYLES }>
-        { items.map(({key, html, x, y, z, exact}) => {
+    return items && items.length
+      ? <div className='troika_html_overlay' style={CT_STYLES}>
+        {items.map(({ key, html, x, y, z, exact }) => {
           if (!exact) {
             x = round(x)
             y = round(y)
           }
           return (
-            <div key={ key } style={ {
-              position: 'absolute',
-              transform: `translate3d(${ x }px, ${ y }px, ${-z}px)`}
-            }>
-              <HtmlOverlayContent html={ html } />
+            <div
+              key={key}
+              style={{
+                position: 'absolute',
+                transform: `translate3d(${x}px, ${y}px, ${-z}px)`
+              }}
+            >
+              <HtmlOverlayContent html={html} />
             </div>
           )
-        }) }
+        })}
       </div>
-    ) : null
+      : null
   }
 }
 
 HtmlOverlay.displayName = 'Canvas3D.HtmlOverlay'
-
 
 export default HtmlOverlay

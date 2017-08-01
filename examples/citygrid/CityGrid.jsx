@@ -17,9 +17,8 @@ const randomThreatLevel = () => random(0, 20) ? null : sample(['Low', 'Medium', 
 const randomZoneHeight = () => random(1, 10)
 const randomHostHeight = () => Math.max(1, random(-10, 20))
 
-
 class CityGrid extends React.Component {
-  constructor(props) {
+  constructor (props) {
     super(props)
     this.state = {
       isLoading: true,
@@ -27,7 +26,7 @@ class CityGrid extends React.Component {
       cameraElevation: 50,
       cameraDistance: 100,
       cameraAngle: 0,
-      cameraLookAt: {x:0, y:0, z:0},
+      cameraLookAt: {x: 0, y: 0, z: 0},
       rotatingCamera: false,
       enableTransitions: true,
       showZoneLabels: false,
@@ -49,15 +48,15 @@ class CityGrid extends React.Component {
     this._onSceneClick = this._onSceneClick.bind(this)
   }
 
-  componentWillMount() {
+  componentWillMount () {
     this._generateData()
   }
 
-  componentWillUnmount() {
-    cancelAnimationFrame(this._cameraRotateRAF)
+  componentWillUnmount () {
+    window.cancelAnimationFrame(this._cameraRotateRAF)
   }
 
-  _generateData() {
+  _generateData () {
     // Mockery
     let data = {children: []}
     for (let zone = 0; zone < 20; zone++) {
@@ -72,7 +71,7 @@ class CityGrid extends React.Component {
           value: 1,
           height: randomHostHeight(),
           threatLevel: randomThreatLevel(),
-          ip: `${random(1,255)}.${random(1,255)}.${random(1,255)}.${random(1,255)}`
+          ip: `${random(1, 255)}.${random(1, 255)}.${random(1, 255)}.${random(1, 255)}`
         })
       }
       data.children.push(zoneData)
@@ -96,7 +95,7 @@ class CityGrid extends React.Component {
     console.log(`Generated ${zoneHierarchy.children.length} zones with ${zoneHierarchy.leaves().length} hosts`)
   }
 
-  _changeHeights() {
+  _changeHeights () {
     let data = clone(this.state.data)
     data.children.forEach(z => {
       z.height = random(1, 10)
@@ -108,7 +107,7 @@ class CityGrid extends React.Component {
     this.setState({data})
   }
 
-  _changeThreatLevels() {
+  _changeThreatLevels () {
     let data = clone(this.state.data)
     data.children.forEach(z => {
       z.children.forEach(h => {
@@ -119,7 +118,7 @@ class CityGrid extends React.Component {
     this.setState({data})
   }
 
-  _onMouseWheel(e) {
+  _onMouseWheel (e) {
     let {shiftKey, deltaY} = e.nativeEvent
     e.preventDefault()
     this._isWheeling = true
@@ -133,7 +132,7 @@ class CityGrid extends React.Component {
     }
   }
 
-  _gotoRandomCameraPos() {
+  _gotoRandomCameraPos () {
     this.setState({
       cameraElevation: random(1, 200),
       cameraDistance: random(1, 200),
@@ -141,22 +140,22 @@ class CityGrid extends React.Component {
     })
   }
 
-  _toggleRotation() {
+  _toggleRotation () {
     let rotating = this.state.rotatingCamera
     rotating = !rotating ? 'state' : rotating === 'state' ? 'animation' : null
     this._lastRotationTime = null
     this.setState({rotatingCamera: rotating}, this._tickCameraRotation)
   }
 
-  _toggleTransitions() {
+  _toggleTransitions () {
     this.setState({enableTransitions: !this.state.enableTransitions})
   }
 
-  _toggleZoneLabels() {
+  _toggleZoneLabels () {
     this.setState({showZoneLabels: !this.state.showZoneLabels})
   }
 
-  _tickCameraRotation() {
+  _tickCameraRotation () {
     if (this.state.rotatingCamera === 'state') {
       let now = Date.now()
       if (this._lastRotationTime) {
@@ -164,58 +163,55 @@ class CityGrid extends React.Component {
         this.setState({cameraAngle: this.state.cameraAngle + (Math.PI * 2 * (dur / 30000))}) // 30s around
       }
       this._lastRotationTime = now
-      this._cameraRotateRAF = requestAnimationFrame(this._tickCameraRotation)
+      this._cameraRotateRAF = window.requestAnimationFrame(this._tickCameraRotation)
     }
   }
 
-
-  _onHostMouseOver(e) {
+  _onHostMouseOver (e) {
     this._hostsChanged = true
     this.setState({hoveredHostIp: e.target.ip})
   }
 
-  _onHostMouseOut(e) {
+  _onHostMouseOut (e) {
     this._hostsChanged = true
     this.setState({hoveredHostIp: null})
   }
 
-  _onHostClick(e) {
+  _onHostClick (e) {
     this._hostsChanged = true
     this.setState({selectedHostIp: e.target.ip})
   }
 
-  _onSceneClick(e) {
+  _onSceneClick (e) {
     this._hostsChanged = true
     this.setState({selectedHostIp: null})
   }
 
-
-
-  render() {
+  render () {
     let {props, state} = this
     let zoneHierarchy = state.hierarchy
     let hostsChanged = this._hostsChanged
     this._hostsChanged = false
 
     return (
-      <div className="the_grid" onWheel={ this._onMouseWheel }>
-        <div className="example_controls">
-          <button onClick={ this._changeHeights }>Change Heights</button>
-          <button onClick={ this._changeThreatLevels }>Change Threats</button>
-          <button onClick={ this._generateData }>Regen Full</button>
-          <button onClick={ this._gotoRandomCameraPos }>Random Camera Pos</button>
-          <button onClick={ this._toggleRotation }>Rotate: { state.rotatingCamera || 'off' }</button>
-          <button onClick={ this._toggleTransitions }>Transitions: { state.enableTransitions ? 'on' : 'off' }</button>
-          <button onClick={ this._toggleZoneLabels }>Zone Labels: { state.showZoneLabels ? 'on' : 'off' }</button>
+      <div className='the_grid' onWheel={this._onMouseWheel}>
+        <div className='example_controls'>
+          <button onClick={this._changeHeights}>Change Heights</button>
+          <button onClick={this._changeThreatLevels}>Change Threats</button>
+          <button onClick={this._generateData}>Regen Full</button>
+          <button onClick={this._gotoRandomCameraPos}>Random Camera Pos</button>
+          <button onClick={this._toggleRotation}>Rotate: { state.rotatingCamera || 'off' }</button>
+          <button onClick={this._toggleTransitions}>Transitions: { state.enableTransitions ? 'on' : 'off' }</button>
+          <button onClick={this._toggleZoneLabels}>Zone Labels: { state.showZoneLabels ? 'on' : 'off' }</button>
         </div>
 
         { state.data ? (
           <Canvas3D
-            width={ props.width }
-            height={ props.height }
+            width={props.width}
+            height={props.height}
             antialias
-            backgroundColor={ 0x222222 }
-            lights={ [
+            backgroundColor={0x222222}
+            lights={[
               {
                 type: 'ambient',
                 color: 0xffffff,
@@ -229,8 +225,8 @@ class CityGrid extends React.Component {
                 color: 0xffffff,
                 intensity: 1
               }
-            ] }
-            camera={ {
+            ]}
+            camera={{
               class: Camera,
               aspect: props.width / props.height,
               elevation: state.cameraElevation,
@@ -249,12 +245,12 @@ class CityGrid extends React.Component {
                 duration: 30000,
                 iterations: Infinity
               } : null
-            } }
-            fog={ {
+            }}
+            fog={{
               color: 0x222222,
-              density: 0.003,
-            } }
-            objects={ [
+              density: 0.003
+            }}
+            objects={[
               {
                 key: 'main',
                 class: Group3DFacade,
@@ -280,12 +276,12 @@ class CityGrid extends React.Component {
                     data: zoneHierarchy.leaves(),
                     shouldUpdateChildren: () => hostsChanged,
                     template: {
-                      key: (host, i) => `host${ i }`,
+                      key: (host, i) => `host${i}`,
                       class: Host,
                       ip: (host) => host.data.ip,
                       x: host => host.x0,
                       y: host => host.y0,
-                      z: state.selectedHostIp ? (host => host.data.ip === state.selectedHostIp ? 0 : DROPAWAY_Z) : 0,
+                      z: state.selectedHostIp ? host => host.data.ip === state.selectedHostIp ? 0 : DROPAWAY_Z : 0,
                       rotateZ: 0,
                       height: host => host.data.height,
                       threatLevel: host => host.data.threatLevel,
@@ -329,7 +325,7 @@ class CityGrid extends React.Component {
                     class: ListFacade,
                     data: zoneHierarchy.children,
                     template: {
-                      key: (zone, i) => `zone${ i }`,
+                      key: (zone, i) => `zone${i}`,
                       class: Zone,
                       x: zone => zone.x0,
                       y: zone => zone.y0,
@@ -355,8 +351,8 @@ class CityGrid extends React.Component {
                   }
                 ]
               }
-            ] }
-            onBackgroundClick={ this._onSceneClick }
+            ]}
+            onBackgroundClick={this._onSceneClick}
           />
         ) : null }
       </div>

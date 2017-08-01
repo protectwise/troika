@@ -1,9 +1,7 @@
-import {assignIf} from '../utils'
-import React from 'react'
+import { assignIf } from '../utils'
 import T from 'prop-types'
 import World3DFacade from '../facade/threejs/World3D'
-import CanvasBase, {commonPropTypes} from './CanvasBase.jsx'
-
+import CanvasBase, { commonPropTypes } from './CanvasBase.jsx'
 
 class Canvas3D extends CanvasBase {
   constructor(props) {
@@ -50,15 +48,18 @@ class Canvas3D extends CanvasBase {
 
 Canvas3D.displayName = 'Canvas3D'
 
-Canvas3D.propTypes = assignIf({
-  backgroundColor: T.any,
-  lights: T.array,
-  camera: T.object.isRequired,
-  objects: T.oneOfType([T.array, T.object]).isRequired,
-  antialias: T.bool,
-  onBackgroundClick: T.func,
-  rendererClass: T.func,
-  continuousRender: T.bool
-}, commonPropTypes)
+Canvas3D.propTypes = assignIf(
+  {
+    backgroundColor: T.any,
+    lights: T.array,
+    camera: T.object.isRequired,
+    objects: T.oneOfType([T.array, T.object]).isRequired,
+    antialias: T.bool,
+    onBackgroundClick: T.func,
+    rendererClass: T.func,
+    continuousRender: T.bool
+  },
+  commonPropTypes
+)
 
 export default Canvas3D

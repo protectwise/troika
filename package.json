@@ -16,15 +16,9 @@
   },
   "devDependencies": {
     "adaptive-bezier-curve": "^1.0.3",
-    "babel-eslint": "^7.2.3",
     "d3-hierarchy": "^1.0.2",
     "d3-voronoi": "^1.1.0",
-    "eslint": "^4.3.0",
-    "eslint-config-prettier": "^2.3.0",
-    "eslint-plugin-prettier": "^2.1.2",
-    "eslint-plugin-react": "^7.1.0",
     "lodash": "^4.16.6",
-    "prettier": "^1.5.3",
     "react": "^15.3.0",
     "react-dom": "^15.3.0",
     "rollup": "^0.36.3",
@@ -35,6 +29,7 @@
     "rollup-plugin-serve": "^0.1.0",
     "rollup-plugin-string": "^2.0.2",
     "rollup-watch": "^2.5.0",
+    "standard": "^10.0.2",
     "three-line-2d": "^1.1.6",
     "uglify-js": "^2.7.3",
     "whatwg-fetch": "latest"
@@ -45,8 +40,8 @@
     "watch": "rollup -w -c",
     "examples": "rollup -w -c rollup.config.examples.js",
     "clean": "rm -rf build",
-    "lint": "eslint {src,examples}/*.{js,jsx}",
-    "pretty": "prettier --no-semi --parser=flow --tab-width=2 --single-quote --trailing-comma=none --write \"src/{,**/}*.{js,jsx}\""
+    "lint": "standard",
+    "lint-fix": "standard --fix"
   },
   "publishConfig": {
     "registry": "https://internal-npm/content/repositories/npm/"
