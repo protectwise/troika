@@ -1,4 +1,5 @@
 import React from 'react'
+import T from 'prop-types'
 import ReactDOM from 'react-dom'
 import {Canvas3D, Group3DFacade} from '../../src/index'
 import {Plane, Vector2, Matrix4, Raycaster} from 'three'
@@ -11,13 +12,26 @@ import find from 'lodash/find'
 const ORBITAL_PLANE_ROTATEX = -Math.PI / 3
 
 
-export default React.createClass({
-  propTypes: {
-    width: React.PropTypes.number,
-    height: React.PropTypes.number
-  },
+class DragDropExample extends React.Component {
+  constructor(props) {
+    super(props)
 
-  getInitialState() {
+    this._getInitialState = this._getInitialState.bind(this)
+    this._reset = this._reset.bind(this)
+    this._onCameraRef = this._onCameraRef.bind(this)
+    this._onPlanetMouseOver = this._onPlanetMouseOver.bind(this)
+    this._onPlanetMouseOut = this._onPlanetMouseOut.bind(this)
+    this._onPlanetDragStart = this._onPlanetDragStart.bind(this)
+    this._onPlanetDrag = this._onPlanetDrag.bind(this)
+    this._onPlanetDragEnd = this._onPlanetDragEnd.bind(this)
+    this._onPlanetDragEnter = this._onPlanetDragEnter.bind(this)
+    this._onPlanetDragLeave = this._onPlanetDragLeave.bind(this)
+    this._onPlanetDrop = this._onPlanetDrop.bind(this)
+
+    this.state = this._getInitialState()
+  }
+
+  _getInitialState() {
     // Generate planets
     let planets = []
     for (let i = 0; i < 10; i++) {
@@ -35,27 +49,27 @@ export default React.createClass({
       hoveredPlanet: null,
       draggedPlanet: null
     }
-  },
+  }
 
   _reset() {
-    this.setState(this.getInitialState())
-  },
+    this.setState(this._getInitialState())
+  }
 
   _onCameraRef(ref) {
     this._cameraFacade = ref
-  },
+  }
 
   _onPlanetMouseOver(e) {
     this.setState({hoveredPlanet: e.target.id})
-  },
+  }
 
   _onPlanetMouseOut() {
     this.setState({hoveredPlanet: null})
-  },
+  }
 
   _onPlanetDragStart(e) {
     this.setState({draggedPlanet: e.target.id})
-  },
+  }
 
   _onPlanetDrag(e) {
     // Determine event's point on the orbital plane
@@ -76,22 +90,22 @@ export default React.createClass({
     planetData.initialAngle = posVec3.x === 0 ? 0 : Math.atan(posVec3.y / posVec3.x) + (posVec3.x < 0 ? Math.PI : 0)
     planetData.distance = Math.sqrt(posVec3.x * posVec3.x + posVec3.y * posVec3.y)
     this.forceUpdate()
-  },
+  }
 
   _onPlanetDragEnd(e) {
     this.setState({
       draggedPlanet: null,
       droppablePlanet: null
     })
-  },
+  }
 
   _onPlanetDragEnter(e) {
     this.setState({droppablePlanet: e.target.id})
-  },
-  
+  }
+
   _onPlanetDragLeave(e) {
     this.setState({droppablePlanet: null})
-  },
+  }
 
   _onPlanetDrop(e) {
     let {draggedPlanet, droppablePlanet, planets} = this.state
@@ -104,7 +118,7 @@ export default React.createClass({
       planets.splice(planets.indexOf(draggedPlanet), 1)
       this._onPlanetDragEnd()
     }
-  },
+  }
 
   render() {
     let state = this.state
@@ -135,7 +149,7 @@ export default React.createClass({
               let isDraggedPlanet = state.draggedPlanet === planet.id
               let isDroppablePlanet = state.droppablePlanet === planet.id
               let isHoveredPlanet = state.hoveredPlanet === planet.id
-              
+
               return {
                 key: planet.id,
                 class: Group3DFacade,
@@ -203,5 +217,11 @@ export default React.createClass({
       </div>
     )
   }
-})
+}
 
+DragDropExample.propTypes = {
+  width: T.number,
+  height: T.number
+}
+
+export default DragDropExample

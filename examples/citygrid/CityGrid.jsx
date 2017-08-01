@@ -2,6 +2,7 @@ import random from 'lodash/random'
 import sample from 'lodash/sample'
 import clone from 'lodash/clone'
 import React from 'react'
+import T from 'prop-types'
 import {hierarchy, treemap, treemapResquarify} from 'd3-hierarchy'
 import {Canvas3D, Group3DFacade, ListFacade} from '../../src/index'
 import Ground from './Ground'
@@ -17,16 +18,10 @@ const randomZoneHeight = () => random(1, 10)
 const randomHostHeight = () => Math.max(1, random(-10, 20))
 
 
-const CityGrid = React.createClass({
-  displayName: 'CityGrid',
-
-  propTypes: {
-    width: React.PropTypes.number,
-    height: React.PropTypes.number
-  },
-
-  getInitialState() {
-    return {
+class CityGrid extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
       isLoading: true,
       data: null,
       cameraElevation: 50,
@@ -39,15 +34,28 @@ const CityGrid = React.createClass({
       hoveredHostIp: null,
       selectedHostIp: null
     }
-  },
+    this._generateData = this._generateData.bind(this)
+    this._changeHeights = this._changeHeights.bind(this)
+    this._changeThreatLevels = this._changeThreatLevels.bind(this)
+    this._onMouseWheel = this._onMouseWheel.bind(this)
+    this._gotoRandomCameraPos = this._gotoRandomCameraPos.bind(this)
+    this._toggleRotation = this._toggleRotation.bind(this)
+    this._toggleTransitions = this._toggleTransitions.bind(this)
+    this._toggleZoneLabels = this._toggleZoneLabels.bind(this)
+    this._tickCameraRotation = this._tickCameraRotation.bind(this)
+    this._onHostMouseOver = this._onHostMouseOver.bind(this)
+    this._onHostMouseOut = this._onHostMouseOut.bind(this)
+    this._onHostClick = this._onHostClick.bind(this)
+    this._onSceneClick = this._onSceneClick.bind(this)
+  }
 
   componentWillMount() {
     this._generateData()
-  },
+  }
 
   componentWillUnmount() {
     cancelAnimationFrame(this._cameraRotateRAF)
-  },
+  }
 
   _generateData() {
     // Mockery
@@ -86,7 +94,7 @@ const CityGrid = React.createClass({
       isLoading: false
     })
     console.log(`Generated ${zoneHierarchy.children.length} zones with ${zoneHierarchy.leaves().length} hosts`)
-  },
+  }
 
   _changeHeights() {
     let data = clone(this.state.data)
@@ -98,7 +106,7 @@ const CityGrid = React.createClass({
     })
     this._hostsChanged = true
     this.setState({data})
-  },
+  }
 
   _changeThreatLevels() {
     let data = clone(this.state.data)
@@ -109,7 +117,7 @@ const CityGrid = React.createClass({
     })
     this._hostsChanged = true
     this.setState({data})
-  },
+  }
 
   _onMouseWheel(e) {
     let {shiftKey, deltaY} = e.nativeEvent
@@ -123,7 +131,7 @@ const CityGrid = React.createClass({
     } else {
       this.setState({cameraDistance: Math.max(1, this.state.cameraDistance + deltaY / 5)}, after)
     }
-  },
+  }
 
   _gotoRandomCameraPos() {
     this.setState({
@@ -131,22 +139,22 @@ const CityGrid = React.createClass({
       cameraDistance: random(1, 200),
       cameraAngle: this.state.cameraAngle + random(-Math.PI / 2, Math.PI / 2)
     })
-  },
+  }
 
   _toggleRotation() {
     let rotating = this.state.rotatingCamera
     rotating = !rotating ? 'state' : rotating === 'state' ? 'animation' : null
     this._lastRotationTime = null
     this.setState({rotatingCamera: rotating}, this._tickCameraRotation)
-  },
+  }
 
   _toggleTransitions() {
     this.setState({enableTransitions: !this.state.enableTransitions})
-  },
+  }
 
   _toggleZoneLabels() {
     this.setState({showZoneLabels: !this.state.showZoneLabels})
-  },
+  }
 
   _tickCameraRotation() {
     if (this.state.rotatingCamera === 'state') {
@@ -158,28 +166,28 @@ const CityGrid = React.createClass({
       this._lastRotationTime = now
       this._cameraRotateRAF = requestAnimationFrame(this._tickCameraRotation)
     }
-  },
+  }
 
 
   _onHostMouseOver(e) {
     this._hostsChanged = true
     this.setState({hoveredHostIp: e.target.ip})
-  },
+  }
 
   _onHostMouseOut(e) {
     this._hostsChanged = true
     this.setState({hoveredHostIp: null})
-  },
+  }
 
   _onHostClick(e) {
     this._hostsChanged = true
     this.setState({selectedHostIp: e.target.ip})
-  },
+  }
 
   _onSceneClick(e) {
     this._hostsChanged = true
     this.setState({selectedHostIp: null})
-  },
+  }
 
 
 
@@ -354,9 +362,13 @@ const CityGrid = React.createClass({
       </div>
     )
   }
-})
+}
 
+CityGrid.displayName = 'CityGrid'
 
-
+CityGrid.propTypes = {
+  width: T.number,
+  height: T.number
+}
 
 export default CityGrid

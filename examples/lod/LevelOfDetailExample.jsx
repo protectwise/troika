@@ -1,26 +1,22 @@
 import React from 'react'
+import T from 'prop-types'
 import {Canvas3D, Group3DFacade} from '../../src/index'
 import Sphere from './Sphere'
 
-
 const ANIM_DUR = 5000
 
-
-export default React.createClass({
-  propTypes: {
-    width: React.PropTypes.number,
-    height: React.PropTypes.number
-  },
-
-  getInitialState() {
-    return {
+class LevelOfDetailExample extends React.Component {
+  constructor(props) {
+    super(props)
+    this.toggleWireframe = this.toggleWireframe.bind(this)
+    this.state = {
       wireframe: true
     }
-  },
+  }
 
   toggleWireframe() {
     this.setState({wireframe: !this.state.wireframe})
-  },
+  }
 
   render() {
     let state = this.state
@@ -69,5 +65,11 @@ export default React.createClass({
       </div>
     )
   }
-})
+}
 
+  LevelOfDetailExample.propTypes = {
+    width: T.number,
+    height: T.number
+  }
+
+  export default LevelOfDetailExample

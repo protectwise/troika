@@ -1,4 +1,5 @@
 import React from 'react'
+import T from 'prop-types'
 import {Canvas3D, Group3DFacade, ListFacade, PerspectiveCamera3DFacade} from '../../src/index'
 import {InstanceableSphere, NonInstanceableSphere} from './Sphere'
 
@@ -20,24 +21,26 @@ class OrbitingCamera extends PerspectiveCamera3DFacade {
 }
 
 
-export default React.createClass({
-  propTypes: {
-    width: React.PropTypes.number,
-    height: React.PropTypes.number
-  },
-
-  getInitialState() {
-    return {
+class InstanceableExample extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
       useInstancing: true,
       animate: false,
       objectCount: 50000,
       data: []
     }
-  },
+    this._generateData = this._generateData.bind(this)
+    this._onSliderChange = this._onSliderChange.bind(this)
+    this._onInstancingToggle = this._onInstancingToggle.bind(this)
+    this._onAnimateToggle = this._onAnimateToggle.bind(this)
+    this._onSphereOver = this._onSphereOver.bind(this)
+    this._onSphereOut = this._onSphereOut.bind(this)
+  }
 
   componentWillMount() {
     this._generateData()
-  },
+  }
 
   _generateData() {
     let data = new Array(this.state.objectCount)
@@ -51,30 +54,30 @@ export default React.createClass({
       }
     }
     this.setState({data})
-  },
+  }
 
   _onSliderChange(e) {
     this.setState({[e.target.name]: +e.target.value})
-  },
+  }
 
   _onInstancingToggle(e) {
     this.setState({useInstancing: !this.state.useInstancing})
-  },
+  }
 
   _onAnimateToggle(e) {
     this.setState({animate: !this.state.animate})
-  },
+  }
 
   _onSphereOver(e) {
     this.setState({hoveredId: e.target.id})
     cancelAnimationFrame(this._unhoverTimer)
-  },
+  }
 
   _onSphereOut(e) {
     this._unhoverTimer = requestAnimationFrame(() => {
       this.setState({hoveredId: null})
     })
-  },
+  }
 
   render() {
     let state = this.state
@@ -173,5 +176,11 @@ export default React.createClass({
       </div>
     )
   }
-})
+}
 
+InstanceableExample.propTypes = {
+  width: T.number,
+  height: T.number
+}
+
+export default InstanceableExample

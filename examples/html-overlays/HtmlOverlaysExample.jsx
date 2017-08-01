@@ -1,4 +1,5 @@
 import React from 'react'
+import T from 'prop-types'
 import {
   Canvas3D,
   Group3DFacade,
@@ -9,25 +10,23 @@ import Dot from './Dot'
 import Glow from './Glow'
 
 
-export default React.createClass({
-  propTypes: {
-    width: React.PropTypes.number,
-    height: React.PropTypes.number
-  },
-
-  getInitialState() {
-    return {
+class HtmlOverlaysExample extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
       hoveredBox: null
     }
-  },
+    this._onBoxMouseOver = this._onBoxMouseOver.bind(this)
+    this._onBoxMouseOut = this._onBoxMouseOut.bind(this)
+  }
 
   _onBoxMouseOver(e) {
     this.setState({hoveredBox: e.target.id})
-  },
+  }
 
   _onBoxMouseOut() {
     this.setState({hoveredBox: null})
-  },
+  }
 
   render() {
     let state = this.state
@@ -144,5 +143,11 @@ export default React.createClass({
       </div>
     )
   }
-})
+}
 
+HtmlOverlaysExample.propTypes = {
+  width: T.number,
+  height: T.number
+}
+
+export default HtmlOverlaysExample

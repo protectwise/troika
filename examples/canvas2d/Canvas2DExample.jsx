@@ -1,4 +1,5 @@
 import React from 'react'
+import T from 'prop-types'
 import {Canvas2D, Group2DFacade, Object2DFacade, HtmlOverlay2DFacade} from '../../src/index'
 
 
@@ -56,16 +57,11 @@ class RectFacade extends Object2DFacade {
 }
 
 
-export default React.createClass({
-  propTypes: {
-    width: React.PropTypes.number,
-    height: React.PropTypes.number
-  },
-
-  getInitialState() {
-    return {
-    }
-  },
+class Canvas2DExample extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {}
+  }
 
   render() {
     let state = this.state
@@ -224,5 +220,11 @@ export default React.createClass({
       </div>
     )
   }
-})
+}
 
+Canvas2DExample.propTypes = {
+  width: T.number,
+  height: T.number
+}
+
+export default Canvas2DExample

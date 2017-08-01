@@ -25,46 +25,51 @@ const EXAMPLES = [
   {id: 'instanceable', name: 'Instanceable Objects', component: InstanceableExample}
 ]
 
-const ExamplesApp = React.createClass({
+class ExamplesApp extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      selectedExampleId: (location.hash && location.hash.replace(/^#/, '')) || EXAMPLES[0].id,
+      bodyWidth: null,
+      bodyHeight: null
+
+    }
+    this._onBodyElRef = this._onBodyElRef.bind(this)
+    this._onWindowResize = this._onWindowResize.bind(this)
+    this._onHashChange = this._onHashChange.bind(this)
+    this._onExampleSelect = this._onExampleSelect.bind(this)
+  }
   componentWillMount() {
     window.addEventListener('hashchange', this._onHashChange, false)
     window.addEventListener('resize', this._onWindowResize, false)
-  },
+  }
 
   componentWillUnmount() {
     window.removeEventListener('hashchange', this._onHashChange, false)
     window.removeEventListener('resize', this._onWindowResize, false)
-  },
-
-  getInitialState() {
-    return {
-      selectedExampleId: (location.hash && location.hash.replace(/^#/, '')) || EXAMPLES[0].id,
-      bodyWidth: null,
-      bodyHeight: null
-    }
-  },
+  }
 
   _onBodyElRef(el) {
     this._bodyEl = el
     if (el) {
       this._onWindowResize()
     }
-  },
+  }
 
   _onWindowResize() {
     let box = this._bodyEl.getBoundingClientRect()
     this.setState({bodyWidth: box.width, bodyHeight: box.height})
-  },
+  }
 
   _onHashChange() {
     this.setState({
       selectedExampleId: location.hash.replace(/^#/, '')
     })
-  },
+  }
 
   _onExampleSelect(e) {
     location.hash = EXAMPLES[e.target.selectedIndex].id
-  },
+  }
 
   render() {
     let {selectedExampleId, bodyWidth, bodyHeight} = this.state
@@ -90,6 +95,6 @@ const ExamplesApp = React.createClass({
       </div>
     )
   }
-})
+}
 
 ReactDOM.render(<ExamplesApp />, document.body)

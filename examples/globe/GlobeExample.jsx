@@ -1,17 +1,14 @@
 import React from 'react'
+import T from 'prop-types'
 import ReactDOM from 'react-dom'
 import {Canvas3D} from '../../src/index'
 import Earth from './Earth'
 
 
-export default React.createClass({
-  propTypes: {
-    width: React.PropTypes.number,
-    height: React.PropTypes.number
-  },
-
-  getInitialState() {
-    return {
+class GlobeExample extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
       rotateX: 0,
       rotateY: 0,
       trackMouse: false,
@@ -19,7 +16,17 @@ export default React.createClass({
       wireframe: false,
       colorScheme: 'technicolor'
     }
-  },
+    this._onMouseMove = this._onMouseMove.bind(this)
+    this._toggleWireframe = this._toggleWireframe.bind(this)
+    this._toggleTrackMouse = this._toggleTrackMouse.bind(this)
+    this._changeColorScheme = this._changeColorScheme.bind(this)
+    this._onCountryMouseOver = this._onCountryMouseOver.bind(this)
+    this._onCountryMouseOut = this._onCountryMouseOut.bind(this)
+    this._getOceanColor = this._getOceanColor.bind(this)
+    this._getOceanTexture = this._getOceanTexture.bind(this)
+    this._getCountryColor = this._getCountryColor.bind(this)
+    this._getCountryTexture = this._getCountryTexture.bind(this)
+  }
 
   _onMouseMove(e) {
     if (this.state.trackMouse) {
@@ -31,27 +38,27 @@ export default React.createClass({
         rotateY: Math.PI * (x / rect.width * 2 - 1)
       })
     }
-  },
+  }
 
   _toggleWireframe() {
     this.setState({wireframe: !this.state.wireframe})
-  },
+  }
 
   _toggleTrackMouse() {
     this.setState({trackMouse: !this.state.trackMouse})
-  },
+  }
 
   _changeColorScheme(e) {
     this.setState({colorScheme: e.target.options[e.target.selectedIndex].value})
-  },
+  }
 
   _onCountryMouseOver(id) {
     this.setState({hoveredCountry: id})
-  },
+  }
 
   _onCountryMouseOut() {
     this.setState({hoveredCountry: null})
-  },
+  }
 
   _getOceanColor() {
     switch (this.state.colorScheme) {
@@ -68,7 +75,7 @@ export default React.createClass({
       case 'pumpkin':
         return 0x666666
     }
-  },
+  }
 
   _getOceanTexture() {
     switch (this.state.colorScheme) {
@@ -78,7 +85,7 @@ export default React.createClass({
         return 'globe/texture_pumpkin.jpg'
     }
     return null
-  },
+  }
 
   _getCountryColor(d, i, arr) {
     let hovering = d.id === this.state.hoveredCountry
@@ -101,7 +108,7 @@ export default React.createClass({
       case 'pumpkin':
         return hovering ? 0xffffff : 0xcccccc
     }
-  },
+  }
 
   _getCountryTexture() {
     switch (this.state.colorScheme) {
@@ -115,7 +122,7 @@ export default React.createClass({
         return 'globe/texture_pumpkin.jpg'
     }
     return null
-  },
+  }
 
   render() {
     let state = this.state
@@ -191,5 +198,12 @@ export default React.createClass({
       </div>
     )
   }
-})
+}
+
+GlobeExample.propTypes = {
+  width: T.number,
+  height: T.number
+}
+
+export default GlobeExample
 

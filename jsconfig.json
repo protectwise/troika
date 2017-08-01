@@ -8,10 +8,10 @@
 		"experimentalDecorators": true
 	},
 	"exclude": [
+    "build",
 		"node_modules",
 		"tmp",
 		"temp",
-    "dist",
-    "build"
+    "dist"
 	]
 }

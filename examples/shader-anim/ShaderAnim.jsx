@@ -1,4 +1,5 @@
 import React from 'react'
+import T from 'prop-types'
 import {Canvas3D} from '../../src/index'
 import {LavaCube, WaterCube} from './Cube'
 import {Fireball} from './Fireball'
@@ -8,17 +9,16 @@ const TRANS = {
   easing: 'easeOutExpo'
 }
 
-
-
-export default React.createClass({
-  propTypes: {
-    width: React.PropTypes.number,
-    height: React.PropTypes.number
-  },
+class ShaderAnim extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {}
+    this._randomRotate = this._randomRotate.bind(this)
+  }
 
   componentWillMount() {
     this._randomRotate()
-  },
+  }
 
   _randomRotate() {
     this.setState({
@@ -26,7 +26,7 @@ export default React.createClass({
       rotateY: Math.random() * Math.PI,
       rotateZ: Math.random() * Math.PI
     })
-  },
+  }
 
   render() {
     let state = this.state
@@ -120,5 +120,11 @@ export default React.createClass({
       </div>
     )
   }
-})
+}
 
+ShaderAnim.propTypes = {
+  width: T.number,
+  height: T.number
+}
+
+export default ShaderAnim

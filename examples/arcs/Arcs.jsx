@@ -1,4 +1,5 @@
 import React from 'react'
+import T from 'prop-types'
 import {Canvas3D, ListFacade} from '../../src/index'
 import Arc from './Arc'
 
@@ -11,24 +12,25 @@ const TRANS = {
 let idCtr = 1
 
 
-export default React.createClass({
-  propTypes: {
-    width: React.PropTypes.number,
-    height: React.PropTypes.number
-  },
-
-  getInitialState() {
-    return {
+class ArcsExample extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
       deep: false,
       cameraAngle: 0,
       highlightedArc: null,
       data: {}
     }
-  },
+    this._randomizeData = this._randomizeData.bind(this)
+    this._toggleDepth = this._toggleDepth.bind(this)
+    this._toggleCameraAngle = this._toggleCameraAngle.bind(this)
+    this._onArcMouseOver = this._onArcMouseOver.bind(this)
+    this._onArcMouseOut = this._onArcMouseOut.bind(this)
+  }
 
   componentWillMount() {
     this._randomizeData()
-  },
+  }
 
   _randomizeData() {
     let oldData = this.state.data || {}
@@ -59,23 +61,23 @@ export default React.createClass({
       }
     })
     this.setState({data})
-  },
+  }
 
   _toggleDepth() {
     this.setState({deep: !this.state.deep})
-  },
+  }
 
   _toggleCameraAngle() {
     this.setState({cameraAngle: !this.state.cameraAngle ? -Math.PI / 4 : 0})
-  },
+  }
 
   _onArcMouseOver(e) {
     this.setState({highlightedArc: e.target.id})
-  },
+  }
 
   _onArcMouseOut() {
     this.setState({highlightedArc: null})
-  },
+  }
 
   render() {
     let state = this.state
@@ -181,5 +183,11 @@ export default React.createClass({
       </div>
     )
   }
-})
+}
 
+ArcsExample.propTypes = {
+  width: T.number,
+  height: T.number
+}
+
+export default ArcsExample
