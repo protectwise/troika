@@ -1,7 +1,8 @@
 import {
   SphereBufferGeometry,
   Mesh,
-  MeshPhongMaterial
+  MeshPhongMaterial,
+  Color
 } from 'three'
 import {
   Object3DFacade,
@@ -19,16 +20,24 @@ console.log(`each object has ${geometry.attributes.position.array.length} vertic
 
 // Instanceable facade using a single shared Mesh per color
 
-const instancingProtos = {}
+let material = new MeshPhongMaterial()
+material.instanceUniforms = ['diffuse']
+const protoObj = new Mesh(geometry, material)
 
 class InstanceableSphere extends Instanceable3DFacade {
+  constructor(parent) {
+    super(parent)
+    this.instancedThreeObject = protoObj
+  }
+
   set color(color) {
     if (color !== this._color) {
-      this.instancedThreeObject = instancingProtos[color] || (
-        instancingProtos[color] = new Mesh(geometry, new MeshPhongMaterial({color: color}))
-      )
+      this.setInstanceUniform('diffuse', new Color(color))
       this._color = color
     }
+  }
+  get color() {
+    return this._color
   }
 
   set radius(r) {
@@ -47,16 +56,17 @@ const nonInstancingMaterials = {}
 
 class NonInstanceableSphere extends Object3DFacade {
   constructor(parent) {
-    super(parent, new Mesh(geometry))
+    super(parent, new Mesh(geometry, new MeshPhongMaterial()))
   }
 
   set color(color) {
     if (color !== this._color) {
-      this.threeObject.material = nonInstancingMaterials[color] || (
-        nonInstancingMaterials[color] = new MeshPhongMaterial({color: color})
-      )
+      this.threeObject.material.color.set(color)
       this._color = color
     }
+  }
+  get color() {
+    return this._color
   }
 
   set radius(r) {

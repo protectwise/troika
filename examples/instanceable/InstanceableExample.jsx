@@ -2,8 +2,11 @@ import React from 'react'
 import T from 'prop-types'
 import {Canvas3D, Group3DFacade, ListFacade, PerspectiveCamera3DFacade} from '../../src/index'
 import {InstanceableSphere, NonInstanceableSphere} from './Sphere'
+import {Color} from 'three'
 
 const ORIGIN = {x:0, y:0, z:0}
+const BOX_SIZE = 1000
+const tempColor = new Color()
 
 class OrbitingCamera extends PerspectiveCamera3DFacade {
   constructor(parent) {
@@ -26,14 +29,16 @@ class InstanceableExample extends React.Component {
     super(props)
     this.state = {
       useInstancing: true,
-      animate: false,
+      animateRadius: false,
+      animateColor: false,
       objectCount: 50000,
       data: []
     }
     this._generateData = this._generateData.bind(this)
     this._onSliderChange = this._onSliderChange.bind(this)
     this._onInstancingToggle = this._onInstancingToggle.bind(this)
-    this._onAnimateToggle = this._onAnimateToggle.bind(this)
+    this._onAnimateRadiusToggle = this._onAnimateRadiusToggle.bind(this)
+    this._onAnimateColorToggle = this._onAnimateColorToggle.bind(this)
     this._onSphereOver = this._onSphereOver.bind(this)
     this._onSphereOut = this._onSphereOut.bind(this)
   }
@@ -44,13 +49,15 @@ class InstanceableExample extends React.Component {
 
   _generateData() {
     let data = new Array(this.state.objectCount)
+    let color = new Color()
     for (let i = data.length; i--;) {
+      let x = Math.random() * BOX_SIZE
+      let y = Math.random() * BOX_SIZE
+      let z = Math.random() * BOX_SIZE
       data[i] = {
         id: `sphere${i}`,
-        x: Math.random() * 1000 - 500,
-        y: Math.random() * 1000 - 500,
-        z: Math.random() * 1000 - 500,
-        color: i % 3 === 2 ? 0x990000 : i % 3 === 1 ? 0x009900 : 0x000099
+        x, y, z,
+        color: color.setHSL((x + y + z) / BOX_SIZE / 3, 1, 0.5).getHex()
       }
     }
     this.setState({data})
@@ -64,8 +71,12 @@ class InstanceableExample extends React.Component {
     this.setState({useInstancing: !this.state.useInstancing})
   }
 
-  _onAnimateToggle(e) {
-    this.setState({animate: !this.state.animate})
+  _onAnimateRadiusToggle(e) {
+    this.setState({animateRadius: !this.state.animateRadius})
+  }
+
+  _onAnimateColorToggle(e) {
+    this.setState({animateColor: !this.state.animateColor})
   }
 
   _onSphereOver(e) {
@@ -84,8 +95,8 @@ class InstanceableExample extends React.Component {
     let {width, height} = this.props
 
     let anim = {
-      from: {radius: 3},
-      to: {radius: 20},
+      from: {radius: 3, color: 0x666666},
+      to: {radius: 20, color: 0xcccccc},
       duration: 500,
       iterations: Infinity,
       direction: 'alternate'
@@ -126,6 +137,9 @@ class InstanceableExample extends React.Component {
           objects={ {
             key: 'main',
             facade: Group3DFacade,
+            x: BOX_SIZE / -2,
+            y: BOX_SIZE / -2,
+            z: BOX_SIZE / -2,
             children: {
               key: 'items',
               facade: ListFacade,
@@ -141,7 +155,30 @@ class InstanceableExample extends React.Component {
                 radius: d => d.id === state.hoveredId ? 10 : 6,
                 onMouseOver: () => this._onSphereOver,
                 onMouseOut: () => this._onSphereOut,
-                animation: state.animate ? ((d, i) => i % 4 ? null : anim) : null
+                animation: state.animateRadius || state.animateColor ? ((d, i) => {
+                  if (i % 4) {
+                    return null
+                  }
+                  let from = {}
+                  let to = {}
+                  if (state.animateRadius) {
+                    from.radius = 2
+                    to.radius = 30
+                  }
+                  if (state.animateColor) {
+                    from.color = d.color
+                    to.color = tempColor.set(d.color).offsetHSL(0.5, 0, 0).getHex()
+                  }
+                  return {
+                    from,
+                    to,
+                    interpolate: {color: 'color'},
+                    duration: 1000,
+                    iterations: Infinity,
+                    direction: 'alternate',
+                    delay: (d.x + d.y + d.z) / BOX_SIZE / 3 * -3000
+                  }
+                }) : null
               }
             }
           } }
@@ -170,7 +207,10 @@ class InstanceableExample extends React.Component {
             Use instancing: <input type="checkbox" checked={ state.useInstancing } onChange={ this._onInstancingToggle } />
           </div>
           <div>
-            Animate: <input type="checkbox" checked={ state.animate } onChange={ this._onAnimateToggle } />
+            Animate Sizes: <input type="checkbox" checked={ state.animateRadius } onChange={ this._onAnimateRadiusToggle } />
+          </div>
+          <div>
+            Animate Colors: <input type="checkbox" checked={ state.animateColor } onChange={ this._onAnimateColorToggle } />
           </div>
         </div>
       </div>

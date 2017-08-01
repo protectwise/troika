@@ -1,3 +1,4 @@
+import {assign} from '../../utils'
 import {Object3D} from 'three'
 import Object3DFacade from './Object3D'
 
@@ -26,6 +27,8 @@ class Instanceable3DFacade extends Object3DFacade {
     Object.defineProperty(obj, 'visible', visibilityPropDef)
 
     super(parent, obj)
+
+    this._instanceUniforms = {}
     this.notifyWorld('instanceableAdded')
   }
 
@@ -37,6 +40,14 @@ class Instanceable3DFacade extends Object3DFacade {
   }
   get instancedThreeObject() {
     return this._instancedThreeObject
+  }
+
+  setInstanceUniform(name, value) {
+    let values = this._instanceUniforms
+    if (values[name] !== value) {
+      values[name] = value
+      this.notifyWorld('instanceableUniformChanged', name)
+    }
   }
 
   updateMatrices() {
@@ -80,5 +91,12 @@ const visibilityPropDef = {
     return this.$troikaVisible
   }
 }
+
+// Predefine shape to facilitate JS engine optimization
+assign(Instanceable3DFacade.prototype, {
+  _lastInstancedMatrixVersion: -1,
+  _instancedThreeObject: null
+})
+
 
 export default Instanceable3DFacade

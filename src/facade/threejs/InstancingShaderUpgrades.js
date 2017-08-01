@@ -1,6 +1,6 @@
 import {ShaderChunk} from 'three'
 
-const declarations = `
+const inverseFunction = `
 #if __VERSION__ < 300
 // matrix inversion utility for pre-ES3 - credit https://github.com/stackgl/glsl-inverse
 mat3 inverse(mat3 m) {
@@ -21,15 +21,15 @@ mat3 inverse(mat3 m) {
   ) / det;
 }
 #endif
+`
 
-// define attributes for instance matrices
+const modelMatrixRowAttrs = `
 attribute vec4 troika_modelMatrixRow0;
 attribute vec4 troika_modelMatrixRow1;
 attribute vec4 troika_modelMatrixRow2;
 `
 
-
-const modelMatrixVariable = `
+const modelMatrixVarAssignment = `
 mat4 troika_modelMatrix = mat4(
   %0.x, %1.x, %2.x, 0.0,
   %0.y, %1.y, %2.y, 0.0,
@@ -38,19 +38,22 @@ mat4 troika_modelMatrix = mat4(
 );
 `.replace(/%/g, 'troika_modelMatrixRow')
 
-const modelViewMatrixVariable = `
+const modelViewMatrixVarAssignment = `
 mat4 troika_modelViewMatrix = viewMatrix * troika_modelMatrix;
 `
 
-const normalMatrixVariable = `
+const normalMatrixVarAssignment = `
 mat3 troika_normalMatrix = transpose(inverse(mat3(troika_modelViewMatrix)));
 `
 
 
-const voidMainRE = /\bvoid\s+main\s*\(\s*\)\s*{/gm
-const modelMatrixRE = /\bmodelMatrix\b/gm
-const modelViewMatrixRE = /\bmodelViewMatrix\b/gm
-const normalMatrixRE = /\bnormalMatrix\b/gm
+const voidMainRE = /\bvoid\s+main\s*\(\s*\)\s*{/g
+const modelMatrixRefRE = /\bmodelMatrix\b/g
+const modelViewMatrixRefRE = /\bmodelViewMatrix\b/g
+const normalMatrixRefRE = /\bnormalMatrix\b/g
+const precededByUniformRE = /\buniform\s+(int|float|vec[234])\s+$/
+const attrRefReplacer = (name, index, str) => precededByUniformRE.test(str.substr(0, index)) ? name : `troika_${name}`
+const varyingRefReplacer = (name, index, str) => precededByUniformRE.test(str.substr(0, index)) ? name : `troika_vary_${name}`
 
 
 // Copied from threejs WebGLProgram so we can pre-expand the shader includes
@@ -65,40 +68,94 @@ function parseIncludes( source ) {
 
 
 
-export function upgradeVertexShader(source) {
-  // Pre-expand includes
-  source = parseIncludes(source)
-
-  let usesModelMatrix = modelMatrixRE.test(source)
-  let usesModelViewMatrix = modelViewMatrixRE.test(source)
-  let usesNormalMatrix = normalMatrixRE.test(source)
-
-  // Inject declarations
-  source = source.replace(voidMainRE, `
-#ifdef TROIKA_INSTANCED
-${ declarations }
-#endif
-
-$&
-
-#ifdef TROIKA_INSTANCED
-${ usesModelMatrix ? modelMatrixVariable : '' }
-${ usesModelViewMatrix ? modelViewMatrixVariable : '' }
-${ usesNormalMatrix ? normalMatrixVariable : '' }
-#endif
-`)
-
-  // Translate uniform references to the instance variables
-  if (usesModelMatrix) {
-    source = source.replace(modelMatrixRE, 'troika_modelMatrix')
+// Find all uniforms and their types within a shader string
+export function getUniformsTypes(shader) {
+  let uniformRE = /\buniform\s+(int|float|vec[234])\s+([A-Za-z_][\w]*)/g
+  let uniforms = Object.create(null)
+  let match
+  while ((match = uniformRE.exec(shader)) !== null) {
+    uniforms[match[2]] = match[1]
   }
-  if (usesModelViewMatrix) {
-    source = source.replace(modelViewMatrixRE, 'troika_modelViewMatrix')
+  return uniforms
+}
+
+
+/**
+ * Transform the given vertex and fragment shader pair so they accept instancing
+ * attributes for the builtin matrix uniforms as well as any other uniforms that
+ * have been declared as instanceable.
+ */
+export function upgradeShaders(vertexShader, fragmentShader, instanceUniforms=[]) {
+  // Pre-expand includes
+  vertexShader = parseIncludes(vertexShader)
+  fragmentShader = parseIncludes(fragmentShader)
+
+  // See what gets used
+  let usesModelMatrix = modelMatrixRefRE.test(vertexShader)
+  let usesModelViewMatrix = modelViewMatrixRefRE.test(vertexShader)
+  let usesNormalMatrix = normalMatrixRefRE.test(vertexShader)
+
+  // Find what uniforms are declared in which shader and their types
+  let vertexUniforms = getUniformsTypes(vertexShader)
+  let fragmentUniforms = getUniformsTypes(fragmentShader)
+
+  let vertexDeclarations = [modelMatrixRowAttrs]
+  let vertexAssignments = []
+  let fragmentDeclarations = []
+
+  // Add variable assignments for, and rewrite references to, builtin matrices
+  if (usesModelMatrix || usesModelViewMatrix || usesNormalMatrix) {
+    vertexShader = vertexShader.replace(modelMatrixRefRE, attrRefReplacer)
+    vertexAssignments.push(modelMatrixVarAssignment)
+  }
+  if (usesModelViewMatrix || usesNormalMatrix) {
+    vertexShader = vertexShader.replace(modelViewMatrixRefRE, attrRefReplacer)
+    vertexAssignments.push(modelViewMatrixVarAssignment)
   }
   if (usesNormalMatrix) {
-    source = source.replace(normalMatrixRE, 'troika_normalMatrix')
+    vertexShader = vertexShader.replace(normalMatrixRefRE, attrRefReplacer)
+    vertexAssignments.push(normalMatrixVarAssignment)
+    // Add the inverse() glsl polyfill if there isn't already one defined
+    if (!/\binverse\s*\(/.test(vertexShader)) {
+      vertexDeclarations.push(inverseFunction)
+    }
   }
-  
-  return source
+
+  // Add attributes and varyings for, and rewrite references to, instanceUniforms
+  instanceUniforms.forEach(name => {
+    let vertType = vertexUniforms[name]
+    let fragType = fragmentUniforms[name]
+    if (vertType || fragType) {
+      let finder = new RegExp(`\\b${name}\\b`, 'g')
+      vertexDeclarations.push(`attribute ${vertType || fragType} troika_${name};`)
+      if (vertType) {
+        vertexShader = vertexShader.replace(finder, attrRefReplacer)
+      }
+      if (fragType) {
+        fragmentShader = fragmentShader.replace(finder, varyingRefReplacer)
+        let varyingDecl = `varying ${fragType} troika_vary_${name};`
+        vertexDeclarations.push(varyingDecl)
+        fragmentDeclarations.push(varyingDecl)
+        vertexAssignments.push(`troika_vary_${name} = troika_${name};`)
+      }
+    }
+  })
+
+  // Inject vertex shader declarations and assignments
+  vertexShader = vertexShader.replace(voidMainRE, `
+${ vertexDeclarations.join('\n') }
+$&
+${ vertexAssignments.join('\n') }
+`)
+
+  // Inject fragment shader declarations
+  if (fragmentDeclarations.length) {
+    fragmentShader = fragmentShader.replace(voidMainRE, `
+${ fragmentDeclarations.join('\n') }
+$&
+    `)
+  }
+
+  return {vertexShader, fragmentShader}
 }
 
