@@ -53,10 +53,6 @@ class InstancingManager extends Group3DFacade {
     let batchObjectsByKey = this._batchObjectsByKey
     let needsRebatch = this._needsRebatch
 
-    // Short-lived caches within this render pass
-    this._batchKeysByObjectId = Object.create(null)
-    this._instanceUniformsTypesByMaterial = Object.create(null)
-
     if (!needsRebatch) {
       // We'll already know about most types of changes (instanceable addition/removal, instancedThreeObject
       // changes, matrix changes) but if any of the instancedThreeObjects changed their geometry or material
@@ -88,12 +84,14 @@ class InstancingManager extends Group3DFacade {
           if (!batchGeometry || batchGeometry.maxInstancedCount === INSTANCE_BATCH_SIZE) {
             batchObject = this._getBatchObject(protoObject)
             batchGeometry = batchObject.geometry
+            let attrs = batchGeometry._instanceAttrs.matrix
             for (let row = 0; row < 3; row++) {
-              batchGeometry._instanceMatrixAttrs[row].needsUpdate = true
+              attrs[row].version++
             }
             if (instanceUniforms) {
+              attrs = batchGeometry._instanceAttrs.uniforms
               for (let i = instanceUniforms.length; i--;) {
-                batchGeometry.attributes[`troika_${instanceUniforms[i]}`].needsUpdate = true
+                attrs[instanceUniforms[i]].version++
               }
             }
             batchObjects.push(batchObject)
@@ -101,29 +99,28 @@ class InstancingManager extends Group3DFacade {
 
           // Put the instance's world matrix into the batch geometry's instancing attributes
           let attrOffset = batchGeometry.maxInstancedCount++
-          let attrs = batchGeometry._instanceMatrixAttrs
+          let attrs = batchGeometry._instanceAttrs.matrix
           let elements = instanceObject.matrixWorld.elements //column order
-          for (let row = 0; row < 3; row++) {
-            attrs[row].setXYZW(
-              attrOffset, elements[row], elements[row + 4], elements[row + 8], elements[row + 12]
-            )
-          }
+          attrs[0].setXYZW(attrOffset, elements[0], elements[4], elements[8], elements[12])
+          attrs[1].setXYZW(attrOffset, elements[1], elements[5], elements[9], elements[13])
+          attrs[2].setXYZW(attrOffset, elements[2], elements[6], elements[10], elements[14])
 
           // Put the instance's values for instanceUniforms into the corresponding attributes
           if (instanceUniforms) {
+            attrs = batchGeometry._instanceAttrs.uniforms
             for (let i = instanceUniforms.length; i--;) {
               let uniform = instanceUniforms[i]
-              let attr = batchGeometry.attributes[`troika_${uniform}`]
+              let attr = attrs[uniform]
               let value = (uniform in facade._instanceUniforms) ? facade._instanceUniforms[uniform] : getShadersForMaterial(protoObject.material).uniforms[uniform].value //TODO clean up
               setAttributeValue(attr, attrOffset, value)
             }
           }
 
           // Save pointers for possible reuse next frame
-          facade._instancingBatchIndex = batchObjects.length - 1
+          facade._instancingBatchObject = batchObject
           facade._instancingBatchAttrOffset = attrOffset
         } else {
-          facade._instancingBatchIndex = facade._instancingBatchAttrOffset = null
+          facade._instancingBatchObject = facade._instancingBatchAttrOffset = null
         }
       }
 
@@ -162,53 +159,41 @@ class InstancingManager extends Group3DFacade {
     // full rebatch by updating just this instance's values in the matrix attributes directly.
     if (!this._needsRebatch) {
       let protoObject = facade.instancedThreeObject
-      let batchIndex = facade._instancingBatchIndex
+      let batchObject = facade._instancingBatchObject
       let attrOffset = facade._instancingBatchAttrOffset
-      if (protoObject && batchIndex !== null && attrOffset !== null) {
-        let batchObjects = this._batchObjectsByKey[this._getBatchKey(protoObject)]
-        if (batchObjects) {
-          let batchObject = batchObjects[batchIndex]
-          if (batchObject) {
-            let attrs = batchObject.geometry._instanceMatrixAttrs
-            let elements = facade.threeObject.matrixWorld.elements
-            for (let row = 0; row < 3; row++) {
-              attrs[row].setXYZW(attrOffset, elements[row], elements[row + 4], elements[row + 8], elements[row + 12])
-              attrs[row].needsUpdate = true
-            }
-            return //success
-          }
-        }
+      if (protoObject && batchObject && this._getBatchKey(protoObject) === this._getBatchKey(batchObject)) {
+        let attrs = batchObject.geometry._instanceAttrs.matrix
+        let elements = facade.threeObject.matrixWorld.elements
+        attrs[0].setXYZW(attrOffset, elements[0], elements[4], elements[8], elements[12]).version++
+        attrs[1].setXYZW(attrOffset, elements[1], elements[5], elements[9], elements[13]).version++
+        attrs[2].setXYZW(attrOffset, elements[2], elements[6], elements[10], elements[14]).version++
+      } else {
+        // Fallback just in case something didn't line up above - clear pointers and trigger rebatch
+        facade._instancingBatchObject = facade._instancingBatchAttrOffset = null
+        this._needsRebatch = true
       }
-      // Fallback just in case something didn't line up above - clear pointers and trigger rebatch
-      this._needsRebatch = true
     }
   }
 
   _onInstanceUniformChanged(facade, uniformName) {
     if (!this._needsRebatch) {
       let protoObject = facade.instancedThreeObject
-      let batchIndex = facade._instancingBatchIndex
-      let attrOffset = facade._instancingBatchAttrOffset
-      if (protoObject && batchIndex !== null && attrOffset !== null) {
-        let batchObjects = this._batchObjectsByKey[this._getBatchKey(protoObject)]
-        if (batchObjects) {
-          let batchObject = batchObjects[batchIndex]
-          if (batchObject) {
-            let attr = batchObject.geometry.attributes[`troika_${uniformName}`]
-            setAttributeValue(attr, attrOffset, facade._instanceUniforms[uniformName])
-            attr.needsUpdate = true
-            return //success
-          }
-        }
+      let batchObject = facade._instancingBatchObject
+      if (protoObject && batchObject && this._getBatchKey(protoObject) === this._getBatchKey(batchObject)) {
+        let attr = batchObject.geometry._instanceAttrs.uniforms[uniformName]
+        setAttributeValue(attr, facade._instancingBatchAttrOffset, facade._instanceUniforms[uniformName])
+        attr.version++ //skip setter
+      } else {
+        // Fallback just in case something didn't line up above - clear pointers and trigger rebatch
+        facade._instancingBatchObject = facade._instancingBatchAttrOffset = null
+        this._needsRebatch = true
       }
-      // Fallback just in case something didn't line up above - clear pointers and trigger rebatch
-      this._needsRebatch = true
     }
   }
 
   _getBatchKey(object) {
-    let cache = this._batchKeysByObjectId
-    let key = cache[object.id]
+    let cache = this._batchKeysCache || (this._batchKeysCache = Object.create(null)) //cache results for duration of this frame
+    let key = cache && cache[object.id]
     if (!key) {
       let mat = object.material
       let shaders = getShadersForMaterial(mat)
@@ -220,7 +205,7 @@ class InstancingManager extends Group3DFacade {
   }
 
   _getInstanceUniformsTypes(material) {
-    let cache = this._instanceUniformsTypesByMaterial
+    let cache = this._uniformTypesCache || (this._uniformTypesCache = Object.create(null)) //cache results for duration of this frame
     let result = cache[material.id]
     if (!result) {
       result = cache[material.id] = Object.create(null)
@@ -285,6 +270,10 @@ class InstancingManager extends Group3DFacade {
     // Release geometries to the pool for next time
     this._batchGeometryPool.releaseAll()
 
+    // Clear caches from this render frame
+    this._batchKeysCache = null
+    this._uniformTypesCache = null
+
     // Remove batch objects from scene
     scene.children = scene.children.filter(obj => obj.$troikaInstancingManager !== this)
   }
@@ -315,14 +304,14 @@ class BatchGeometryPool {
       batchGeometry = new InstancedBufferGeometry()
       assign(batchGeometry, baseGeometry)
       batchGeometry.attributes = assign({}, baseGeometry.attributes)
+      let instanceAttrs = batchGeometry._instanceAttrs = {matrix: [], uniforms: Object.create(null)} //separate collections for quicker lookup
 
       // Create instancing attributes for the modelMatrix's rows
-      batchGeometry._instanceMatrixAttrs = []
       for (let row = 0; row < 3; row++) {
         let attr = new InstancedBufferAttribute(new Float32Array(INSTANCE_BATCH_SIZE * 4), 4)
         attr.dynamic = true
         batchGeometry.attributes[`troika_modelMatrixRow${row}`] = attr
-        batchGeometry._instanceMatrixAttrs.push(attr) //for quicker lookup
+        instanceAttrs.matrix[row] = attr
       }
 
       // Create instancing attributes for the instanceUniforms
@@ -333,6 +322,7 @@ class BatchGeometryPool {
         let attr = new InstancedBufferAttribute(new ArrayType(INSTANCE_BATCH_SIZE * itemSize), itemSize)
         attr.dynamic = true
         batchGeometry.attributes[`troika_${name}`] = attr
+        instanceAttrs.uniforms[name] = attr
       }
 
       pool.geometries.push(batchGeometry)
@@ -368,6 +358,7 @@ class BatchGeometryPool {
             // can throw if it's already been disposed or hasn't yet been rendered
             geometries[i].dispose()
           } catch(e) {}
+          geometries[i]._instanceAttrs = null
         }
         geometries.length = firstFree
       }
@@ -413,7 +404,8 @@ const MATERIAL_TYPES_TO_SHADERS = {
 }
 
 function getShadersForMaterial(material) {
-  return material.isShaderMaterial ? material : ShaderLib[MATERIAL_TYPES_TO_SHADERS[material.type]] //TODO fallback for unknown type?
+  let builtinType = MATERIAL_TYPES_TO_SHADERS[material.type]
+  return builtinType ? ShaderLib[builtinType] : material //TODO fallback for unknown type?
 }
 
 function setAttributeValue(attr, offset, value) {
