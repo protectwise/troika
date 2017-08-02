@@ -18,14 +18,13 @@ class MultiTween extends Tween {
 
     // Tween the total duration time
     super(null, 0, duration, duration, delay, easing, iterations, direction)
-    this.callback = this.syncTweens.bind(this)
+    this.callback = tweens.length === 1 ? tweens[0].gotoElapsedTime.bind(tweens[0]) : this.syncTweens.bind(this)
     this.tweens = tweens
   }
 
   syncTweens(time) {
-    let tweens = this.tweens
-    for (let i = 0, len = tweens.length; i < len; i++) {
-      tweens[i].gotoElapsedTime(time)
+    for (let i = this.tweens.length; i-- > 0;) {
+      this.tweens[i].gotoElapsedTime(time)
     }
   }
 }
