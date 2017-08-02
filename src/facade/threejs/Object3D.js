@@ -292,7 +292,7 @@ forOwn({
     // Compile functions to avoid runtime cost of aspect/attr evaluation
     Object.defineProperty(Object3DFacade.prototype, propName, {
       get: new Function(`return function ${propName}$get() {
-  this.threeObject.${aspect}.${attr}
+  return this.threeObject.${aspect}.${attr}
 }`)(),
       set: new Function(`return function ${propName}$set(value) {
   //let obj = this.threeObject.${aspect}
