@@ -289,20 +289,23 @@ forOwn({
   }
 }, (attrs, aspect) => {
   forOwn(attrs, (propName, attr) => {
+    // Compile functions to avoid runtime cost of aspect/attr evaluation
     Object.defineProperty(Object3DFacade.prototype, propName, {
-      get() {
-        return this.threeObject[aspect][attr]
-      },
-
-      set(value) {
-        let obj = this.threeObject[aspect]
-        if (obj[attr] !== value) {
-          obj[attr] = value
-          this._matrixChanged = true
-        }
-      }
+      get: new Function(`return function ${propName}$get() {
+  this.threeObject.${aspect}.${attr}
+}`)(),
+      set: new Function(`return function ${propName}$set(value) {
+  //let obj = this.threeObject.${aspect}
+  if (this.threeObject.${aspect}.${attr} !== value) {
+    this.threeObject.${aspect}.${attr} = value
+    if (!this._matrixChanged) {
+      this._matrixChanged = true
+    }
+  }
+}`)()
     })
   })
+
 })
 
 
