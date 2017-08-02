@@ -1,7 +1,9 @@
 import React from 'react'
 import T from 'prop-types'
 import {Canvas3D, Group3DFacade, ListFacade, PerspectiveCamera3DFacade} from '../../src/index'
-import {InstanceableSphere, NonInstanceableSphere} from './Sphere'
+import NonInstanceableSphere from './NonInstanceableSphere'
+import InstanceableSphere from './InstanceableSphere'
+import InstanceableSphereNoMatrix from './InstanceableSphereNoMatrix'
 import {Color} from 'three'
 
 const ORIGIN = {x:0, y:0, z:0}
@@ -29,16 +31,16 @@ class InstanceableExample extends React.Component {
     super(props)
     this.state = {
       useInstancing: true,
-      animateRadius: false,
-      animateColor: false,
+      radiusMethod: 'uniform',
+      animateRadius: true,
+      animateColor: true,
       objectCount: 50000,
       data: []
     }
     this._generateData = this._generateData.bind(this)
     this._onSliderChange = this._onSliderChange.bind(this)
-    this._onInstancingToggle = this._onInstancingToggle.bind(this)
-    this._onAnimateRadiusToggle = this._onAnimateRadiusToggle.bind(this)
-    this._onAnimateColorToggle = this._onAnimateColorToggle.bind(this)
+    this._onDropdownChange = this._onDropdownChange.bind(this)
+    this._onCheckboxToggle = this._onCheckboxToggle.bind(this)
     this._onSphereOver = this._onSphereOver.bind(this)
     this._onSphereOut = this._onSphereOut.bind(this)
   }
@@ -67,16 +69,12 @@ class InstanceableExample extends React.Component {
     this.setState({[e.target.name]: +e.target.value})
   }
 
-  _onInstancingToggle(e) {
-    this.setState({useInstancing: !this.state.useInstancing})
+  _onDropdownChange(e) {
+    this.setState({[e.target.name]: e.target.value})
   }
 
-  _onAnimateRadiusToggle(e) {
-    this.setState({animateRadius: !this.state.animateRadius})
-  }
-
-  _onAnimateColorToggle(e) {
-    this.setState({animateColor: !this.state.animateColor})
+  _onCheckboxToggle(e) {
+    this.setState({[e.target.name]: !this.state[e.target.name]})
   }
 
   _onSphereOver(e) {
@@ -146,15 +144,17 @@ class InstanceableExample extends React.Component {
               data: state.data,
               template: {
                 key: (d) => d.id,
-                facade: state.useInstancing ? InstanceableSphere : NonInstanceableSphere,
+                facade: state.useInstancing ? (
+                  state.radiusMethod === 'uniform' ? InstanceableSphereNoMatrix : InstanceableSphere
+                ) : NonInstanceableSphere,
                 id: (d) => d.id,
                 color: d => d.id === state.hoveredId ? 0xffffff : d.color,
                 x: d => d.x,
                 y: d => d.y,
                 z: d => d.z,
                 radius: d => d.id === state.hoveredId ? 10 : 6,
-                onMouseOver: () => this._onSphereOver,
-                onMouseOut: () => this._onSphereOut,
+                // onMouseOver: () => this._onSphereOver,
+                // onMouseOut: () => this._onSphereOut,
                 animation: state.animateRadius || state.animateColor ? ((d, i) => {
                   if (i % 4) {
                     return null
@@ -204,13 +204,21 @@ class InstanceableExample extends React.Component {
             }
           </div>
           <div>
-            Use instancing: <input type="checkbox" checked={ state.useInstancing } onChange={ this._onInstancingToggle } />
+            Use instancing: <input type="checkbox" checked={ state.useInstancing } name="useInstancing" onChange={ this._onCheckboxToggle } />
+          </div>
+          { state.useInstancing ? (
+            <div>
+              Radius set via: <select name="radiusMethod" onChange={ this._onDropdownChange }>
+                <option value="uniform">Custom shader uniform</option>
+                <option value="matrix">Scaled transform matrix</option>
+              </select>
+            </div>
+          ) : null }
+          <div>
+            Animate Sizes: <input type="checkbox" checked={ state.animateRadius } name="animateRadius" onChange={ this._onCheckboxToggle } />
           </div>
           <div>
-            Animate Sizes: <input type="checkbox" checked={ state.animateRadius } onChange={ this._onAnimateRadiusToggle } />
-          </div>
-          <div>
-            Animate Colors: <input type="checkbox" checked={ state.animateColor } onChange={ this._onAnimateColorToggle } />
+            Animate Colors: <input type="checkbox" checked={ state.animateColor } name="animateColor" onChange={ this._onCheckboxToggle } />
           </div>
         </div>
       </div>
