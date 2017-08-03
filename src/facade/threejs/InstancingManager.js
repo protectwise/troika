@@ -1,7 +1,7 @@
 import {assign, assignIf} from '../../utils'
 import {InstancedBufferAttribute, InstancedBufferGeometry, ShaderLib} from 'three'
 import Group3DFacade from './Group3D'
-import {upgradeShaders, getUniformsTypes} from './InstancingShaderUpgrades'
+import {upgradeShaders, getUniformsTypes, expandShaderIncludes} from './InstancingShaderUpgrades'
 
 
 const INSTANCE_BATCH_SIZE = 1024 //TODO make this an option?
@@ -219,7 +219,10 @@ class InstancingManager extends Group3DFacade {
       let {instanceUniforms} = material
       if (instanceUniforms && instanceUniforms.length) {
         let {vertexShader, fragmentShader} = getShadersForMaterial(material)
-        let allTypes = assign(getUniformsTypes(vertexShader), getUniformsTypes(fragmentShader)) //TODO handle type mismatches?
+        let allTypes = assign(
+          getUniformsTypes(expandShaderIncludes(vertexShader)),
+          getUniformsTypes(expandShaderIncludes(fragmentShader))
+        ) //TODO handle type mismatches?
         for (let i = instanceUniforms.length; i--;) {
           let uniform = instanceUniforms[i]
           if (allTypes[uniform]) {
@@ -270,6 +273,7 @@ class InstancingManager extends Group3DFacade {
     batchObject.frustumCulled = false
     batchObject.geometry = batchGeometry
     batchObject.material = batchMaterial
+    batchObject.renderOrder = instancedObject.renderOrder
     return batchObject
   }
   

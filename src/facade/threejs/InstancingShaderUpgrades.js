@@ -57,11 +57,11 @@ const varyingRefReplacer = (name, index, str) => precededByUniformRE.test(str.su
 
 
 // Copied from threejs WebGLProgram so we can pre-expand the shader includes
-function parseIncludes( source ) {
+export function expandShaderIncludes( source ) {
   const pattern = /^[ \t]*#include +<([\w\d.]+)>/gm
   function replace(match, include) {
     let chunk = ShaderChunk[include]
-    return chunk ? parseIncludes(chunk) : match
+    return chunk ? expandShaderIncludes(chunk) : match
   }
   return source.replace( pattern, replace )
 }
@@ -87,8 +87,8 @@ export function getUniformsTypes(shader) {
  */
 export function upgradeShaders(vertexShader, fragmentShader, instanceUniforms=[]) {
   // Pre-expand includes
-  vertexShader = parseIncludes(vertexShader)
-  fragmentShader = parseIncludes(fragmentShader)
+  vertexShader = expandShaderIncludes(vertexShader)
+  fragmentShader = expandShaderIncludes(fragmentShader)
 
   // See what gets used
   let usesModelMatrix = modelMatrixRefRE.test(vertexShader)
