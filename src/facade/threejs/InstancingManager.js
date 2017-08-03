@@ -111,7 +111,8 @@ class InstancingManager extends Group3DFacade {
             for (let i = instanceUniforms.length; i--;) {
               let uniform = instanceUniforms[i]
               let attr = attrs[uniform]
-              let value = (uniform in facade._instanceUniforms) ? facade._instanceUniforms[uniform] : getShadersForMaterial(protoObject.material).uniforms[uniform].value //TODO clean up
+              let facadeUniforms = facade._instanceUniforms
+              let value = facadeUniforms && uniform in facadeUniforms ? facadeUniforms[uniform] : getShadersForMaterial(protoObject.material).uniforms[uniform].value //TODO clean up
               setAttributeValue(attr, attrOffset, value)
             }
           }
