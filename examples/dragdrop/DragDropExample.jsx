@@ -130,6 +130,7 @@ class DragDropExample extends React.Component {
 
         <Canvas3D
           antialias
+          stats={ this.props.stats }
           width={ width }
           height={ height }
           className={ state.draggedPlanet ? 'dragging' : state.hoveredPlanet ? 'draggable' : null }

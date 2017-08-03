@@ -31,13 +31,14 @@ class ExamplesApp extends React.Component {
     this.state = {
       selectedExampleId: (location.hash && location.hash.replace(/^#/, '')) || EXAMPLES[0].id,
       bodyWidth: null,
-      bodyHeight: null
-
+      bodyHeight: null,
+      stats: true
     }
     this._onBodyElRef = this._onBodyElRef.bind(this)
     this._onWindowResize = this._onWindowResize.bind(this)
     this._onHashChange = this._onHashChange.bind(this)
     this._onExampleSelect = this._onExampleSelect.bind(this)
+    this._onToggleStats = this._onToggleStats.bind(this)
   }
   componentWillMount() {
     window.addEventListener('hashchange', this._onHashChange, false)
@@ -71,8 +72,12 @@ class ExamplesApp extends React.Component {
     location.hash = EXAMPLES[e.target.selectedIndex].id
   }
 
+  _onToggleStats() {
+    this.setState({stats: !this.state.stats})
+  }
+
   render() {
-    let {selectedExampleId, bodyWidth, bodyHeight} = this.state
+    let {selectedExampleId, bodyWidth, bodyHeight, stats} = this.state
     let example = EXAMPLES.filter(({id}) => id === selectedExampleId)[0]
     let ExampleCmp = example && example.component
 
@@ -85,10 +90,13 @@ class ExamplesApp extends React.Component {
               <option selected={ example.id === this.state.selectedExampleId }>{ example.name }</option>
             ) }
           </select>
+          <div className="stats_toggle">
+            Show Stats <input type="checkbox" checked={stats} onClick={this._onToggleStats} />
+          </div>
         </header>
         <section className="examples_body" ref={ this._onBodyElRef }>
           { ExampleCmp ?
-            (bodyWidth && bodyHeight ? <ExampleCmp width={ bodyWidth } height={ bodyHeight } /> : null) :
+            (bodyWidth && bodyHeight ? <ExampleCmp width={ bodyWidth } height={ bodyHeight } stats={ stats } /> : null) :
             `Unknown example: ${selectedExampleId}`
           }
         </section>

@@ -150,7 +150,22 @@ class WorldBaseFacade extends ParentFacade {
     if (!this._nextFrameTimer) {
       this._nextFrameTimer = requestAnimationFrame(this._nextFrameHandler || (this._nextFrameHandler = () => {
         this._nextFrameTimer = null
+
+        let onStatsUpdate = this.onStatsUpdate
+        let start = onStatsUpdate && Date.now()
+
         this.doRender()
+
+        if (onStatsUpdate) {
+          let now = Date.now()
+          onStatsUpdate({
+            'Render CPU Time (ms)': now - start,
+            'Time Between Frames (ms)': this._lastFrameTime ? now - this._lastFrameTime : '?',
+            'FPS': this._lastFrameTime ? Math.round(1000 / (now - this._lastFrameTime)) : '?'
+          })
+          this._lastFrameTime = now
+        }
+
         this._doRenderHtmlItems()
         if (this.continuousRender) {
           this._queueRender()
@@ -402,6 +417,10 @@ WorldBaseFacade.prototype._notifyWorldHandlers = {
   },
   removeHtmlOverlay(source) {
     delete this._htmlOverlays[source.$facadeId]
+  },
+  statsUpdate(source, data) {
+    let onStatsUpdate = this.onStatsUpdate
+    if (onStatsUpdate) onStatsUpdate(data)
   }
 }
 

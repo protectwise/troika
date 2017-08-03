@@ -6,8 +6,6 @@ import CanvasBase, { commonPropTypes } from './CanvasBase.jsx'
 class Canvas3D extends CanvasBase {
   constructor(props) {
     super(props)
-    this.initWorld = this.initWorld.bind(this)
-    this.updateWorld = this.updateWorld.bind(this)
     this._onSceneClick = this._onSceneClick.bind(this)
   }
 
@@ -35,6 +33,7 @@ class Canvas3D extends CanvasBase {
       onClick: props.onBackgroundClick ? this._onSceneClick : null
     }
     world.continuousRender = props.continuousRender
+    world.onStatsUpdate = props.stats ? this.updateStats : null
     world.afterUpdate()
   }
 
@@ -56,8 +55,7 @@ Canvas3D.propTypes = assignIf(
     objects: T.oneOfType([T.array, T.object]).isRequired,
     antialias: T.bool,
     onBackgroundClick: T.func,
-    rendererClass: T.func,
-    continuousRender: T.bool
+    rendererClass: T.func
   },
   commonPropTypes
 )

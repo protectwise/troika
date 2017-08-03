@@ -142,6 +142,7 @@ class ArcsExample extends React.Component {
       <div>
         <Canvas3D
           antialias
+          stats={ this.props.stats }
           width={ width }
           height={ height }
           camera={ {

@@ -4,12 +4,6 @@ import World2DFacade from '../facade/canvas2d/World2D'
 import CanvasBase, { commonPropTypes } from './CanvasBase.jsx'
 
 class Canvas2D extends CanvasBase {
-  constructor (props) {
-    super(props)
-    this.initWorld = this.initWorld.bind(this)
-    this.updateWorld = this.updateWorld.bind(this)
-  }
-
   initWorld (canvas) {
     let world = new World2DFacade(canvas)
     world.renderHtmlItems = this.renderHtmlItems
@@ -25,6 +19,7 @@ class Canvas2D extends CanvasBase {
     world.onBackgroundClick = props.onBackgroundClick
     world.children = props.objects
     world.continuousRender = props.continuousRender
+    world.onStatsUpdate = props.stats ? this.updateStats : null
     world.afterUpdate()
   }
 }

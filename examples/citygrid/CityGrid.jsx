@@ -207,6 +207,7 @@ class CityGrid extends React.Component {
 
         { state.data ? (
           <Canvas3D
+            stats={ this.props.stats }
             width={props.width}
             height={props.height}
             antialias

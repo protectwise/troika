@@ -131,6 +131,7 @@ class GlobeExample extends React.Component {
       <div onMouseMove={ this._onMouseMove }>
         <Canvas3D
           antialias
+          stats={ this.props.stats }
           width={ width }
           height={ height }
           camera={ {

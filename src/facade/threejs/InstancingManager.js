@@ -130,12 +130,18 @@ class InstancingManager extends Group3DFacade {
     }
 
     // Add the batch objects to the scene
-    let count = 0
+    let batchCount = 0
+    let batchGrpCount = 0
     for (let id in batchObjectsByKey) {
       scene.children.push.apply(scene.children, batchObjectsByKey[id])
-      count += batchObjectsByKey[id].length
+      batchCount += batchObjectsByKey[id].length
+      batchGrpCount++
     }
-    //console.log(`Rendered ${count} batch instancing objects`)
+
+    this.notifyWorld('statsUpdate', {
+      'Instancing Batch Groups': batchGrpCount,
+      'Instancing Batches': batchCount
+    })
 
     this._needsRebatch = false
   }

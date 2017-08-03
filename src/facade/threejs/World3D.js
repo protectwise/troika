@@ -85,6 +85,16 @@ class World3DFacade extends WorldBaseFacade {
         callbacks[id](this._threeRenderer, scene, camera)
       }
     }
+
+    let onStatsUpdate = this.onStatsUpdate
+    if (onStatsUpdate) {
+      let info = this._threeRenderer.info.render
+      onStatsUpdate({
+        'WebGL Draw Calls': info.calls,
+        'WebGL Vertices': info.vertices,
+        'WebGL Triangles': info.faces
+      })
+    }
   }
 
   /**

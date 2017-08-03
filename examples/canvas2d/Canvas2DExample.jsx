@@ -70,6 +70,7 @@ class Canvas2DExample extends React.Component {
     return (
       <div>
         <Canvas2D
+          stats={ this.props.stats }
           width={ width }
           height={ height }
           objects={ [
