@@ -53,8 +53,8 @@ class Object3DFacade extends PointerEventTarget {
     while (parent) {
       if (parent.isObject3DFacade) {
         this._parentObject3DFacade = parent //reference to nearest Object3DFacade ancestor
-        if (isRenderable) { // Don't add to scene graph by default; might be added later if it has renderable children.
-          parent.threeObject.add(threeObject)
+        if (isRenderable) {
+          this._addToThreeObjectTree()
         }
         break
       }
@@ -63,14 +63,12 @@ class Object3DFacade extends PointerEventTarget {
   }
 
   afterUpdate() {
-    let threeObject = this.threeObject
-
     // Apply lookAt+up as a final transform - applied as individual quaternion
     // properties so they can selectively trigger updates, be transitioned, etc.
     if (this.lookAt) {
       singletonVec3.copy(this.lookAt)
       lookAtUp.copy(this.up || Object3D.DefaultUp)
-      singletonMat4.lookAt(threeObject.position, singletonVec3, lookAtUp)
+      singletonMat4.lookAt(this.threeObject.position, singletonVec3, lookAtUp)
       singletonQuat.setFromRotationMatrix(singletonMat4)
       this.quaternionX = singletonQuat.x
       this.quaternionY = singletonQuat.y
@@ -100,6 +98,7 @@ class Object3DFacade extends PointerEventTarget {
     // If any children were removed during the update, remove them from the threejs
     // object in a single batch; this avoids threejs's very expensive single-item remove.
     if (this._removeChildIds) {
+      let threeObject = this.threeObject
       let removeChildIds = this._removeChildIds
       threeObject.children = threeObject.children.filter(child => {
         if (child.id in removeChildIds) {
@@ -109,25 +108,15 @@ class Object3DFacade extends PointerEventTarget {
         }
         return true
       })
-      this._removeChildIds = null
-    }
 
-    // Optimization for when the threeObject has been marked as non-renderable: keep it orphaned
-    // from the scene graph unless it has renderable children of its own. This avoids having to visit
-    // these objects in large loops (e.g. WebGLRenderer.projectObject) that will ignore them anyway.
-    if (threeObject.isRenderable === false) {
-      let parentThreeObject = this._parentObject3DFacade
-      parentThreeObject = parentThreeObject && parentThreeObject.threeObject
-      if (parentThreeObject) {
-        if (threeObject.parent === parentThreeObject) {
-          if (canObjectBeOrphaned(threeObject)) {
-            this._parentObject3DFacade._queueRemoveChildObject3D(threeObject.id)
-          }
-        }
-        else if (!canObjectBeOrphaned(threeObject)) {
-          parentThreeObject.add(threeObject)
-        }
+      // If that resulted in a non-renderable object having no renderable children,
+      // queue it for removal it from the threejs object tree
+      let parentObj3D = this._parentObject3DFacade
+      if (canObjectBeOrphaned(threeObject) && parentObj3D && parentObj3D.threeObject === threeObject.parent) {
+        parentObj3D._queueRemoveChildObject3D(threeObject.id)
       }
+
+      this._removeChildIds = null
     }
   }
 
@@ -245,6 +234,16 @@ class Object3DFacade extends PointerEventTarget {
       }
     }
     return null
+  }
+
+  _addToThreeObjectTree() {
+    let parent = this._parentObject3DFacade
+    if (parent) {
+      if (this.threeObject.parent !== parent.threeObject) {
+        parent.threeObject.add(this.threeObject)
+        parent._addToThreeObjectTree()
+      }
+    }
   }
 
   _queueRemoveChildObject3D(threeObjectId) {
