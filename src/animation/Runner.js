@@ -1,32 +1,28 @@
 let runners = []
 let nextFrameTimer = null
+let hasStoppedRunners = false
 
 function noop() {}
 
-function isRunnerRunning(runner) {return runner.running}
+function isRunnerRunning(runner) {return runner.runner$running}
 function isTweenNotStopped(tween) {return !tween.runner$stopped}
 
 function tick() {
   let now = Date.now()
+  nextFrameTimer = null
 
-  // Sync each runner, filtering out empty ones as we go
-  let hasStoppedRunners = false
-  for (let i = 0, len = runners.length; i < len; i++) {
-    let runner = runners[i]
-    if (runner.running) {
-      runner._tick(now)
-    }
-    if (!runner.running) {
-      hasStoppedRunners = true
-    }
-  }
+  // Filter out any runners that were stopped since last tick
   if (hasStoppedRunners) {
     runners = runners.filter(isRunnerRunning)
+    hasStoppedRunners = false
   }
 
-  // Queue next tick if there are still active runners
-  nextFrameTimer = null
   if (runners.length) {
+    // Sync each runner, filtering out empty ones as we go
+    for (let i = runners.length; i-- > 0;) {
+      runners[i]._tick(now)
+    }
+    // Queue next tick if there are still active runners
     queueFrame()
   }
 }
@@ -38,15 +34,16 @@ function queueFrame() {
 }
 
 function startRunner(runner) {
-  if (!runner.running) {
-    runner.running = true
+  if (!runner.runner$running) {
+    runner.runner$running = true
     runners.push(runner)
     queueFrame()
   }
 }
 
 function stopRunner(runner) {
-  runner.running = false
+  runner.runner$running = false
+  hasStoppedRunners = true
 }
 
 
