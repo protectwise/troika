@@ -59,7 +59,7 @@ class Runner {
   destructor() {
     this.tweens = null
     stopRunner(this)
-    this.start = this.stop = this.tick = noop
+    this.start = this.stop = this.pause = this._tick = noop
   }
 
   /**
