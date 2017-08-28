@@ -81,14 +81,11 @@ class World2DFacade extends WorldBaseFacade {
       this._lastHeight = height
     }
 
-    // Update all world matrices that need it (recursive)
-    let root = this.getChildByKey('bg')
-    root.updateWorldMatrix()
-
     // Set root pixel ratio transform
     ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0)
 
     // Walk tree in z order and render each Object2DFacade
+    let root = this.getChildByKey('bg')
     traverseInZOrder(root, facade => {
       ctx.save()
 
@@ -108,7 +105,7 @@ class World2DFacade extends WorldBaseFacade {
    * Implementation of abstract
    */
   getFacadeUserSpaceXYZ(facade) {
-    let {x, y} = facade.getUserSpaceXY()
+    let {x, y} = facade.getProjectedPosition(0, 0)
     return {
       x: x,
       y: y,

@@ -14,23 +14,13 @@ function multiplyMatrices(a, b, target) {
   target[5] = a1 * b4 + a3 * b5 + a[5]
 }
 
-
-function doUpdateWorldMatrix(facade) {
-  if (facade.isObject2D) {
-    let parentFacade = facade.parentObject2D
-    if (parentFacade) {
-      multiplyMatrices(parentFacade.worldTransformMatrix, facade.transformMatrix, facade.worldTransformMatrix)
-    } else {
-      for (let i = 0; i < 6; i++) {
-        facade.worldTransformMatrix[i] = facade.transformMatrix[i]
-      }
-    }
+function copyMatrix(fromMat, toMat) {
+  for (let i = 0; i < 6; i++) {
+    toMat[i] = fromMat[i]
   }
 }
 
-function callUpdateWorldMatrix(facade) {
-  facade.updateWorldMatrix()
-}
+let _worldMatrixVersion = 0
 
 
 
@@ -48,7 +38,7 @@ class Object2DFacade extends PointerEventTarget {
     if (parent) {
       parent._childObjects2D[this.$facadeId] = this
     }
-    this.parentObject2D = parent
+    this._parentObject2DFacade = parent
     this._childObjects2D = Object.create(null)
 
     this.transformMatrix = [1, 0, 0, 1, 0, 0]
@@ -56,7 +46,7 @@ class Object2DFacade extends PointerEventTarget {
   }
 
   afterUpdate() {
-    this.updateLocalMatrix()
+    this.updateMatrices()
     super.afterUpdate()
   }
 
@@ -69,40 +59,52 @@ class Object2DFacade extends PointerEventTarget {
   render(ctx) {
   }
 
-  updateLocalMatrix() {
+  /**
+   * Update this facade's `transformMatrix` and `worldTransformMatrix` to the current state if necessary.
+   *
+   * As long as this is called from the `afterUpdate` lifecycle method or later, it can be safely assumed that
+   * the matrices of all ancestors have already been similarly updated so the result should always be accurate.
+   *
+   * @returns {Boolean} true if an update was performed
+   */
+  updateMatrices() {
+    let parentObj2D = this._parentObject2DFacade
+    let needsWorldMatrixUpdate
     if (this._matrixChanged) {
-      let mat = this.transformMatrix
-      let {x, y, rotate, scaleX, scaleY} = this
-      let cos = rotate === 0 ? 1 : Math.cos(rotate)
-      let sin = rotate === 0 ? 0 : Math.sin(rotate)
-      mat[0] = scaleX * cos
-      mat[1] = scaleX * sin
-      mat[2] = scaleY * -sin
-      mat[3] = scaleY * cos
-      mat[4] = x
-      mat[5] = y
+      this._updateLocalMatrix()
       this._matrixChanged = false
-      this._worldMatrixChanged = true
+      needsWorldMatrixUpdate = true
+    } else {
+      needsWorldMatrixUpdate = parentObj2D && parentObj2D._worldMatrixVersion > this._worldMatrixVersion
+    }
+    if (needsWorldMatrixUpdate) {
+      if (parentObj2D) {
+        multiplyMatrices(parentObj2D.worldTransformMatrix, this.transformMatrix, this.worldTransformMatrix)
+      } else {
+        copyMatrix(this.transformMatrix, this.worldTransformMatrix)
+      }
+
+      this._worldMatrixVersion = ++_worldMatrixVersion
     }
   }
 
-  // Conditionally syncs worldTransformMatrix for this and all child facades if needed.
-  // Should be called from the topmost level
-  updateWorldMatrix() {
-    if (this._worldMatrixChanged) {
-      // Force update of the world matrix for this and all descendants as they may be affected
-      this.traverse(doUpdateWorldMatrix)
-      this._worldMatrixChanged = false
-    } else {
-      // Check all children
-      this.forEachChildObject2D(callUpdateWorldMatrix)
-    }
+  _updateLocalMatrix() {
+    let mat = this.transformMatrix
+    let {x, y, rotate, scaleX, scaleY} = this
+    let cos = rotate === 0 ? 1 : Math.cos(rotate)
+    let sin = rotate === 0 ? 0 : Math.sin(rotate)
+    mat[0] = scaleX * cos
+    mat[1] = scaleX * sin
+    mat[2] = scaleY * -sin
+    mat[3] = scaleY * cos
+    mat[4] = x
+    mat[5] = y
   }
 
   hitTest(x, y) {
     hitTestContext.startHitTesting(x, y)
 
-    // Assume world matrix is up to date
+    this.updateMatrices()
     let matrix = this.worldTransformMatrix
     hitTestContext.setTransform(matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5])
 
@@ -112,12 +114,12 @@ class Object2DFacade extends PointerEventTarget {
     return hitTestContext.didHit
   }
 
-  getUserSpaceXY() {
-    // Assume world matrix is up to date
+  getProjectedPosition(x=0, y=0) {
+    this.updateMatrices()
     let matrix = this.worldTransformMatrix
     return {
-      x: matrix[4],
-      y: matrix[5]
+      x: x === 0 ? matrix[4] : x * matrix[0] + y * matrix[2] + matrix[4],
+      y: y === 0 ? matrix[5] : x * matrix[1] + y * matrix[3] + matrix[5]
     }
   }
 
@@ -131,7 +133,7 @@ class Object2DFacade extends PointerEventTarget {
   }
 
   destructor() {
-    let parentObj2D = this.parentObject2D
+    let parentObj2D = this._parentObject2DFacade
     if (parentObj2D) {
       delete parentObj2D._childObjects2D[this.$facadeId]
     }
@@ -142,7 +144,8 @@ class Object2DFacade extends PointerEventTarget {
 const proto = Object2DFacade.prototype
 proto.isObject2D = true
 proto.z = 0
-proto._worldMatrixChanged = true
+proto._worldMatrixVersion = -1
+
 
 
 // Define props that affect the object's local transform matrix
