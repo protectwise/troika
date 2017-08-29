@@ -26,6 +26,7 @@ export {default as Instanceable3DFacade} from './facade/threejs/Instanceable3D.j
 export {default as Group2DFacade} from './facade/canvas2d/Group2D.js'
 export {default as HtmlOverlay2DFacade} from './facade/canvas2d/HtmlOverlay2D.js'
 export {default as Object2DFacade} from './facade/canvas2d/Object2D.js'
+export {default as Text2DFacade} from './facade/canvas2d/Text2D.js'
 export {default as World2DFacade} from './facade/canvas2d/World2D.js'
 
 // React entry points

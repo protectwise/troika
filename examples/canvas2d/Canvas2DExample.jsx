@@ -1,6 +1,6 @@
 import React from 'react'
 import T from 'prop-types'
-import {Canvas2D, Group2DFacade, Object2DFacade, HtmlOverlay2DFacade} from '../../src/index'
+import {Canvas2D, Group2DFacade, Object2DFacade, HtmlOverlay2DFacade, Text2DFacade} from '../../src/index'
 
 
 
@@ -209,6 +209,22 @@ class Canvas2DExample extends React.Component {
                   delay: 2000 * i / 8
                 }
               }))
+            },
+            {
+              key: 'text',
+              facade: Text2DFacade,
+              text: 'Canvas Text',
+              fontSize: '25px',
+              color: '#FFF',
+              x: 600,
+              y: 400,
+              animation: {
+                from: {scaleX: 1, scaleY: 0.25},
+                to: {scaleX: 0.25, scaleY:1},
+                iterations: Infinity,
+                direction: 'alternate',
+                duration: 1500
+              }
             }
           ] }
         />
