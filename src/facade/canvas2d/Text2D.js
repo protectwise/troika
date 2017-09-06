@@ -4,6 +4,7 @@ import Object2DFacade from './Object2D'
 class Text2DFacade extends Object2DFacade {
   render(context) {
     context.font = `${ this.fontStyle } ${ this.fontWeight } ${ this.fontStretch } ${ this.fontSize } ${ this.fontFamily }`
+    context.textAlign = this.textAlign
     context.textBaseline = this.textBaseline
     context.fillStyle = this.color
     context.globalAlpha = this.opacity
@@ -19,7 +20,8 @@ assign(Text2DFacade.prototype, {
   fontStretch: '',
   fontStyle: '',
   fontWeight: '',
-  textBaseline: 'top',
+  textAlign: 'start',
+  textBaseline: 'alphabetic',
   text: '',
   opacity: 1
 })
