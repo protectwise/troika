@@ -25,18 +25,30 @@ hitTestContext.startHitTesting = function(x, y) {
   this.save()
 }
 
-forOwn({
-  fill: 'Path',
-  fillRect: 'Path',
-  stroke: typeof CanvasRenderingContext2D.prototype.isPointInStroke === 'function' ? 'Stroke' : 'Path' //Ugly fallback for IE
-}, function(testType, paintMethod) {
-  let testMethod = `isPointIn${testType}`
-  hitTestContext[paintMethod] = function(...args) {
-    if (this[testMethod](this._x, this._y)) {
-      this.didHit = true
-    }
+hitTestContext.fill = function() {
+  if (this.isPointInPath(this._x, this._y)) {
+    this.didHit = true
   }
-})
+}
+
+const pointInStrokeMethod = `isPointIn${typeof CanvasRenderingContext2D.prototype.isPointInStroke === 'function' ? 'Stroke' : 'Path'}` //Ugly fallback for IE
+hitTestContext.stroke = function() {
+  if (this[pointInStrokeMethod](this._x, this._y)) {
+    this.didHit = true
+  }
+}
+
+// Rect shortcuts
+hitTestContext.fillRect = function(x, y, w, h) {
+  this.beginPath()
+  this.rect(x, y, w, h)
+  this.fill()
+}
+hitTestContext.strokeRect = function(x, y, w, h) {
+  this.beginPath()
+  this.rect(x, y, w, h)
+  this.stroke()
+}
 
 export default hitTestContext
 
