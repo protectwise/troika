@@ -8,7 +8,7 @@ import serve from 'rollup-plugin-serve'
 
 
 export default {
-  entry: 'examples/index.js',
+  input: 'examples/index.js',
 
   // TODO temporary workaround for lingering use of `exports` in three.modules.js: https://github.com/mrdoob/three.js/pull/9901
   intro: `var exports = {};`,
@@ -51,6 +51,8 @@ export default {
     }),
     serve()
   ],
-  format: 'iife',
-  dest: 'build/examples-bundle.js'
+  output: {
+    format: 'iife',
+    file: 'build/examples-bundle.js'
+  }
 }
