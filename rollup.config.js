@@ -2,7 +2,7 @@
 import buble from 'rollup-plugin-buble'
 
 export default {
-  entry: 'src/index.js',
+  input: 'src/index.js',
   plugins: [
     // babel({
     //   exclude: 'node_modules/**',
@@ -10,21 +10,22 @@ export default {
     // })
     buble()
   ],
-  targets: [
+  output: [
     {
       format: 'umd',
-      dest: 'build/troika.js',
-      moduleName: 'Troika',
+      file: 'build/troika.js',
+      name: 'Troika',
       globals: {
         easingjs: 'easing',
         'lodash-es': '_',
         react: 'React',
-        three: 'THREE'
+        three: 'THREE',
+        'prop-types': 'T'
       }
     },
     {
       format: 'es',
-      dest: 'build/troika.esmodule.js'
+      file: 'build/troika.esmodule.js'
     }
   ]
 }
