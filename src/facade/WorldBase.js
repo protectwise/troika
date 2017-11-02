@@ -193,10 +193,12 @@ class WorldBaseFacade extends ParentFacade {
       for (let key in overlayFacades) {
         let facade = overlayFacades[key]
         let data = this.getFacadeUserSpaceXYZ(facade)
-        data.key = facade.$facadeId
-        data.html = facade.html
-        data.exact = facade.exact
-        htmlItemsData.push(data)
+        if (data.z >= 0) { //Ignore objects with negative z (behind the camera)
+          data.key = facade.$facadeId
+          data.html = facade.html
+          data.exact = facade.exact
+          htmlItemsData.push(data)
+        }
       }
       this.renderHtmlItems(htmlItemsData)
     }

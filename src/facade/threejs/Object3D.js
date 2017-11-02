@@ -194,11 +194,12 @@ class Object3DFacade extends PointerEventTarget {
   /**
    * Get the current projected user space position for this object, or for a specific position
    * in its object space.
-   * @returns {Vector3} x and y are in screen pixels, z is worldspace distance from camera.
+   * @returns {Vector3} x and y are in screen pixels, z is worldspace distance from camera. The
+   *                    z may be negative, which means it is out of view behind the camera.
    */
-  getProjectedPosition(x=0, y=0, z=0) {
+  getProjectedPosition(x, y, z) {
     this.updateMatrices()
-    notifyWorldGetter.worldPosition = singletonVec3.set(x, y, z).applyMatrix4(this.threeObject.matrixWorld)
+    notifyWorldGetter.worldPosition = singletonVec3.set(x || 0, y || 0, z || 0).applyMatrix4(this.threeObject.matrixWorld)
     this.notifyWorld('projectWorldPosition', notifyWorldGetter)
     return notifyWorldGetter.value
   }

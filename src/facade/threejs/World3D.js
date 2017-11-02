@@ -108,13 +108,19 @@ class World3DFacade extends WorldBaseFacade {
   projectWorldPosition(x, y, z) {
     posVec.set(x, y, z)
     let camera = this.getChildByKey('camera').threeObject
-    let distance = posVec.distanceTo(camera.position)
-    posVec.project(camera)
-    return new Vector3(
-      (posVec.x + 1) * this.width / 2,
-      (1 - posVec.y) * this.height / 2,
-      distance
-    )
+
+    // Make position relative to camera
+    posVec.applyMatrix4(camera.matrixWorldInverse)
+
+    // Get relative distance to the point, negative if it's behind the camera
+    let signedDistance = posVec.length() * (posVec.z > 0 ? -1 : 1)
+
+    // Project x/y to screen coords
+    posVec.applyMatrix4(camera.projectionMatrix)
+    let screenX = (posVec.x + 1) * this.width / 2
+    let screenY = (1 - posVec.y) * this.height / 2
+
+    return new Vector3(screenX, screenY, signedDistance)
   }
 
 

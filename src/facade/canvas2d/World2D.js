@@ -106,10 +106,12 @@ class World2DFacade extends WorldBaseFacade {
    */
   getFacadeUserSpaceXYZ(facade) {
     let {x, y} = facade.getProjectedPosition(0, 0)
+    let z = facade.z
     return {
       x: x,
       y: y,
-      z: -facade.z //TODO honor cascaded z
+      z: z > 1 ? 1 / z : 1 - z //always non-negative, larger numbers closer to camera
+      //TODO honor cascaded z
     }
   }
 
