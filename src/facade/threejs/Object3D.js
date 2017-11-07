@@ -127,7 +127,6 @@ class Object3DFacade extends PointerEventTarget {
    * since we control the update lifecycle; as long as this is called from the `afterUpdate` lifecycle
    * method or later, it can be safely assumed that the world matrices of all ancestors have already been
    * similarly updated so the result should always be accurate.
-   * @returns {Boolean} true if an update was performed
    */
   updateMatrices() {
     let threeObj = this.threeObject
@@ -178,6 +177,17 @@ class Object3DFacade extends PointerEventTarget {
    */
   getCameraPosition() {
     this.notifyWorld('getCameraPosition', notifyWorldGetter)
+    return notifyWorldGetter.value
+  }
+
+  /**
+   * Get the facade object for the world's camera. Can be used to get to low-level info
+   * about the camera such as its various matrices, but be careful not to make modifications
+   * to the camera as that can lead to things getting out of sync.
+   * @returns {Vector3}
+   */
+  getCameraFacade() {
+    this.notifyWorld('getCameraFacade', notifyWorldGetter)
     return notifyWorldGetter.value
   }
 

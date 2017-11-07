@@ -176,6 +176,9 @@ World3DFacade.prototype._notifyWorldHandlers = assign(
     getCameraPosition(source, data) {
       data.callback(this.getChildByKey('camera').threeObject.position)
     },
+    getCameraFacade(source, data) {
+      data.callback(this.getChildByKey('camera'))
+    },
     projectWorldPosition(source, data) {
       let pos = data.worldPosition
       data.callback(this.projectWorldPosition(pos.x, pos.y, pos.z))
