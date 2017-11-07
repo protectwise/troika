@@ -35,7 +35,7 @@ class Text3DFacade extends Object3DFacade {
 
       // Measure size of the text and update the canvas to that size
       context.font = fontString
-      let textureWidth = context.measureText(this.text).width + (padding[1] + padding[3]) * textureHeight
+      let textureWidth = Math.ceil(context.measureText(this.text).width + (padding[1] + padding[3]) * textureHeight)
       this.textureWidth = textureWidth
       canvas.width = textureWidth
       canvas.height = textureHeight
@@ -61,10 +61,7 @@ class Text3DFacade extends Object3DFacade {
       this._needsTextureUpdate = false
     }
 
-    if (this.opacity !== material.opacity) {
-      material.opacity = this.opacity
-      material.transparent = material.opacity < 1
-    }
+    material.opacity = (typeof this.opacity === 'number') ? this.opacity : 1
 
     this.scaleX = this.height * this.textureWidth / this.textureHeight
     this.scaleY = this.height
@@ -76,6 +73,7 @@ class Text3DFacade extends Object3DFacade {
     let mesh = this.threeObject
     mesh.material.map.dispose()
     mesh.material.dispose()
+    super.destructor()
   }
 }
 
