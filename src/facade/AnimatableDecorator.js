@@ -1,4 +1,4 @@
-import {assignIf} from '../utils'
+import {assign, assignIf} from '../utils'
 import Tween from '../animation/Tween'
 import MultiTween from '../animation/MultiTween'
 import Runner from '../animation/Runner'
@@ -204,6 +204,18 @@ export default function(WrappedClass) {
             }
             let tween = newAnimTweens[animId] = new MultiTween(keyframePropTweens, duration, delay, easing, iterations, direction)
             runner.start(tween)
+
+            // The tween runner won't do anything until next tick, so immediately sync to the first frame's
+            // properties if the animation has no delay to avoid a flash of bad initial state
+            if (delay === 0) {
+              let firstKeyframeProps = keyframes[0].props
+              for (let prop in firstKeyframeProps) {
+                if (firstKeyframeProps.hasOwnProperty(prop)) {
+                  this[prop + '➤actuallySet'](firstKeyframeProps[prop])
+                }
+              }
+            }
+
             hasChanged = true
           }
         }
