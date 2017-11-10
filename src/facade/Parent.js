@@ -1,5 +1,5 @@
 import Facade, {isSpecialDescriptorProperty} from './Facade'
-import AnimatableDecorator from './AnimatableDecorator'
+import {getAnimatableClassFor} from './AnimatableDecorator'
 
 const TEMP_ARRAY = [null]
 let warnedAboutClassToFacade = false
@@ -84,7 +84,7 @@ export default class ParentFacade extends Facade {
         let transition = childDesc.transition
         let animation = childDesc.animation
         if (transition || animation || childDesc.exitAnimation) {
-          facadeClass = facadeClass.$animatableDecoratorClass || (facadeClass.$animatableDecoratorClass = AnimatableDecorator(facadeClass))
+          facadeClass = getAnimatableClassFor(facadeClass)
         }
 
         // If we have an old instance with the same key and class, update it, otherwise instantiate a new one

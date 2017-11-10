@@ -4,7 +4,6 @@ export {default as Runner} from './animation/Runner.js'
 export {default as Tween} from './animation/Tween.js'
 
 // Facade basics
-export {default as AnimatableDecorator} from './facade/AnimatableDecorator.js'
 export {default as Facade} from './facade/Facade.js'
 export {default as ListFacade} from './facade/List.js'
 export {default as ParentFacade} from './facade/Parent.js'

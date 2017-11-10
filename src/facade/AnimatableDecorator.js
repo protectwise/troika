@@ -12,9 +12,16 @@ function animationIdJsonReplacer(key, value) {
   return key === 'paused' ? undefined : value === Infinity ? 'Infinity' : value
 }
 
+export function getAnimatableClassFor(facadeClass) {
+  let decorated = facadeClass.$animatableDecoratorClass
+  if (!decorated || decorated.$baseFacadeClass !== facadeClass) { //bidir check due to inheritance of statics
+    decorated = facadeClass.$animatableDecoratorClass = createAnimatableClassFor(facadeClass)
+  }
+  return decorated
+}
 
-export default function(WrappedClass) {
-  class AnimatableDecorator extends WrappedClass {
+export function createAnimatableClassFor(BaseFacadeClass) {
+  class AnimatableDecorator extends BaseFacadeClass {
 
     constructor(...args) {
       super(...args)
@@ -280,7 +287,7 @@ export default function(WrappedClass) {
 
       // Find the nearest getter/setter up the prototype chain, if one exists. Assuming the prototype won't change after the fact.
       let superGetter, superSetter
-      let proto = WrappedClass.prototype
+      let proto = BaseFacadeClass.prototype
       while (proto) {
         let desc = Object.getOwnPropertyDescriptor(proto, propName)
         if (desc) {
@@ -314,7 +321,7 @@ export default function(WrappedClass) {
       Object.defineProperty(AnimatableDecorator.prototype, propName, {
         get() {
           // Always return the current actual value
-          return superGetter ? superGetter.call(this) : this[hasBeenSetKey] ? this[actualValueKey] : WrappedClass.prototype[propName]
+          return superGetter ? superGetter.call(this) : this[hasBeenSetKey] ? this[actualValueKey] : BaseFacadeClass.prototype[propName]
         },
 
         set(value) {
@@ -379,6 +386,8 @@ export default function(WrappedClass) {
     }
 
   }
+
+  AnimatableDecorator.$baseFacadeClass = BaseFacadeClass
 
   return AnimatableDecorator
 }

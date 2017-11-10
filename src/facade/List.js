@@ -1,5 +1,5 @@
 import Facade, {isSpecialDescriptorProperty} from './Facade'
-import AnimatableDecorator from './AnimatableDecorator'
+import {getAnimatableClassFor} from './AnimatableDecorator'
 
 let warnedAboutClassToFacade = false
 
@@ -86,7 +86,7 @@ export default class List extends Facade {
           let animation = typeof template.animation === 'function' ? template.animation(childData, i, data) : template.animation
           let exitAnimation = typeof template.exitAnimation === 'function' ? template.exitAnimation(childData, i, data) : template.exitAnimation
           if (transition || animation || exitAnimation) {
-            facadeClass = facadeClass.$animatableDecoratorClass || (facadeClass.$animatableDecoratorClass = AnimatableDecorator(facadeClass))
+            facadeClass = getAnimatableClassFor(facadeClass)
           }
 
           // If we have an old instance with the same key and class, reuse it; otherwise instantiate a new one
