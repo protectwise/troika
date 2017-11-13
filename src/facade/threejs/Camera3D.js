@@ -1,6 +1,7 @@
 import {PerspectiveCamera, OrthographicCamera, Frustum, Matrix4} from 'three'
 import Object3DFacade from './Object3D'
 
+let _projectionMatrixVersion = 0
 
 export function createCameraFacade(threeJsCameraClass, projectionProps, otherProps) {
   class Camera3DFacade extends Object3DFacade {
@@ -10,13 +11,22 @@ export function createCameraFacade(threeJsCameraClass, projectionProps, otherPro
       this._frustum = new Frustum()
     }
 
-    afterUpdate() {
+    updateMatrices() {
+      let camObj = this.threeObject
+
       // Projection changes require a projection matrix rebuild - see setters below
       if (this._projectionChanged) {
-        this.threeObject.updateProjectionMatrix()
+        camObj.updateProjectionMatrix()
         this._projectionChanged = false
+        this._projectionMatrixVersion = _projectionMatrixVersion++
       }
-      super.afterUpdate()
+
+      // If changing the world matrix, also update its inverse
+      let matrixVersionBeforeUpdate = this._worldMatrixVersion
+      super.updateMatrices()
+      if (matrixVersionBeforeUpdate !== this._worldMatrixVersion) {
+        camObj.matrixWorldInverse.getInverse(camObj.matrixWorld)
+      }
     }
 
     /**
@@ -36,11 +46,13 @@ export function createCameraFacade(threeJsCameraClass, projectionProps, otherPro
     getFrustum() {
       this.updateMatrices()
       let frustum = this._frustum
-      if (frustum._lastCamMatrixVersion !== this._worldMatrixVersion) {
+      let {_worldMatrixVersion, _projectionMatrixVersion} = this
+      if (frustum._lastWorldMatrixVersion !== _worldMatrixVersion || frustum._lastProjMatrixVersion !== _projectionMatrixVersion) {
         let camObj = this.threeObject
         let matrix = new Matrix4().multiplyMatrices(camObj.projectionMatrix, camObj.matrixWorldInverse)
         frustum.setFromMatrix(matrix)
-        frustum._lastCamMatrixVersion = this._worldMatrixVersion
+        frustum._lastWorldMatrixVersion = _worldMatrixVersion
+        frustum._lastProjMatrixVersion = _projectionMatrixVersion
       }
       return frustum
     }
