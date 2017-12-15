@@ -114,6 +114,7 @@ export function createAnimatableClassFor(BaseFacadeClass) {
       if (descriptor) {
         for (let i = 0, len = descriptor.length; i < len; i++) {
           let animDesc = descriptor[i]
+          if (!animDesc) continue
 
           // Calculate an identifier for this animation based on properties whose modification requires a new tween
           let animId = JSON.stringify(animDesc, animationIdJsonReplacer)
