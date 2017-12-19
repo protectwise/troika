@@ -43,7 +43,7 @@ mat4 troika_modelViewMatrix = viewMatrix * troika_modelMatrix;
 `
 
 const normalMatrixVarAssignment = `
-mat3 troika_normalMatrix = transpose(inverse(mat3(troika_modelViewMatrix)));
+mat3 troika_normalMatrix = transposeMat3(inverse(mat3(troika_modelViewMatrix)));
 `
 
 
