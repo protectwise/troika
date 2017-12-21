@@ -261,16 +261,28 @@ export function createAnimatableClassFor(BaseFacadeClass) {
     }
 
     destructor() {
+      const runner = this.animation$runner
       if (this.exitAnimation && !this.parent.isDestroying) {
-        this.animation$runner.stopAll()
+        runner.stopAll()
         this.animation = this.exitAnimation
         this.exitAnimation = this.transition = null
-        this.animation$runner.onDone = () => {
+        const onTick = runner.onTick
+        runner.onTick = () => {
+          if (this.parent && !this.parent.isDestroying) {
+            onTick()
+          } else {
+            // An ancestor may have been destroyed during our exit animation, orphaning this object;
+            // catch this case and short-circuit the animation to prevent errors in subsequent ticks
+            runner.onDone = null
+            this.destructor()
+          }
+        }
+        runner.onDone = () => {
           this.notifyWorld('needsRender')
           this.destructor()
         }
       } else {
-        this.animation$runner.destructor()
+        runner.destructor()
         super.destructor()
       }
     }

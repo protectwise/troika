@@ -163,10 +163,10 @@ export default class List extends Facade {
   }
 
   destructor() {
+    this.isDestroying = true
     // Destroy all child instances
     let dict = this._itemsDict
     if (dict) {
-      this.isDestroying = true
       for (let key in dict) {
         dict[key].destructor()
       }

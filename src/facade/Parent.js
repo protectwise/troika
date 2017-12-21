@@ -154,10 +154,10 @@ export default class ParentFacade extends Facade {
   }
 
   destructor() {
+    this.isDestroying = true
     // Destroy all child instances
     let dict = this._childrenDict
     if (dict) {
-      this.isDestroying = true
       for (let key in dict) {
         dict[key].destructor()
       }
