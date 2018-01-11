@@ -85,13 +85,13 @@ class ExamplesApp extends React.Component {
       <div className="examples">
         <header className="examples_header">
           <h1>Troika Examples</h1>
-          <select onChange={ this._onExampleSelect }>
+          <select onChange={ this._onExampleSelect } value={this.state.selectedExampleId}>
             { EXAMPLES.map(example =>
-              <option selected={ example.id === this.state.selectedExampleId }>{ example.name }</option>
+              <option key={example.id} value={example.id}>{ example.name }</option>
             ) }
           </select>
           <div className="stats_toggle">
-            Show Stats <input type="checkbox" checked={stats} onClick={this._onToggleStats} />
+            Show Stats <input type="checkbox" checked={stats} onChange={this._onToggleStats} />
           </div>
         </header>
         <section className="examples_body" ref={ this._onBodyElRef }>
@@ -105,4 +105,4 @@ class ExamplesApp extends React.Component {
   }
 }
 
-ReactDOM.render(<ExamplesApp />, document.body)
+ReactDOM.render(<ExamplesApp />, document.getElementById('app'))
