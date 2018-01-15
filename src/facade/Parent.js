@@ -89,7 +89,14 @@ export default class ParentFacade extends Facade {
 
         // If we have an old instance with the same key and class, update it, otherwise instantiate a new one
         let oldImpl = oldDict && oldDict[key]
-        let newImpl = oldImpl && (oldImpl.constructor === facadeClass) ? oldImpl : new facadeClass(this)
+        let newImpl
+        if (oldImpl && oldImpl.constructor === facadeClass) {
+          newImpl = oldImpl
+        } else {
+          // If swapping instance need to destroy the old before creating the new, e.g. for `ref` call ordering
+          if (oldImpl) oldImpl.destructor()
+          newImpl = new facadeClass(this)
+        }
         //always set transition/animation before any other props
         newImpl.transition = transition
         newImpl.animation = animation
@@ -103,10 +110,10 @@ export default class ParentFacade extends Facade {
       }
     }
 
-    // Destroy all old child instances that weren't reused
+    // Destroy all old child instances that were not reused or replaced
     if (oldDict) {
       for (let key in oldDict) {
-        if (!newDict || newDict[key] !== oldDict[key]) {
+        if (!newDict || !newDict[key]) {
           oldDict[key].destructor()
         }
       }
