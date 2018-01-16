@@ -14,7 +14,7 @@ export const commonPropTypes = {
   cursor: T.string
 }
 
-// export const commonMethods = {
+const canvasStyle = {width: '100%', height: '100%'}
 
 export default class CanvasBase extends React.Component {
   constructor(props) {
@@ -91,10 +91,7 @@ export default class CanvasBase extends React.Component {
         let world = (this._world = this.initWorld(canvas))
         this._updateWorld(world)
       } catch (e) {
-        console.warn(
-          `Troika.${this.constructor.displayName}: world init failed`,
-          e
-        )
+        console.warn(`Troika.${this.constructor.displayName}: world init failed`, e)
         this._failedWorldInit = true
         this.forceUpdate()
       }
@@ -121,9 +118,14 @@ export default class CanvasBase extends React.Component {
           userSelect: 'none'
         }}
       >
-        {this._failedWorldInit
-          ? this.props.children
-          : <canvas className="troika_canvas" ref={this._bindCanvasRef} />}
+        {this._failedWorldInit ? this.props.children : (
+          <canvas
+            className="troika_canvas"
+            ref={this._bindCanvasRef}
+            style={canvasStyle}
+          />
+        )}
+
         <HtmlOverlay ref={this._bindHtmlOverlayRef} />
 
         {props.stats ? (

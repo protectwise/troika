@@ -1,14 +1,23 @@
 import {PerspectiveCamera, OrthographicCamera, Frustum, Matrix4} from 'three'
 import Object3DFacade from './Object3DFacade'
 
+const noop = function() {}
+
 let _projectionMatrixVersion = 0
 
 export function createCameraFacade(threeJsCameraClass, projectionProps, otherProps) {
   class Camera3DFacade extends Object3DFacade {
     constructor(parent) {
-      super(parent, new threeJsCameraClass())
+      const camera = new threeJsCameraClass()
+      super(parent, camera)
       this._projectionChanged = false
       this._frustum = new Frustum()
+
+      // Forcibly prevent updateMatrixWorld from doing anything when called; the renderer
+      // likes to call this even though matrixAutoUpdate=false which can sometimes clobber
+      // our optimized `updateMatrices` handling and any custom adjustments it may make.
+      // TODO consider doing this at the Object3DFacade level?
+      camera.updateMatrixWorld = noop
     }
 
     updateMatrices() {

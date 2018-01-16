@@ -71,15 +71,9 @@ class World2DFacade extends WorldBaseFacade {
     let {width, height} = this
     let pixelRatio = this.pixelRatio || window.devicePixelRatio || 1
 
-    // Clear canvas and set size/ratio
+    // Clear canvas and set size
     canvas.width = width * pixelRatio
     canvas.height = height * pixelRatio
-    if (width !== this._lastWidth || height !== this._lastHeight) {
-      canvas.style.width = `${width}px`
-      canvas.style.height = `${height}px`
-      this._lastWidth = width
-      this._lastHeight = height
-    }
 
     // Set root pixel ratio transform
     ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0)

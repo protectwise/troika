@@ -1,7 +1,8 @@
-import { assignIf } from '../utils'
+import {assign, assignIf} from '../utils'
 import T from 'prop-types'
 import World3DFacade from '../facade/threejs/World3DFacade'
 import CanvasBase, { commonPropTypes } from './CanvasBase.jsx'
+import {vrAwareContextTypes} from './VrAware.jsx'
 
 class Canvas3D extends CanvasBase {
   constructor(props) {
@@ -19,7 +20,7 @@ class Canvas3D extends CanvasBase {
   }
 
   updateWorld(world) {
-    let props = this.props
+    let {props, context} = this
     world.width = props.width
     world.height = props.height
     world.pixelRatio = props.pixelRatio
@@ -34,6 +35,7 @@ class Canvas3D extends CanvasBase {
     }
     world.continuousRender = props.continuousRender
     world.onStatsUpdate = props.stats ? this.updateStats : null
+    world.vrDisplay = (context && context.vrDisplay) || null
     world.afterUpdate()
   }
 
@@ -41,6 +43,16 @@ class Canvas3D extends CanvasBase {
     // Ignore events that bubbled up
     if (e.target === e.currentTarget) {
       this.props.onBackgroundClick(e)
+    }
+  }
+
+  _bindCanvasRef(canvas) {
+    super._bindCanvasRef(canvas)
+
+    // Pass the canvas up to a VrAware ancestor
+    const registerVrCanvas = this.context && this.context.registerVrCanvas
+    if (registerVrCanvas) {
+      registerVrCanvas(canvas)
     }
   }
 }
@@ -59,5 +71,7 @@ Canvas3D.propTypes = assignIf(
   },
   commonPropTypes
 )
+
+Canvas3D.contextTypes = assign({}, vrAwareContextTypes)
 
 export default Canvas3D

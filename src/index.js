@@ -35,3 +35,6 @@ export {default as World2DFacade} from './facade/canvas2d/World2DFacade.js'
 // React entry points
 export {default as Canvas3D} from './react/Canvas3D.jsx'
 export {default as Canvas2D} from './react/Canvas2D.jsx'
+
+// WebVR
+export {makeVrAware} from './react/VrAware.jsx'

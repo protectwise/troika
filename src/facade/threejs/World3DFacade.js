@@ -1,14 +1,15 @@
-import {assign} from '../../utils'
+import {assign, assignIf} from '../../utils'
 import {WebGLRenderer, Raycaster, Color, Vector2, Vector3} from 'three'
 import WorldBaseFacade from '../WorldBaseFacade'
 import Scene3DFacade from './Scene3DFacade'
 import {PerspectiveCamera3DFacade} from './Camera3DFacade'
 import {BoundingSphereOctree} from './BoundingSphereOctree'
+import {getVrCameraClassFor} from './VrCameraDecorator'
 
 
 const posVec = new Vector3()
 const raycaster = new Raycaster()
-
+const emptyArray = []
 
 
 class World3DFacade extends WorldBaseFacade {
@@ -40,25 +41,40 @@ class World3DFacade extends WorldBaseFacade {
 
   afterUpdate() {
     let {camera, scene, width, height} = this
+    const vrDisplay = this._isInVR() ? this.vrDisplay : null
+
     camera.key = 'camera'
     camera.facade = camera.facade || PerspectiveCamera3DFacade
     if (typeof camera.aspect !== 'number') {
       camera.aspect = width / height
     }
-    scene.key = 'scene'
-    scene.facade = scene.facade || Scene3DFacade
-    this.children = [camera, scene]
-
-    let renderer = this._threeRenderer
-
-    let pixelRatio = this.pixelRatio || window.devicePixelRatio || 1
-    if (renderer.getPixelRatio() !== pixelRatio) {
-      renderer.setPixelRatio(pixelRatio)
+    if (vrDisplay) {
+      camera = assignIf({
+        facade: getVrCameraClassFor(camera.facade),
+        vrDisplay
+      }, camera)
     }
 
+    scene.key = 'scene'
+    scene.facade = scene.facade || Scene3DFacade
+
+    this.children = [camera, scene]
+
+    // Update render canvas size
+    let renderer = this._threeRenderer
+    let pixelRatio
+    if (vrDisplay) {
+      const leftEye = vrDisplay.getEyeParameters('left')
+      const rightEye = vrDisplay.getEyeParameters('right')
+      width = Math.max(leftEye.renderWidth, rightEye.renderWidth) * 2
+      height = Math.max(leftEye.renderHeight, rightEye.renderHeight)
+      pixelRatio = 1
+    } else {
+      pixelRatio = this.pixelRatio || window.devicePixelRatio || 1
+    }
     let lastSize = renderer.getSize()
-    if (lastSize.width !== width || lastSize.height !== height) {
-      renderer.setSize(width, height, true)
+    if (lastSize.width !== width || lastSize.height !== height || renderer.getPixelRatio() !== pixelRatio) {
+      renderer.setDrawingBufferSize(width, height, pixelRatio)
     }
 
     super.afterUpdate()
@@ -83,6 +99,11 @@ class World3DFacade extends WorldBaseFacade {
     // Invoke any onAfterRender listeners
     registry.forEachListenerOfType('onAfterRender', invokeHandler, this)
 
+    // Submit VR frame
+    if (this._isInVR()) {
+      this.vrDisplay.submitFrame()
+    }
+
     let onStatsUpdate = this.onStatsUpdate
     if (onStatsUpdate) {
       let info = renderer.info.render
@@ -94,12 +115,38 @@ class World3DFacade extends WorldBaseFacade {
     }
   }
 
+  _isInVR() {
+    return !!(this.vrDisplay && this.vrDisplay.isPresenting)
+  }
+
+  _isContinuousRender() {
+    return this.continuousRender || this._isInVR()
+  }
+
+  /**
+   * @override to use an active WebVR device's scheduler when appropriate
+   */
+  _requestRenderFrame(callback) {
+    return (this._isInVR() ? this.vrDisplay : window).requestAnimationFrame(callback)
+  }
+
   /**
    * Implementation of abstract
    */
   getFacadeUserSpaceXYZ(facade) {
     let matrixEls = facade.threeObject.matrixWorld.elements
     return this.projectWorldPosition(matrixEls[12], matrixEls[13], matrixEls[14])
+  }
+
+  _doRenderHtmlItems() {
+    if (this._isInVR()) {
+      // Html overlays are useless in VR, so don't render them
+      if (this.renderHtmlItems) {
+        this.renderHtmlItems(emptyArray)
+      }
+    } else {
+      super._doRenderHtmlItems()
+    }
   }
 
   projectWorldPosition(x, y, z) {
@@ -132,11 +179,11 @@ class World3DFacade extends WorldBaseFacade {
     )
 
     // ensure camera's matrix is updated
-    let camera = this.getChildByKey('camera').threeObject
-    camera.updateMatrixWorld()
+    let camera = this.getChildByKey('camera')
+    camera.updateMatrices()
 
     // prep raycaster
-    raycaster.setFromCamera(coords, camera)
+    raycaster.setFromCamera(coords, camera.threeObject)
     return this.getFacadesOnRay(raycaster.ray, raycaster.near, raycaster.far)
   }
 

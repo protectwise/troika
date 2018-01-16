@@ -12,6 +12,7 @@ import LevelOfDetail from './lod/LevelOfDetailExample'
 import CurveAnim from './curve-anim/CurveAnimExample'
 import Canvas2DExample from './canvas2d/Canvas2DExample'
 import InstanceableExample from './instanceable/InstanceableExample'
+import {makeVrAware} from '../src/index'
 
 
 const EXAMPLES = [
@@ -24,8 +25,8 @@ const EXAMPLES = [
   {id: 'ui', name: 'User Interface', component: UIExample},
   {id: 'dragdrop', name: 'Drag and Drop', component: DragDrop},
   {id: 'lod', name: 'Level of Detail', component: LevelOfDetail},
-  {id: 'curveAnim', name: 'Curve Animation', component: CurveAnim},
-  {id: 'twoDee', name: 'Canvas2D', component: Canvas2DExample},
+  {id: 'curveAnim', name: 'Curve Animation', component: CurveAnim, disableVR:true},
+  {id: 'twoDee', name: 'Canvas2D', component: Canvas2DExample, disableVR:true},
   {id: 'instanceable', name: 'Instanceable Objects', component: InstanceableExample}
 ]
 
@@ -94,6 +95,11 @@ class ExamplesApp extends React.Component {
               <option key={example.id} value={example.id}>{ example.name }</option>
             ) }
           </select>
+
+          {this.props.vrButton && !this.props.disableVR ? (
+            <span className="vr_button">{this.props.vrButton}</span>
+          ) : null}
+
           <div className="stats_toggle">
             Show Stats <input type="checkbox" checked={stats} onChange={this._onToggleStats} />
           </div>
@@ -108,5 +114,7 @@ class ExamplesApp extends React.Component {
     )
   }
 }
+
+ExamplesApp = makeVrAware(ExamplesApp)
 
 ReactDOM.render(<ExamplesApp />, document.getElementById('app'))

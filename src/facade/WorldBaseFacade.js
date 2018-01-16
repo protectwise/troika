@@ -125,10 +125,23 @@ class WorldBaseFacade extends ParentFacade {
     }
   }
 
+  _isContinuousRender() {
+    return this.continuousRender
+  }
+
+  /**
+   * @protected Schedule a callback for the next renderable frame. Defaults to browser's
+   * `requestAnimationFrame` but can be overridden to use different timing strategies such
+   * as WebVR's device frame rate scheduler.
+   */
+  _requestRenderFrame(callback) {
+    return requestAnimationFrame(callback)
+  }
+
   // Schedule a render pass on the next frame
   _queueRender() {
     if (!this._nextFrameTimer) {
-      this._nextFrameTimer = requestAnimationFrame(this._nextFrameHandler || (this._nextFrameHandler = () => {
+      this._nextFrameTimer = this._requestRenderFrame(this._nextFrameHandler || (this._nextFrameHandler = () => {
         this._nextFrameTimer = null
 
         let onStatsUpdate = this.onStatsUpdate
@@ -147,7 +160,7 @@ class WorldBaseFacade extends ParentFacade {
         }
 
         this._doRenderHtmlItems()
-        if (this.continuousRender) {
+        if (this._isContinuousRender()) {
           this._queueRender()
         }
       }))

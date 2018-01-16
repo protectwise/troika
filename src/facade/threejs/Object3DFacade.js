@@ -138,7 +138,7 @@ class Object3DFacade extends PointerEventTarget {
     let parent3DFacade = this._parentObject3DFacade
     let needsWorldMatrixUpdate
     if (this._matrixChanged) {
-      threeObj.updateMatrix()
+      threeObj.matrix.compose(threeObj.position, threeObj.quaternion, threeObj.scale)
       this._matrixChanged = false
       needsWorldMatrixUpdate = true
     } else {
