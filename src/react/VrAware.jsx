@@ -1,6 +1,7 @@
 import React from 'react'
 import T from 'prop-types'
 import {assign} from '../utils'
+import VrButton from './VrButton.jsx'
 
 
 function getVrDisplays() {
@@ -138,18 +139,5 @@ export function makeVrAware(ReactClass, options) {
   VrAware.childContextTypes = vrAwareContextTypes
 
   return VrAware
-}
-
-
-
-class VrButton extends React.PureComponent {
-  render() {
-    const props = this.props
-    return (
-      <button onClick={props.onClick} disabled={!props.vrAvailable}>
-        {props.vrAvailable ? (props.vrDisplay ? 'Exit VR' : 'Enter VR') : 'VR Not Available'}
-      </button>
-    )
-  }
 }
 
