@@ -67,8 +67,8 @@ export default class List extends Facade {
 
           // Some basic validation in dev mode
           if (process.env.NODE_ENV !== 'production') {
-            if (!key || typeof key !== 'string') {
-              throw new Error('ListFacade template "key" function must return a string.')
+            if (key == null) {
+              throw new Error('ListFacade template "key" function must return a key.')
             }
             if (newDict[key]) {
               console.warn(`Duplicate key in list: ${key}`)

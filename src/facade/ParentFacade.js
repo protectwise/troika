@@ -63,7 +63,7 @@ export default class ParentFacade extends Facade {
             }
             facadeClass = childDesc.class
           }
-          if (!key || !facadeClass) {
+          if (key == null || !facadeClass) {
             throw new Error('All scene objects must have a "key" and "facade" defined.')
           }
           if (typeof facadeClass !== 'function') {
