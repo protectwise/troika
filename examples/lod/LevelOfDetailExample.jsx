@@ -5,6 +5,10 @@ import Sphere from './Sphere'
 
 const ANIM_DUR = 5000
 
+const repeatableRandoms = []
+for (let i = 0; i < 8; i++) repeatableRandoms.push(Math.random())
+
+
 class LevelOfDetailExample extends React.Component {
   constructor(props) {
     super(props)
@@ -50,7 +54,7 @@ class LevelOfDetailExample extends React.Component {
                 iterations: Infinity,
                 direction: 'alternate',
                 easing: 'easeInOutQuad',
-                delay: Math.random() * ANIM_DUR * -2
+                delay: repeatableRandoms[i] * ANIM_DUR * -2
               }
             }
           )) }
@@ -68,9 +72,9 @@ class LevelOfDetailExample extends React.Component {
   }
 }
 
-  LevelOfDetailExample.propTypes = {
-    width: T.number,
-    height: T.number
-  }
+LevelOfDetailExample.propTypes = {
+  width: T.number,
+  height: T.number
+}
 
-  export default LevelOfDetailExample
+export default LevelOfDetailExample
