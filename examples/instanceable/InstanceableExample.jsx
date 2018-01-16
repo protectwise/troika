@@ -34,7 +34,7 @@ class InstanceableExample extends React.Component {
       radiusMethod: 'uniform',
       animateRadius: true,
       animateColor: true,
-      objectCount: 50000,
+      objectCount: 10000,
       data: []
     }
     this._generateData = this._generateData.bind(this)
@@ -115,7 +115,8 @@ class InstanceableExample extends React.Component {
           camera={ {
             facade: OrbitingCamera,
             far: 10000,
-            radius: 2000,
+            radius: 1500,
+            fov: 70,
             azimuth: 0, inclination: 0,
             animation: [{
               from: {azimuth: 0},

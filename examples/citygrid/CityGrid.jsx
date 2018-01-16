@@ -60,7 +60,7 @@ class CityGrid extends React.Component {
     // Mockery
     let data = {children: []}
     for (let zone = 0; zone < 20; zone++) {
-      let hostCount = random(10, 500)
+      let hostCount = random(10, 150)
       let zoneData = {
         children: [],
         value: hostCount,
