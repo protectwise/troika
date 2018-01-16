@@ -10,9 +10,6 @@ import serve from 'rollup-plugin-serve'
 export default {
   input: 'examples/index.js',
 
-  // TODO temporary workaround for lingering use of `exports` in three.modules.js: https://github.com/mrdoob/three.js/pull/9901
-  intro: `var exports = {};`,
-
   plugins: [
     importStrings({
       include: '**/*.glsl',
