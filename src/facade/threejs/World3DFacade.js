@@ -1,5 +1,5 @@
 import {assign, assignIf} from '../../utils'
-import {WebGLRenderer, Raycaster, Color, Vector2, Vector3} from 'three'
+import {WebGLRenderer, Raycaster, Color, Vector3} from 'three'
 import WorldBaseFacade from '../WorldBaseFacade'
 import Scene3DFacade from './Scene3DFacade'
 import {PerspectiveCamera3DFacade} from './Camera3DFacade'
@@ -151,7 +151,9 @@ class World3DFacade extends WorldBaseFacade {
 
   projectWorldPosition(x, y, z) {
     posVec.set(x, y, z)
-    let camera = this.getChildByKey('camera').threeObject
+    let camera = this.getChildByKey('camera')
+    camera.updateMatrices()
+    camera = camera.threeObject
 
     // Make position relative to camera
     posVec.applyMatrix4(camera.matrixWorldInverse)
@@ -173,21 +175,19 @@ class World3DFacade extends WorldBaseFacade {
    */
   getFacadesAtPosition(clientX, clientY, canvasRect) {
     // convert mouse position to normalized device coords (-1 to 1)
-    let coords = new Vector2(
-      (clientX - canvasRect.left) / canvasRect.width * 2 - 1,
-      (clientY - canvasRect.top) / canvasRect.height * -2 + 1
-    )
+    let u = (clientX - canvasRect.left) / canvasRect.width * 2 - 1
+    let v = (clientY - canvasRect.top) / canvasRect.height * -2 + 1
 
     // ensure camera's matrix is updated
     let camera = this.getChildByKey('camera')
     camera.updateMatrices()
 
-    // prep raycaster
-    raycaster.setFromCamera(coords, camera.threeObject)
-    return this.getFacadesOnRay(raycaster.ray, raycaster.near, raycaster.far)
+    // calculate the ray and use it to find intersecting facades
+    let ray = camera.getRayAtProjectedCoords(u, v)
+    return this.getFacadesOnRay(ray)
   }
 
-  getFacadesOnRay(ray, near, far) {
+  getFacadesOnRay(ray) {
     // update bounding sphere octree
     const octree = this._updateOctree()
 
@@ -196,8 +196,6 @@ class World3DFacade extends WorldBaseFacade {
     let allHits = null
     if (octree) {
       raycaster.ray = ray
-      raycaster.near = near || 0
-      raycaster.far = far || Infinity
       octree.forEachSphereOnRay(ray, (sphere, facadeId) => {
         const facadesById = this._object3DFacadesById
         const facade = facadesById && facadesById[facadeId]

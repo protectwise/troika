@@ -16,12 +16,14 @@
  *    user's actual posed view, which it wouldn't be able to otherwise.
  */
 
-import {Matrix4, PerspectiveCamera, Quaternion, Vector3, Vector4} from 'three'
+import {Matrix4, PerspectiveCamera, Quaternion, Ray, Raycaster, Vector2, Vector3, Vector4} from 'three'
 
 
 const tempMat4 = new Matrix4()
 const tempQuat = new Quaternion()
+const tempVec2 = new Vector2()
 const tempVec3 = new Vector3()
+const tempRaycaster = new Raycaster()
 
 
 export function getVrCameraClassFor(BaseCamFacadeClass) {
@@ -121,6 +123,20 @@ export function createVrCameraClassFor(BaseCamFacadeClass) {
         console.log('not presenting')
         super.updateMatrices()
       }
+    }
+
+    /**
+     * @override
+     * Allow accurate raycasting from both eye projection areas, by choosing the left/right camera
+     */
+    getRayAtProjectedCoords(u, v) {
+      // TODO handle non-default eye bounds?
+      const eyeCam = this.threeObject.cameras[u < 0 ? 0 : 1]
+      if (u < 0) u += 1
+      u = (2 * u) - 1
+      const ray = tempRaycaster.ray = new Ray()
+      tempRaycaster.setFromCamera(tempVec2.set(u, v), eyeCam)
+      return ray
     }
   }
 

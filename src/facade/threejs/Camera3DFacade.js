@@ -1,7 +1,9 @@
-import {PerspectiveCamera, OrthographicCamera, Frustum, Matrix4} from 'three'
+import {PerspectiveCamera, OrthographicCamera, Frustum, Matrix4, Raycaster, Ray, Vector2} from 'three'
 import Object3DFacade from './Object3DFacade'
 
 const noop = function() {}
+const tempRaycaster = new Raycaster()
+const tempVec2 = new Vector2()
 
 let _projectionMatrixVersion = 0
 
@@ -64,6 +66,20 @@ export function createCameraFacade(threeJsCameraClass, projectionProps, otherPro
         frustum._lastProjMatrixVersion = _projectionMatrixVersion
       }
       return frustum
+    }
+
+    /**
+     * Given a set of camera projection coordinates (u,v in the range [-1, 1]), return a `Ray`
+     * representing that line of sight in worldspace.
+     * @param {number} u
+     * @param {number} v
+     * @return Ray
+     */
+    getRayAtProjectedCoords(u, v) {
+      // By default we use the builtin Raycaster functionality, but this can be overridden
+      const ray = tempRaycaster.ray = new Ray()
+      tempRaycaster.setFromCamera(tempVec2.set(u, v), this.threeObject)
+      return ray
     }
   }
 
