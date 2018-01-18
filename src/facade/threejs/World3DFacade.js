@@ -131,6 +131,13 @@ class World3DFacade extends WorldBaseFacade {
   }
 
   /**
+   * @override to use an active WebVR device's scheduler when appropriate
+   */
+  _cancelAnimationFrame(frameId) {
+    return (this._isInVR() ? this.vrDisplay : window).cancelAnimationFrame(frameId)
+  }
+
+  /**
    * Implementation of abstract
    */
   getFacadeUserSpaceXYZ(facade) {

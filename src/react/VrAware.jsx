@@ -90,7 +90,7 @@ export function makeVrAware(ReactClass, options) {
         if (vrDisplay) {
           this._exitPresent()
         } else {
-          vrDisplay = vrAvailableDisplays && vrAvailableDisplays[0] || null
+          vrDisplay = (vrAvailableDisplays && vrAvailableDisplays[0]) || null
           if (vrDisplay && this._vrCanvas) {
             vrDisplay.requestPresent([{source: this._vrCanvas}]).then(() => {
               this.setState({vrDisplay})

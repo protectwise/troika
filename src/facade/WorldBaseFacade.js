@@ -135,7 +135,16 @@ class WorldBaseFacade extends ParentFacade {
    * as WebVR's device frame rate scheduler.
    */
   _requestRenderFrame(callback) {
-    return requestAnimationFrame(callback)
+    return window.requestAnimationFrame(callback)
+  }
+
+  /**
+   * @protected Cancel a scheduled callback for the next renderable frame. Defaults to browser's
+   * `cancelAnimationFrame` but can be overridden to use different timing strategies such
+   * as WebVR's device frame rate scheduler.
+   */
+  _cancelAnimationFrame(frameId) {
+    return window.cancelAnimationFrame(frameId)
   }
 
   // Schedule a render pass on the next frame
@@ -379,7 +388,7 @@ class WorldBaseFacade extends ParentFacade {
 
   destructor() {
     if (this._nextFrameTimer) {
-      cancelAnimationFrame(this._nextFrameTimer)
+      this._cancelAnimationFrame(this._nextFrameTimer)
     }
     this._togglePointerListeners(false)
     this._toggleDropListeners(false)
