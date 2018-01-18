@@ -24,6 +24,9 @@
     "d3-voronoi": "^1.1.0",
     "jest": "^22.1.4",
     "jest-buble": "^2.0.0",
+    "esdoc": "^1.0.4",
+    "esdoc-jsx-plugin": "^1.0.0",
+    "esdoc-standard-plugin": "^1.0.0",
     "lodash": "^4.16.6",
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
@@ -46,9 +49,24 @@
     "watch": "rollup -w -c",
     "test": "jest",
     "examples": "rollup -w -c rollup.config.examples.js",
+    "docs": "esdoc",
     "clean": "rm -rf build",
-    "lint": "standard",
-    "lint-fix": "standard --fix"
+    "lint": "standard src/**/*.js src/**/*.jsx"
+  },
+  "esdoc": {
+    "source": "./src",
+    "destination": "./docs",
+    "includes": [
+      "\\.jsx?$"
+    ],
+    "plugins": [
+      {
+        "name": "esdoc-standard-plugin"
+      },
+      {
+        "name": "esdoc-jsx-plugin"
+      }
+    ]
   },
   "publishConfig": {
     "registry": "https://internal-npm/content/repositories/npm/"
