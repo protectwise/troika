@@ -1,0 +1,10 @@
+// NOTE: Babel is only used for running unit tests; Buble is used for the browser build
+{
+  "presets": [
+    ["env", {
+      "targets": {
+        "node": "current"
+      }
+    }]
+  ]
+}
