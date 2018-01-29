@@ -124,12 +124,12 @@ class Instanceable3DFacade extends Object3DFacade {
 
   // Custom raycasting based on current geometry and transform
   raycast(raycaster) {
-    let instancedObj = this.instancedThreeObject
-    if (instancedObj) {
-      let origMatrix = instancedObj.matrixWorld
-      instancedObj.matrixWorld = this.threeObject.matrixWorld
-      let result = this._raycastObject(instancedObj, raycaster) //use optimized method
-      instancedObj.matrixWorld = origMatrix
+    let {instancedThreeObject, threeObject} = this
+    if (instancedThreeObject && threeObject) {
+      let origMatrix = instancedThreeObject.matrixWorld
+      instancedThreeObject.matrixWorld = threeObject.matrixWorld
+      let result = this._raycastObject(instancedThreeObject, raycaster) //use optimized method
+      instancedThreeObject.matrixWorld = origMatrix
       return result
     }
     return null

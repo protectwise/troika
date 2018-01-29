@@ -20,6 +20,8 @@ class World3DFacade extends WorldBaseFacade {
       canvas: canvas,
       alpha: true
     }, threeJsRendererConfig))
+
+    this._object3DFacadesById = Object.create(null)
   }
 
   set backgroundColor(color) {
@@ -166,19 +168,23 @@ class World3DFacade extends WorldBaseFacade {
       if (!octree) {
         octree = this._boundingSphereOctree = new BoundingSphereOctree()
       }
-      const {deletes, puts} = changes
-      if (deletes) {
-        for (let facadeId in deletes) {
+      const {remove, put} = changes
+      if (remove) {
+        for (let facadeId in remove) {
           octree.removeSphere(facadeId)
         }
       }
-      if (puts) {
-        for (let facadeId in puts) {
-          const sphere = puts[facadeId].getBoundingSphere()
-          if (sphere) {
-            octree.putSphere(facadeId, sphere)
-          } else {
-            octree.removeSphere(facadeId)
+      if (put) {
+        for (let facadeId in put) {
+          // Check for put requests for objects that are now obsolete
+          const facade = this._object3DFacadesById[facadeId]
+          if (facade && !facade.isDestroying && !(remove && remove[facadeId])) {
+            const sphere = facade.getBoundingSphere()
+            if (sphere) {
+              octree.putSphere(facadeId, sphere)
+            } else {
+              octree.removeSphere(facadeId)
+            }
           }
         }
       }
@@ -187,20 +193,10 @@ class World3DFacade extends WorldBaseFacade {
     return octree
   }
   
-  _queueForOctreePut(facade) {
+  _queueForOctreeChange(changeType, facade) {
     const changes = this._octreeChangeset || (this._octreeChangeset = {})
-    const puts = changes.puts || (changes.puts = Object.create(null))
-    puts[facade.$facadeId] = facade
-  }
-  
-  _queueForOctreeDelete(facade) {
-    const facadeId = facade.$facadeId
-    const changes = this._octreeChangeset || (this._octreeChangeset = {})
-    const deletes = changes.deletes || (changes.deletes = Object.create(null))
-    deletes[facadeId] = facade
-    if (changes.puts && changes.puts[facadeId]) {
-      delete changes.puts[facadeId]
-    }
+    const map = changes[changeType] || (changes[changeType] = Object.create(null))
+    map[facade.$facadeId] = facade
   }
 
   destructor() {
@@ -226,15 +222,15 @@ World3DFacade.prototype._notifyWorldHandlers = assign(
       data.callback(this.projectWorldPosition(pos.x, pos.y, pos.z))
     },
     object3DAdded(source) {
-      (this._object3DFacadesById || (this._object3DFacadesById = Object.create(null)))[source.$facadeId] = source
-      this._queueForOctreePut(source)
+      this._object3DFacadesById[source.$facadeId] = source
+      this._queueForOctreeChange('put', source)
     },
     object3DBoundsChanged(source) {
-      this._queueForOctreePut(source)
+      this._queueForOctreeChange('put', source)
     },
     object3DRemoved(source) {
-      if (this._object3DFacadesById) delete this._object3DFacadesById[source.$facadeId]
-      this._queueForOctreeDelete(source)
+      delete this._object3DFacadesById[source.$facadeId]
+      this._queueForOctreeChange('remove', source)
     }
   }
 )

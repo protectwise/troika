@@ -321,7 +321,8 @@ class Object3DFacade extends PointerEventTarget {
    * @protected Extension point for subclasses that don't use their threeObject's geometry, e.g. Instanceable
    */
   getGeometry() {
-    return this.threeObject.geometry
+    const obj = this.threeObject
+    return obj && obj.geometry
   }
 
   /**
@@ -334,7 +335,7 @@ class Object3DFacade extends PointerEventTarget {
    *   - `null`, if this facade has no hits
    */
   raycast(raycaster) {
-    return this._raycastObject(this.threeObject, raycaster)
+    return this.threeObject ? this._raycastObject(this.threeObject, raycaster) : null
   }
 
   /**

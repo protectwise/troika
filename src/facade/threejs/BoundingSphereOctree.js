@@ -40,6 +40,12 @@ export class BoundingSphereOctree {
     const {center, radius} = sphere
     let root = this.root
 
+    // Sanity check
+    if (!sphere || isNaN(radius) || isNaN(center.x)) {
+      console.warn('Invalid sphere', sphere)
+      return
+    }
+
     // If we already have a sphere for this key, perform an update
     if (key in this.keysToLeaves) {
       return this._updateSphere(key, sphere)
