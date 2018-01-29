@@ -20,6 +20,10 @@ export function getAnimatableClassFor(facadeClass) {
   return decorated
 }
 
+function compareByTime(a, b) {
+  return a.time - b.time
+}
+
 export function createAnimatableClassFor(BaseFacadeClass) {
   class AnimatableDecorator extends BaseFacadeClass {
 
@@ -173,7 +177,7 @@ export function createAnimatableClassFor(BaseFacadeClass) {
               }
             }
             // Sort the keyframes by time
-            keyframes.sort((a, b) => a.time - b.time)
+            keyframes.sort(compareByTime)
             if (keyframes[0].time > 0) {
               keyframes.unshift(assignIf({time: 0}, keyframes[0]))
             }
