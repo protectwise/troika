@@ -16,7 +16,7 @@
 */
 
 import {Sphere} from 'three'
-import {assign} from '../../utils'
+import {assign, forOwn} from '../../utils'
 
 
 const tempSphere = new Sphere()
@@ -27,20 +27,22 @@ const SQRT3 = Math.sqrt(3)
 export class BoundingSphereOctree {
   constructor() {
     this.root = null
-    this.spheresToLeaves = new SphereMap()
+    this.keysToLeaves = Object.create(null)
   }
 
-  addSpheres(spheres) {
-    spheres.forEach(this.addSphere, this)
+  putSpheres(spheres) {
+    forOwn(spheres, (sphere, key) => {
+      this.putSphere(key, sphere)
+    })
   }
 
-  addSphere(sphere) {
+  putSphere(key, sphere) {
     const {center, radius} = sphere
     let root = this.root
 
-    // If double addition, do a modify
-    if (this.spheresToLeaves.get(sphere)) {
-      return this.updateSphere(sphere)
+    // If we already have a sphere for this key, perform an update
+    if (key in this.keysToLeaves) {
+      return this._updateSphere(key, sphere)
     }
 
     // First sphere being added: create a leaf octant and set it as the root. This will be replaced as
@@ -48,15 +50,9 @@ export class BoundingSphereOctree {
     // our actual dataset rather than an arbitrary one.
     if (!root) {
       const newRoot = new Octant()
-      newRoot.data = sphere
-      newRoot.dataX = center.x
-      newRoot.dataY = center.y
-      newRoot.dataZ = center.z
-      newRoot.maxRadius = radius
-      newRoot.totalCount = 1
-      newRoot.leafCount = 1
+      newRoot.addSphereData(key, sphere)
       this.root = newRoot
-      this.spheresToLeaves.set(sphere, newRoot)
+      this.keysToLeaves[key] = newRoot
     }
 
     // Second sphere being added:
@@ -67,12 +63,10 @@ export class BoundingSphereOctree {
       // Handle special case where the second sphere has the same center point as the first, we still
       // can't determine good starting bounds so just append to the existing leaf
       if (dataX === center.x && dataY === center.y && dataZ === center.z) {
-        root.addSphereToLeaf(sphere)
-        root.totalCount++
-        root.maxRadius = Math.max(sphere.radius, root.maxRadius)
-        this.spheresToLeaves.set(sphere, oldRoot)
+        this._insertIntoOctant(key, sphere, root)
       }
-      // Non-coincident: overwrite the root with a new branch octant, with its bounds set to the smallest cube
+      // Non-coincident: we can now choose an appropriate size for the root node's box. Overwrite the
+      // root with a new branch octant, and set its position/size to the smallest whole-integer cube
       // that contains both sphere centerpoints. (Cube rounded to whole ints to avoid floating point issues)
       else {
         const newRoot = new Octant()
@@ -83,15 +77,15 @@ export class BoundingSphereOctree {
         this.root = newRoot
 
         // Re-add the original leaf's sphere(s) and the new sphere under the new branch root, and exit
-        oldRoot.forEachLeafSphere(sphere => this._insertSphere(sphere, newRoot))
-        this._insertSphere(sphere, newRoot)
+        oldRoot.forEachLeafSphere((_sphere, _key) => this._insertIntoOctant(_key, _sphere, newRoot))
+        this._insertIntoOctant(key, sphere, newRoot)
       }
     }
 
     // Expand the root to cover the new centerpoint if necessary, and insert the sphere within it
     else {
       this._expandToCoverPoint(center.x, center.y, center.z)
-      this._insertSphere(sphere, this.root)
+      this._insertIntoOctant(key, sphere, this.root)
     }
   }
 
@@ -103,7 +97,7 @@ export class BoundingSphereOctree {
       const {cx, cy, cz, cr} = oldRoot
       const newRoot = new Octant()
       newRoot.maxRadius = oldRoot.maxRadius
-      newRoot.totalCount = oldRoot.totalCount
+      newRoot.sphereCount = oldRoot.sphereCount
       newRoot.leafCount = oldRoot.leafCount
 
       newRoot.cx = cx + cr * (x < cx ? -1 : 1)
@@ -120,7 +114,7 @@ export class BoundingSphereOctree {
     }
   }
 
-  _insertSphere(sphere, octant) {
+  _insertIntoOctant(key, sphere, octant) {
     const {center, radius} = sphere
 
     // If the parent octant is a leaf:
@@ -129,32 +123,31 @@ export class BoundingSphereOctree {
 
       // If the new sphere's center matches that of the leaf, add it to the leaf's members
       if (center.x === dataX && center.y === dataY && center.z === dataZ) {
-        octant.addSphereToLeaf(sphere)
-        octant.totalCount++
+        octant.addSphereData(key, sphere)
 
         // Increase maxRadius up the parent tree as needed
-        for (let oct = octant; oct; oct = oct.parent) {
+        for (let oct = octant.parent; oct; oct = oct.parent) {
           if (radius > oct.maxRadius) { oct.maxRadius = radius }
         }
 
         // Add to index
-        this.spheresToLeaves.set(sphere, octant)
+        this.keysToLeaves[key] =  octant
       }
 
       // Otherwise split the leaf into a branch, push the old leaf down, and try again
       else {
         const newBranch = assign(new Octant(), octant) //most props carry over
-        newBranch.data = null
+        newBranch.data = newBranch.dataKey = null
         octant.parent[octant.index] = newBranch
-        newBranch.addAsSubOctantForPoint(octant, dataX, dataY, dataZ)
-        this._insertSphere(sphere, newBranch) //recurse
+        newBranch.addOctantForPoint(octant, dataX, dataY, dataZ)
+        this._insertIntoOctant(key, sphere, newBranch) //recurse
       }
     }
 
     // The parent octant is a branch:
     else {
       // Always increment branch's total count
-      octant.totalCount++
+      octant.sphereCount++
 
       // Find the suboctant index in which the new center point falls
       const subOctantIndex = octant.getSubOctantIndexForPoint(center.x, center.y, center.z)
@@ -163,46 +156,42 @@ export class BoundingSphereOctree {
       let subOctant = octant[subOctantIndex]
       if (!subOctant) {
         const newLeaf = new Octant()
-        octant.addAsSubOctantForPoint(newLeaf, center.x, center.y, center.z)
-        newLeaf.data = sphere
-        newLeaf.dataX = center.x
-        newLeaf.dataY = center.y
-        newLeaf.dataZ = center.z
-        newLeaf.totalCount = 1
+        octant.addOctantForPoint(newLeaf, center.x, center.y, center.z)
+        newLeaf.addSphereData(key, sphere)
 
         // Increment leafCount and maxRadius up the parent tree
-        for (let oct = newLeaf; oct; oct = oct.parent) {
+        for (let oct = newLeaf.parent; oct; oct = oct.parent) {
           if (radius > oct.maxRadius) { oct.maxRadius = radius }
           oct.leafCount++
         }
 
         // Add to index
-        this.spheresToLeaves.set(sphere, newLeaf)
+        this.keysToLeaves[key] = newLeaf
       }
 
       // If there was already a sub-octant at that index, recurse
       else {
-        return this._insertSphere(sphere, subOctant)
+        return this._insertIntoOctant(key, sphere, subOctant)
       }
     }
   }
 
-  removeSphere(sphere) {
+  removeSphere(key) {
     // Find the existing leaf that holds the sphere
-    let leafOctant = this.spheresToLeaves.get(sphere)
+    let leafOctant = this.keysToLeaves[key]
     if (!leafOctant) { return }
 
-    // Preemptively decrement totalCount up the parent tree
-    let oct = leafOctant
+    // Preemptively decrement sphereCount up the parent tree
+    let oct = leafOctant.parent
     while (oct) {
-      oct.totalCount--
+      oct.sphereCount--
       oct = oct.parent
     }
 
-    // If it was not the only member of its leaf, remove it from the leaf's members and keep the leaf in place
-    if (leafOctant.totalCount > 0) {
+    // If there are other members in the leaf, remove it from the leaf's members and keep the leaf in place
+    if (leafOctant.sphereCount > 1) {
       // Remove sphere from the leaf data
-      leafOctant.removeSphereFromLeaf(sphere)
+      leafOctant.removeSphereData(key)
 
       // Update maxRadius up the tree
       leafOctant.updateMaxRadii()
@@ -212,22 +201,26 @@ export class BoundingSphereOctree {
     else {
       // Walk up the tree and remove all empty branches
       oct = leafOctant
-      let lowestRemainingOctant = oct
-      while (oct && oct.totalCount === 0) {
-        if (oct.parent) {
-          lowestRemainingOctant = oct.parent
-          oct.parent[oct.index] = null
-        } else {
-          // top of the tree; entire tree is empty so delete the root and exit
-          this.root = null
-          return
+      let lowestRemainingOctant
+      do {
+        const parent = oct.parent
+        lowestRemainingOctant = parent
+        if (parent) {
+          parent[oct.index] = null
         }
         oct = oct.parent
+      } while (oct && oct.sphereCount === 0)
+
+      // If we got to the top of the tree, it's totally empty so set the root to null and exit
+      if (!lowestRemainingOctant) {
+        this.root = null
+        return
       }
 
       // Continue up the tree, decrementing the leafCount and looking for the highest branch point with only
       // a single remaining leaf underneath it, if any
       let highestSingleLeafBranch = null
+      oct = lowestRemainingOctant
       while (oct) {
         oct.leafCount--
         if (oct.leafCount === 1) {
@@ -239,48 +232,43 @@ export class BoundingSphereOctree {
       // If we were left with a branch with only one leaf descendant, move that leaf up to the branch point
       if (highestSingleLeafBranch) {
         let leaf = this._findSingleLeaf(highestSingleLeafBranch)
-        leaf.cx = highestSingleLeafBranch.cx
-        leaf.cy = highestSingleLeafBranch.cy
-        leaf.cz = highestSingleLeafBranch.cz
-        leaf.cr = highestSingleLeafBranch.cr
-        leaf.parent = highestSingleLeafBranch.parent
-        leaf.index = highestSingleLeafBranch.index
-        if (highestSingleLeafBranch.parent) {
-          highestSingleLeafBranch.parent[leaf.index] = leaf
+        const parent = highestSingleLeafBranch.parent
+        if (parent) {
+          parent.addOctantForPoint(leaf, leaf.cx, leaf.cy, leaf.cz)
+          parent.updateMaxRadii()
         } else {
           this.root = leaf
         }
-        lowestRemainingOctant = leaf
+      } else {
+        // Update the max radii up the tree from the lowest remaining node
+        lowestRemainingOctant.updateMaxRadii()
       }
-
-      // Update the max radii up the tree from the lowest remaining node
-      lowestRemainingOctant.updateMaxRadii()
     }
 
     // Delete it from the index
-    this.spheresToLeaves.delete(sphere)
+    delete this.keysToLeaves[key]
   }
 
-  updateSphere(sphere) {
+  _updateSphere(key, sphere) {
     // Find the existing leaf octant that holds the sphere
-    let leaf = this.spheresToLeaves.get(sphere)
+    let leaf = this.keysToLeaves[key]
 
     const center = sphere.center
 
     // If its center point still falls within the leaf's cube, we can fast-path the changes:
     if (leaf.containsPoint(center.x, center.y, center.z)) {
-      const isMulti = Array.isArray(leaf.data)
+      const isMulti = leaf.sphereCount > 1
       const hasMoved = center.x !== leaf.dataX ||
         center.y !== leaf.dataY ||
         center.z !== leaf.dataZ
 
-      // If it was not the only member and has changed position, split that leaf; we do this
-      // with a local remove/re-insert that doesn't have to recalc stats up the parent tree twice
+      // If it was not the only member and has changed position, split that leaf; we can do this
+      // slightly faster than a full remove+add because we know this will be the branch point and can
+      // avoid some unnecessary upward tree walking
       if (isMulti && hasMoved) {
-        leaf.removeSphereFromLeaf(sphere)
-        leaf.totalCount--
-        leaf.maxRadius = leaf.findMaxSphereRadius()
-        this._insertSphere(sphere, leaf)
+        leaf.removeSphereData(key)
+        leaf.updateMaxRadii()
+        this._insertIntoOctant(key, sphere, leaf)
       }
 
       // Otherwise we can just update this leaf
@@ -300,8 +288,8 @@ export class BoundingSphereOctree {
     // TODO possible faster path: remove only up to lowest common ancestor branch point,
     // collapse remaining up to that point, and insert sphere under that point
     else {
-      this.removeSphere(sphere)
-      this.addSphere(sphere)
+      this.removeSphere(key)
+      this.putSphere(key, sphere)
     }
   }
 
@@ -349,7 +337,7 @@ export class BoundingSphereOctree {
 
   /**
    * Given a {@link Ray}, search the octree for any spheres that intersect that ray and invoke
-   * the given callback `fn` with that sphere.
+   * the given callback `fn`, passing it the sphere and its key as arguments.
    * TODO need to handle near/far
    *
    * @param {Ray} ray
@@ -362,10 +350,10 @@ export class BoundingSphereOctree {
     // let sphereTests = 0
     let sphereHits = 0
 
-    function visitSphere(sphere) {
+    function visitSphere(sphere, key) {
       // sphereTests++
-      if (ray.intersectsSphere(sphere)) {
-        fn.call(scope, sphere, sphereHits++)
+      if (rayIntersectsSphere(ray, sphere)) {
+        fn.call(scope, sphere, key)
       }
     }
 
@@ -381,7 +369,7 @@ export class BoundingSphereOctree {
         // outweighs its slower speed (see https://jsperf.com/ray-intersectsphere-vs-intersectbox)
         tempSphere.center.set(octant.cx, octant.cy, octant.cz)
         tempSphere.radius = octant.cr * SQRT3 + octant.maxRadius
-        if (!ray.intersectsSphere(tempSphere)) {
+        if (!rayIntersectsSphere(ray, tempSphere)) {
           return false //ignore this branch
         }
       }
@@ -411,7 +399,7 @@ class Octant {
     return (z < this.cz ? 0 : 4) + (y < this.cy ? 0 : 2) + (x < this.cx ? 0 : 1)
   }
 
-  addAsSubOctantForPoint(subOctant, x, y, z) {
+  addOctantForPoint(subOctant, x, y, z) {
     const index = this.getSubOctantIndexForPoint(x, y, z)
     const subCR = this.cr / 2
 
@@ -429,14 +417,14 @@ class Octant {
   findMaxSphereRadius() {
     let maxRadius = 0
     if (this.isLeaf) {
-      const spheres = this.data
-      if (Array.isArray(this.data)) {
-        for (let i = spheres.length; i--;) {
-          const r = spheres[i].radius
+      const data = this.data
+      if (this.sphereCount > 1) {
+        for (let key in data) {
+          const r = data[key].radius
           if (r > maxRadius) maxRadius = r
         }
       } else {
-        maxRadius = spheres.radius
+        maxRadius = data.radius
       }
     } else {
       for (let i = 0; i < 8; i++) {
@@ -471,28 +459,51 @@ class Octant {
     }
   }
 
-  addSphereToLeaf(sphere) {
-    const data = this.data
-    if (data) {
-      if (Array.isArray(data)) {
-        data.push(sphere)
-      } else {
-        this.data = [data, sphere]
-      }
-    } else {
+  addSphereData(key, sphere) {
+    const count = this.sphereCount++
+    if (count === 0) {
+      this.leafCount = 1
       this.data = sphere
+      this.dataKey = key
+      // copy center coords from the first added sphere
+      const center = sphere.center
+      this.dataX = center.x
+      this.dataY = center.y
+      this.dataZ = center.z
+    }
+    else if (count === 1) {
+      const oldSphere = this.data
+      const newData = this.data = Object.create(null)
+      newData[this.dataKey] = oldSphere
+      newData[key] = sphere
+      this.dataKey = null
+    }
+    else if (count > 1) {
+      this.data[key] = sphere
+    }
+
+    if (sphere.radius > this.maxRadius) {
+      this.maxRadius = sphere.radius
     }
   }
 
-  removeSphereFromLeaf(sphere) {
+  removeSphereData(key) {
     const data = this.data
     if (data) {
-      if (Array.isArray(data)) {
-        data.splice(data.indexOf(sphere), 1)
-        if (data.length === 1) {
-          this.data = data[0]
+      const count = this.sphereCount--
+      if (count > 2) {
+        delete data[key]
+      }
+      else if (count === 2) {
+        for (let _key in data) {
+          if (_key !== key) {
+            this.dataKey = _key
+            this.data = data[_key]
+            break
+          }
         }
-      } else {
+      }
+      else {
         this.data = null
       }
     }
@@ -501,10 +512,12 @@ class Octant {
   forEachLeafSphere(fn, scope) {
     const data = this.data
     if (data) {
-      if (Array.isArray(data)) {
-        data.forEach(fn, scope)
+      if (this.sphereCount > 1) {
+        for (let key in data) {
+          fn.call(scope, data[key], key)
+        }
       } else {
-        fn.call(scope, data, 0)
+        fn.call(scope, data, this.dataKey)
       }
     }
   }
@@ -531,53 +544,33 @@ assign(Octant.prototype, {
   7: null,
 
   // Leaf data
+  // For a single-item leaf (probably the vast majority) `data` will be the Sphere object and `dataKey`
+  // will be its key. For a multi-item leaf, `data` will be an object of key->Sphere mappings and
+  // `dataKey` will be null. I'm not a huge fan of the asymmetry but this lets us avoid an extra
+  // sub-object for the majority of leaves while keeping the Octant's shape predictable for the JS engine.
   data: null,
+  dataKey: null,
+  // The first sphere added to the leaf will have its center position copied for easier access and
+  // to avoid issues with the Sphere objects being mutated elsewhere.
   dataX: 0,
   dataY: 0,
   dataZ: 0,
 
   // Stats
-  totalCount: 0,
+  sphereCount: 0,
   leafCount: 0,
   maxRadius: 0
 })
 
 
 /**
- * @class SphereMap
- * Utility for mapping Sphere objects to values, in lieu of ES6 `Map`.
+ * Custom ray-sphere intersection tester that's faster than ThreeJS's
+ * `ray.intersectsSphere(sphere)` because it avoids Math.sqrt() in favor of multiplication.
+ * See https://jsperf.com/threejs-ray-intersectssphere/1
+ * @param {Ray} ray
+ * @param {Sphere} sphere
  */
-function SphereMap() {
-  const map = Object.create(null)
-  const propDef = {value:null}
-
-  function key(sphere) {
-    let key = sphere.$sphereMapKey
-    if (!key) {
-      key = propDef.value = `${SphereMap._keyIncr++}`
-      Object.defineProperty(sphere, '$sphereMapKey', propDef)
-    }
-    return key
-  }
-
-  this.get = function(sphere) {
-    return map[key(sphere)] || null
-  }
-
-  this.set = function(sphere, value) {
-    map[key(sphere)] = value
-  }
-
-  this.delete = function(sphere) {
-    delete map[key(sphere)]
-  }
-
-  // expensive, only use in tests
-  this.getSize = function() {
-    return Object.keys(map).length
-  }
+export function rayIntersectsSphere(ray, sphere) {
+  return ray.distanceSqToPoint(sphere.center) <= sphere.radius * sphere.radius
 }
-SphereMap._keyIncr = 0
 
-
-//console.log(BoundingSphereOctree.toString())

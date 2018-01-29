@@ -30,10 +30,10 @@ export function assignIf(/*target, ...sources*/) {
   return target
 }
 
-export function forOwn(object, fn) {
+export function forOwn(object, fn, scope) {
   for (let prop in object) {
     if (object.hasOwnProperty(prop)) {
-      fn(object[prop], prop, object)
+      fn.call(scope, object[prop], prop, object)
     }
   }
 }
