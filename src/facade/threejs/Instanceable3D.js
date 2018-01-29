@@ -79,6 +79,7 @@ class Instanceable3DFacade extends Object3DFacade {
     if (obj !== this._instancedThreeObject) {
       this._instancedThreeObject = obj
       this.notifyWorld('instanceableChanged')
+      this._boundsChanged = true
     }
   }
   get instancedThreeObject() {
@@ -100,19 +101,25 @@ class Instanceable3DFacade extends Object3DFacade {
   }
 
   updateMatrices() {
+    const prevMatrixVersion = this._worldMatrixVersion
+
     super.updateMatrices()
+
     // If the world matrix changed, we must notify the instancing manager
-    if (this._worldMatrixVersion !== this._lastInstancedMatrixVersion) {
-      if (this.threeObject.$troikaVisible) {
-        this.notifyWorld('instanceableMatrixChanged')
-      }
-      this._lastInstancedMatrixVersion = this._worldMatrixVersion
+    if (this._worldMatrixVersion !== prevMatrixVersion && this.threeObject.$troikaVisible) {
+      this.notifyWorld('instanceableMatrixChanged')
     }
   }
 
   destructor() {
     this.notifyWorld('instanceableRemoved')
     super.destructor()
+  }
+
+  // Custom bounding sphere calc
+  getGeometry() {
+    let instancedObj = this.instancedThreeObject
+    return instancedObj && instancedObj.geometry
   }
 
   // Custom raycasting based on current geometry and transform

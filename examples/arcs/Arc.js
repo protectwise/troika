@@ -1,4 +1,4 @@
-import {Mesh, ShaderMaterial, BoxBufferGeometry, Color} from 'three'
+import {Mesh, ShaderMaterial, BoxBufferGeometry, Color, Sphere, Vector3} from 'three'
 import {Object3DFacade} from '../../src/index'
 import arcVertexShader from './arcVertexShader.glsl'
 import arcFragmentShader from './arcFragmentShader.glsl'
@@ -22,6 +22,8 @@ const baseMaterial = new ShaderMaterial({
   transparent: true
 })
 
+const infiniteSphere = new Sphere(new Vector3(), Infinity)
+
 
 export default class Arc extends Object3DFacade {
   constructor(parent) {
@@ -43,7 +45,26 @@ export default class Arc extends Object3DFacade {
     super.afterUpdate()
   }
 
-  // Override raycast method to handle vertex shader transformation
+  /**
+   * Override getBoundingSphere method to handle vertex shader transformation
+   *
+   * Notice that for simplicity we just provide an infinite bounding sphere, essentially
+   * bypassing the bounding sphere prefilter and triggering full raycast of all arcs.
+   * This lets us avoid having to track changes to the angle/radius uniform props, and we
+   * can get away with it because the total number of objects in this scene is small enough
+   * that we can just raycast all of them without a bounding sphere prefilter. If that weren't
+   * the case, you'd need to make this sphere more tightly wrapped to the actual arc, and then
+   * in `afterUpdate` you'd need to test whether any of the angle/radius props was changed and
+   * if so send a `this.notifyWorld('object3DBoundsChanged')` message so the raycasting
+   * octree gets updated.
+   */
+  getBoundingSphere() {
+    return infiniteSphere
+  }
+
+  /**
+   * Override raycast method to handle vertex shader transformation
+   */
   raycast(raycaster) {
     let {startAngle, endAngle, startRadius, endRadius, threeObject} = this
     let origGeom = threeObject.geometry

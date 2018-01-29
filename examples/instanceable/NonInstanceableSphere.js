@@ -1,7 +1,7 @@
 import {
   SphereBufferGeometry,
   Mesh,
-  MeshPhongMaterial
+  MeshPhongMaterial, Color
 } from 'three'
 import {
   Object3DFacade
@@ -16,22 +16,19 @@ class NonInstanceableSphere extends Object3DFacade {
     super(parent, new Mesh(geometry, new MeshPhongMaterial()))
   }
 
-  set color(color) {
+  afterUpdate() {
+    let {color, radius} = this
+    if (this.hovered) color = 0xffffff
     if (color !== this._color) {
       this.threeObject.material.color.set(color)
       this._color = color
     }
-  }
-  get color() {
-    return this._color
+    if (radius !== this._radius) {
+      this.scaleX = this.scaleY = this.scaleZ = this._radius = radius
+    }
+    super.afterUpdate()
   }
 
-  set radius(r) {
-    if (r !== this._radius) {
-      this.scaleX = this.scaleY = this.scaleZ = this._radius = r
-    }
-  }
-  get radius() {return this._radius}
 }
 
 

@@ -1,5 +1,5 @@
 import {assign, forOwn} from '../../utils'
-import {Vector3, Matrix4, Quaternion, Object3D} from 'three'
+import {Vector3, Matrix4, Quaternion, Object3D, Sphere} from 'three'
 import PointerEventTarget from '../PointerEventTarget'
 import {defineEventProperty} from '../Facade'
 
@@ -30,6 +30,7 @@ function canObjectBeOrphaned(obj) {
 }
 
 let _worldMatrixVersion = 0
+let _geometrySphereVersion = 0
 
 class Object3DFacade extends PointerEventTarget {
   constructor(parent, threeObject) {
@@ -60,6 +61,8 @@ class Object3DFacade extends PointerEventTarget {
       }
       parent = parent.parent
     }
+
+    this.notifyWorld('object3DAdded')
   }
 
   afterUpdate() {
@@ -78,6 +81,7 @@ class Object3DFacade extends PointerEventTarget {
 
     // Update matrix and worldMatrix before processing children
     this.updateMatrices()
+    this._checkBoundsChange()
 
     // If the world matrix was modified, and we won't be doing an update pass on child facades due
     // to `shouldUpdateChildren` optimization, we need to manually update their matrices to match.
@@ -86,6 +90,7 @@ class Object3DFacade extends PointerEventTarget {
         this.traverse((facade, rootFacade) => {
           if (facade !== rootFacade && facade.updateMatrices) {
             facade.updateMatrices()
+            facade._checkBoundsChange()
           }
         }, this)
       }
@@ -156,6 +161,22 @@ class Object3DFacade extends PointerEventTarget {
       }
 
       this._worldMatrixVersion = ++_worldMatrixVersion
+      this._boundsChanged = true
+    }
+  }
+
+  _checkBoundsChange() {
+    let changed = this._boundsChanged
+    if (!changed) {
+      const geomSphere = this._getGeometryBoundingSphere()
+      if (geomSphere && geomSphere.version !== this._lastGeometrySphereVersion) {
+        changed = true
+        this._lastGeometrySphereVersion = geomSphere.version
+      }
+    }
+    if (changed) {
+      this.notifyWorld('object3DBoundsChanged')
+      this._boundsChanged = false
     }
   }
 
@@ -215,16 +236,102 @@ class Object3DFacade extends PointerEventTarget {
   }
 
   /**
+   * Return a {@link Sphere} encompassing the bounds of this object in worldspace, or `null` if
+   * it has no physical bounds. This is used for optimized raycasting.
+   *
+   * The default implementation attempts to be as efficient as possible, only updating the sphere
+   * when necessary, and assumes the threeObject has a geometry that accurately describes its bounds.
+   * Override this method to provide custom bounds calculation logic, for example when additional meshes
+   * need to be checked or a vertex shader manipulates the geometry; you'll probably also need to override
+   * {@link #raycast} to match.
+   *
+   * TODO: this needs to be easier to override without having to reimplement large chunks of logic
+   */
+  getBoundingSphere() {
+    // Get the geometry's current bounding sphere
+    let geomSphere = this._getGeometryBoundingSphere()
+    if (!geomSphere) return null
+
+    // Ensure world matrix is up to date
+    this.updateMatrices()
+
+    // Lazily create our Sphere
+    let sphere = this._boundingSphere
+    if (!sphere) {
+      sphere = this._boundingSphere = new Sphere()
+    }
+
+    // If the geometry, the geometry's bounding sphere, or this object's world matrix changed,
+    // update our bounding sphere to match them.
+    if (sphere._geometrySphereVersion !== geomSphere.version || sphere._worldMatrixVersion !== this._worldMatrixVersion) {
+      sphere.copy(geomSphere)
+      sphere.applyMatrix4(this.threeObject.matrixWorld)
+      sphere._worldMatrixVersion = this._worldMatrixVersion
+      sphere._geometrySphereVersion = geomSphere.version
+    }
+
+    return sphere
+  }
+
+  /**
+   * Ensure the object's geometry, if any, has an up-to-date bounding Sphere, and return that Sphere.
+   * The returned Sphere will be assigned a unique `version` property when it is modified, which can
+   * be used elsewhere for tracking changes.
+   * @private
+   */
+  _getGeometryBoundingSphere() {
+    const geometry = this.getGeometry()
+    if (geometry) {
+      let geomSphere = geometry.boundingSphere
+      let geomSphereChanged = false
+      if (geomSphere) {
+        if (geometry.isBufferGeometry) {
+          // For a BufferGeometry we can look at the `position` attribute's `version` (incremented
+          // when the user sets `geom.needsUpdate = true`) to detect the need for bounds recalc
+          const posAttr = geometry.attributes.position
+          if (posAttr && geomSphere._posAttrVersion !== posAttr.version) {
+            geometry.computeBoundingSphere()
+            geomSphere._posAttrVersion = posAttr.version
+            geomSphereChanged = true
+          }
+        } else {
+          // For a non-buffer Geometry (not recommended!) users will have to manually call
+          // `geom.computeBoundingSphere()` after changing its vertices, and we'll do a brute force
+          // check for changes to the sphere's properties
+          if (!geometry._lastBoundingSphere || !geomSphere.equals(geometry._lastBoundingSphere)) {
+            geometry._lastBoundingSphere = geomSphere.clone()
+            geomSphereChanged = true
+          }
+        }
+      } else {
+        geometry.computeBoundingSphere()
+        geomSphere = geometry.boundingSphere
+        geomSphereChanged = true
+      }
+      if (geomSphereChanged) {
+        geomSphere.version = ++_geometrySphereVersion
+      }
+      return geomSphere
+    } else {
+      return null
+    }
+  }
+
+  /**
+   * @protected Extension point for subclasses that don't use their threeObject's geometry, e.g. Instanceable
+   */
+  getGeometry() {
+    return this.threeObject.geometry
+  }
+
+  /**
    * Determine if this facade's threeObject intersects a Raycaster. Override this method to provide
    * custom raycasting logic, for example when additional meshes need to be checked or a vertex shader
-   * manipulates the geometry.
+   * manipulates the geometry; you'll probably also need to override {@link #getBoundingSphere} to match.
    *
    * The return value can be:
    *   - An array of hit objects for this facade, matching the format returned by `Raycaster.intersectObject`
    *   - `null`, if this facade has no hits
-   *   - `false`, if this facade has no hits *and* descendant facades should not be queried. This can
-   *     be implemented in overridden methods to optimize large scenes by ignoring entire groups when
-   *     a parent can safely determine the extent of all its children.
    */
   raycast(raycaster) {
     return this._raycastObject(this.threeObject, raycaster)
@@ -263,6 +370,7 @@ class Object3DFacade extends PointerEventTarget {
   }
 
   destructor() {
+    this.notifyWorld('object3DRemoved')
     let parentObj3D = this._parentObject3DFacade
     if (parentObj3D) {
       parentObj3D._queueRemoveChildObject3D(this.threeObject.id)
@@ -329,7 +437,8 @@ assign(Object3DFacade.prototype, {
   _removeChildIds: null,
   _matrixChanged: false,
   _worldMatrixVersion: -1,
-  _worldMatrixVersionAfterLastUpdate: -1
+  _worldMatrixVersionAfterLastUpdate: -1,
+  _boundingSphereChanged: false
 })
 
 // Define onBeforeRender/onAfterRender event handler properties

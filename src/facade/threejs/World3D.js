@@ -3,6 +3,7 @@ import {WebGLRenderer, Raycaster, Color, Vector2, Vector3} from 'three'
 import WorldBaseFacade from '../WorldBase'
 import Scene3DFacade from './Scene3D'
 import {PerspectiveCamera3DFacade} from './Camera3D'
+import {BoundingSphereOctree} from './BoundingSphereOctree'
 
 
 const posVec = new Vector3()
@@ -65,30 +66,24 @@ class World3DFacade extends WorldBaseFacade {
     let sceneFacade = this.getChildByKey('scene')
     let scene = sceneFacade.threeObject
     let camera = this.getChildByKey('camera').threeObject
+    let renderer = this._threeRenderer
 
     // Invoke any onBeforeRender listeners
-    let registry = this.$eventRegistry
-    let callbacks = registry && registry.onBeforeRender
-    if (callbacks) {
-      for (let id in callbacks) {
-        callbacks[id](this._threeRenderer, scene, camera)
-      }
+    let registry = this.eventRegistry
+    function invokeHandler(handler) {
+      handler(renderer, scene, camera)
     }
+    registry.forEachListenerOfType('onBeforeRender', invokeHandler, this)
 
     // Render scene
-    this._threeRenderer.render(scene, camera)
+    renderer.render(scene, camera)
 
     // Invoke any onAfterRender listeners
-    callbacks = registry && registry.onAfterRender
-    if (callbacks) {
-      for (let id in callbacks) {
-        callbacks[id](this._threeRenderer, scene, camera)
-      }
-    }
+    registry.forEachListenerOfType('onAfterRender', invokeHandler, this)
 
     let onStatsUpdate = this.onStatsUpdate
     if (onStatsUpdate) {
-      let info = this._threeRenderer.info.render
+      let info = renderer.info.render
       onStatsUpdate({
         'WebGL Draw Calls': info.calls,
         'WebGL Vertices': info.vertices,
@@ -141,24 +136,71 @@ class World3DFacade extends WorldBaseFacade {
     // prep raycaster
     raycaster.setFromCamera(coords, camera)
 
-    // traverse tree to collect hits
-    let allHits = null
-    function visit(facade) {
-      let hits = facade.raycast && facade.raycast(raycaster)
-      if (hits && hits[0]) {
-        (allHits || (allHits = [])).push({
-          facade: facade,
-          distance: hits[0].distance //ignore all but closest
-        })
-      }
-      // recurse to children, unless raycast impl returned false to short-circuit
-      if (hits !== false) {
-        facade.forEachChild(visit)
-      }
-    }
-    visit(this.getChildByKey('scene'))
+    // update bounding sphere octree
+    const octree = this._updateOctree()
 
+    // search bounding sphere octree to quickly filter down to a small set of likely hits,
+    // then do a true raycast on those facades
+    let allHits = null
+    if (octree) {
+      octree.forEachSphereOnRay(raycaster.ray, (sphere, facadeId) => {
+        const facadesById = this._object3DFacadesById
+        const facade = facadesById && facadesById[facadeId]
+        const hits = facade && facade.raycast && facade.raycast(raycaster)
+        if (hits && hits[0]) {
+          (allHits || (allHits = [])).push({
+            facade: facade,
+            distance: hits[0].distance //ignore all but closest
+          })
+        }
+      })
+    }
     return allHits
+  }
+
+  _updateOctree() {
+    // update octree with any new bounding spheres
+    let octree = this._boundingSphereOctree
+    const changes = this._octreeChangeset
+    if (changes) {
+      if (!octree) {
+        octree = this._boundingSphereOctree = new BoundingSphereOctree()
+      }
+      const {deletes, puts} = changes
+      if (deletes) {
+        for (let facadeId in deletes) {
+          octree.removeSphere(facadeId)
+        }
+      }
+      if (puts) {
+        for (let facadeId in puts) {
+          const sphere = puts[facadeId].getBoundingSphere()
+          if (sphere) {
+            octree.putSphere(facadeId, sphere)
+          } else {
+            octree.removeSphere(facadeId)
+          }
+        }
+      }
+      this._octreeChangeset = null
+    }
+    return octree
+  }
+  
+  _queueForOctreePut(facade) {
+    const changes = this._octreeChangeset || (this._octreeChangeset = {})
+    const puts = changes.puts || (changes.puts = Object.create(null))
+    puts[facade.$facadeId] = facade
+  }
+  
+  _queueForOctreeDelete(facade) {
+    const facadeId = facade.$facadeId
+    const changes = this._octreeChangeset || (this._octreeChangeset = {})
+    const deletes = changes.deletes || (changes.deletes = Object.create(null))
+    deletes[facadeId] = facade
+    if (changes.puts && changes.puts[facadeId]) {
+      delete changes.puts[facadeId]
+    }
   }
 
   destructor() {
@@ -182,6 +224,17 @@ World3DFacade.prototype._notifyWorldHandlers = assign(
     projectWorldPosition(source, data) {
       let pos = data.worldPosition
       data.callback(this.projectWorldPosition(pos.x, pos.y, pos.z))
+    },
+    object3DAdded(source) {
+      (this._object3DFacadesById || (this._object3DFacadesById = Object.create(null)))[source.$facadeId] = source
+      this._queueForOctreePut(source)
+    },
+    object3DBoundsChanged(source) {
+      this._queueForOctreePut(source)
+    },
+    object3DRemoved(source) {
+      if (this._object3DFacadesById) delete this._object3DFacadesById[source.$facadeId]
+      this._queueForOctreeDelete(source)
     }
   }
 )

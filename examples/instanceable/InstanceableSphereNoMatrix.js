@@ -3,7 +3,8 @@ import {
   Mesh,
   MeshPhongMaterial,
   Color,
-  ShaderLib
+  ShaderLib,
+  Vector3
 } from 'three'
 import {
   Instanceable3DFacade
@@ -34,6 +35,9 @@ customShaderMaterial.instanceUniforms = ['radius', 'diffuse']
 // Single mesh shared between all instanceables
 const protoObj = new Mesh(geometry, customShaderMaterial)
 
+// Helper mesh for raycasting transformation
+const raycastObj = new Mesh(geometry.clone(), customShaderMaterial)
+const tempVec3 = new Vector3()
 
 
 class InstanceableSphereNoMatrix extends Instanceable3DFacade {
@@ -42,23 +46,35 @@ class InstanceableSphereNoMatrix extends Instanceable3DFacade {
     this.instancedThreeObject = protoObj
   }
 
-  set color(color) {
+  afterUpdate() {
+    let {color, radius} = this
+    if (this.hovered) color = 0xffffff
     if (color !== this._color) {
       this.setInstanceUniform('diffuse', new Color(color))
       this._color = color
     }
-  }
-  get color() {
-    return this._color
+    if (radius !== this._radius) {
+      this.setInstanceUniform('radius', radius)
+      this._radius = radius
+      this.notifyWorld('object3DBoundsChanged') //let world know it needs to update the bounding sphere octree
+    }
+    super.afterUpdate()
   }
 
-  set radius(r) {
-    if (r !== this._radius) {
-      this.setInstanceUniform('radius', r)
-      this._radius = r
+  getBoundingSphere() {
+    let sphere = super.getBoundingSphere()
+    if (sphere.radius !== this.radius) {
+      sphere.radius = this.radius //scale by the radius uniform since the matrix won't include scale
     }
+    return sphere
   }
-  get radius() {return this._radius}
+
+  raycast(raycaster) {
+    this.updateMatrices()
+    raycastObj.matrixWorld.copy(this.threeObject.matrixWorld)
+    raycastObj.matrixWorld.scale(tempVec3.setScalar(this.radius))
+    return this._raycastObject(raycastObj, raycaster)
+  }
 }
 
 

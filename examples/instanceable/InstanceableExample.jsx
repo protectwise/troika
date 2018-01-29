@@ -79,13 +79,14 @@ class InstanceableExample extends React.Component {
 
   _onSphereOver(e) {
     this.setState({hoveredId: e.target.id})
-    cancelAnimationFrame(this._unhoverTimer)
+    clearTimeout(this._unhoverTimer)
   }
 
   _onSphereOut(e) {
-    this._unhoverTimer = requestAnimationFrame(() => {
+    clearTimeout(this._unhoverTimer)
+    this._unhoverTimer = setTimeout(() => {
       this.setState({hoveredId: null})
-    })
+    }, 500)
   }
 
   render() {
@@ -150,13 +151,14 @@ class InstanceableExample extends React.Component {
                   state.radiusMethod === 'uniform' ? InstanceableSphereNoMatrix : InstanceableSphere
                 ) : NonInstanceableSphere,
                 id: (d) => d.id,
-                color: d => d.id === state.hoveredId ? 0xffffff : d.color,
+                color: d => d.color,
+                hovered: d => d.id === state.hoveredId,
                 x: d => d.x,
                 y: d => d.y,
                 z: d => d.z,
-                radius: d => d.id === state.hoveredId ? 10 : 6,
-                // onMouseOver: () => this._onSphereOver,
-                // onMouseOut: () => this._onSphereOut,
+                radius: 6,
+                onMouseOver: () => this._onSphereOver,
+                onMouseOut: () => this._onSphereOut,
                 animation: state.animateRadius || state.animateColor ? ((d, i) => {
                   if (i % 4) {
                     return null
@@ -178,7 +180,8 @@ class InstanceableExample extends React.Component {
                     duration: 1000,
                     iterations: Infinity,
                     direction: 'alternate',
-                    delay: (d.x + d.y + d.z) / BOX_SIZE / 3 * -3000
+                    delay: (d.x + d.y + d.z) / BOX_SIZE / 3 * -3000,
+                    paused: !!state.hoveredId
                   }
                 }) : null
               }
