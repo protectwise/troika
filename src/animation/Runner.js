@@ -70,10 +70,11 @@ class Runner {
     // If previously paused, update start time to account for the duration of the pause
     if (tween.runner$paused && tween.runner$started) {
       tween.runner$started += (Date.now() - tween.runner$paused)
+    } else {
+      this.tweens.push(tween)
     }
     tween.runner$paused = null
     tween.runner$stopped = false
-    this.tweens.push(tween)
 
     // add runner to running runners
     startRunner(this)
