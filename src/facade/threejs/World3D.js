@@ -137,7 +137,10 @@ class World3DFacade extends WorldBaseFacade {
 
     // prep raycaster
     raycaster.setFromCamera(coords, camera)
+    return this.getFacadesOnRay(raycaster.ray, raycaster.near, raycaster.far)
+  }
 
+  getFacadesOnRay(ray, near, far) {
     // update bounding sphere octree
     const octree = this._updateOctree()
 
@@ -145,7 +148,10 @@ class World3DFacade extends WorldBaseFacade {
     // then do a true raycast on those facades
     let allHits = null
     if (octree) {
-      octree.forEachSphereOnRay(raycaster.ray, (sphere, facadeId) => {
+      raycaster.ray = ray
+      raycaster.near = near || 0
+      raycaster.far = far || Infinity
+      octree.forEachSphereOnRay(ray, (sphere, facadeId) => {
         const facadesById = this._object3DFacadesById
         const facade = facadesById && facadesById[facadeId]
         const hits = facade && facade.raycast && facade.raycast(raycaster)
