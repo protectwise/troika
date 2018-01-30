@@ -142,8 +142,7 @@ export class BoundingSphereOctree {
 
       // Otherwise split the leaf into a branch, push the old leaf down, and try again
       else {
-        const newBranch = assign(new Octant(), octant) //most props carry over
-        newBranch.data = newBranch.dataKey = null
+        const newBranch = _createBranchFromLeaf(octant)
         octant.parent[octant.index] = newBranch
         newBranch.addOctantForPoint(octant, dataX, dataY, dataZ)
         this._insertIntoOctant(key, sphere, newBranch) //recurse
@@ -567,6 +566,21 @@ assign(Octant.prototype, {
   leafCount: 0,
   maxRadius: 0
 })
+
+
+
+const _createBranchFromLeaf = (function() {
+  const copyProps = ['parent', 'index', 'cx', 'cy', 'cz', 'cr', 'sphereCount', 'leafCount', 'maxRadius']
+  return function(leaf) {
+    const branch = new Octant()
+    for (let i = copyProps.length; i--;) {
+      branch[copyProps[i]] = leaf[copyProps[i]]
+    }
+    return branch
+  }
+})()
+
+
 
 
 /**
