@@ -56,6 +56,7 @@ export class BoundingSphereOctree {
     // our actual dataset rather than an arbitrary one.
     if (!root) {
       const newRoot = new Octant()
+      newRoot.isLeaf = true
       newRoot.addSphereData(key, sphere)
       this.root = newRoot
       this.keysToLeaves[key] = newRoot
@@ -161,6 +162,7 @@ export class BoundingSphereOctree {
       let subOctant = octant[subOctantIndex]
       if (!subOctant) {
         const newLeaf = new Octant()
+        newLeaf.isLeaf = true
         octant.addOctantForPoint(newLeaf, center.x, center.y, center.z)
         newLeaf.addSphereData(key, sphere)
 
@@ -389,10 +391,6 @@ export class BoundingSphereOctree {
 
 
 class Octant {
-  get isLeaf() {
-    return !!this.data
-  }
-
   containsPoint(x, y, z) {
     const {cx, cy, cz, cr} = this
     return x >= cx - cr && x < cx + cr &&
@@ -553,6 +551,7 @@ assign(Octant.prototype, {
   // will be its key. For a multi-item leaf, `data` will be an object of key->Sphere mappings and
   // `dataKey` will be null. I'm not a huge fan of the asymmetry but this lets us avoid an extra
   // sub-object for the majority of leaves while keeping the Octant's shape predictable for the JS engine.
+  isLeaf: false,
   data: null,
   dataKey: null,
   // The first sphere added to the leaf will have its center position copied for easier access and
