@@ -344,23 +344,32 @@ export class BoundingSphereOctree {
 
   /**
    * Given a {@link Ray}, search the octree for any spheres that intersect that ray and invoke
-   * the given callback `fn`, passing it the sphere and its key as arguments.
+   * the given `callback` function, passing it the sphere and its key as arguments.
    * TODO need to handle near/far
    *
    * @param {Ray} ray
-   * @param {Function} fn
+   * @param {Function} callback
    * @param {Object} scope
    */
-  forEachSphereOnRay(ray, fn, scope) {
+  forEachSphereOnRay(ray, callback, scope) {
+    return this._forEachMatchingSphere(rayIntersectsSphere.bind(null, ray), callback, scope)
+  }
+
+  forEachIntersectingSphere(sphere, callback, scope) {
+    return this._forEachMatchingSphere(sphere.intersectsSphere.bind(sphere), callback, scope)
+  }
+
+  _forEachMatchingSphere(testFn, callback, scope) {
     // const startTime = performance.now()
     // let branchTests = 0
     // let sphereTests = 0
-    let sphereHits = 0
+    // let sphereHits = 0
 
     function visitSphere(sphere, key) {
       // sphereTests++
-      if (rayIntersectsSphere(ray, sphere)) {
-        fn.call(scope, sphere, key)
+      if (testFn(sphere)) {
+        // sphereHits++
+        callback.call(scope, sphere, key)
       }
     }
 
@@ -376,7 +385,7 @@ export class BoundingSphereOctree {
         // outweighs its slower speed (see https://jsperf.com/ray-intersectsphere-vs-intersectbox)
         tempSphere.center.set(octant.cx, octant.cy, octant.cz)
         tempSphere.radius = octant.cr * SQRT3 + octant.maxRadius
-        if (!rayIntersectsSphere(ray, tempSphere)) {
+        if (!testFn(tempSphere)) {
           return false //ignore this branch
         }
       }

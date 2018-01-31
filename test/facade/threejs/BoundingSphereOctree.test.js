@@ -661,16 +661,53 @@ describe('Sphere modification', () => {
 })
 
 
+describe('Sphere collision search', () => {
+  test('hits on intersecting spheres', () => {
+    const spheres = {
+      s0: createSphere(0, 0, 0, 1),
+      s1: createSphere(1, 0, 0, 1),
+      s2: createSphere(10, 0, 0, 1)
+    }
+    octree.putSpheres(spheres)
+
+    let testSphere = createSphere(0.5, 0, 0, 0.1)
+    expect(findSpheresTouchingSphere(testSphere)).toEqual({s0: spheres.s0, s1: spheres.s1})
+
+    testSphere = createSphere(12, 0, 0, 3)
+    expect(findSpheresTouchingSphere(testSphere)).toEqual({s2: spheres.s2})
+
+    testSphere = createSphere(-10, 0, 0, 50)
+    expect(findSpheresTouchingSphere(testSphere)).toEqual(spheres)
+  })
+
+  test('misses on non-intersecting spheres', () => {
+    const spheres = {
+      s0: createSphere(0, 0, 0, 1),
+      s1: createSphere(1, 0, 0, 1),
+      s2: createSphere(10, 0, 0, 1)
+    }
+    octree.putSpheres(spheres)
+
+    let testSphere = createSphere(-100, 0, 0, 0.1)
+    expect(findSpheresTouchingSphere(testSphere)).toEqual(null)
+  })
+})
+
+
 
 
 describe.skip('Benchmarks', () => {
   let allSpheres
   let allSpheresCount
 
+  function randomSphere() {
+    return createSphere(randRound(100) - 50, randRound(100) - 50, randRound(100) - 50, 0.001 + rand(5))
+  }
+
   function fillWithRandomSpheresTo(num) {
     while (allSpheresCount < num) {
       const key = `${Math.random()}.${Math.random()}`
-      const s = createSphere(randRound(100) - 50, randRound(100) - 50, randRound(100) - 50, rand(5))
+      const s = randomSphere()
       octree.putSphere(key, s)
       allSpheres[key] = s
       allSpheresCount++
@@ -720,6 +757,28 @@ describe.skip('Benchmarks', () => {
     measure(10000)
     measure(100000)
     console.log(`Ray intersection test performance stats:\n${messages.join('\n')}`)
+  })
+
+  test('sphere intersection search', () => {
+    const messages = []
+    function measure(count) {
+      fillWithRandomSpheresTo(count)
+      const samples = 1000
+      let totalTime = 0
+      for (let i = 0; i < samples; i++) {
+        let startTime = performance.now()
+        findSpheresTouchingSphere(randomSphere())
+        totalTime += performance.now() - startTime
+      }
+      messages.push(`- Searched octree of size ${allSpheresCount} in average of ${totalTime / samples}ms`)
+    }
+
+    measure(10)
+    measure(100)
+    measure(1000)
+    measure(10000)
+    measure(100000)
+    console.log(`Sphere intersection test performance stats:\n${messages.join('\n')}`)
   })
 
   test('sphere deletion', () => {
@@ -848,6 +907,16 @@ function findSpheresOnRay(ray) {
     results = results || {}
     expect(results[key]).toBeFalsy()
     results[key] = sphere
+  })
+  return results
+}
+
+function findSpheresTouchingSphere(sphere) {
+  let results = null
+  octree.forEachIntersectingSphere(sphere, (sphere2, key) => {
+    results = results || {}
+    expect(results[key]).toBeFalsy()
+    results[key] = sphere2
   })
   return results
 }
