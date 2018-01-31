@@ -113,9 +113,8 @@ class World2DFacade extends WorldBaseFacade {
    * Implementation of abstract
    */
   getFacadesAtPosition(clientX, clientY, canvasRect) {
-    let rect = this._element.getBoundingClientRect()
-    let x = clientX - rect.left
-    let y = clientY - rect.top
+    let x = clientX - canvasRect.left
+    let y = clientY - canvasRect.top
     let hits = null
     let distance = 0
 
