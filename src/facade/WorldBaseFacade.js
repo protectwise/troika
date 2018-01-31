@@ -361,15 +361,21 @@ class WorldBaseFacade extends ParentFacade {
     throw new Error('getFacadesAtEvent: no impl')
   }
 
-  _findHoveredFacade(e) {
+  /**
+   * @protected
+   */
+  getFacadesAtEvent(e) {
     // handle touch events
     let posInfo = e
     if (e.touches) {
       if (e.touches.length > 1) return null //only handle single touches for now
       posInfo = e.touches[0] || e.changedTouches[0]
     }
+    return this.getFacadesAtPosition(posInfo.clientX, posInfo.clientY, e.target.getBoundingClientRect())
+  }
 
-    let allHits = this.getFacadesAtPosition(posInfo.clientX, posInfo.clientY, e.target.getBoundingClientRect())
+  _findHoveredFacade(e) {
+    let allHits = this.getFacadesAtEvent(e)
     if (allHits) {
       // Sort by distance, or by distanceBias if distance is the same
       allHits.sort((a, b) => (a.distance - b.distance) || ((a.distanceBias || 0) - (b.distanceBias || 0)))

@@ -4,7 +4,8 @@ import WorldBaseFacade from '../WorldBaseFacade'
 import Scene3DFacade from './Scene3DFacade'
 import {PerspectiveCamera3DFacade} from './Camera3DFacade'
 import {BoundingSphereOctree} from './BoundingSphereOctree'
-import {getVrCameraClassFor} from './VrCameraDecorator'
+import {getVrCameraClassFor} from './vr/VrCameraDecorator'
+import {VrControllers} from './vr/VrControllers'
 
 
 const posVec = new Vector3()
@@ -48,15 +49,24 @@ class World3DFacade extends WorldBaseFacade {
     if (typeof camera.aspect !== 'number') {
       camera.aspect = width / height
     }
+
+    scene.key = 'scene'
+    scene.facade = scene.facade || Scene3DFacade
+
     if (vrDisplay) {
+      // Wrap configured camera with VR camera decorator
       camera = assignIf({
         facade: getVrCameraClassFor(camera.facade),
         vrDisplay
       }, camera)
-    }
 
-    scene.key = 'scene'
-    scene.facade = scene.facade || Scene3DFacade
+      // Add VR controllers manager to scene
+      scene.objects = emptyArray.concat(scene.objects, {
+        key: 'vrcontrollers',
+        facade: VrControllers,
+        vrDisplay: vrDisplay
+      })
+    }
 
     this.children = [camera, scene]
 
@@ -178,6 +188,17 @@ class World3DFacade extends WorldBaseFacade {
 
 
   /**
+   * @override to handle ray events e.g. from a vr controller
+   */
+  getFacadesAtEvent(e) {
+    if (e.isRayEvent) {
+      return e.ray ? this.getFacadesOnRay(e.ray) : null
+    } else {
+      return super.getFacadesAtEvent(e)
+    }
+  }
+
+  /**
    * Implementation of abstract
    */
   getFacadesAtPosition(clientX, clientY, canvasRect) {
@@ -291,6 +312,15 @@ World3DFacade.prototype._notifyWorldHandlers = assign(
     object3DRemoved(source) {
       delete this._object3DFacadesById[source.$facadeId]
       this._queueForOctreeChange('remove', source)
+    },
+    pointerRayChanged(source, ray) {
+      // Dispatch a custom event carrying the Ray, which will be used by our `getFacadesAtEvent`
+      // override to search for a hovered facade
+      const e = document.createEvent('Events')
+      e.initEvent('raymove', true, true)
+      e.isRayEvent = true
+      e.ray = ray
+      this._onPointerMotionEvent(e)
     }
   }
 )
