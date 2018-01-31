@@ -1,5 +1,5 @@
 import {assign} from '../../utils'
-import {Scene, Fog, FogExp2} from 'three'
+import {Scene, Fog, FogExp2, Sphere} from 'three'
 import Object3DFacade from './Object3D'
 import InstancingManager from './InstancingManager'
 import {AmbientLight3DFacade, SpotLight3DFacade, DirectionalLight3DFacade, PointLight3DFacade} from './Light3D'
@@ -13,7 +13,7 @@ const LIGHT_TYPES = {
 }
 
 const RAY_INTERSECTION = [{distance: Infinity}]
-
+const INFINITE_SPHERE = new Sphere(undefined, Infinity)
 
 class Scene3DFacade extends Object3DFacade {
   constructor(parent) {
@@ -66,6 +66,10 @@ class Scene3DFacade extends Object3DFacade {
       fogObj = this._fogObj = null
     }
     this.threeObject.fog = fogObj
+  }
+
+  getBoundingSphere() {
+    return INFINITE_SPHERE
   }
 
   raycast(raycaster) {
