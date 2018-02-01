@@ -10,6 +10,12 @@ export default {
     // })
     buble()
   ],
+  external: [
+    'easingjs',
+    'prop-types',
+    'react',
+    'three'
+  ],
   output: [
     {
       format: 'umd',
@@ -17,7 +23,6 @@ export default {
       name: 'Troika',
       globals: {
         easingjs: 'easing',
-        'lodash-es': '_',
         react: 'React',
         three: 'THREE',
         'prop-types': 'T'
