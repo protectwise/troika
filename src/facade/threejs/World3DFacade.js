@@ -259,7 +259,7 @@ class World3DFacade extends WorldBaseFacade {
           // Check for put requests for objects that are now obsolete
           const facade = this._object3DFacadesById[facadeId]
           if (facade && !facade.isDestroying && !(remove && remove[facadeId])) {
-            const sphere = facade.getBoundingSphere()
+            const sphere = facade.getBoundingSphere && facade.getBoundingSphere()
             if (sphere) {
               octree.putSphere(facadeId, sphere)
             } else {

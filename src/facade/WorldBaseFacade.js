@@ -151,8 +151,6 @@ class WorldBaseFacade extends ParentFacade {
   _queueRender() {
     if (!this._nextFrameTimer) {
       this._nextFrameTimer = this._requestRenderFrame(this._nextFrameHandler || (this._nextFrameHandler = () => {
-        this._nextFrameTimer = null
-
         let onStatsUpdate = this.onStatsUpdate
         let start = onStatsUpdate && Date.now()
 
@@ -169,6 +167,9 @@ class WorldBaseFacade extends ParentFacade {
         }
 
         this._doRenderHtmlItems()
+
+        this._nextFrameTimer = null
+
         if (this._isContinuousRender()) {
           this._queueRender()
         }

@@ -16,7 +16,7 @@ import {ConeBufferGeometry, CylinderBufferGeometry, Mesh, MeshStandardMaterial, 
 
 
 
-const raycastFrequency = 100
+const raycastFrequency = 50
 
 
 class VrController extends Group3DFacade {
@@ -31,9 +31,9 @@ class VrController extends Group3DFacade {
     // TODO verify onBeforeRender is the right time to do this???
     const now = Date.now()
     if (now - (this._lastRaycast || 0) > raycastFrequency) {
-      this._lastRaycast = now
       const ray = this.getPointerRay() //may be null
       this.notifyWorld('pointerRayChanged', ray)
+      this._lastRaycast = now
     }
   }
 
@@ -117,7 +117,9 @@ class BasicControllerModel extends Object3DFacade {
     super(parent, mesh)
     this.children = {
       key: 'laser',
-      facade: LaserPointerModel
+      facade: LaserPointerModel,
+      raycast: null,
+      getBoundingSphere: null
     }
   }
 }
@@ -148,7 +150,7 @@ LaserPointerModel.material = new MeshStandardMaterial({
 
 
 
-const gamepadCheckFrequency = 500
+const gamepadCheckFrequency = 1000
 
 
 export class VrControllers extends Group3DFacade {
@@ -176,6 +178,7 @@ export class VrControllers extends Group3DFacade {
     const {gamepads} = this
     if (gamepads) {
       for (let i = 0, len = gamepads.length; i < len; i++) {
+        //if (controllerChildren[0]) break
         controllerChildren.push({
           key: `tracked${i}`,
           facade: TrackedVrController,
