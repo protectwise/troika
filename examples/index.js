@@ -96,7 +96,7 @@ class ExamplesApp extends React.Component {
             ) }
           </select>
 
-          {this.props.vrButton && !this.props.disableVR ? (
+          {this.props.vrButton && !example.disableVR ? (
             <span className="vr_button">{this.props.vrButton}</span>
           ) : null}
 
