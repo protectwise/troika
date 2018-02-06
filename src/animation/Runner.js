@@ -27,11 +27,29 @@ function tick() {
   }
 }
 
+// let _raf = fn => setTimeout(fn, 10)
+let _raf = window.requestAnimationFrame
 function queueFrame() {
   if (!nextFrameTimer) {
-    nextFrameTimer = requestAnimationFrame(tick)
+    nextFrameTimer = _raf(tick)
   }
 }
+
+// Handle switching to VR-specific rAF when needed. This works around issues in some browsers
+// where they pause the main window.rAF during VR presentation.
+// TODO really this should be done only for those animations that affect a VR canvas, so others
+// don't continue executing even through they're not visible.
+window.addEventListener('vrdisplaypresentchange', e => {
+  navigator.getVRDisplays().then((displays) => {
+    displays = displays.filter(d => d.isPresenting)
+    _raf = displays[0] ?
+      displays[0].requestAnimationFrame.bind(displays[0]) : //not pre-bound, strangely
+      window.requestAnimationFrame
+    nextFrameTimer = null
+    queueFrame()
+  })
+}, false)
+
 
 function startRunner(runner) {
   if (!runner.runner$running) {
