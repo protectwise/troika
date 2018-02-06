@@ -62,6 +62,7 @@ export function createVrCameraClassFor(BaseCamFacadeClass) {
       this.onBeforeRender = this.updateMatrices.bind(this)
 
       this.vrDisplay = null
+      this._frameData = new VRFrameData()
       this._lastFrameTime = -1
     }
 
@@ -77,12 +78,11 @@ export function createVrCameraClassFor(BaseCamFacadeClass) {
         vrDisplay.depthNear = mainCam.near
         vrDisplay.depthFar = mainCam.far
 
-        const frameData = this._frameData || (this._frameData = new VRFrameData())
+        const frameData = this._frameData
         const gotFrameData = vrDisplay.getFrameData(frameData)
 
         // Only update the matrices if we got new VR pose data or the main camera was moved
-        if ((gotFrameData && frameData.timestamp > this._lastVrFrameTime) || this._matrixChanged) {
-          this._lastVrFrameTime = frameData.timestamp
+        if (gotFrameData || this._matrixChanged) {
           const [leftCam, rightCam] = mainCam.cameras
 
           // Force update the array camera's world matrix as configured by user
