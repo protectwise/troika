@@ -71,13 +71,20 @@ class TrackedVrController extends VrController {
     }
   }
 
+  afterUpdate() {
+    this.children.showLaser = this.isPointing
+    super.afterUpdate()
+  }
+
   getPointerRay() {
-    // return ray from pose - assume it's up to date
-    const ray = this._pointerRay || (this._pointerRay = new Ray())
-    const matrix = this.threeObject.matrixWorld
-    ray.origin.setFromMatrixPosition(matrix)
-    ray.direction.set(0, 0, -1).transformDirection(matrix)
-    return ray
+    if (this.isPointing) {
+      // return ray from pose - assume it's up to date
+      const ray = this._pointerRay || (this._pointerRay = new Ray())
+      const matrix = this.threeObject.matrixWorld
+      ray.origin.setFromMatrixPosition(matrix)
+      ray.direction.set(0, 0, -1).transformDirection(matrix)
+      return ray
+    }
   }
 
   onBeforeRender(renderer, scene, camera) {
@@ -115,12 +122,17 @@ class BasicControllerModel extends Object3DFacade {
   constructor(parent) {
     const mesh = new Mesh(BasicControllerModel.geometry, BasicControllerModel.material)
     super(parent, mesh)
-    this.children = {
+    this._laser = {
       key: 'laser',
       facade: LaserPointerModel,
       raycast: null,
       getBoundingSphere: null
     }
+  }
+
+  afterUpdate() {
+    this.children = this.showLaser ? this._laser : null
+    super.afterUpdate()
   }
 }
 BasicControllerModel.geometry = new ConeBufferGeometry(0.05, 0.2, 16).rotateX(Math.PI / -2)
@@ -178,11 +190,11 @@ export class VrControllers extends Group3DFacade {
     const {gamepads} = this
     if (gamepads) {
       for (let i = 0, len = gamepads.length; i < len; i++) {
-        //if (controllerChildren[0]) break
         controllerChildren.push({
           key: `tracked${i}`,
           facade: TrackedVrController,
-          gamepad: gamepads[i]
+          gamepad: gamepads[i],
+          isPointing: i === len - 1
         })
       }
     }
