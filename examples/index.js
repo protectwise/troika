@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import CityGrid from './citygrid/CityGrid'
 import ShaderAnim from './shader-anim/ShaderAnim'
-import Arcs from './arcs/Arcs'
+import ArcsExample from './arcs/ArcsExample'
 import GlobeExample from './globe/GlobeExample'
 import HtmlOverlays from './html-overlays/HtmlOverlaysExample'
 import TextExample from './text/TextExample'
@@ -13,12 +13,13 @@ import CurveAnim from './curve-anim/CurveAnimExample'
 import Canvas2DExample from './canvas2d/Canvas2DExample'
 import InstanceableExample from './instanceable/InstanceableExample'
 import {makeVrAware} from '../src/index'
+import InceptionExample from './inception/InceptionExample'
 
 
 const EXAMPLES = [
   {id: 'citygrid', name: 'City', component: CityGrid},
   {id: 'shaderanim', name: 'Animated Shaders', component: ShaderAnim},
-  {id: 'arcs', name: 'Arcs', component: Arcs},
+  {id: 'arcs', name: 'Arcs', component: ArcsExample},
   {id: 'globe', name: 'Globe', component: GlobeExample},
   {id: 'htmlOverlays', name: 'HTML Overlays', component: HtmlOverlays},
   {id: 'text', name: '3D Text', component: TextExample},
@@ -27,7 +28,8 @@ const EXAMPLES = [
   {id: 'lod', name: 'Level of Detail', component: LevelOfDetail},
   {id: 'curveAnim', name: 'Curve Animation', component: CurveAnim, disableVR:true},
   {id: 'twoDee', name: 'Canvas2D', component: Canvas2DExample, disableVR:true},
-  {id: 'instanceable', name: 'Instanceable Objects', component: InstanceableExample}
+  {id: 'instanceable', name: 'Instanceable Objects', component: InstanceableExample},
+  {id: 'inception', name: 'Inception', component: InceptionExample}
 ]
 
 class ExamplesApp extends React.Component {

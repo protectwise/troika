@@ -20,7 +20,7 @@ const pointerActionEventTypesToProps = {
 const touchDragPropsToNormalize = ['clientX', 'clientY', 'screenX', 'screenY', 'pageX', 'pageY']
 
 class SyntheticEvent {
-  constructor(nativeEvent, type, target, relatedTarget) {
+  constructor(nativeEvent, type, target, relatedTarget, extra) {
     // Copy native event properties - TODO investigate using a Proxy
     Object.keys(nativeEvent.constructor.prototype).forEach(key => {
       if (typeof nativeEvent[key] !== 'function') {
@@ -33,6 +33,7 @@ class SyntheticEvent {
     this.relatedTarget = relatedTarget
     this.type = type
     this.nativeEvent = nativeEvent
+    this.extra = extra
 
     // normalize position properties on touch events with a single touch, to facilitate
     // downstream handlers that expect them to look like mouse events
@@ -57,12 +58,13 @@ class SyntheticEvent {
   }
 }
 
-function firePointerEvent(handlerProp, nativeEvent, targetFacade, relatedTargetFacade) {
+function firePointerEvent(handlerProp, nativeEvent, targetFacade, relatedTargetFacade, extra) {
   let newEvent = new SyntheticEvent(
     nativeEvent,
     handlerProp.replace(/^on/, '').toLowerCase(),
     targetFacade,
-    relatedTargetFacade
+    relatedTargetFacade,
+    extra
   )
   // Dispatch with bubbling
   // TODO genericize bubbling for future non-pointer-related events
@@ -151,8 +153,10 @@ class WorldBaseFacade extends ParentFacade {
   _queueRender() {
     if (!this._nextFrameTimer) {
       this._nextFrameTimer = this._requestRenderFrame(this._nextFrameHandler || (this._nextFrameHandler = () => {
-        let onStatsUpdate = this.onStatsUpdate
+        let {onStatsUpdate, onBeforeRender, onAfterRender} = this
         let start = onStatsUpdate && Date.now()
+
+        if (onBeforeRender) onBeforeRender(this)
 
         this.doRender()
 
@@ -167,6 +171,8 @@ class WorldBaseFacade extends ParentFacade {
         }
 
         this._doRenderHtmlItems()
+
+        if (onAfterRender) onAfterRender(this)
 
         this._nextFrameTimer = null
 
@@ -216,29 +222,30 @@ class WorldBaseFacade extends ParentFacade {
           if (handler) handler(dragInfo.dragStartEvent)
           dragInfo.dragStartFired = true
         }
-        firePointerEvent('onDrag', e, dragInfo.draggedFacade)
+        firePointerEvent('onDrag', e, dragInfo.draggedFacade, null, null)
       }
 
       let lastHovered = this.$hoveredFacade
-      let hovered = this.$hoveredFacade = (e.type === 'mouseout' || isTouchEndOrCancel(e)) ? null : this._findHoveredFacade(e)
+      let hoverInfo = (e.type === 'mouseout' || isTouchEndOrCancel(e)) ? null : this._findHoverTarget(e)
+      let hovered = this.$hoveredFacade = hoverInfo && hoverInfo.facade
       if (hovered !== lastHovered) {
         if (lastHovered) {
-          firePointerEvent('onMouseOut', e, lastHovered, hovered)
+          firePointerEvent('onMouseOut', e, lastHovered, hovered, hoverInfo)
           if (dragInfo) {
-            firePointerEvent('onDragLeave', e, lastHovered, hovered)
+            firePointerEvent('onDragLeave', e, lastHovered, hovered, hoverInfo)
           }
         }
         if (hovered) {
-          firePointerEvent('onMouseOver', e, hovered, lastHovered)
+          firePointerEvent('onMouseOver', e, hovered, lastHovered, hoverInfo)
           if (dragInfo) {
-            firePointerEvent('onDragEnter', e, hovered, lastHovered)
+            firePointerEvent('onDragEnter', e, hovered, lastHovered, hoverInfo)
           }
         }
       }
       if (hovered) {
-        firePointerEvent('onMouseMove', e, hovered)
+        firePointerEvent('onMouseMove', e, hovered, null, hoverInfo)
         if (dragInfo) {
-          firePointerEvent('onDragOver', e, hovered)
+          firePointerEvent('onDragOver', e, hovered, null, hoverInfo)
         }
       }
     }
@@ -263,9 +270,10 @@ class WorldBaseFacade extends ParentFacade {
     }
 
     if (this.eventRegistry.hasListenersOfType('onDragStart') || pointerActionEventProps.some(this.eventRegistry.hasListenersOfType)) {
-      let facade = this._findHoveredFacade(e)
+      let hoverInfo = this._findHoverTarget(e)
+      let facade = hoverInfo && hoverInfo.facade
       if (facade) {
-        firePointerEvent(pointerActionEventTypesToProps[e.type], e, facade)
+        firePointerEvent(pointerActionEventTypesToProps[e.type], e, facade, null, hoverInfo)
 
         // touchstart/touchend could be start/end of a tap - map to onClick
         if (hasEventHandlerInParentTree(facade, 'onClick') || hasEventHandlerInParentTree(facade, 'onDoubleClick')) {
@@ -284,9 +292,9 @@ class WorldBaseFacade extends ParentFacade {
               e.touches.length === 0 && e.changedTouches.length === 1 &&
               Date.now() - tapInfo.startTime < TAP_GESTURE_MAX_DUR
             ) {
-              firePointerEvent('onClick', e, facade)
+              firePointerEvent('onClick', e, facade, null, hoverInfo)
               if (tapInfo.isDblClick) {
-                firePointerEvent('onDoubleClick', e, facade)
+                firePointerEvent('onDoubleClick', e, facade, null, hoverInfo)
               }
             }
           }
@@ -319,11 +327,12 @@ class WorldBaseFacade extends ParentFacade {
   _onDropEvent(e) {
     let dragInfo = this.$dragInfo
     if (dragInfo) {
-      let targetFacade = e.target === this._element && this._findHoveredFacade(e)
+      let hoverInfo = e.target === this._element && this._findHoverTarget(e)
+      let targetFacade = hoverInfo && hoverInfo.facade
       if (targetFacade) {
-        firePointerEvent('onDrop', e, targetFacade)
+        firePointerEvent('onDrop', e, targetFacade, null, hoverInfo)
       }
-      firePointerEvent('onDragEnd', e, dragInfo.draggedFacade)
+      firePointerEvent('onDragEnd', e, dragInfo.draggedFacade, null, hoverInfo)
       this._toggleDropListeners(false)
       this.$dragInfo = null
     }
@@ -375,7 +384,7 @@ class WorldBaseFacade extends ParentFacade {
     return this.getFacadesAtPosition(posInfo.clientX, posInfo.clientY, e.target.getBoundingClientRect())
   }
 
-  _findHoveredFacade(e) {
+  _findHoverTarget(e) {
     let allHits = this.getFacadesAtEvent(e)
     if (allHits) {
       // Sort by distance, or by distanceBias if distance is the same
@@ -385,7 +394,7 @@ class WorldBaseFacade extends ParentFacade {
       for (let i = 0; i < allHits.length; i++) {
         let facade = allHits[i].facade
         if (facade.isPointerEventTarget && facade.interceptsPointerEvents()) {
-          return facade
+          return allHits[i]
         }
       }
     }
@@ -404,6 +413,7 @@ class WorldBaseFacade extends ParentFacade {
 
 }
 
+Object.defineProperty(WorldBaseFacade.prototype, 'isWorld', {value: true})
 
 WorldBaseFacade.prototype._notifyWorldHandlers = {
   needsRender() {

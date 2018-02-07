@@ -66,7 +66,7 @@ export default class Arc extends Object3DFacade {
    * Override raycast method to handle vertex shader transformation
    */
   raycast(raycaster) {
-    let {startAngle, endAngle, startRadius, endRadius, threeObject} = this
+    let {startAngle, endAngle, startRadius, endRadius=startRadius, threeObject} = this
     let origGeom = threeObject.geometry
     let raycastGeometry = origGeom.clone()
 

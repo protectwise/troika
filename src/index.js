@@ -18,6 +18,7 @@ export {default as Object3DFacade} from './facade/threejs/Object3DFacade.js'
 export {default as Scene3DFacade} from './facade/threejs/Scene3DFacade.js'
 export {default as Text3DFacade} from './facade/threejs/text/Text3DFacade.js'
 export {default as World3DFacade} from './facade/threejs/World3DFacade.js'
+export {makeWorldTextureProvider} from './facade/threejs/WorldTextureProvider.js'
 export {default as InstancingManager} from './facade/threejs/instancing/InstancingManager.js'
 export {default as Instanceable3DFacade} from './facade/threejs/instancing/Instanceable3DFacade.js'
 

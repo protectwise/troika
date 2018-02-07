@@ -17,7 +17,7 @@ class Canvas2D extends CanvasBase {
     world.pixelRatio = props.pixelRatio
     world.backgroundColor = props.backgroundColor
     world.onBackgroundClick = props.onBackgroundClick
-    world.children = props.objects
+    world.objects = props.objects
     world.continuousRender = props.continuousRender
     world.onStatsUpdate = props.stats ? this.updateStats : null
     world.afterUpdate()

@@ -48,6 +48,7 @@ class World2DFacade extends WorldBaseFacade {
   constructor(canvas) {
     super(canvas)
     this._context = canvas.getContext('2d')
+    this._onBgClick = this._onBgClick.bind(this)
   }
 
   afterUpdate() {
@@ -58,7 +59,7 @@ class World2DFacade extends WorldBaseFacade {
       width: this.width,
       height: this.height,
       onClick: this.onBackgroundClick ? this._onBgClick : null,
-      children: this.children
+      children: this.objects
     }
 
     super.afterUpdate()

@@ -5,16 +5,8 @@ import CanvasBase, { commonPropTypes } from './CanvasBase.jsx'
 import {vrAwareContextTypes} from './VrAware.jsx'
 
 class Canvas3D extends CanvasBase {
-  constructor(props) {
-    super(props)
-    this._onSceneClick = this._onSceneClick.bind(this)
-  }
-
   initWorld(canvas) {
-    let world = new World3DFacade(canvas, {
-      antialias: this.props.antialias,
-      rendererClass: this.props.rendererClass
-    })
+    let world = new World3DFacade(canvas)
     world.renderHtmlItems = this.renderHtmlItems
     return world
   }
@@ -24,26 +16,19 @@ class Canvas3D extends CanvasBase {
     world.width = props.width
     world.height = props.height
     world.pixelRatio = props.pixelRatio
+    world.antialias = props.antialias
+    world.rendererClass = props.rendererClass
     world.backgroundColor = props.backgroundColor
     world.shadows = props.shadows
     world.camera = props.camera
-    world.scene = {
-      lights: props.lights,
-      objects: props.objects,
-      fog: props.fog,
-      onClick: props.onBackgroundClick ? this._onSceneClick : null
-    }
+    world.lights = props.lights
+    world.objects = props.objects
+    world.fog = props.fog
+    world.onBackgroundClick = props.onBackgroundClick
     world.continuousRender = props.continuousRender
     world.onStatsUpdate = props.stats ? this.updateStats : null
     world.vrDisplay = (context && context.vrDisplay) || null
     world.afterUpdate()
-  }
-
-  _onSceneClick(e) {
-    // Ignore events that bubbled up
-    if (e.target === e.currentTarget) {
-      this.props.onBackgroundClick(e)
-    }
   }
 
   _bindCanvasRef(canvas) {
