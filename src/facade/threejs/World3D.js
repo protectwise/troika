@@ -198,7 +198,7 @@ class World3DFacade extends WorldBaseFacade {
     }
     return octree
   }
-  
+
   _queueForOctreeChange(changeType, facade) {
     const changes = this._octreeChangeset || (this._octreeChangeset = {})
     const map = changes[changeType] || (changes[changeType] = Object.create(null))
@@ -208,6 +208,7 @@ class World3DFacade extends WorldBaseFacade {
   destructor() {
     super.destructor()
     this._threeRenderer.dispose()
+    this._threeRenderer.forceContextLoss()
   }
 
 }
