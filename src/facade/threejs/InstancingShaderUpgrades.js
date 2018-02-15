@@ -1,4 +1,4 @@
-import {ShaderChunk} from 'three'
+import {expandShaderIncludes, getUniformsTypes, voidMainRE} from './shaderUtils'
 
 const inverseFunction = `
 #if __VERSION__ < 300
@@ -47,7 +47,6 @@ mat3 troika_normalMatrix = transposeMat3(inverse(mat3(troika_modelViewMatrix)));
 `
 
 
-const voidMainRE = /\bvoid\s+main\s*\(\s*\)\s*{/g
 const modelMatrixRefRE = /\bmodelMatrix\b/g
 const modelViewMatrixRefRE = /\bmodelViewMatrix\b/g
 const normalMatrixRefRE = /\bnormalMatrix\b/g
@@ -56,28 +55,6 @@ const attrRefReplacer = (name, index, str) => precededByUniformRE.test(str.subst
 const varyingRefReplacer = (name, index, str) => precededByUniformRE.test(str.substr(0, index)) ? name : `troika_vary_${name}`
 
 
-// Copied from threejs WebGLProgram so we can pre-expand the shader includes
-export function expandShaderIncludes( source ) {
-  const pattern = /^[ \t]*#include +<([\w\d.]+)>/gm
-  function replace(match, include) {
-    let chunk = ShaderChunk[include]
-    return chunk ? expandShaderIncludes(chunk) : match
-  }
-  return source.replace( pattern, replace )
-}
-
-
-
-// Find all uniforms and their types within a shader string
-export function getUniformsTypes(shader) {
-  let uniformRE = /\buniform\s+(int|float|vec[234])\s+([A-Za-z_][\w]*)/g
-  let uniforms = Object.create(null)
-  let match
-  while ((match = uniformRE.exec(shader)) !== null) {
-    uniforms[match[2]] = match[1]
-  }
-  return uniforms
-}
 
 
 /**

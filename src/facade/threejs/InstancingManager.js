@@ -1,8 +1,8 @@
 import {assign, assignIf} from '../../utils'
-import {InstancedBufferAttribute, InstancedBufferGeometry, ShaderLib} from 'three'
+import {InstancedBufferAttribute, InstancedBufferGeometry} from 'three'
 import Group3DFacade from './Group3D'
-import {upgradeShaders, getUniformsTypes, expandShaderIncludes} from './InstancingShaderUpgrades'
-
+import {upgradeShaders} from './InstancingShaderUpgrades'
+import {getShadersForMaterial, getUniformsTypes, expandShaderIncludes} from './shaderUtils'
 
 const INSTANCE_BATCH_SIZE = 1024 //TODO make this an option?
 
@@ -405,27 +405,6 @@ const ATTR_ITEM_SIZES = {
   'vec4': 4
 }
 
-
-// Copied from threejs WebGLPrograms.js so we can resolve builtin materials to their shaders
-// TODO how can we keep this from getting stale?
-const MATERIAL_TYPES_TO_SHADERS = {
-  MeshDepthMaterial: 'depth',
-  MeshNormalMaterial: 'normal',
-  MeshBasicMaterial: 'basic',
-  MeshLambertMaterial: 'lambert',
-  MeshPhongMaterial: 'phong',
-  MeshToonMaterial: 'phong',
-  MeshStandardMaterial: 'physical',
-  MeshPhysicalMaterial: 'physical',
-  LineBasicMaterial: 'basic',
-  LineDashedMaterial: 'dashed',
-  PointsMaterial: 'points'
-}
-
-function getShadersForMaterial(material) {
-  let builtinType = MATERIAL_TYPES_TO_SHADERS[material.type]
-  return builtinType ? ShaderLib[builtinType] : material //TODO fallback for unknown type?
-}
 
 function setAttributeValue(attr, offset, value) {
   let size = attr.itemSize
