@@ -45,11 +45,13 @@ a {
 
 .example_controls {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  top: 0;
+  left: 0;
+  padding: 10px;
   z-index: 10;
   display: flex;
   flex-direction: column;
+  background: rgba(34, 34, 34, 0.8);
 }
 
 .example_desc {

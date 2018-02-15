@@ -5,6 +5,7 @@ import ShaderAnim from './shader-anim/ShaderAnim'
 import Arcs from './arcs/Arcs'
 import GlobeExample from './globe/GlobeExample'
 import HtmlOverlays from './html-overlays/HtmlOverlaysExample'
+import TextExample from './text/TextExample'
 import DragDrop from './dragdrop/DragDropExample'
 import LevelOfDetail from './lod/LevelOfDetailExample'
 import CurveAnim from './curve-anim/CurveAnimExample'
@@ -18,6 +19,7 @@ const EXAMPLES = [
   {id: 'arcs', name: 'Arcs', component: Arcs},
   {id: 'globe', name: 'Globe', component: GlobeExample},
   {id: 'htmlOverlays', name: 'HTML Overlays', component: HtmlOverlays},
+  {id: 'text', name: '3D Text', component: TextExample},
   {id: 'dragdrop', name: 'Drag and Drop', component: DragDrop},
   {id: 'lod', name: 'Level of Detail', component: LevelOfDetail},
   {id: 'curveAnim', name: 'Curve Animation', component: CurveAnim},
