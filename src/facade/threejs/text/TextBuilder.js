@@ -99,7 +99,8 @@ export function getTextRenderInfo(args, callback) {
       sdfTexture: atlas.sdfTexture,
       sdfMinDistancePercent: SDF_DISTANCE_PERCENT,
       glyphBounds: result.glyphBounds,
-      glyphIndices: result.glyphIndices
+      glyphIndices: result.glyphIndices,
+      totalBounds: result.totalBounds
     })
   })
 }

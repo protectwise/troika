@@ -119,6 +119,12 @@ class TextExample extends React.Component {
                 scaleY: true,
                 scaleZ: true
               },
+              // onMouseOver() {
+              //   console.log('mouseover')
+              // },
+              // onMouseOut() {
+              //   console.log('mouseout')
+              // },
               animation: [
                 state.animTilt ? {
                   from: {rotateX: 0},

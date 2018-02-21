@@ -46,6 +46,9 @@ export default function createFontProcessor(opentype, config) {
   const CURVE_POINTS = 16
 
 
+  const INF = Infinity
+
+
   /**
    * Load a given font url
    */
@@ -110,7 +113,7 @@ export default function createFontProcessor(opentype, config) {
       fontSize=1,
       letterSpacing=0,
       lineHeight=1.15,
-      maxWidth=Infinity,
+      maxWidth=INF,
       textAlign='left',
       anchor
     },
@@ -278,18 +281,26 @@ export default function createFontProcessor(opentype, config) {
       // Create the final output for the rendeable glyphs
       const glyphBounds = new Float32Array(renderableGlyphs.length * 4)
       const glyphIndices = new Float32Array(renderableGlyphs.length)
+      const totalBounds = [INF, INF, -INF, -INF]
       renderableGlyphs.forEach((glyphInfo, i) => {
         const {renderingBounds, atlasIndex} = glyphInfo.atlasInfo
-        glyphBounds[i * 4] = glyphInfo.x + renderingBounds[0] * fontSizeMult + anchorXOffset
-        glyphBounds[i * 4 + 1] = glyphInfo.y + renderingBounds[1] * fontSizeMult + anchorYOffset
-        glyphBounds[i * 4 + 2] = glyphInfo.x + renderingBounds[2] * fontSizeMult + anchorXOffset
-        glyphBounds[i * 4 + 3] = glyphInfo.y + renderingBounds[3] * fontSizeMult + anchorYOffset
+        const x0 = glyphBounds[i * 4] = glyphInfo.x + renderingBounds[0] * fontSizeMult + anchorXOffset
+        const y0 = glyphBounds[i * 4 + 1] = glyphInfo.y + renderingBounds[1] * fontSizeMult + anchorYOffset
+        const x1 = glyphBounds[i * 4 + 2] = glyphInfo.x + renderingBounds[2] * fontSizeMult + anchorXOffset
+        const y1 = glyphBounds[i * 4 + 3] = glyphInfo.y + renderingBounds[3] * fontSizeMult + anchorYOffset
+
+        if (x0 < totalBounds[0]) totalBounds[0] = x0
+        if (y0 < totalBounds[1]) totalBounds[1] = y0
+        if (x1 > totalBounds[2]) totalBounds[2] = x1
+        if (y1 > totalBounds[3]) totalBounds[3] = y1
+
         glyphIndices[i] = atlasIndex
       })
 
       callback({
         glyphBounds,
         glyphIndices,
+        totalBounds,
         newGlyphSDFs: newGlyphs
       })
     })
@@ -474,7 +485,6 @@ export default function createFontProcessor(opentype, config) {
       const cy = Math.round(yMin + dy / 2)
       const r = Math.pow(2, Math.floor(Math.log(Math.max(dx, dy)) * Math.LOG2E))
 
-      const Inf = Infinity
       this._root = {
         0: null,
         1: null,
@@ -484,10 +494,10 @@ export default function createFontProcessor(opentype, config) {
         cx: cx,
         cy: cy,
         r: r,
-        minX: Inf,
-        minY: Inf,
-        maxX: -Inf,
-        maxY: -Inf
+        minX: INF,
+        minY: INF,
+        maxX: -INF,
+        maxY: -INF
       }
     }
 

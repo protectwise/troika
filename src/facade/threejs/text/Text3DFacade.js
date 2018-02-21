@@ -4,13 +4,10 @@ import {
   Mesh,
   PlaneBufferGeometry,
   MeshBasicMaterial,
-  Texture,
   DoubleSide,
-  LinearFilter,
   InstancedBufferGeometry,
   InstancedBufferAttribute,
-  DataTexture,
-  LuminanceFormat
+  Sphere, Vector3, Matrix4
 } from 'three'
 // import {getTextRenderInfo} from './text/TextBuilderMainThread' //for debugging only
 import {getTextRenderInfo} from './TextBuilder'
@@ -19,9 +16,11 @@ import {getShadersForMaterial, expandShaderIncludes, voidMainRE} from '../shader
 
 const glyphRectGeometry = new PlaneBufferGeometry(1, 1).translate(0.5, 0.5, 0)
 const defaultMaterial = new MeshBasicMaterial({color: 0xffffff, side: DoubleSide, transparent: true})
+const raycastMesh = new Mesh(glyphRectGeometry.clone(), defaultMaterial)
 const propsRequiringRecalc = ['text', 'font', 'fontSize', 'letterSpacing', 'lineHeight', 'maxWidth', 'textAlign', 'anchor']
-const dummyTexture = new DataTexture()
-
+const noop = () => {}
+const tempVec3 = new Vector3()
+const tempMat4 = new Matrix4()
 
 class Text3DFacade extends Object3DFacade {
   constructor(parent) {
@@ -29,6 +28,9 @@ class Text3DFacade extends Object3DFacade {
     geometry.maxInstancedCount = 0
     geometry.addAttribute('aTroikaGlyphBounds', new InstancedBufferAttribute(new Float32Array(0), 4))
     geometry.addAttribute('aTroikaGlyphIndex', new InstancedBufferAttribute(new Float32Array(0), 1))
+    geometry.boundingSphere = new Sphere()
+    geometry.boundingSphere.version = 0
+    geometry.computeBoundingSphere = noop //we'll handle bounding sphere updates ourselves
 
     const mesh = new Mesh(geometry, defaultMaterial.clone())
 
@@ -80,6 +82,17 @@ class Text3DFacade extends Object3DFacade {
           aTroikaGlyphIndex.setArray(textRenderInfo.glyphIndices)
           aTroikaGlyphIndex.needsUpdate = aTroikaGlyphBounds.needsUpdate = true
           geometry.maxInstancedCount = textRenderInfo.glyphIndices.length
+
+          // Update geometry's bounding sphere for raycasting/frustum culling
+          const totalBounds = textRenderInfo.totalBounds
+          const sphere = geometry.boundingSphere
+          sphere.center.set(
+            (totalBounds[0] + totalBounds[2]) / 2,
+            (totalBounds[1] + totalBounds[3]) / 2,
+            0
+          )
+          sphere.radius = sphere.center.distanceTo(tempVec3.set(totalBounds[0], totalBounds[1], 0))
+          sphere.version++
 
           this.notifyWorld('needsRender')
         }
@@ -148,6 +161,36 @@ class Text3DFacade extends Object3DFacade {
     }
 
     return textMaterial
+  }
+
+  /**
+   * @override Use our textGeometry's boundingSphere which we keep updated as we get new
+   * text rendering metrics.
+   */
+  _getGeometryBoundingSphere() {
+    return this._textGeometry.boundingSphere
+  }
+
+  /**
+   * @override Custom raycaster to test against the whole text block's max rectangular bounds
+   * TODO is there any reason to make this more granular, like within individual line or glyph rects?
+   */
+  raycast(raycaster) {
+    const textInfo = this._textRenderInfo
+    if (textInfo) {
+      const bounds = textInfo.totalBounds
+      raycastMesh.matrixWorld.multiplyMatrices(
+        this.threeObject.matrixWorld,
+        tempMat4.set(
+          bounds[2] - bounds[0], 0, 0, bounds[0],
+          0, bounds[3] - bounds[1], 0, bounds[1],
+          0, 0, 1, 0,
+          0, 0, 0, 1
+        )
+      )
+      return this._raycastObject(raycastMesh, raycaster)
+    }
+    return null
   }
 
   destructor() {
