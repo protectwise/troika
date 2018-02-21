@@ -1,6 +1,6 @@
-import {assign} from '../../utils'
+import {assign} from '../../../utils'
 import {Object3D} from 'three'
-import Object3DFacade from './Object3D'
+import Object3DFacade from '../Object3DFacade'
 
 /**
  * Instanceable3DFacade is a specialized Object3DFacade that renders using GPU

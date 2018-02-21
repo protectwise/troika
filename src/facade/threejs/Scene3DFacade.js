@@ -1,8 +1,8 @@
 import {assign} from '../../utils'
 import {Scene, Fog, FogExp2, Sphere} from 'three'
-import Object3DFacade from './Object3D'
-import InstancingManager from './InstancingManager'
-import {AmbientLight3DFacade, SpotLight3DFacade, DirectionalLight3DFacade, PointLight3DFacade} from './Light3D'
+import Object3DFacade from './Object3DFacade'
+import InstancingManager from './instancing/InstancingManager'
+import {AmbientLight3DFacade, SpotLight3DFacade, DirectionalLight3DFacade, PointLight3DFacade} from './Light3DFacade'
 
 
 const LIGHT_TYPES = {

@@ -1,6 +1,6 @@
 import { assignIf } from '../utils'
 import T from 'prop-types'
-import World3DFacade from '../facade/threejs/World3D'
+import World3DFacade from '../facade/threejs/World3DFacade'
 import CanvasBase, { commonPropTypes } from './CanvasBase.jsx'
 
 class Canvas3D extends CanvasBase {

@@ -1,4 +1,4 @@
-import ParentFacade from './Parent'
+import ParentFacade from './ParentFacade'
 import EventRegistry from './EventRegistry'
 import {pointerActionEventProps, pointerMotionEventProps} from './PointerEventTarget'
 

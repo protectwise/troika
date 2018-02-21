@@ -1,5 +1,5 @@
 import {assign} from '../../utils'
-import Object2DFacade from './Object2D'
+import Object2DFacade from './Object2DFacade'
 
 class Text2DFacade extends Object2DFacade {
   render(context) {

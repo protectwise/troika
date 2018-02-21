@@ -4,7 +4,7 @@ import {
   SpotLight,
   PointLight
 } from 'three'
-import Object3DFacade from './Object3D'
+import Object3DFacade from './Object3DFacade'
 
 // Common superclass with setters for all possible light properties
 class Light3DFacade extends Object3DFacade {

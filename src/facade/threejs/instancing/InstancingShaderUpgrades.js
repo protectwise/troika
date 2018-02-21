@@ -1,4 +1,4 @@
-import {expandShaderIncludes, getUniformsTypes, voidMainRE} from './shaderUtils'
+import {expandShaderIncludes, getUniformsTypes, voidMainRE} from '../shaderUtils'
 
 const inverseFunction = `
 #if __VERSION__ < 300

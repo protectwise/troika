@@ -1,8 +1,8 @@
-import {assign, assignIf} from '../../utils'
+import {assign, assignIf} from '../../../utils'
 import {InstancedBufferAttribute, InstancedBufferGeometry} from 'three'
-import Group3DFacade from './Group3D'
+import Group3DFacade from '../Group3DFacade'
 import {upgradeShaders} from './InstancingShaderUpgrades'
-import {getShadersForMaterial, getUniformsTypes, expandShaderIncludes} from './shaderUtils'
+import {getShadersForMaterial, getUniformsTypes, expandShaderIncludes} from '../shaderUtils'
 
 const INSTANCE_BATCH_SIZE = 1024 //TODO make this an option?
 

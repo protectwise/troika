@@ -1,5 +1,5 @@
 import {Object3D} from 'three'
-import Object3DFacade from './Object3D'
+import Object3DFacade from './Object3DFacade'
 
 
 /**

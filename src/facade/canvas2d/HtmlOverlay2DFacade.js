@@ -1,4 +1,4 @@
-import Object2DFacade from './Object2D'
+import Object2DFacade from './Object2DFacade'
 
 
 /**

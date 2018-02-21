@@ -1,8 +1,8 @@
 import {assign} from '../../utils'
 import {WebGLRenderer, Raycaster, Color, Vector2, Vector3} from 'three'
-import WorldBaseFacade from '../WorldBase'
-import Scene3DFacade from './Scene3D'
-import {PerspectiveCamera3DFacade} from './Camera3D'
+import WorldBaseFacade from '../WorldBaseFacade'
+import Scene3DFacade from './Scene3DFacade'
+import {PerspectiveCamera3DFacade} from './Camera3DFacade'
 import {BoundingSphereOctree} from './BoundingSphereOctree'
 
 

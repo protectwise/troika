@@ -1,5 +1,5 @@
 import {assign, assignIf} from '../../../utils'
-import Object3DFacade from '../Object3D'
+import Object3DFacade from '../Object3DFacade'
 import {
   Mesh,
   PlaneBufferGeometry,

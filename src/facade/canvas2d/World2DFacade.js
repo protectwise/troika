@@ -1,5 +1,5 @@
-import WorldBaseFacade from '../WorldBase'
-import Object2DFacade from './Object2D'
+import WorldBaseFacade from '../WorldBaseFacade'
+import Object2DFacade from './Object2DFacade'
 
 function byZ(a, b) {
   return a.z - b.z

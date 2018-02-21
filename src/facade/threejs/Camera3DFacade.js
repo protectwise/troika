@@ -1,5 +1,5 @@
 import {PerspectiveCamera, OrthographicCamera, Frustum, Matrix4} from 'three'
-import Object3DFacade from './Object3D'
+import Object3DFacade from './Object3DFacade'
 
 let _projectionMatrixVersion = 0
 
