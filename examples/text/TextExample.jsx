@@ -40,11 +40,11 @@ class TextExample extends React.Component {
     this.state = {
       text: 'Lorem Ipsum',
       font: 'Roboto',
-      fontSize: 0.05, //5cm
+      fontSize: 0.1, //10cm
       textScale: 1,
       lineHeight: 1.15,
       letterSpacing: 0,
-      maxWidth: 1,
+      maxWidth: 2, //2m
       textAlign: 'justify',
       color: 0xffffff,
       animTextColor: true,
@@ -76,7 +76,7 @@ class TextExample extends React.Component {
             far: 20000,
             x: 0,
             y: 0,
-            z: 1,
+            z: 2,
             lookAt: {x: 0, y: 0, z: 0}
           } }
           lights={ state.useCustomMaterial ? [
