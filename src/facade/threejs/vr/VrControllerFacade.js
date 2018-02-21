@@ -1,4 +1,4 @@
-import Group3DFacade from '../Group3D'
+import Group3DFacade from '../Group3DFacade'
 
 const raycastFrequency = 50
 

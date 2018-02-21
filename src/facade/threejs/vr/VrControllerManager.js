@@ -1,7 +1,7 @@
 import {arraysAreEqual} from '../../../utils'
-import Group3DFacade from '../Group3D'
-import TrackedVrController from './TrackedVrController'
-import GazeVrController from './GazeVrController'
+import Group3DFacade from '../Group3DFacade'
+import TrackedVrController from './TrackedVrControllerFacade'
+import GazeVrController from './GazeVrControllerFacade'
 
 
 

@@ -1,5 +1,5 @@
 import {Ray} from 'three'
-import VrController from './VrController'
+import VrController from './VrControllerFacade'
 
 export default class GazeVrController extends VrController {
 

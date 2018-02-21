@@ -1,6 +1,6 @@
 import {ConeBufferGeometry, CylinderBufferGeometry, Mesh, MeshStandardMaterial, Ray} from 'three'
-import Object3DFacade from '../Object3D'
-import VrController from './VrController'
+import Object3DFacade from '../Object3DFacade'
+import VrController from './VrControllerFacade'
 
 export default class TrackedVrController extends VrController {
 
