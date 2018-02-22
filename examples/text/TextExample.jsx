@@ -27,7 +27,14 @@ const FONTS = {
 
 const TEXTS = {
   'Lorem Ipsum': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-  'Cicero': 'But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness. No one rejects, dislikes, or avoids pleasure itself, because it is pleasure, but because those who do not know how to pursue pleasure rationally encounter consequences that are extremely painful. Nor again is there anyone who loves or pursues or desires to obtain pain of itself, because it is pain, but because occasionally circumstances occur in which toil and pain can procure him some great pleasure. To take a trivial example, which of us ever undertakes laborious physical exercise, except to obtain some advantage from it? But who has any right to find fault with a man who chooses to enjoy a pleasure that has no annoying consequences, or one who avoids a pain that produces no resultant pleasure? On the other hand, we denounce with righteous indignation and dislike men who are so beguiled and demoralized by the charms of pleasure of the moment, so blinded by desire, that they cannot foresee the pain and trouble that are bound to ensue; and equal blame belongs to those who fail in their duty through weakness of will, which is the same as saying through shrinking from toil and pain. These cases are perfectly simple and easy to distinguish.',
+  'Gettysburg': `  Four score and seven years ago our fathers brought forth on this continent, a new nation, conceived in Liberty, and dedicated to the proposition that all men are created equal.
+
+  Now we are engaged in a great civil war, testing whether that nation, or any nation so conceived and so dedicated, can long endure. We are met on a great battle-field of that war. We have come to dedicate a portion of that field, as a final resting place for those who here gave their lives that that nation might live. It is altogether fitting and proper that we should do this.
+  
+  But, in a larger sense, we can not dedicate — we can not consecrate — we can not hallow — this ground. The brave men, living and dead, who struggled here, have consecrated it, far above our poor power to add or detract. The world will little note, nor long remember what we say here, but it can never forget what they did here. It is for us the living, rather, to be dedicated here to the unfinished work which they who fought here have thus far so nobly advanced. It is rather for us to be here dedicated to the great task remaining before us — that from these honored dead we take increased devotion to that cause for which they gave the last full measure of devotion — that we here highly resolve that these dead shall not have died in vain — that this nation, under God, shall have a new birth of freedom — and that government of the people, by the people, for the people, shall not perish from the earth.
+
+Abraham Lincoln
+November 19, 1863`,
   'ABC123': 'abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ !"§ $%& /() =?* \'<> #|; ²³~ @`´ ©«» ¤¼× {} abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ !"§ $%& /() =?* \'<> #|; ²³~ @`´ ©«» ¤¼× {} abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ !"§ $%& /() =?* \'<> #|; ²³~ @`´ ©«» ¤¼× {} abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ !"§ $%& /() =?* \'<> #|; ²³~ @`´ ©«» ¤¼× {} abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ !"§ $%& /() =?* \'<> #|; ²³~ @`´ ©«» ¤¼× {} abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ !"§ $%& /() =?* \'<> #|; ²³~ @`´ ©«» ¤¼× {}'
 }
 
@@ -156,7 +163,11 @@ class TextExample extends React.Component {
         />
 
         <div className="example_controls">
-          { this.renderSelect('text', 'Choose Text', Object.keys(TEXTS)) }
+          { this.renderSelect('text', 'Choose Text', Object.keys(TEXTS), val => {
+            if (val === 'Gettysburg') {
+              this.setState({textScale: 0.5, maxWidth: 2.5})
+            }
+          }) }
           { this.renderSelect('font', 'Choose Font', Object.keys(FONTS).sort()) }
           { this.renderSelect('textAlign', 'Choose Alignment', ['left', 'right', 'center', 'justify']) }
 
@@ -167,7 +178,7 @@ class TextExample extends React.Component {
           { this.renderToggle('debugSDF', 'Show SDF Textures')}
 
           { this.renderRange('textScale', 'Scale', 0.1, 10, 0.1) }
-          { this.renderRange('maxWidth', 'Max Width', 0.5, 2, 0.01) }
+          { this.renderRange('maxWidth', 'Max Width', 1, 5, 0.01) }
           { this.renderRange('lineHeight', 'Line Height', 1, 2, 0.01) }
           { this.renderRange('letterSpacing', 'Letter Spacing', -0.1, 0.5, 0.01) }
 
@@ -194,11 +205,12 @@ class TextExample extends React.Component {
     </label>
   }
 
-  renderSelect(stateName, label, options) {
+  renderSelect(stateName, label, options, callback) {
     return <select
       style={{marginTop: 10}}
       onChange={e => {
-        this.setState({[stateName]: e.target.value})
+        const val = e.target.value
+        this.setState({[stateName]: val}, callback && (() => callback(val)))
       }}
     >
       <optgroup label={label}>

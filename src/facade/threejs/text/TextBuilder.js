@@ -162,7 +162,7 @@ function getWorker() {
           )
         })
       } catch(error) {
-        postMessage({messageId, error})
+        postMessage({messageId, error: error.stack})
       }
     }
   }.toString()

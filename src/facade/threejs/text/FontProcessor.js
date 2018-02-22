@@ -130,33 +130,23 @@ export default function createFontProcessor(opentype, config) {
       // Determine line height and leading adjustments
       lineHeight = lineHeight * fontSize
       const halfLeading = (lineHeight - (fontObj.ascender - fontObj.descender) * fontSizeMult) / 2
-      let lineXOffset = 0
-
-      // Pre-normalize CR+LF
-      text = text.replace(/\r\n/g, '\n')
-
-      // Distribute glyphs into lines based on wrapping
-      let currentLine = []
-      const lines = [currentLine]
       const otOpts = {
         kerning: true,
         features: {liga: true, rlig: true},
         letterSpacing
       }
-      fontObj.forEachGlyph(text, 0, 0, fontSize, otOpts, (glyphObj, glyphX) => {
-        const charCode = glyphObj.unicode
-        const char = typeof charCode === 'number' && String.fromCharCode(charCode)
-        const glyphWidth = glyphObj.advanceWidth * fontSizeMult
 
-        // Hard line breaks
-        // TODO this doesn't actually work because the placeholder glyph opentype.js gives us for
-        // the \n does not have a unicode value or any other information identifying it as a newline.
-        if (char === '\n') {
-          currentLine = []
-          lineXOffset = -glyphX
-          lines.push(currentLine)
-        }
-        else {
+      // Split by hard line breaks
+      const lineBlocks = text.split(/\r?\n/).map(text => {
+        let lineXOffset = 0
+
+        // Distribute glyphs into lines based on wrapping
+        let currentLine = []
+        const lines = [currentLine]
+        fontObj.forEachGlyph(text, 0, 0, fontSize, otOpts, (glyphObj, glyphX) => {
+          const charCode = glyphObj.unicode
+          const char = typeof charCode === 'number' && String.fromCharCode(charCode)
+          const glyphWidth = glyphObj.advanceWidth * fontSizeMult
           const isWhitespace = !!char && /\s/.test(char)
 
           // Soft line breaks at maxWidth - back up to latest canSoftWrap on this line, if any,
@@ -192,75 +182,95 @@ export default function createFontProcessor(opentype, config) {
             isEmpty: glyphObj.xMin === glyphObj.xMax || glyphObj.yMin === glyphObj.yMax,
             atlasInfo: null //added later
           })
-        }
+        })
+
+        return lines
       })
 
       // Find width of longest line after wrapping
-      const maxLineWidth = lines.reduce((max, lineGlyphs) => {
-        let lastChar
-        while ((lastChar = lineGlyphs[lineGlyphs.length - 1]).isWhitespace) { lineGlyphs.pop() } //strip trailing whitespace
-        return Math.max(max, lastChar.x + lastChar.width)
+      let lineCount = 0
+      const maxLineWidth = lineBlocks.reduce((max, lines) => {
+        let lineMax = 0
+        lineCount += lines.length
+        for (let i = 0; i < lines.length; i++) {
+          const lineGlyphs = lines[i]
+          let lastChar
+          while (lineGlyphs.length && (lastChar = lineGlyphs[lineGlyphs.length - 1]).isWhitespace) { lineGlyphs.pop() } //strip trailing whitespace
+          if (lastChar) {
+            lineMax = Math.max(lineMax, lastChar.x + lastChar.width)
+          }
+        }
+        return Math.max(max, lineMax)
       }, 0)
 
       // Process each line, applying alignment offsets, adding each glyph to the atlas, and
       // collecting all renderable glyphs into a single collection.
       const renderableGlyphs = []
-      lines.forEach((lineGlyphs, lineNum) => {
-        const lineYOffset = -(fontSize + halfLeading + lineNum * lineHeight)
+      let lineYOffset = -(fontSize + halfLeading)
+      lineBlocks.forEach(lines => {
+        for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+          const lineGlyphs = lines[lineIndex]
 
-        // Find x offset for horizontal alignment
-        lineXOffset = 0
-        const lastChar = lineGlyphs[lineGlyphs.length - 1]
-        const thisLineWidth = lastChar.x + lastChar.width
-        let whitespaceCount = 0
-        if (textAlign === 'center') {
-          lineXOffset = (maxLineWidth - thisLineWidth) / 2
-        } else if (textAlign === 'right') {
-          lineXOffset = maxLineWidth - thisLineWidth
-        } else if (textAlign === 'justify') {
-          // just count the whitespace characters, and we'll adjust the offsets per character in the next loop
-          for (let i = 0, len = lineGlyphs.length; i < len; i++) {
-            if (lineGlyphs[i].isWhitespace) {
-              whitespaceCount++
-            }
-          }
-        }
+          // Increment line y offset
+          lineYOffset -= lineHeight
 
-        for (let i = 0, len = lineGlyphs.length; i < len; i++) {
-          const glyphInfo = lineGlyphs[i]
-          if (glyphInfo.isWhitespace && textAlign === 'justify' && lineNum !== lines.length - 1) {
-            lineXOffset += (maxLineWidth - thisLineWidth) / whitespaceCount
-          }
+          // Ignore empty lines
+          if (!lineGlyphs.length) return
 
-          if (!glyphInfo.isWhitespace && !glyphInfo.isEmpty) {
-            const glyphObj = glyphInfo.glyphObj
-
-            // If we haven't seen this glyph yet, generate its SDF
-            let glyphAtlasInfo = atlas.glyphs[glyphObj.index]
-            if (!glyphAtlasInfo) {
-              const glyphSDFData = generateGlyphSDF(glyphObj)
-
-              // Assign this glyph the next available atlas index
-              glyphSDFData.atlasIndex = atlas.glyphCount++
-
-              // Queue it up in the response's newGlyphs list
-              if (!newGlyphs) newGlyphs = []
-              newGlyphs.push(glyphSDFData)
-
-              // Store its metadata (not the texture) in our atlas info
-              glyphAtlasInfo = atlas.glyphs[glyphObj.index] = {
-                atlasIndex: glyphSDFData.atlasIndex,
-                glyphObj: glyphObj,
-                renderingBounds: glyphSDFData.renderingBounds
+          // Find x offset for horizontal alignment
+          let lineXOffset = 0
+          const lastChar = lineGlyphs[lineGlyphs.length - 1]
+          const thisLineWidth = lastChar.x + lastChar.width
+          let whitespaceCount = 0
+          if (textAlign === 'center') {
+            lineXOffset = (maxLineWidth - thisLineWidth) / 2
+          } else if (textAlign === 'right') {
+            lineXOffset = maxLineWidth - thisLineWidth
+          } else if (textAlign === 'justify') {
+            // just count the whitespace characters, and we'll adjust the offsets per character in the next loop
+            for (let i = 0, len = lineGlyphs.length; i < len; i++) {
+              if (lineGlyphs[i].isWhitespace) {
+                whitespaceCount++
               }
             }
-            glyphInfo.atlasInfo = glyphAtlasInfo
+          }
 
-            // Apply position adjustments
-            if (lineXOffset) glyphInfo.x += lineXOffset
-            glyphInfo.y = lineYOffset
+          for (let i = 0, len = lineGlyphs.length; i < len; i++) {
+            const glyphInfo = lineGlyphs[i]
+            if (glyphInfo.isWhitespace && textAlign === 'justify' && lineIndex !== lines.length - 1) {
+              lineXOffset += (maxLineWidth - thisLineWidth) / whitespaceCount
+            }
 
-            renderableGlyphs.push(glyphInfo)
+            if (!glyphInfo.isWhitespace && !glyphInfo.isEmpty) {
+              const glyphObj = glyphInfo.glyphObj
+
+              // If we haven't seen this glyph yet, generate its SDF
+              let glyphAtlasInfo = atlas.glyphs[glyphObj.index]
+              if (!glyphAtlasInfo) {
+                const glyphSDFData = generateGlyphSDF(glyphObj)
+
+                // Assign this glyph the next available atlas index
+                glyphSDFData.atlasIndex = atlas.glyphCount++
+
+                // Queue it up in the response's newGlyphs list
+                if (!newGlyphs) newGlyphs = []
+                newGlyphs.push(glyphSDFData)
+
+                // Store its metadata (not the texture) in our atlas info
+                glyphAtlasInfo = atlas.glyphs[glyphObj.index] = {
+                  atlasIndex: glyphSDFData.atlasIndex,
+                  glyphObj: glyphObj,
+                  renderingBounds: glyphSDFData.renderingBounds
+                }
+              }
+              glyphInfo.atlasInfo = glyphAtlasInfo
+
+              // Apply position adjustments
+              if (lineXOffset) glyphInfo.x += lineXOffset
+              glyphInfo.y = lineYOffset
+
+              renderableGlyphs.push(glyphInfo)
+            }
           }
         }
       })
@@ -274,7 +284,7 @@ export default function createFontProcessor(opentype, config) {
           anchorXOffset = -maxLineWidth * anchor[0]
         }
         if (anchor[1]) {
-          anchorYOffset = lines.length * lineHeight * anchor[1]
+          anchorYOffset = lineCount * lineHeight * anchor[1]
         }
       }
 
