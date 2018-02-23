@@ -78,9 +78,8 @@ class Text3DFacade extends Object3DFacade {
           // Populate geometry attributes
           const geometry = this._textGeometry
           const {aTroikaGlyphBounds, aTroikaGlyphIndex} = geometry.attributes
-          aTroikaGlyphBounds.setArray(textRenderInfo.glyphBounds)
-          aTroikaGlyphIndex.setArray(textRenderInfo.glyphIndices)
-          aTroikaGlyphIndex.needsUpdate = aTroikaGlyphBounds.needsUpdate = true
+          updateBufferAttrArray(aTroikaGlyphBounds, textRenderInfo.glyphBounds)
+          updateBufferAttrArray(aTroikaGlyphIndex, textRenderInfo.glyphIndices)
           geometry.maxInstancedCount = textRenderInfo.glyphIndices.length
 
           // Update geometry's bounding sphere for raycasting/frustum culling
@@ -203,6 +202,15 @@ class Text3DFacade extends Object3DFacade {
   }
 }
 
+
+function updateBufferAttrArray(attr, newArray) {
+  if (attr.array.length === newArray.length) {
+    attr.array.set(newArray)
+  } else {
+    attr.setArray(newArray)
+  }
+  attr.needsUpdate = true
+}
 
 
 function upgradeShaders(vertexShader, fragmentShader, derivativesSupported) {

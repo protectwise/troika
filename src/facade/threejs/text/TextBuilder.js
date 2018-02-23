@@ -155,11 +155,14 @@ function getWorker() {
       const messageId = msg.messageId
       try {
         processFn(msg.args, result => {
-          postMessage(
-            {messageId, result},
-            //new SDF texture array buffers are transferable:
-            result.newGlyphSDFs ? result.newGlyphSDFs.map(d => d.textureData.buffer) : undefined
-          )
+          // Mark array buffers as transferable to avoid cloning during postMessage
+          const transferables = [result.glyphBounds.buffer, result.glyphIndices.buffer]
+          if (result.newGlyphSDFs) {
+            result.newGlyphSDFs.forEach(d => {
+              transferables.push(d.textureData.buffer)
+            })
+          }
+          postMessage({messageId, result}, transferables)
         })
       } catch(error) {
         postMessage({messageId, error: error.stack})
