@@ -8,7 +8,7 @@
   "dependencies": {
     "easingjs": "^1.0.1",
     "prop-types": "^15.5.10",
-    "three": "0.89.x"
+    "three": "0.90.x"
   },
   "peerDependencies": {
     "react": "^16.0.0",
