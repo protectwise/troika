@@ -122,6 +122,8 @@ export default function createFontProcessor(opentype, config) {
     getSdfAtlas(font, atlas => {
       const fontObj = atlas.fontObj
       let newGlyphs = null
+      let lineCount = 0
+      let maxLineWidth = 0
 
       // Find conversion between native font units and fontSize units; this will already be done
       // for the gx/gy values below but everything else we'll need to convert
@@ -160,16 +162,21 @@ export default function createFontProcessor(opentype, config) {
                 lineXOffset = -glyphX
                 lines.push(currentLine)
               } else if (currentLine[i - 1].isWhitespace) {
-                currentLine = currentLine.splice(i)
-                const adjustX = currentLine[0].x
+                const nextLine = currentLine.splice(i)
+                const adjustX = nextLine[0].x
                 lineXOffset -= adjustX
-                for (let j = currentLine.length; j--;) {
-                  currentLine[j].x -= adjustX
+                for (let j = 0; j < nextLine.length; j++) {
+                  nextLine[j].x -= adjustX
                 }
-                lines.push(currentLine)
+                // Strip any trailing whitespace characters from the prior line so they don't affect line length
+                while (currentLine[currentLine.length - 1].isWhitespace) {
+                  currentLine.pop()
+                }
+                lines.push(currentLine = nextLine)
                 break
               }
             }
+            maxLineWidth = maxWidth
           }
 
           currentLine.push({
@@ -184,24 +191,18 @@ export default function createFontProcessor(opentype, config) {
           })
         })
 
-        return lines
-      })
-
-      // Find width of longest line after wrapping
-      let lineCount = 0
-      const maxLineWidth = lineBlocks.reduce((max, lines) => {
-        let lineMax = 0
-        lineCount += lines.length
-        for (let i = 0; i < lines.length; i++) {
+        // Find max block width after wrapping
+        for (let i = 0; i < lines.length && maxLineWidth < maxWidth; i++) {
           const lineGlyphs = lines[i]
-          let lastChar
-          while (lineGlyphs.length && (lastChar = lineGlyphs[lineGlyphs.length - 1]).isWhitespace) { lineGlyphs.pop() } //strip trailing whitespace
-          if (lastChar) {
-            lineMax = Math.max(lineMax, lastChar.x + lastChar.width)
+          if (lineGlyphs.length) {
+            const lastChar = lineGlyphs[lineGlyphs.length - 1]
+            maxLineWidth = Math.max(maxLineWidth, lastChar.x + lastChar.width)
           }
         }
-        return Math.max(max, lineMax)
-      }, 0)
+        lineCount += lines.length
+
+        return lines
+      })
 
       // Process each line, applying alignment offsets, adding each glyph to the atlas, and
       // collecting all renderable glyphs into a single collection.
