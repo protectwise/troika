@@ -121,6 +121,7 @@ export default function createFontProcessor(opentype, config) {
   ) {
     getSdfAtlas(font, atlas => {
       const fontObj = atlas.fontObj
+      const hasMaxWidth = isFinite(maxWidth)
       let newGlyphs = null
       let lineCount = 0
       let maxLineWidth = 0
@@ -151,32 +152,42 @@ export default function createFontProcessor(opentype, config) {
           const glyphWidth = glyphObj.advanceWidth * fontSizeMult
           const isWhitespace = !!char && /\s/.test(char)
 
-          // Soft line breaks at maxWidth - back up to latest canSoftWrap on this line, if any,
-          // and move all glyphs since it to the next line
-          if (isFinite(maxWidth) && glyphX + glyphWidth + lineXOffset > maxWidth) {
-            if (isWhitespace) return //if whitespace char goes past edge we can totally ignore it
-            for (let i = currentLine.length - 1; i--;) {
-              // If we got the start of the line there's no soft break point; treat as a hard break
-              if (i === 0) {
-                currentLine = []
-                lineXOffset = -glyphX
-                lines.push(currentLine)
-              } else if (currentLine[i - 1].isWhitespace) {
-                const nextLine = currentLine.splice(i)
-                const adjustX = nextLine[0].x
-                lineXOffset -= adjustX
-                for (let j = 0; j < nextLine.length; j++) {
-                  nextLine[j].x -= adjustX
+          // If a non-whitespace character overflows the max width, we need to wrap
+          if (hasMaxWidth && !isWhitespace && glyphX + glyphWidth + lineXOffset > maxWidth && currentLine.length) {
+            // If it's the first char after a whitespace, start a new line
+            let nextLine
+            if (currentLine[currentLine.length - 1].isWhitespace) {
+              nextLine = []
+              lineXOffset = -glyphX
+            } else {
+              // Back up looking for a whitespace character to wrap at
+              for (let i = currentLine.length; i--;) {
+                // If we got the start of the line there's no soft break point; treat as a hard break
+                if (i === 0) {
+                  nextLine = []
+                  lineXOffset = -glyphX
+                  break
                 }
-                // Strip any trailing whitespace characters from the prior line so they don't affect line length
-                while (currentLine[currentLine.length - 1].isWhitespace) {
-                  currentLine.pop()
+                // Found a soft break point; move all chars since it to a new line
+                else if (currentLine[i].isWhitespace) {
+                  nextLine = currentLine.splice(i + 1)
+                  const adjustX = nextLine[0].x
+                  lineXOffset -= adjustX
+                  for (let j = 0; j < nextLine.length; j++) {
+                    nextLine[j].x -= adjustX
+                  }
+                  break
                 }
-                lines.push(currentLine = nextLine)
-                break
               }
             }
-            maxLineWidth = maxWidth
+            if (nextLine) {
+              // Strip any trailing whitespace characters from the prior line so they don't affect line length
+              while (currentLine[currentLine.length - 1].isWhitespace) {
+                currentLine.pop()
+              }
+              lines.push(currentLine = nextLine)
+              maxLineWidth = maxWidth
+            }
           }
 
           currentLine.push({
@@ -312,6 +323,7 @@ export default function createFontProcessor(opentype, config) {
         glyphBounds,
         glyphIndices,
         totalBounds,
+        totalBlockSize: [maxLineWidth, lineCount * lineHeight],
         newGlyphSDFs: newGlyphs
       })
     })

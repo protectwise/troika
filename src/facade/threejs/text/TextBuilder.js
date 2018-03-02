@@ -100,7 +100,8 @@ export function getTextRenderInfo(args, callback) {
       sdfMinDistancePercent: SDF_DISTANCE_PERCENT,
       glyphBounds: result.glyphBounds,
       glyphIndices: result.glyphIndices,
-      totalBounds: result.totalBounds
+      totalBounds: result.totalBounds,
+      totalBlockSize: result.totalBlockSize
     })
   })
 }
