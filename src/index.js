@@ -21,6 +21,9 @@ export {default as World3DFacade} from './facade/threejs/World3DFacade.js'
 export {default as InstancingManager} from './facade/threejs/instancing/InstancingManager.js'
 export {default as Instanceable3DFacade} from './facade/threejs/instancing/Instanceable3DFacade.js'
 
+// 3D UI
+export {default as UIBlock3DFacade} from './facade/threejs/ui/UIBlock3DFacade.js'
+
 // 2D Facades
 export {default as Group2DFacade} from './facade/canvas2d/Group2DFacade.js'
 export {default as HtmlOverlay2DFacade} from './facade/canvas2d/HtmlOverlay2DFacade.js'

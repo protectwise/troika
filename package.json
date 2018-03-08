@@ -6,6 +6,7 @@
   "main": "build/troika.js",
   "jsnext:main": "build/troika.esmodule.js",
   "dependencies": {
+    "css-layout": "^1.1.1",
     "easingjs": "^1.0.1",
     "prop-types": "^15.5.10",
     "three": "0.90.x"

@@ -7,7 +7,9 @@ import {
   DoubleSide,
   InstancedBufferGeometry,
   InstancedBufferAttribute,
-  Sphere, Vector3, Matrix4
+  Sphere,
+  Vector3,
+  Matrix4
 } from 'three'
 // import {getTextRenderInfo} from './text/TextBuilderMainThread' //for debugging only
 import {getTextRenderInfo} from './TextBuilder'
@@ -33,6 +35,7 @@ class Text3DFacade extends Object3DFacade {
     geometry.computeBoundingSphere = noop //we'll handle bounding sphere updates ourselves
 
     const mesh = new Mesh(geometry, defaultMaterial.clone())
+    mesh.renderOrder = Number.MAX_SAFE_INTEGER
 
     super(parent, mesh)
 
@@ -42,6 +45,8 @@ class Text3DFacade extends Object3DFacade {
     this.letterSpacing = 0
     this.lineHeight = 1.15 //roughly matches a typical CSS 'normal' value
     this.maxWidth = Infinity
+    this.depthOffset = 0
+    this.visible = true
 
     this.material = defaultMaterial
 
@@ -93,6 +98,7 @@ class Text3DFacade extends Object3DFacade {
           sphere.radius = sphere.center.distanceTo(tempVec3.set(totalBounds[0], totalBounds[1], 0))
           sphere.version++
 
+          this.notifyWorld('textSizeChanged', textRenderInfo.totalBlockSize)
           this.notifyWorld('needsRender')
         }
       })
@@ -101,6 +107,7 @@ class Text3DFacade extends Object3DFacade {
         lastProps[prop] = this[prop]
       })
     }
+    //this.threeObject.visible = this.visible
 
     super.afterUpdate()
   }
@@ -117,6 +124,9 @@ class Text3DFacade extends Object3DFacade {
     }
     uniforms.uTroikaSDFDebug.value = !!this.debugSDF
     this.threeObject.material = textMaterial
+
+    textMaterial.polygonOffset = !!this.depthOffset
+    textMaterial.polygonOffsetFactor = textMaterial.polygonOffsetUnits = this.depthOffset || 0
   }
 
   _getTextMaterial(renderer) {
@@ -146,10 +156,10 @@ class Text3DFacade extends Object3DFacade {
         textMaterial.extensions = assignIf({derivatives: true}, baseMaterial.extensions)
       }
       textMaterial.onBeforeCompile = shaderInfo => {
-        // Inject the upgraded shaders/uniforms into the program on first compile
+        // Inject the upgraded shaders/uniforms before program switch
+        baseMaterial.onBeforeCompile.call(this, shaderInfo)
         assign(shaderInfo, upgradedShaders)
         shaderInfo.uniforms = textMaterial.uniforms
-        textMaterial.onBeforeCompile = null //just once
       }
     }
 

@@ -157,7 +157,7 @@ function getWorker() {
       try {
         processFn(msg.args, result => {
           // Mark array buffers as transferable to avoid cloning during postMessage
-          const transferables = [result.glyphBounds.buffer, result.glyphIndices.buffer]
+          const transferables = msg.args.metricsOnly ? undefined : [result.glyphBounds.buffer, result.glyphIndices.buffer]
           if (result.newGlyphSDFs) {
             result.newGlyphSDFs.forEach(d => {
               transferables.push(d.textureData.buffer)

@@ -115,7 +115,8 @@ export default function createFontProcessor(opentype, config) {
       lineHeight=1.15,
       maxWidth=INF,
       textAlign='left',
-      anchor
+      anchor,
+      metricsOnly=false
     },
     callback
   ) {
@@ -123,6 +124,9 @@ export default function createFontProcessor(opentype, config) {
       const fontObj = atlas.fontObj
       const hasMaxWidth = isFinite(maxWidth)
       let newGlyphs = null
+      let glyphBounds = null
+      let glyphIndices = null
+      let totalBounds = null
       let lineCount = 0
       let maxLineWidth = 0
 
@@ -215,109 +219,111 @@ export default function createFontProcessor(opentype, config) {
         return lines
       })
 
-      // Process each line, applying alignment offsets, adding each glyph to the atlas, and
-      // collecting all renderable glyphs into a single collection.
-      const renderableGlyphs = []
-      let lineYOffset = -(fontSize + halfLeading)
-      lineBlocks.forEach(lines => {
-        for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-          const lineGlyphs = lines[lineIndex]
+      if (!metricsOnly) {
+        // Process each line, applying alignment offsets, adding each glyph to the atlas, and
+        // collecting all renderable glyphs into a single collection.
+        const renderableGlyphs = []
+        let lineYOffset = -(fontSize + halfLeading)
+        lineBlocks.forEach(lines => {
+          for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+            const lineGlyphs = lines[lineIndex]
 
-          // Ignore empty lines
-          if (lineGlyphs.length) {
-            // Find x offset for horizontal alignment
-            let lineXOffset = 0
-            const lastChar = lineGlyphs[lineGlyphs.length - 1]
-            const thisLineWidth = lastChar.x + lastChar.width
-            let whitespaceCount = 0
-            if (textAlign === 'center') {
-              lineXOffset = (maxLineWidth - thisLineWidth) / 2
-            } else if (textAlign === 'right') {
-              lineXOffset = maxLineWidth - thisLineWidth
-            } else if (textAlign === 'justify') {
-              // just count the whitespace characters, and we'll adjust the offsets per character in the next loop
-              for (let i = 0, len = lineGlyphs.length; i < len; i++) {
-                if (lineGlyphs[i].isWhitespace) {
-                  whitespaceCount++
-                }
-              }
-            }
-
-            for (let i = 0, len = lineGlyphs.length; i < len; i++) {
-              const glyphInfo = lineGlyphs[i]
-              if (glyphInfo.isWhitespace && textAlign === 'justify' && lineIndex !== lines.length - 1) {
-                lineXOffset += (maxLineWidth - thisLineWidth) / whitespaceCount
-              }
-
-              if (!glyphInfo.isWhitespace && !glyphInfo.isEmpty) {
-                const glyphObj = glyphInfo.glyphObj
-
-                // If we haven't seen this glyph yet, generate its SDF
-                let glyphAtlasInfo = atlas.glyphs[glyphObj.index]
-                if (!glyphAtlasInfo) {
-                  const glyphSDFData = generateGlyphSDF(glyphObj)
-
-                  // Assign this glyph the next available atlas index
-                  glyphSDFData.atlasIndex = atlas.glyphCount++
-
-                  // Queue it up in the response's newGlyphs list
-                  if (!newGlyphs) newGlyphs = []
-                  newGlyphs.push(glyphSDFData)
-
-                  // Store its metadata (not the texture) in our atlas info
-                  glyphAtlasInfo = atlas.glyphs[glyphObj.index] = {
-                    atlasIndex: glyphSDFData.atlasIndex,
-                    glyphObj: glyphObj,
-                    renderingBounds: glyphSDFData.renderingBounds
+            // Ignore empty lines
+            if (lineGlyphs.length) {
+              // Find x offset for horizontal alignment
+              let lineXOffset = 0
+              const lastChar = lineGlyphs[lineGlyphs.length - 1]
+              const thisLineWidth = lastChar.x + lastChar.width
+              let whitespaceCount = 0
+              if (textAlign === 'center') {
+                lineXOffset = (maxLineWidth - thisLineWidth) / 2
+              } else if (textAlign === 'right') {
+                lineXOffset = maxLineWidth - thisLineWidth
+              } else if (textAlign === 'justify') {
+                // just count the whitespace characters, and we'll adjust the offsets per character in the next loop
+                for (let i = 0, len = lineGlyphs.length; i < len; i++) {
+                  if (lineGlyphs[i].isWhitespace) {
+                    whitespaceCount++
                   }
                 }
-                glyphInfo.atlasInfo = glyphAtlasInfo
+              }
 
-                // Apply position adjustments
-                if (lineXOffset) glyphInfo.x += lineXOffset
-                glyphInfo.y = lineYOffset
+              for (let i = 0, len = lineGlyphs.length; i < len; i++) {
+                const glyphInfo = lineGlyphs[i]
+                if (glyphInfo.isWhitespace && textAlign === 'justify' && lineIndex !== lines.length - 1) {
+                  lineXOffset += (maxLineWidth - thisLineWidth) / whitespaceCount
+                }
 
-                renderableGlyphs.push(glyphInfo)
+                if (!glyphInfo.isWhitespace && !glyphInfo.isEmpty) {
+                  const glyphObj = glyphInfo.glyphObj
+
+                  // If we haven't seen this glyph yet, generate its SDF
+                  let glyphAtlasInfo = atlas.glyphs[glyphObj.index]
+                  if (!glyphAtlasInfo) {
+                    const glyphSDFData = generateGlyphSDF(glyphObj)
+
+                    // Assign this glyph the next available atlas index
+                    glyphSDFData.atlasIndex = atlas.glyphCount++
+
+                    // Queue it up in the response's newGlyphs list
+                    if (!newGlyphs) newGlyphs = []
+                    newGlyphs.push(glyphSDFData)
+
+                    // Store its metadata (not the texture) in our atlas info
+                    glyphAtlasInfo = atlas.glyphs[glyphObj.index] = {
+                      atlasIndex: glyphSDFData.atlasIndex,
+                      glyphObj: glyphObj,
+                      renderingBounds: glyphSDFData.renderingBounds
+                    }
+                  }
+                  glyphInfo.atlasInfo = glyphAtlasInfo
+
+                  // Apply position adjustments
+                  if (lineXOffset) glyphInfo.x += lineXOffset
+                  glyphInfo.y = lineYOffset
+
+                  renderableGlyphs.push(glyphInfo)
+                }
               }
             }
+
+            // Increment y offset for next line
+            lineYOffset -= lineHeight
           }
+        })
 
-          // Increment y offset for next line
-          lineYOffset -= lineHeight
+        // Find overall position adjustments for anchoring
+        let anchorXOffset = 0
+        let anchorYOffset = 0
+        if (anchor) {
+          // TODO allow string keywords?
+          if (anchor[0]) {
+            anchorXOffset = -maxLineWidth * anchor[0]
+          }
+          if (anchor[1]) {
+            anchorYOffset = lineCount * lineHeight * anchor[1]
+          }
         }
-      })
 
-      // Find overall position adjustments for anchoring
-      let anchorXOffset = 0
-      let anchorYOffset = 0
-      if (anchor) {
-        // TODO allow string keywords?
-        if (anchor[0]) {
-          anchorXOffset = -maxLineWidth * anchor[0]
-        }
-        if (anchor[1]) {
-          anchorYOffset = lineCount * lineHeight * anchor[1]
-        }
+        // Create the final output for the rendeable glyphs
+        glyphBounds = new Float32Array(renderableGlyphs.length * 4)
+        glyphIndices = new Float32Array(renderableGlyphs.length)
+        totalBounds = [INF, INF, -INF, -INF]
+        renderableGlyphs.forEach((glyphInfo, i) => {
+          const {renderingBounds, atlasIndex} = glyphInfo.atlasInfo
+          const x0 = glyphBounds[i * 4] = glyphInfo.x + renderingBounds[0] * fontSizeMult + anchorXOffset
+          const y0 = glyphBounds[i * 4 + 1] = glyphInfo.y + renderingBounds[1] * fontSizeMult + anchorYOffset
+          const x1 = glyphBounds[i * 4 + 2] = glyphInfo.x + renderingBounds[2] * fontSizeMult + anchorXOffset
+          const y1 = glyphBounds[i * 4 + 3] = glyphInfo.y + renderingBounds[3] * fontSizeMult + anchorYOffset
+
+          if (x0 < totalBounds[0]) totalBounds[0] = x0
+          if (y0 < totalBounds[1]) totalBounds[1] = y0
+          if (x1 > totalBounds[2]) totalBounds[2] = x1
+          if (y1 > totalBounds[3]) totalBounds[3] = y1
+
+          glyphIndices[i] = atlasIndex
+        })
       }
-
-      // Create the final output for the rendeable glyphs
-      const glyphBounds = new Float32Array(renderableGlyphs.length * 4)
-      const glyphIndices = new Float32Array(renderableGlyphs.length)
-      const totalBounds = [INF, INF, -INF, -INF]
-      renderableGlyphs.forEach((glyphInfo, i) => {
-        const {renderingBounds, atlasIndex} = glyphInfo.atlasInfo
-        const x0 = glyphBounds[i * 4] = glyphInfo.x + renderingBounds[0] * fontSizeMult + anchorXOffset
-        const y0 = glyphBounds[i * 4 + 1] = glyphInfo.y + renderingBounds[1] * fontSizeMult + anchorYOffset
-        const x1 = glyphBounds[i * 4 + 2] = glyphInfo.x + renderingBounds[2] * fontSizeMult + anchorXOffset
-        const y1 = glyphBounds[i * 4 + 3] = glyphInfo.y + renderingBounds[3] * fontSizeMult + anchorYOffset
-
-        if (x0 < totalBounds[0]) totalBounds[0] = x0
-        if (y0 < totalBounds[1]) totalBounds[1] = y0
-        if (x1 > totalBounds[2]) totalBounds[2] = x1
-        if (y1 > totalBounds[3]) totalBounds[3] = y1
-
-        glyphIndices[i] = atlasIndex
-      })
 
       callback({
         glyphBounds,
