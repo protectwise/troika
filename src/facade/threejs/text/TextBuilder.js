@@ -1,5 +1,7 @@
 import {DataTexture, LinearFilter, LuminanceFormat} from 'three'
 import createFontProcessor from './FontProcessor'
+import { defineWorkerModule } from '../../../WorkerModules'
+import { BasicThenable } from '../../../utils'
 
 
 /**
@@ -45,7 +47,12 @@ const SDF_DISTANCE_PERCENT = 1 / 8
 const atlases = Object.create(null)
 
 
-
+/**
+ * Main entry point for requesting the data needed to render a text string with given font parameters.
+ * This is an asynchronous call, performing most of the logic in a web worker thread.
+ * @param args
+ * @param callback
+ */
 export function getTextRenderInfo(args, callback) {
   // Apply default font here to avoid a 'null' atlas
   if (!args.font) {
@@ -73,7 +80,7 @@ export function getTextRenderInfo(args, callback) {
   }
 
   // Issue request to the FontProcessor in the worker
-  issueWorkerRequest(args, result => {
+  processInWorker(args).then(result => {
     // If the response has newGlyphs, copy them into the atlas texture at the specified indices
     if (result.newGlyphSDFs) {
       result.newGlyphSDFs.forEach(({textureData, atlasIndex}) => {
@@ -107,93 +114,41 @@ export function getTextRenderInfo(args, callback) {
 }
 
 
-
-
-
-let _lastMsgId = 0
-
-
-/**
- * Issue a request to the FontProcessor worker
- * @param args
- * @param callback
- */
-export function issueWorkerRequest(args, callback) {
-  const worker = getWorker()
-  const messageId = ++_lastMsgId
-  const onmessage = e => {
-    if (e.data.messageId === messageId) {
-      if (e.data.error) {
-        console.error('FontProcessor worker error', e.data.error)
-      } else {
-        callback(e.data.result)
-      }
-      worker.removeEventListener('message', onmessage)
-    }
-  }
-  worker.addEventListener('message', onmessage)
-  worker.postMessage({
-    messageId,
-    args
-  })
-}
-
-
-/**
- * Initialize a single instance of the Worker and return it
- */
-function getWorker() {
-  const loadOpenTypeFn = function(url) {
+export const fontProcessorWorkerModule = defineWorkerModule({
+  dependencies: [
+    DEFAULT_FONT_URL,
+    SDF_GLYPH_SIZE,
+    SDF_DISTANCE_PERCENT,
+    OPENTYPE_URL,
+    createFontProcessor
+  ],
+  init(defaultFontUrl, sdfTextureSize, sdfDistancePercent, openTypeURL, createFontProcessor) {
     self.window = self //needed to trick opentype out of thinking we're in Node
-    self.opentype = {} //gives opentype's UMD somewhere to temporarily attach its exports
-    importScripts(url)
-    return self.opentype
-  }.toString()
+    const opentype = self.opentype = {} //gives opentype's UMD somewhere to temporarily attach its exports
+    importScripts(openTypeURL) //synchronous
+    delete self.opentype
+    return createFontProcessor(opentype, {defaultFontUrl, sdfTextureSize, sdfDistancePercent})
+  }
+})
 
-  const createOnMessageFn = function (processFn) {
-    return e => {
-      const msg = e.data
-      const messageId = msg.messageId
-      try {
-        processFn(msg.args, result => {
-          // Mark array buffers as transferable to avoid cloning during postMessage
-          const transferables = msg.args.metricsOnly ? undefined : [result.glyphBounds.buffer, result.glyphIndices.buffer]
-          if (result.newGlyphSDFs) {
-            result.newGlyphSDFs.forEach(d => {
-              transferables.push(d.textureData.buffer)
-            })
-          }
-          postMessage({messageId, result}, transferables)
-        })
-      } catch(error) {
-        postMessage({messageId, error: error.stack})
-      }
+export const processInWorker = defineWorkerModule({
+  dependencies: [fontProcessorWorkerModule, BasicThenable],
+  init(fontProcessor, BasicThenable) {
+    return function(args) {
+      const thenable = new BasicThenable()
+      fontProcessor.process(args, thenable.resolve)
+      return thenable
     }
-  }.toString()
-
-  const config = JSON.stringify({
-    defaultFontUrl: DEFAULT_FONT_URL,
-    sdfTextureSize: SDF_GLYPH_SIZE,
-    sdfDistancePercent: SDF_DISTANCE_PERCENT
-  })
-
-  const workerCode = `
-self.onmessage = (${createOnMessageFn})(
-  (${createFontProcessor.toString()})(
-    (${loadOpenTypeFn})('${OPENTYPE_URL}'),
-    ${config}
-  )
-)`
-
-  const worker = new Worker(
-    URL.createObjectURL(new Blob([workerCode], {type:'text/javascript'}))
-  )
-
-  // Return the singleton from now on
-  getWorker = () => worker
-
-  return worker
-}
-
-
+  },
+  getTransferables(result) {
+    // Mark array buffers as transferable to avoid cloning during postMessage
+    const transferables = [result.glyphBounds.buffer, result.glyphIndices.buffer]
+    if (result.newGlyphSDFs) {
+      result.newGlyphSDFs.forEach(d => {
+        transferables.push(d.textureData.buffer)
+      })
+    }
+    return transferables
+  }
+})
 

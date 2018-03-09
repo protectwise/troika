@@ -52,7 +52,7 @@ export default function createFontProcessor(opentype, config) {
   /**
    * Load a given font url
    */
-  function loadFont(url, callback) {
+  function doLoadFont(url, callback) {
     function tryLoad() {
       try {
         opentype.load(url, (err, font) => {
@@ -75,29 +75,42 @@ export default function createFontProcessor(opentype, config) {
 
 
   /**
-   * Get the atlas data for a given font url, loading it from the network and initializing
-   * its atlas data objects if necessary.
+   * Load a given font url if needed, invoking a callback when it's loaded. If already
+   * loaded, the callback will be called synchronously.
    */
-  function getSdfAtlas(fontUrl, callback) {
+  function loadFont(fontUrl, callback) {
+    if (!fontUrl) fontUrl = defaultFontUrl
     let atlas = fonts[fontUrl]
     if (atlas) {
       // if currently loading font, add to callbacks, otherwise execute immediately
       if (atlas.onload) {
         atlas.onload.push(callback)
       } else {
-        callback(atlas)
+        callback()
       }
     } else {
       const loadingAtlas = fonts[fontUrl] = {onload: [callback]}
-      loadFont(fontUrl, fontObj => {
+      doLoadFont(fontUrl, fontObj => {
         atlas = fonts[fontUrl] = {
           fontObj: fontObj,
           glyphs: {},
           glyphCount: 0
         }
-        loadingAtlas.onload.forEach(cb => cb(atlas))
+        loadingAtlas.onload.forEach(cb => cb())
       })
     }
+  }
+
+
+  /**
+   * Get the atlas data for a given font url, loading it from the network and initializing
+   * its atlas data objects if necessary.
+   */
+  function getSdfAtlas(fontUrl, callback) {
+    if (!fontUrl) fontUrl = defaultFontUrl
+    loadFont(fontUrl, () => {
+      callback(fonts[fontUrl])
+    })
   }
 
 
@@ -115,10 +128,10 @@ export default function createFontProcessor(opentype, config) {
       lineHeight=1.15,
       maxWidth=INF,
       textAlign='left',
-      anchor,
-      metricsOnly=false
+      anchor
     },
-    callback
+    callback,
+    metricsOnly=false
   ) {
     getSdfAtlas(font, atlas => {
       const fontObj = atlas.fontObj
@@ -333,6 +346,22 @@ export default function createFontProcessor(opentype, config) {
         newGlyphSDFs: newGlyphs
       })
     })
+  }
+
+
+  /**
+   * For a given text string and font parameters, determine the resulting block dimensions
+   * after wrapping for the given maxWidth.
+   * @param args
+   * @param callback
+   */
+  function measure(args, callback) {
+    process(args, (result) => {
+      callback({
+        width: result.totalBlockSize[0],
+        height: result.totalBlockSize[1]
+      })
+    }, true)
   }
 
 
@@ -669,6 +698,10 @@ export default function createFontProcessor(opentype, config) {
   }
 
 
-  return process
+  return {
+    process,
+    measure,
+    loadFont
+  }
 }
 
