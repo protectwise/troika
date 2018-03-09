@@ -160,6 +160,31 @@ export default class ParentFacade extends Facade {
     }
   }
 
+  /**
+   * Like `traverse`, but guarantees iteration in the same order as the `children` arrays
+   * and list `data` arrays.
+   * @param {Function} fn
+   * @param {Object} [thisArg]
+   */
+  traverseOrdered(fn, thisArg) {
+    fn.call(thisArg, this)
+    let dict = this._childrenDict
+    let children = this.children
+    if (dict && children) {
+      // Allow single child without wrapper array
+      if (!Array.isArray(children)) {
+        TEMP_ARRAY[0] = children
+        children = TEMP_ARRAY
+      }
+      for (let i = 0, len = children.length; i < len; i++) {
+        let key = children[i].key
+        if (key && dict[key]) {
+          dict[key].traverseOrdered(fn, thisArg)
+        }
+      }
+    }
+  }
+
   destructor() {
     this.isDestroying = true
     // Destroy all child instances

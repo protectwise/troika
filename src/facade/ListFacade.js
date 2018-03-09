@@ -169,6 +169,28 @@ export default class List extends Facade {
     }
   }
 
+  /**
+   * Like `traverse`, but guarantees iteration in the same order as the `children` arrays
+   * and list `data` arrays.
+   * @param {Function} fn
+   * @param {Object} [thisArg]
+   */
+  traverseOrdered(fn, thisArg) {
+    fn.call(thisArg, this)
+    let data = this.data
+    let template = this.template
+    let dict = this._itemsDict
+    let hasData = data && data.length && Array.isArray(data)
+    if (hasData && template && dict) {
+      for (let i = 0, len = data.length; i < len; i++) {
+        let key = template.key(data[i], i, data)
+        if (key && dict[key]) {
+          dict[key].traverseOrdered(fn, thisArg)
+        }
+      }
+    }
+  }
+
   destructor() {
     this.isDestroying = true
     // Destroy all child instances

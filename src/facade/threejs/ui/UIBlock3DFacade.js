@@ -255,38 +255,6 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
  * Wrapper for Text3DFacade that lets it act as a flex layout node.
  */
 class TextFlexNode3DFacade extends makeFlexLayoutNode(Text3DFacade) {
-  /**
-   * @overrides FlexLayoutNode#measureIntrinsicSize
-   * @param maxWidth
-   * @return {Readonly<{width: number, height: number}>|{then}}
-   */
-  measureIntrinsicSize(maxWidth) {
-    //return {width: maxWidth, height: 0.2}
-    // Check for a cached result
-    let cache = this._measureCache
-    if (cache && (maxWidth in cache)) {
-      return cache[maxWidth]
-    } else {
-      const thenable = BasicThenable()
-      getTextRenderInfo({
-        text: this.text,
-        font: this.font,
-        fontSize: this.fontSize,
-        letterSpacing: this.letterSpacing,
-        lineHeight: this.lineHeight,
-        maxWidth: maxWidth,
-        metricsOnly: true
-      }, ({totalBlockSize}) => {
-        if (!cache) {
-          cache = this._measureCache = Object.create(null)
-        }
-        cache[maxWidth] = Object.freeze({width: totalBlockSize[0], height: totalBlockSize[1]})
-        thenable.resolve()
-      })
-      return thenable
-    }
-  }
-
   afterUpdate() {
     // Read computed layout
     const {
@@ -300,6 +268,17 @@ class TextFlexNode3DFacade extends makeFlexLayoutNode(Text3DFacade) {
     this.y = -computedTop || 0
     this.maxWidth = hasLayout ? computedWidth : Infinity
 
+    // Check text props that could affect flex layout
+    // TODO seems odd that this happens here rather than FlexLayoutNode
+    const flexStyles = this._flexStyles
+    for (let i = 0, len = flexLayoutTextProps.length; i < len; i++) {
+      const prop = flexLayoutTextProps[i]
+      if (this[prop] !== flexStyles[prop]) {
+        flexStyles[prop] = this[prop]
+        this._needsFlexLayout = true
+      }
+    }
+
     super.afterUpdate()
   }
 }
@@ -309,6 +288,7 @@ Object.defineProperty(TextFlexNode3DFacade.prototype, 'maxWidth', {
   enumerable: true,
   writable: true
 })
+const flexLayoutTextProps = ['text', 'font', 'fontSize', 'lineHeight', 'letterSpacing']
 
 
 
