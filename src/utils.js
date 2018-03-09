@@ -74,22 +74,24 @@ export function removeFromArray(arr, val) {
  * does _not_ provide full Promise semantics so be careful using it and don't let it
  * leak outside of private impl confines.
  */
-export function createThenable() {
+export function BasicThenable() {
   let handlers
   let resolved = false
+  let resValue = null
   return {
     then(fn) {
       if (resolved) {
-        fn()
+        fn(resValue)
       } else {
         (handlers || (handlers = [])).push(fn)
       }
     },
-    resolve() {
+    resolve(val) {
       resolved = true
+      resValue = val
       if (handlers) {
         for (let i = handlers.length; i--;) {
-          handlers[i]()
+          handlers[i](val)
         }
         handlers = null
       }
