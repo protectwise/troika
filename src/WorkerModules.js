@@ -4,6 +4,9 @@ let _workerModuleId = 0
 let _messageId = 0
 let worker = null
 
+const openRequests = Object.create(null)
+openRequests._count = 0
+
 
 /**
  * Define a module of code that will be executed with a web worker. This provides a simple
@@ -80,9 +83,11 @@ export function defineWorkerModule({dependencies, init, getTransferables}) {
 
 function getWorker() {
   if (!worker) {
+    // Bootstrap the worker's content
     const bootstrap = (function() {
       const modules = Object.create(null)
 
+      // Handle messages for registering a module
       function registerModule({id, dependencies=[], init=function(){}, getTransferables=null}) {
         // Only register once
         if (modules[id]) return
@@ -111,6 +116,7 @@ function getWorker() {
         }
       }
 
+      // Handle messages for calling a registered module's result function
       function callModule({id, args}, callback) {
         if (!modules[id] || typeof modules[id].value !== 'function') {
           callback(new Error(`Worker module ${id}: not found or did not provide a function`))
@@ -138,6 +144,7 @@ function getWorker() {
         }
       }
 
+      // Handler for all messages within the worker
       self.onmessage = e => {
         const {messageId, action, data} = e.data
         try {
@@ -177,31 +184,42 @@ function getWorker() {
       }
     }).toString()
 
+    // Create the worker from the bootstrap function content
     worker = new Worker(
       URL.createObjectURL(
         new Blob([`(${bootstrap})()`], {type: 'application/javascript'})
       )
     )
-  }
-  return worker
-}
 
-
-function callWorker(action, data, callback) {
-  const messageId = _messageId++
-  const worker = getWorker()
-  worker.addEventListener('message', function handler(e) {
-    const response = e.data
-    if (response && response.messageId === messageId) {
+    // Single handler for response messages from the worker
+    worker.onmessage = e => {
+      const response = e.data
+      const msgId = response.messageId
+      const callback = openRequests[msgId]
+      if (!callback) {
+        throw new Error('WorkerModule response with empty or unknown messageId')
+      }
+      delete openRequests[msgId]
+      openRequests.count--
       if (response.success) {
         callback(response.result)
       } else {
         console.error(response.error)
       }
-      worker.removeEventListener('message', handler)
     }
-  })
-  worker.postMessage({
+  }
+  return worker
+}
+
+// Issue a call to the worker with a callback to handle the response
+function callWorker(action, data, callback) {
+  const messageId = ++_messageId
+  openRequests[messageId] = callback
+  openRequests._count++
+  if (openRequests.count > 1000) { //detect leaks
+    console.warn('Large number of open WorkerModule requests, some may not be returning')
+  }
+  getWorker().postMessage({
     messageId,
     action,
     data
