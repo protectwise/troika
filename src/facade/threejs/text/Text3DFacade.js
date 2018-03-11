@@ -64,19 +64,19 @@ class Text3DFacade extends Object3DFacade {
         (prop === 'anchor' && JSON.stringify(lastProps[prop]) === JSON.stringify(this[prop])))
     })
     if (needsRecalc) {
-      const reqId = ++this._textInfoRequestId
-      getTextRenderInfo({
-        text: this.text,
-        font: this.font,
-        fontSize: this.fontSize,
-        letterSpacing: this.letterSpacing,
-        lineHeight: this.lineHeight,
-        maxWidth: this.maxWidth,
-        textAlign: this.textAlign,
-        anchor: this.anchor
-      }, textRenderInfo => {
-        //only honor most recent request
-        if (this._textInfoRequestId === reqId) {
+      if (!this._hasActiveTextRequest) {
+        this._hasActiveTextRequest = true
+
+        getTextRenderInfo({
+          text: this.text,
+          font: this.font,
+          fontSize: this.fontSize,
+          letterSpacing: this.letterSpacing,
+          lineHeight: this.lineHeight,
+          maxWidth: this.maxWidth,
+          textAlign: this.textAlign,
+          anchor: this.anchor
+        }, textRenderInfo => {
           // Save result for later use in onBeforeRender
           this._textRenderInfo = textRenderInfo
 
@@ -98,16 +98,16 @@ class Text3DFacade extends Object3DFacade {
           sphere.radius = sphere.center.distanceTo(tempVec3.set(totalBounds[0], totalBounds[1], 0))
           sphere.version++
 
-          this.notifyWorld('textSizeChanged', textRenderInfo.totalBlockSize)
+          this._hasActiveTextRequest = false
+          this.afterUpdate()
           this.notifyWorld('needsRender')
-        }
-      })
+        })
 
-      propsRequiringRecalc.forEach(prop => {
-        lastProps[prop] = this[prop]
-      })
+        propsRequiringRecalc.forEach(prop => {
+          lastProps[prop] = this[prop]
+        })
+      }
     }
-    //this.threeObject.visible = this.visible
 
     super.afterUpdate()
   }
