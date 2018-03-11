@@ -150,7 +150,7 @@ function createFlexLayoutProcessor(loadFontFn, measureFn) {
         // Execute as a wrapped function, given our local require impl and a module object,
         // and return the exports that the script attached
         const module = {exports: {}}
-        new Function('require', 'module', `${xhr.responseText}`)(require, module)
+        new Function('require', 'module', '_a', `${xhr.responseText}`)(require, module) //_a is to fix nbind.js writing to a global of that name
         return module.exports
       }
 
