@@ -4,11 +4,7 @@ import Text3DFacade from '../text/Text3DFacade'
 import UIBlockLayer3DFacade from './UIBlockLayer3DFacade'
 import { makeFlexLayoutNode } from './FlexLayoutNode'
 import ParentFacade from '../../ParentFacade'
-import { BasicThenable } from '../../../utils'
-import { getTextRenderInfo } from '../text/TextBuilder'
-
-
-const ZERO_SIZE = Object.freeze({width: 0, height: 0})
+import { assign } from '../../../utils'
 
 const raycastMesh = new Mesh(new PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0))
 const tempMat4 = new Matrix4()
@@ -46,11 +42,6 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
       depthOffset: -depth - 2
     }
 
-    // Defaults
-    this.width = this.height = 'auto'
-    this.color = 0xffffff
-    //this.maxWidth = Infinity
-
     this._sizeVec2 = new Vector2()
     this._borderWidthVec4 = new Vector4()
     this._borderRadiiVec4 = new Vector4()
@@ -73,8 +64,8 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
       textMaterial,
       computedLeft,
       computedTop,
-      computedWidth=0,
-      computedHeight=0,
+      computedWidth,
+      computedHeight,
       _borderWidthVec4,
       _sizeVec2
     } = this
@@ -226,7 +217,7 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
    * layout metrics.
    */
   _getGeometryBoundingSphere() {
-    return this._boundingSphere
+    return this._boundingSphere.radius ? this._boundingSphere : null
   }
 
   /**
@@ -250,6 +241,13 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
     super.destructor()
   }
 }
+assign(UIBlock3DFacade.prototype, {
+  computedLeft: 0,
+  computedTop: 0,
+  computedWidth: 0,
+  computedHeight: 0
+})
+
 
 /**
  * Wrapper for Text3DFacade that lets it act as a flex layout node.

@@ -177,7 +177,8 @@ class Text3DFacade extends Object3DFacade {
    * text rendering metrics.
    */
   _getGeometryBoundingSphere() {
-    return this._textGeometry.boundingSphere
+    const sphere = this._textGeometry.boundingSphere
+    return sphere.radius ? sphere : null
   }
 
   /**
