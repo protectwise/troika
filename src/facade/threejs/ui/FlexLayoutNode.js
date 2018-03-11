@@ -8,6 +8,7 @@ export function makeFlexLayoutNode(WrappedFacadeClass) {
     constructor(parent) {
       super(parent)
       this.isFlexLayoutNode = true
+      this._needsFlexLayout = true
 
       // Object holding all input styles for this node in the flex tree; see the style object
       // format in FlexLayoutProcessor.js
@@ -24,7 +25,6 @@ export function makeFlexLayoutNode(WrappedFacadeClass) {
         this._flexNodeDepth = parentFlexFacade.flexNodeDepth + 1
       } else {
         this._flexNodeDepth = 0
-        this._layoutRequestId = 0
       }
     }
 
@@ -33,10 +33,10 @@ export function makeFlexLayoutNode(WrappedFacadeClass) {
 
       // Did something change that requires a layout recalc?
       if (this._needsFlexLayout) {
-        this._needsFlexLayout = false
         // If we're managed by an ancestor layout root, let it know
         if (this._flexParent) {
           this.notifyWorld('needsFlexLayout')
+          this._needsFlexLayout = false
         }
         // If we're the layout root, perform the layout
         else {
@@ -54,6 +54,13 @@ export function makeFlexLayoutNode(WrappedFacadeClass) {
     }
 
     _performRootLayout() {
+      // If there's a request in progress, don't queue another one yet; that will happen
+      // automatically after the current one finishes and it calls afterUpdate again
+      if (this._hasActiveFlexRequest) return
+
+      this._hasActiveFlexRequest = true
+      this._needsFlexLayout = false
+
       // Traverse the flex node tree in document order and add the ordered child
       // relationships to the style nodes at each level
       this.traverseOrdered(facade => {
@@ -67,26 +74,24 @@ export function makeFlexLayoutNode(WrappedFacadeClass) {
         }
       })
 
-      const requestId = ++this._layoutRequestId
-
       requestFlexLayout(this._flexStyles, results => {
-        if (requestId === this._layoutRequestId) {
-          // Results will be a flat map of facade id to computed layout; traverse the tree
-          // and math them up, applying them as `computedXYZ` properties
-          this.traverse(facade => {
-            if (facade.isFlexLayoutNode) {
-              const computedLayout = results[facade.$facadeId]
-              if (computedLayout) {
-                facade.computedLeft = computedLayout.left
-                facade.computedTop = computedLayout.top
-                facade.computedWidth = computedLayout.width
-                facade.computedHeight = computedLayout.height
-              }
+        // Results will be a flat map of facade id to computed layout; traverse the tree
+        // and math them up, applying them as `computedXYZ` properties
+        this.traverse(facade => {
+          if (facade.isFlexLayoutNode) {
+            const computedLayout = results[facade.$facadeId]
+            if (computedLayout) {
+              facade.computedLeft = computedLayout.left
+              facade.computedTop = computedLayout.top
+              facade.computedWidth = computedLayout.width
+              facade.computedHeight = computedLayout.height
             }
-          })
-          // Final afterUpdate on the whole subtree
-          this.afterUpdate()
-        }
+          }
+        })
+        // Final afterUpdate on the whole subtree
+        this._hasActiveFlexRequest = false
+        this.afterUpdate()
+        this.notifyWorld('needsRender')
       })
     }
 
