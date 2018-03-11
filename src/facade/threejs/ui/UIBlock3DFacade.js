@@ -69,23 +69,26 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
       _borderWidthVec4,
       _sizeVec2
     } = this
-    const hasLayout = typeof computedWidth === 'number'
-    const hasBg = hasLayout && (backgroundColor != null || backgroundMaterial != null)
-    const hasBorder = hasLayout && borderWidth && (borderColor != null || borderMaterial != null)
+    const hasLayout = computedWidth !== null
+    const hasNonZeroSize = !!(computedWidth && computedHeight)
+    const hasBg = hasNonZeroSize && (backgroundColor != null || backgroundMaterial != null)
+    const hasBorder = hasNonZeroSize && borderWidth && (borderColor != null || borderMaterial != null)
     const hasText = !!text
 
     // Update the block's element and size from flexbox computed values
     // TODO pass left/top as uniforms to avoid matrix recalcs
-    this.x = computedLeft
-    this.y = -computedTop
-    if (computedWidth !== _sizeVec2.x || computedHeight !== _sizeVec2.y) {
-      _sizeVec2.set(computedWidth, computedHeight)
+    if (hasLayout) {
+      this.x = computedLeft
+      this.y = -computedTop
+      if (computedWidth !== _sizeVec2.x || computedHeight !== _sizeVec2.y) {
+        _sizeVec2.set(computedWidth, computedHeight)
 
-      // Update pre-worldmatrix bounding sphere
-      const sphere = this._boundingSphere
-      sphere.radius = Math.sqrt(computedWidth * computedWidth + computedHeight * computedHeight)
-      sphere.center.set(computedWidth / 2, computedHeight / 2, 0)
-      sphere.version++
+        // Update pre-worldmatrix bounding sphere
+        const sphere = this._boundingSphere
+        sphere.radius = Math.sqrt(computedWidth * computedWidth + computedHeight * computedHeight)
+        sphere.center.set(computedWidth / 2, computedHeight / 2, 0)
+        sphere.version++
+      }
     }
 
     // Get normalized border radii Vector4
@@ -121,7 +124,6 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
 
     // Update text child...
     if (hasText) {
-      textChild.visible = hasLayout
       textChild.text = text
       textChild.font = this.font
       textChild.fontSize = this.fontSize
@@ -196,22 +198,6 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
     return vec4
   }
 
-/*
-  onNotifyWorld(source, message, data) {
-    if (message === 'textSizeChanged') {
-      // this._textWidth = data[0]
-      // this._textHeight = data[1]
-      // if (this.width === 'auto' || this.height === 'auto') {
-      //   this.afterUpdate()
-      //   this.notifyWorld('needsRender')
-      // }
-      // return
-      // TODO is this necessary, or will the FlexLayout have already handled it?
-    }
-    super.onNotifyWorld(source, message, data)
-  }
-*/
-
   /**
    * @override Use our textGeometry's boundingSphere which we keep updated as we get new
    * layout metrics.
@@ -242,10 +228,10 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
   }
 }
 assign(UIBlock3DFacade.prototype, {
-  computedLeft: 0,
-  computedTop: 0,
-  computedWidth: 0,
-  computedHeight: 0
+  computedLeft: null,
+  computedTop: null,
+  computedWidth: null,
+  computedHeight: null
 })
 
 
@@ -260,11 +246,14 @@ class TextFlexNode3DFacade extends makeFlexLayoutNode(Text3DFacade) {
       computedTop,
       computedWidth
     } = this
-    const hasLayout = typeof computedLeft === 'number'
 
-    this.x = computedLeft || 0
-    this.y = -computedTop || 0
-    this.maxWidth = hasLayout ? computedWidth : Infinity
+    // Update position and size if flex layout has been completed
+    const hasLayout = computedWidth !== null
+    if (hasLayout) {
+      this.x = computedLeft || 0
+      this.y = -computedTop || 0
+      this.maxWidth = computedWidth
+    }
 
     // Check text props that could affect flex layout
     // TODO seems odd that this happens here rather than FlexLayoutNode
@@ -276,6 +265,8 @@ class TextFlexNode3DFacade extends makeFlexLayoutNode(Text3DFacade) {
         this._needsFlexLayout = true
       }
     }
+
+    this.threeObject.visible = hasLayout
 
     super.afterUpdate()
   }
