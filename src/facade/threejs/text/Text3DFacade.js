@@ -19,7 +19,7 @@ import {getShadersForMaterial, expandShaderIncludes, voidMainRE} from '../shader
 const glyphRectGeometry = new PlaneBufferGeometry(1, 1).translate(0.5, 0.5, 0)
 const defaultMaterial = new MeshBasicMaterial({color: 0xffffff, side: DoubleSide, transparent: true})
 const raycastMesh = new Mesh(glyphRectGeometry.clone(), defaultMaterial)
-const propsRequiringRecalc = ['text', 'font', 'fontSize', 'letterSpacing', 'lineHeight', 'maxWidth', 'textAlign', 'anchor']
+const propsRequiringRecalc = ['text', 'font', 'fontSize', 'letterSpacing', 'lineHeight', 'whiteSpace', 'overflowWrap', 'maxWidth', 'textAlign', 'anchor']
 const noop = () => {}
 const tempVec3 = new Vector3()
 const tempMat4 = new Matrix4()
@@ -75,6 +75,8 @@ class Text3DFacade extends Object3DFacade {
           lineHeight: this.lineHeight,
           maxWidth: this.maxWidth,
           textAlign: this.textAlign,
+          whiteSpace: this.whiteSpace,
+          overflowWrap: this.overflowWrap,
           anchor: this.anchor
         }, textRenderInfo => {
           // Save result for later use in onBeforeRender

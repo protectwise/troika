@@ -128,6 +128,8 @@ export default function createFontProcessor(opentype, config) {
       lineHeight=1.15,
       maxWidth=INF,
       textAlign='left',
+      whiteSpace='normal',
+      overflowWrap='normal',
       anchor
     },
     callback,
@@ -142,6 +144,7 @@ export default function createFontProcessor(opentype, config) {
       let totalBounds = null
       let lineCount = 0
       let maxLineWidth = 0
+      let canWrap = whiteSpace !== 'nowrap'
 
       // Find conversion between native font units and fontSize units; this will already be done
       // for the gx/gy values below but everything else we'll need to convert
@@ -170,7 +173,7 @@ export default function createFontProcessor(opentype, config) {
           const isWhitespace = !!char && /\s/.test(char)
 
           // If a non-whitespace character overflows the max width, we need to wrap
-          if (hasMaxWidth && !isWhitespace && glyphX + glyphWidth + lineXOffset > maxWidth && currentLine.length) {
+          if (canWrap && hasMaxWidth && !isWhitespace && glyphX + glyphWidth + lineXOffset > maxWidth && currentLine.length) {
             // If it's the first char after a whitespace, start a new line
             let nextLine
             if (currentLine[currentLine.length - 1].isWhitespace) {
@@ -179,8 +182,8 @@ export default function createFontProcessor(opentype, config) {
             } else {
               // Back up looking for a whitespace character to wrap at
               for (let i = currentLine.length; i--;) {
-                // If we got the start of the line there's no soft break point; treat as a hard break
-                if (i === 0) {
+                // If we got the start of the line there's no soft break point; make hard break if overflowWrap='break-word'
+                if (i === 0 && overflowWrap==='break-word') {
                   nextLine = []
                   lineXOffset = -glyphX
                   break
