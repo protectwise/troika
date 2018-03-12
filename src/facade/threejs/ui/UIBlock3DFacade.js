@@ -45,7 +45,7 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
     this._sizeVec2 = new Vector2()
     this._borderWidthVec4 = new Vector4()
     this._borderRadiiVec4 = new Vector4()
-    ;(this._boundingSphere = new Sphere()).version = 0
+    ;(this._geomBoundingSphere = new Sphere()).version = 0
   }
 
   afterUpdate() {
@@ -60,7 +60,6 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
       borderColor,
       borderMaterial,
       text,
-      color,
       textMaterial,
       computedLeft,
       computedTop,
@@ -84,7 +83,7 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
         _sizeVec2.set(computedWidth, computedHeight)
 
         // Update pre-worldmatrix bounding sphere
-        const sphere = this._boundingSphere
+        const sphere = this._geomBoundingSphere
         sphere.radius = Math.sqrt(computedWidth * computedWidth + computedHeight * computedHeight)
         sphere.center.set(computedWidth / 2, computedHeight / 2, 0)
         sphere.version++
@@ -125,12 +124,14 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
     // Update text child...
     if (hasText) {
       textChild.text = text
-      textChild.font = this.font
-      textChild.fontSize = this.fontSize
-      textChild.textAlign = this.textAlign
-      textChild.lineHeight = this.lineHeight
-      textChild.letterSpacing = this.letterSpacing
-      textChild.color = color
+      textChild.font = getInheritable(this, 'font')
+      textChild.fontSize = getInheritable(this, 'fontSize')
+      textChild.textAlign = getInheritable(this, 'textAlign')
+      textChild.lineHeight = getInheritable(this, 'lineHeight')
+      textChild.letterSpacing = getInheritable(this, 'letterSpacing')
+      textChild.whiteSpace = getInheritable(this, 'whiteSpace')
+      textChild.overflowWrap = getInheritable(this, 'overflowWrap')
+      textChild.color = getInheritable(this, 'color')
       textChild.material = textMaterial
       this.children = textChild //NOTE: text content will clobber any other defined children
     }
@@ -138,7 +139,7 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
     super.afterUpdate()
     layers.afterUpdate()
   }
-
+  
   _normalizeBorderRadius() {
     const {
       borderRadius:input,
@@ -203,7 +204,7 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
    * layout metrics.
    */
   _getGeometryBoundingSphere() {
-    return this._boundingSphere.radius ? this._boundingSphere : null
+    return this._geomBoundingSphere.radius ? this._geomBoundingSphere : null
   }
 
   /**
@@ -231,7 +232,15 @@ assign(UIBlock3DFacade.prototype, {
   computedLeft: null,
   computedTop: null,
   computedWidth: null,
-  computedHeight: null
+  computedHeight: null,
+
+  font: 'inherit',
+  fontSize: 'inherit',
+  lineHeight: 'inherit',
+  letterSpacing: 'inherit',
+  whiteSpace: 'inherit',
+  overflowWrap: 'inherit',
+  color: 'inherit'
 })
 
 
@@ -260,7 +269,8 @@ class TextFlexNode3DFacade extends makeFlexLayoutNode(Text3DFacade) {
     const flexStyles = this._flexStyles
     for (let i = 0, len = flexLayoutTextProps.length; i < len; i++) {
       const prop = flexLayoutTextProps[i]
-      if (this[prop] !== flexStyles[prop]) {
+      const val = getInheritable(this, prop)
+      if (val !== flexStyles[prop]) {
         flexStyles[prop] = this[prop]
         this._needsFlexLayout = true
       }
@@ -270,6 +280,9 @@ class TextFlexNode3DFacade extends makeFlexLayoutNode(Text3DFacade) {
 
     super.afterUpdate()
   }
+  getBoundingSphere() {
+    return null //parent will handle bounding sphere and raycasting
+  }
 }
 // Redefine the maxWidth property so it's not treated as a flex layout affecting prop
 Object.defineProperty(TextFlexNode3DFacade.prototype, 'maxWidth', {
@@ -277,7 +290,18 @@ Object.defineProperty(TextFlexNode3DFacade.prototype, 'maxWidth', {
   enumerable: true,
   writable: true
 })
-const flexLayoutTextProps = ['text', 'font', 'fontSize', 'lineHeight', 'letterSpacing']
+const flexLayoutTextProps = ['text', 'font', 'fontSize', 'lineHeight', 'letterSpacing', 'whiteSpace', 'overflowWrap']
+
+
+
+function getInheritable(owner, prop) {
+  let val
+  while (owner && (val = owner[prop]) === 'inherit') {
+    owner = owner._flexParent
+    val = undefined
+  }
+  return val
+}
 
 
 

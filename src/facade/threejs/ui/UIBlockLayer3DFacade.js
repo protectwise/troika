@@ -55,6 +55,10 @@ class UIBlockLayer3DFacade extends Object3DFacade {
     super.afterUpdate()
   }
 
+  getBoundingSphere() {
+    return null //parent will handle bounding sphere and raycasting
+  }
+
   _getUpgradedMaterial() {
     const baseMaterial = this.material || defaultBgMaterial
     let upgradedMaterial = this._upgradedMaterial

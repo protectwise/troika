@@ -195,6 +195,8 @@ function createFlexLayoutProcessor(loadFontFn, measureFn) {
                   fontSize: styleNode.fontSize,
                   lineHeight: styleNode.lineHeight,
                   letterSpacing: styleNode.letterSpacing,
+                  whiteSpace: styleNode.whiteSpace,
+                  overflowWrap: styleNode.overflowWrap,
                   maxWidth: innerWidth
                 }
                 // TODO: this assumes the measureFn will exec the callback synchronously; this works
