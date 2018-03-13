@@ -39,6 +39,7 @@ class UIBlockLayer3DFacade extends Object3DFacade {
 
     layerMaterial.polygonOffset = !!this.depthOffset
     layerMaterial.polygonOffsetFactor = layerMaterial.polygonOffsetUnits = this.depthOffset || 0
+    this.threeObject.renderOrder = -this.depthOffset //TODO how can we make this play with the rest of the scene?
 
     // Set material uniform values
     const uniforms = layerMaterial.uniforms
