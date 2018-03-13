@@ -3,7 +3,6 @@ import Group3DFacade from '../Group3DFacade'
 import Text3DFacade from '../text/Text3DFacade'
 import UIBlockLayer3DFacade from './UIBlockLayer3DFacade'
 import { makeFlexLayoutNode } from './FlexLayoutNode'
-import ParentFacade from '../../ParentFacade'
 import { assign } from '../../../utils'
 
 const raycastMesh = new Mesh(new PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0))
@@ -32,7 +31,7 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
       isBorder: true,
       depthOffset: -depth - 1
     }
-    this.layers = new ParentFacade(this)
+    this.layers = new Group3DFacade(this)
     this.layers.children = [null, null]
 
     // Create child def for text node
@@ -77,8 +76,10 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
     // Update the block's element and size from flexbox computed values
     // TODO pass left/top as uniforms to avoid matrix recalcs
     if (hasLayout) {
-      this.x = computedLeft
-      this.y = -computedTop
+      if (this._flexParent) {
+        this.x = computedLeft
+        this.y = -computedTop
+      }
       if (computedWidth !== _sizeVec2.x || computedHeight !== _sizeVec2.y) {
         _sizeVec2.set(computedWidth, computedHeight)
 
@@ -229,11 +230,6 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
   }
 }
 assign(UIBlock3DFacade.prototype, {
-  computedLeft: null,
-  computedTop: null,
-  computedWidth: null,
-  computedHeight: null,
-
   font: 'inherit',
   fontSize: 'inherit',
   lineHeight: 'inherit',

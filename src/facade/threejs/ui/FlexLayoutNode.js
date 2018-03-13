@@ -1,4 +1,5 @@
 import {requestFlexLayout} from './FlexLayoutProcessor'
+import {assign} from '../../../utils'
 
 
 
@@ -103,6 +104,14 @@ export function makeFlexLayoutNode(WrappedFacadeClass) {
     }
   }
 
+  assign(FlexLayoutNode.prototype, {
+    // The following properties will be set after flex layout is completed, which
+    // derived facades can use to update their rendering
+    computedLeft: null,
+    computedTop: null,
+    computedWidth: null,
+    computedHeight: null
+  })
 
   // Setters for simple flex layout properties that can be copied directly into the
   // flex node's style input object
