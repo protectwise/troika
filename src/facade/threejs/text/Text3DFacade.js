@@ -9,9 +9,9 @@ import {
   InstancedBufferAttribute,
   Sphere,
   Vector3,
+  Vector4,
   Matrix4
 } from 'three'
-// import {getTextRenderInfo} from './text/TextBuilderMainThread' //for debugging only
 import {getTextRenderInfo} from './TextBuilder'
 import {getShadersForMaterial, expandShaderIncludes, voidMainRE} from '../shaderUtils'
 
@@ -21,6 +21,7 @@ const defaultMaterial = new MeshBasicMaterial({color: 0xffffff, side: DoubleSide
 const raycastMesh = new Mesh(glyphRectGeometry.clone(), defaultMaterial)
 const propsRequiringRecalc = ['text', 'font', 'fontSize', 'letterSpacing', 'lineHeight', 'whiteSpace', 'overflowWrap', 'maxWidth', 'textAlign', 'anchor']
 const noop = () => {}
+const noclip = Object.freeze([0, 0, 0, 0])
 const tempVec3 = new Vector3()
 const tempMat4 = new Matrix4()
 
@@ -125,10 +126,15 @@ class Text3DFacade extends Object3DFacade {
       uniforms.uTroikaGlyphVSize.value = sdfTexture.image.width / sdfTexture.image.height
     }
     uniforms.uTroikaSDFDebug.value = !!this.debugSDF
-    this.threeObject.material = textMaterial
+
+    let clipRect = this.clipRect
+    if (!(clipRect && Array.isArray(clipRect) && clipRect.length === 4)) { clipRect = noclip }
+    uniforms.uTroikaClipRect.value.fromArray(clipRect)
 
     textMaterial.polygonOffset = !!this.depthOffset
     textMaterial.polygonOffsetFactor = textMaterial.polygonOffsetUnits = this.depthOffset || 0
+
+    this.threeObject.material = textMaterial
   }
 
   _getTextMaterial(renderer) {
@@ -152,6 +158,7 @@ class Text3DFacade extends Object3DFacade {
         uTroikaSDFTexture: {value: null},
         uTroikaSDFMinDistancePct: {value: 0},
         uTroikaGlyphVSize: {value: 0},
+        uTroikaClipRect: {value: new Vector4()},
         uTroikaSDFDebug: {value: false}
       }, baseShaders.uniforms)
       if (derivativesSupported) {
@@ -241,6 +248,7 @@ uniform float uTroikaGlyphVSize;
 attribute vec4 aTroikaGlyphBounds;
 attribute float aTroikaGlyphIndex;
 varying vec2 vTroikaGlyphUV;
+varying vec3 vTroikaLocalPos;
 
 $&
 
@@ -253,7 +261,9 @@ vec3 troika_position = vec3(
   position.x == 1.0 ? aTroikaGlyphBounds.z : aTroikaGlyphBounds.x,
   position.y == 1.0 ? aTroikaGlyphBounds.w : aTroikaGlyphBounds.y,
   0.0
-);`
+);
+vTroikaLocalPos = vec3(troika_position);
+`
   )
 
   fragmentShader = fragmentShader.replace(voidMainRE, `
@@ -261,13 +271,30 @@ uniform sampler2D uTroikaSDFTexture;
 uniform float uTroikaSDFMinDistancePct;
 uniform bool uTroikaSDFDebug;
 uniform float uTroikaGlyphVSize;
+uniform vec4 uTroikaClipRect;
 varying vec2 vTroikaGlyphUV;
+varying vec3 vTroikaLocalPos;
+
+void troikaApplyClipping() {
+  vec4 rect = uTroikaClipRect;
+  vec3 pos = vTroikaLocalPos;
+  if (rect != vec4(.0,.0,.0,.0) && (
+    pos.x < min(rect.x, rect.z) || 
+    pos.y < min(rect.y, rect.w) ||
+    pos.x > max(rect.x, rect.z) ||
+    pos.y > max(rect.y, rect.w)
+  )) {
+    discard;
+  }
+}
 
 $&`
   ).replace(
     /\bgl_FragColor\s*=\s*[^;]*;/, //only first match - TODO we probably want to put this after the last ref...?
     `
 $&
+
+troikaApplyClipping();
 
 float troikaSDFValue = texture2D(uTroikaSDFTexture, vTroikaGlyphUV).r;
 float troikaAntiAliasDist = ${derivativesSupported ?
