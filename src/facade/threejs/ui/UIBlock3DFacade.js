@@ -8,6 +8,8 @@ import { assign } from '../../../utils'
 
 const raycastMesh = new Mesh(new PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0))
 const tempMat4 = new Matrix4()
+const DEFAULT_FONT_SIZE = 16
+const DEFAULT_LINE_HEIGHT = 1.15
 
 /**
  * Represents a single block UI element, essentially just a 2D rectangular block that
@@ -129,10 +131,10 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
     if (hasText) {
       textChild.text = text
       textChild.font = getInheritable(this, 'font')
-      textChild.fontSize = getInheritable(this, 'fontSize')
+      textChild.fontSize = getInheritable(this, 'fontSize', DEFAULT_FONT_SIZE)
       textChild.textAlign = getInheritable(this, 'textAlign')
-      textChild.lineHeight = getInheritable(this, 'lineHeight')
-      textChild.letterSpacing = getInheritable(this, 'letterSpacing')
+      textChild.lineHeight = getInheritable(this, 'lineHeight', DEFAULT_LINE_HEIGHT)
+      textChild.letterSpacing = getInheritable(this, 'letterSpacing', 0)
       textChild.whiteSpace = getInheritable(this, 'whiteSpace')
       textChild.overflowWrap = getInheritable(this, 'overflowWrap')
       textChild.color = getInheritable(this, 'color')
@@ -144,7 +146,7 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
 
     // Add mousewheel listener if scrollable
     const canScroll = this.scrollHeight > this.clientHeight
-    this.onMouseWheel = canScroll ? wheelHandler : null
+    this.onWheel = canScroll ? wheelHandler : null
     // TODO scroll via drag:
     // this.onDragStart = canScroll ? dragStartHandler : null
     // this.onDrag = canScroll ? dragHandler : null
@@ -264,9 +266,20 @@ assign(UIBlock3DFacade.prototype, {
 
 function wheelHandler(e) {
   const facade = e.currentTarget
+  let {deltaX, deltaY, deltaMode} = e.nativeEvent
+  if (deltaMode === 0x01) { //line mode
+    const lineSize = getInheritable(facade, 'fontSize', DEFAULT_FONT_SIZE) *
+      getInheritable(facade, 'lineHeight', DEFAULT_LINE_HEIGHT)
+    deltaX *= lineSize
+    deltaY *= lineSize
+  }
+  facade.scrollLeft = Math.max(0, Math.min(
+    facade.scrollWidth - facade.clientWidth,
+    facade.scrollLeft + deltaX
+  ))
   facade.scrollTop = Math.max(0, Math.min(
     facade.scrollHeight - facade.clientHeight,
-    facade.scrollTop + e.deltaY
+    facade.scrollTop + deltaY
   ))
   facade.afterUpdate()
   facade.notifyWorld('needsRender')

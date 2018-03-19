@@ -11,7 +11,7 @@ const pointerActionEventTypesToProps = {
   'dblclick': 'onDoubleClick',
   'mousedown': 'onMouseDown',
   'mouseup': 'onMouseUp',
-  'mousewheel': 'onMouseWheel',
+  'wheel': 'onWheel',
   'touchstart': 'onMouseDown',
   'touchend': 'onMouseUp',
   'touchcancel': 'onMouseUp'
