@@ -11,6 +11,7 @@ const pointerActionEventTypesToProps = {
   'dblclick': 'onDoubleClick',
   'mousedown': 'onMouseDown',
   'mouseup': 'onMouseUp',
+  'mousewheel': 'onMouseWheel',
   'touchstart': 'onMouseDown',
   'touchend': 'onMouseUp',
   'touchcancel': 'onMouseUp'
@@ -348,8 +349,8 @@ class WorldBaseFacade extends ParentFacade {
 
     let allHits = this.getFacadesAtPosition(posInfo.clientX, posInfo.clientY, e.target.getBoundingClientRect())
     if (allHits) {
-      // Sort by distance
-      allHits.sort((a, b) => a.distance - b.distance)
+      // Sort by distance, or by distanceBias if distance is the same
+      allHits.sort((a, b) => (a.distance - b.distance) || ((a.distanceBias || 0) - (b.distanceBias || 0)))
 
       // Find nearest that should intercept mouse events
       for (let i = 0; i < allHits.length; i++) {

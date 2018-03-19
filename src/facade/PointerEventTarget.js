@@ -22,6 +22,7 @@ export const pointerActionEventProps = [
   'onDoubleClick',
   'onDrop',
   'onDragEnd',
+  'onMouseWheel'
 ]
 
 export const pointerEventProps = pointerMotionEventProps.concat(pointerActionEventProps)

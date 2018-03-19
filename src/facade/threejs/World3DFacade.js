@@ -158,7 +158,8 @@ class World3DFacade extends WorldBaseFacade {
         if (hits && hits[0]) {
           (allHits || (allHits = [])).push({
             facade: facade,
-            distance: hits[0].distance //ignore all but closest
+            distance: hits[0].distance, //ignore all but closest
+            distanceBias: hits[0].distanceBias
           })
         }
       })
