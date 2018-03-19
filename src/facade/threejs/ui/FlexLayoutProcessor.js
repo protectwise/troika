@@ -142,7 +142,7 @@ function createFlexLayoutProcessor(loadFontFn, measureFn) {
         main: 'https://cdn.jsdelivr.net/npm/yoga-layout@1.9.3/dist/entry-browser.min.js'
       }
 
-      function require(scriptId) {
+      function fakeRequire(scriptId) {
         // Synchronously load the script content
         const xhr = new XMLHttpRequest()
         xhr.open('GET', paths[scriptId], false)
@@ -151,12 +151,12 @@ function createFlexLayoutProcessor(loadFontFn, measureFn) {
         // Execute as a wrapped function, given our local require impl and a module object,
         // and return the exports that the script attached
         const module = {exports: {}}
-        new Function('require', 'module', '_a', `${xhr.responseText}`)(require, module) //_a is to fix nbind.js writing to a global of that name
+        new Function('require', 'module', '_a', `${xhr.responseText}`)(fakeRequire, module) //_a is to fix nbind.js writing to a global of that name
         return module.exports
       }
 
       // Kick it off with the entry point script
-      Yoga = require('main')
+      Yoga = fakeRequire('main')
     }
     return Yoga
   }
