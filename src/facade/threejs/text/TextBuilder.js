@@ -1,23 +1,39 @@
-import {DataTexture, LinearFilter, LuminanceFormat} from 'three'
+import { DataTexture, LinearFilter, LuminanceFormat } from 'three'
 import createFontProcessor from './FontProcessor'
 import { defineWorkerModule } from '../../../WorkerModules'
-import { BasicThenable } from '../../../utils'
+import { assign, BasicThenable } from '../../../utils'
 
-
-/**
- * Default font URL to load in case none is specified or the preferred font fails to load or parse.
- */
-const DEFAULT_FONT_URL = 'https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff' //Roboto Regular
-
-/**
- * URL from which to load the opentype.js library within the worker
- */
-const OPENTYPE_URL = 'https://cdn.jsdelivr.net/npm/opentype.js@latest/dist/opentype.min.js'
+const CONFIG = {
+  defaultFontURL: 'https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff', //Roboto Regular
+  openTypeURL: 'https://cdn.jsdelivr.net/npm/opentype.js@0.8/dist/opentype.min.js',
+  sdfGlyphSize: 64
+}
+let hasRequested = false
 
 /**
- * Size of each glyph's SDF texture. This will also be the width of the font's entire SDF texture.
+ * Customizes the text builder configuration. This must be called prior to the first font processing
+ * request, and applies to all fonts.
+ *
+ * @param {String} config.defaultFontURL - The URL of the default font to use for text processing
+ *                 requests, in case none is specified or the specifiede font fails to load or parse.
+ *                 Defaults to "Roboto Regular" from Google Fonts.
+ * @param {String} config.openTypeURL - The URL from which to load the opentype.js library within the
+ *                 web worker. Defaults to loading from the JSDelivr CDN, but can be modified to use,
+ *                 for example, a URL of a custom opentype.js build in the local domain.
+ * @param {Number} config.sdfGlyphSize - The size of each glyph's SDF (signed distance field) texture
+ *                 that is used for rendering. Must be a power-of-two number, and applies to all fonts.
+ *                 Larger sizes can improve the quality of glyph rendering by increasing the sharpness
+ *                 of corners and preventing loss of very thin lines, at the expense of memory. Defaults
+ *                 to 64 which is generally a good balance of size and quality.
  */
-const SDF_GLYPH_SIZE = 64
+export function configureTextBuilder(config) {
+  if (hasRequested) {
+    console.warn('configureTextBuilder called after first font request; will be ignored.')
+  } else {
+    assign(CONFIG, config)
+  }
+}
+
 
 /**
  * How many glyphs the font's SDF texture should initially be created to hold.
@@ -56,17 +72,18 @@ const atlases = Object.create(null)
 export function getTextRenderInfo(args, callback) {
   // Apply default font here to avoid a 'null' atlas
   if (!args.font) {
-    args.font = DEFAULT_FONT_URL
+    args.font = CONFIG.defaultFontURL
   }
 
   // Init the atlas for this font if needed
+  const sdfGlyphSize = CONFIG.sdfGlyphSize
   let atlas = atlases[args.font]
   if (!atlas) {
     atlas = atlases[args.font] = {
       sdfTexture: new DataTexture(
-        new Uint8Array(SDF_GLYPH_SIZE * SDF_GLYPH_SIZE * SDF_INITIAL_GLYPH_COUNT),
-        SDF_GLYPH_SIZE,
-        SDF_GLYPH_SIZE * SDF_INITIAL_GLYPH_COUNT,
+        new Uint8Array(sdfGlyphSize * sdfGlyphSize * SDF_INITIAL_GLYPH_COUNT),
+        sdfGlyphSize,
+        sdfGlyphSize * SDF_INITIAL_GLYPH_COUNT,
         LuminanceFormat,
         undefined,
         undefined,
@@ -85,7 +102,7 @@ export function getTextRenderInfo(args, callback) {
     if (result.newGlyphSDFs) {
       result.newGlyphSDFs.forEach(({textureData, atlasIndex}) => {
         const texImg = atlas.sdfTexture.image
-        const arrayOffset = atlasIndex * SDF_GLYPH_SIZE * SDF_GLYPH_SIZE
+        const arrayOffset = atlasIndex * sdfGlyphSize * sdfGlyphSize
 
         // Grow the texture by power of 2 if needed
         while (arrayOffset > texImg.data.length - 1) {
@@ -116,10 +133,10 @@ export function getTextRenderInfo(args, callback) {
 
 export const fontProcessorWorkerModule = defineWorkerModule({
   dependencies: [
-    DEFAULT_FONT_URL,
-    SDF_GLYPH_SIZE,
+    CONFIG.defaultFontURL,
+    CONFIG.sdfGlyphSize,
     SDF_DISTANCE_PERCENT,
-    OPENTYPE_URL,
+    CONFIG.openTypeURL,
     createFontProcessor
   ],
   init(defaultFontUrl, sdfTextureSize, sdfDistancePercent, openTypeURL, createFontProcessor) {
