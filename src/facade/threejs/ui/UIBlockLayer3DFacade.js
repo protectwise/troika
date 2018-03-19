@@ -4,7 +4,7 @@ import { Color, Mesh, MeshBasicMaterial, PlaneBufferGeometry, UniformsUtils, Vec
 import Object3DFacade from '../Object3DFacade'
 
 const geometry = new PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0)
-const defaultBgMaterial = new MeshBasicMaterial({color: 0xcc3333})
+const defaultBgMaterial = new MeshBasicMaterial({color: 0})
 
 
 /**
@@ -18,6 +18,7 @@ const defaultBgMaterial = new MeshBasicMaterial({color: 0xcc3333})
 class UIBlockLayer3DFacade extends Object3DFacade {
   constructor(parent) {
     const mesh = new Mesh(geometry, defaultBgMaterial)
+    mesh.frustumCulled = false //TODO moot if we make this an Instanceable, otherwise need to fix culling by transformed size
     super(parent, mesh)
 
     this._colorObj = new Color()
@@ -209,7 +210,7 @@ float troikaGetAlphaMultiplier() {
     #else
       return step(0.0, dOuter);
     #endif
- #endif
+  #endif
 }
 
 $&`

@@ -76,23 +76,46 @@ export function makeFlexLayoutNode(WrappedFacadeClass) {
       })
 
       requestFlexLayout(this._flexStyles, results => {
-        // Results will be a flat map of facade id to computed layout; traverse the tree
-        // and math them up, applying them as `computedXYZ` properties
-        this.traverse(facade => {
-          if (facade.isFlexLayoutNode) {
-            const computedLayout = results[facade.$facadeId]
-            if (computedLayout) {
-              facade.computedLeft = computedLayout.left
-              facade.computedTop = computedLayout.top
-              facade.computedWidth = computedLayout.width
-              facade.computedHeight = computedLayout.height
-            }
-          }
-        })
+        this._applyRootLayoutResults(results)
+
         // Final afterUpdate on the whole subtree
         this._hasActiveFlexRequest = false
         this.afterUpdate()
         this.notifyWorld('needsRender')
+      })
+    }
+
+    _applyRootLayoutResults(results) {
+      // Results will be a flat map of facade id to computed layout; traverse the tree
+      // and math them up, applying them as `computedXYZ` properties
+      this.traverse(facade => {
+        if (facade.isFlexLayoutNode) {
+          const computedLayout = results[facade.$facadeId]
+          if (computedLayout) {
+            const {left, top, width, height} = computedLayout
+            const {borderWidth, padding} = facade
+
+            // Outer metrics
+            facade.offsetLeft = left
+            facade.offsetTop = top
+            facade.offsetWidth = width
+            facade.offsetHeight = height
+
+            // Inner metrics
+            facade.clientLeft = borderWidth[3] + padding[3]
+            facade.clientTop = borderWidth[0] + padding[0]
+            facade.clientWidth = width - borderWidth[1] - borderWidth[3] - padding[1] - padding[3]
+            facade.clientHeight = height - borderWidth[0] - borderWidth[2] - padding[0] - padding[2]
+
+            // Scrolling metrics
+            facade.scrollHeight = facade.scrollWidth = 0
+            const parent = facade._flexParent
+            if (parent) {
+              parent.scrollWidth = Math.max(parent.scrollWidth, left + width - parent.clientLeft)
+              parent.scrollHeight = Math.max(parent.scrollHeight, top + height - parent.clientTop)
+            }
+          }
+        }
       })
     }
 
@@ -104,13 +127,22 @@ export function makeFlexLayoutNode(WrappedFacadeClass) {
     }
   }
 
+  // Define computed layout properties. Those that depend on a layout computation will be null
+  // initially, and set to numbers after layout calculation is completed. Derived facades should
+  // use these to update their rendering.
   assign(FlexLayoutNode.prototype, {
-    // The following properties will be set after flex layout is completed, which
-    // derived facades can use to update their rendering
-    computedLeft: null,
-    computedTop: null,
-    computedWidth: null,
-    computedHeight: null
+    offsetLeft: null,
+    offsetTop: null,
+    offsetWidth: null,
+    offsetHeight: null,
+    clientLeft: null,
+    clientTop: null,
+    clientWidth: null,
+    clientHeight: null,
+    scrollLeft: 0,
+    scrollTop: 0,
+    scrollWidth: null,
+    scrollHeight: null
   })
 
   // Setters for simple flex layout properties that can be copied directly into the
@@ -122,6 +154,7 @@ export function makeFlexLayoutNode(WrappedFacadeClass) {
     'minHeight',
     'maxWidth',
     'maxHeight',
+    'aspectRatio',
     'flexDirection',
     'flex',
     'flexWrap',

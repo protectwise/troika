@@ -1,8 +1,9 @@
 import { Mesh, Vector2, Vector4, PlaneBufferGeometry, Sphere, Matrix4 } from 'three'
 import Group3DFacade from '../Group3DFacade'
-import Text3DFacade from '../text/Text3DFacade'
+import UITextNode3DFacade from './UITextNode3DFacade'
 import UIBlockLayer3DFacade from './UIBlockLayer3DFacade'
 import { makeFlexLayoutNode } from './FlexLayoutNode'
+import { getInheritable } from './uiUtils'
 import { assign } from '../../../utils'
 
 const raycastMesh = new Mesh(new PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0))
@@ -37,8 +38,9 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
     // Create child def for text node
     this.textChild = {
       key: 'text',
-      facade: TextFlexNode3DFacade,
-      depthOffset: -depth - 2
+      facade: UITextNode3DFacade,
+      depthOffset: -depth - 2,
+      clipRect: [0, 0, 0, 0]
     }
 
     this._sizeVec2 = new Vector2()
@@ -60,33 +62,33 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
       borderMaterial,
       text,
       textMaterial,
-      computedLeft,
-      computedTop,
-      computedWidth,
-      computedHeight,
+      offsetLeft,
+      offsetTop,
+      offsetWidth,
+      offsetHeight,
       _borderWidthVec4,
       _sizeVec2
     } = this
-    const hasLayout = computedWidth !== null
-    const hasNonZeroSize = !!(computedWidth && computedHeight)
+    const hasLayout = offsetWidth !== null
+    const hasNonZeroSize = !!(offsetWidth && offsetHeight)
     const hasBg = hasNonZeroSize && (backgroundColor != null || backgroundMaterial != null)
-    const hasBorder = hasNonZeroSize && borderWidth && (borderColor != null || borderMaterial != null)
+    const hasBorder = hasNonZeroSize && (borderColor != null || borderMaterial != null) && Math.max(...borderWidth) > 0
     const hasText = !!text
 
     // Update the block's element and size from flexbox computed values
     // TODO pass left/top as uniforms to avoid matrix recalcs
     if (hasLayout) {
       if (this._flexParent) {
-        this.x = computedLeft
-        this.y = -computedTop
+        this.x = offsetLeft
+        this.y = -offsetTop
       }
-      if (computedWidth !== _sizeVec2.x || computedHeight !== _sizeVec2.y) {
-        _sizeVec2.set(computedWidth, computedHeight)
+      if (offsetWidth !== _sizeVec2.x || offsetHeight !== _sizeVec2.y) {
+        _sizeVec2.set(offsetWidth, offsetHeight)
 
         // Update pre-worldmatrix bounding sphere
         const sphere = this._geomBoundingSphere
-        sphere.radius = Math.sqrt(computedWidth * computedWidth + computedHeight * computedHeight)
-        sphere.center.set(computedWidth / 2, computedHeight / 2, 0)
+        sphere.radius = Math.sqrt(offsetWidth * offsetWidth / 4 + offsetHeight * offsetHeight / 4)
+        sphere.center.set(offsetWidth / 2, -offsetHeight / 2, 0)
         sphere.version++
       }
     }
@@ -95,10 +97,7 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
     const radii = (hasBg || hasBorder) ? this._normalizeBorderRadius() : null
 
     // Get normalized border widths Vector4
-    //if (borderWidth !== _borderWidthVec4._srcArray) {
-      _borderWidthVec4.fromArray(borderWidth)
-    //  _borderWidthVec4._srcArray = borderWidth
-    //}
+    _borderWidthVec4.fromArray(borderWidth)
 
     // Update rendering layers...
     if (hasBg) {
@@ -106,6 +105,8 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
       bgLayer.color = backgroundColor
       bgLayer.borderRadius = radii
       bgLayer.material = backgroundMaterial
+      // bgLayer.castShadow = this.castShadow
+      // bgLayer.receiveShadow = this.receiveShadow
     } else {
       bgLayer = null
     }
@@ -117,6 +118,8 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
       borderLayer.borderWidth = _borderWidthVec4
       borderLayer.borderRadius = radii
       borderLayer.material = borderMaterial
+      // borderLayer.castShadow = this.castShadow
+      // borderLayer.receiveShadow = this.receiveShadow
     } else {
       borderLayer = null
     }
@@ -134,8 +137,18 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
       textChild.overflowWrap = getInheritable(this, 'overflowWrap')
       textChild.color = getInheritable(this, 'color')
       textChild.material = textMaterial
+      // textChild.castShadow = this.castShadow
+      // textChild.receiveShadow = this.receiveShadow
       this.children = textChild //NOTE: text content will clobber any other defined children
     }
+
+    // Add mousewheel listener if scrollable
+    const canScroll = this.scrollHeight > this.clientHeight
+    this.onMouseWheel = canScroll ? wheelHandler : null
+    // TODO scroll via drag:
+    // this.onDragStart = canScroll ? dragStartHandler : null
+    // this.onDrag = canScroll ? dragHandler : null
+    // this.onDragEnd = canScroll ? dragEndHandler : null
 
     super.afterUpdate()
     layers.afterUpdate()
@@ -144,8 +157,8 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
   _normalizeBorderRadius() {
     const {
       borderRadius:input,
-      computedWidth=0,
-      computedHeight=0,
+      offsetWidth=0,
+      offsetHeight=0,
       _borderRadiiVec4:vec4
     } = this
 
@@ -163,7 +176,7 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
 
     if (tl !== 0 || tr !== 0 || br !== 0 || bl !== 0) { //avoid work for common no-radius case
       // Resolve percentages
-      const minDimension = Math.min(computedWidth, computedHeight)
+      const minDimension = Math.min(offsetWidth, offsetHeight)
       if (typeof tl === 'string' && /%$/.test(tl)) {
         tl = parseInt(tl, 10) / 100 * minDimension
       }
@@ -179,10 +192,10 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
 
       // If any radii overlap based on the block's current size, reduce them all by the same ratio, ala CSS3.
       let radiiAdjRatio = Math.min(
-        computedWidth / (tl + tr),
-        computedHeight / (tr + br),
-        computedWidth / (br + bl),
-        computedHeight / (bl + tl)
+        offsetWidth / (tl + tr),
+        offsetHeight / (tr + br),
+        offsetWidth / (br + bl),
+        offsetHeight / (bl + tl)
       )
       if (radiiAdjRatio < 1) {
         tl *= radiiAdjRatio
@@ -212,13 +225,21 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
    * @override Custom raycaster to test against the layout block
    */
   raycast(raycaster) {
-    const {computedWidth, computedHeight} = this
-    if (computedWidth && computedHeight) {
+    const {offsetWidth, offsetHeight} = this
+    if (offsetWidth && offsetHeight) {
       raycastMesh.matrixWorld.multiplyMatrices(
         this.threeObject.matrixWorld,
-        tempMat4.makeScale(computedWidth, computedHeight, 1)
+        tempMat4.makeScale(offsetWidth, offsetHeight, 1)
       )
-      return this._raycastObject(raycastMesh, raycaster)
+      const result = this._raycastObject(raycastMesh, raycaster)
+      if (result) {
+        // Add a distance bias (used as secondary sort for equidistant intersections) to prevent
+        // container blocks from intercepting pointer events for their children
+        result.forEach(result => {
+          result.distanceBias = -this._flexNodeDepth
+        })
+      }
+      return result
     }
     return null
   }
@@ -240,63 +261,16 @@ assign(UIBlock3DFacade.prototype, {
 })
 
 
-/**
- * Wrapper for Text3DFacade that lets it act as a flex layout node.
- */
-class TextFlexNode3DFacade extends makeFlexLayoutNode(Text3DFacade) {
-  afterUpdate() {
-    // Read computed layout
-    const {
-      computedLeft,
-      computedTop,
-      computedWidth
-    } = this
 
-    // Update position and size if flex layout has been completed
-    const hasLayout = computedWidth !== null
-    if (hasLayout) {
-      this.x = computedLeft || 0
-      this.y = -computedTop || 0
-      this.maxWidth = computedWidth
-    }
-
-    // Check text props that could affect flex layout
-    // TODO seems odd that this happens here rather than FlexLayoutNode
-    const flexStyles = this._flexStyles
-    for (let i = 0, len = flexLayoutTextProps.length; i < len; i++) {
-      const prop = flexLayoutTextProps[i]
-      const val = getInheritable(this, prop)
-      if (val !== flexStyles[prop]) {
-        flexStyles[prop] = this[prop]
-        this._needsFlexLayout = true
-      }
-    }
-
-    this.threeObject.visible = hasLayout
-
-    super.afterUpdate()
-  }
-  getBoundingSphere() {
-    return null //parent will handle bounding sphere and raycasting
-  }
-}
-// Redefine the maxWidth property so it's not treated as a flex layout affecting prop
-Object.defineProperty(TextFlexNode3DFacade.prototype, 'maxWidth', {
-  value: Infinity,
-  enumerable: true,
-  writable: true
-})
-const flexLayoutTextProps = ['text', 'font', 'fontSize', 'lineHeight', 'letterSpacing', 'whiteSpace', 'overflowWrap']
-
-
-
-function getInheritable(owner, prop) {
-  let val
-  while (owner && (val = owner[prop]) === 'inherit') {
-    owner = owner._flexParent
-    val = undefined
-  }
-  return val
+function wheelHandler(e) {
+  const facade = e.currentTarget
+  facade.scrollTop = Math.max(0, Math.min(
+    facade.scrollHeight - facade.clientHeight,
+    facade.scrollTop + e.deltaY
+  ))
+  facade.afterUpdate()
+  facade.notifyWorld('needsRender')
+  e.preventDefault()
 }
 
 

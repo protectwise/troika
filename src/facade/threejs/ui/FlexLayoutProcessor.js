@@ -52,6 +52,7 @@ function createFlexLayoutProcessor(loadFontFn, measureFn) {
     'minHeight',
     'maxWidth',
     'maxHeight',
+    'aspectRatio',
     ['flexDirection', YOGA_VALUE_MAPPINGS.direction],
     'flex',
     ['flexWrap', YOGA_VALUE_MAPPINGS.wrap],
