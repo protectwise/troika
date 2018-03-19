@@ -36,6 +36,7 @@ export default class TrackedVrController extends VrController {
     // Update current matrices from GameController pose
     const gamepad = this.gamepad
     const threeObj = this.threeObject
+    let ray
     if (gamepad && gamepad.pose) {
       // Orientation
       threeObj.quaternion.fromArray(gamepad.pose.orientation)
@@ -56,18 +57,42 @@ export default class TrackedVrController extends VrController {
     const buttons = gamepad.buttons
     const pressedTimes = this._buttonPresses
     const now = Date.now()
-    let ray
     for (let i = 0; i < buttons.length; i++) {
       if (buttons[i].pressed !== !!pressedTimes[i]) {
         if (!ray) ray = this.getPointerRay()
-        this.notifyWorld('pointerRayAction', {ray, type: buttons[i].pressed ? 'mousedown' : 'mouseup', button: i})
+        this.notifyWorld('pointerRayAction', {
+          ray,
+          type: buttons[i].pressed ? 'mousedown' : 'mouseup',
+          button: i
+        })
         if (pressedTimes[i] && !buttons[i].pressed && now - pressedTimes[i] <= CLICK_MAX_DUR) {
-          this.notifyWorld('pointerRayAction', {ray, type: 'click', button: i})
+          this.notifyWorld('pointerRayAction', {
+            ray,
+            type: 'click',
+            button: i
+          })
         }
         pressedTimes[i] = buttons[i].pressed ? now : null
       }
     }
     pressedTimes.length = buttons.length
+
+    // Handle axis inputs
+    // For now, only handle 2 axes, assume they're in x-y order, and map to wheel events.
+    // TODO investigate better mapping
+    const axes = gamepad.axes
+    for (let i = 0; i < 2; i++) {
+      if (axes[i]) {
+        if (!ray) ray = this.getPointerRay()
+        this.notifyWorld('pointerRayAction', {
+          ray,
+          type: 'wheel',
+          deltaX: i === 0 ? axes[i] * 10 : 0,
+          deltaY: i === 1 ? axes[i] * 10 : 0,
+          deltaMode: 0 //pixel mode
+        })
+      }
+    }
 
     super.onBeforeRender()
   }

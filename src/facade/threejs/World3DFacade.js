@@ -339,12 +339,12 @@ World3DFacade.prototype._notifyWorldHandlers = assign(
       e.ray = ray
       this._onPointerMotionEvent(e)
     },
-    pointerRayAction(source, {ray, type, button}) {
+    pointerRayAction(source, eventParams) {
       // Dispatch a custom event carrying the Ray, which will be used by our `getFacadesAtEvent`
       // override to search for a hovered facade
-      const e = new MouseEvent(type, {button})
+      const e = new (eventParams.type === 'wheel' ? WheelEvent : MouseEvent)(eventParams.type, eventParams)
       e.isRayEvent = true
-      e.ray = ray
+      e.ray = eventParams.ray
       this._onPointerActionEvent(e)
     }
   }
