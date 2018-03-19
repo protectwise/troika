@@ -47,6 +47,7 @@ export function isObjectEmpty(object) {
   }
   return true
 }
+*/
 
 export function arraysAreEqual(arr1, arr2) {
   if (arr1 !== arr2) {
@@ -61,7 +62,6 @@ export function arraysAreEqual(arr1, arr2) {
   }
   return true
 }
-*/
 
 export function removeFromArray(arr, val) {
   let idx = arr.indexOf(val)
