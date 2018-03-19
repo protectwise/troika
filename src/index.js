@@ -23,6 +23,7 @@ export {default as Instanceable3DFacade} from './facade/threejs/instancing/Insta
 
 // 3D UI
 export {default as UIBlock3DFacade} from './facade/threejs/ui/UIBlock3DFacade.js'
+export {default as UIImage3DFacade} from './facade/threejs/ui/UIImage3DFacade.js'
 
 // 2D Facades
 export {default as Group2DFacade} from './facade/canvas2d/Group2DFacade.js'
