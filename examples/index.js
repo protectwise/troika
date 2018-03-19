@@ -6,6 +6,7 @@ import Arcs from './arcs/Arcs'
 import GlobeExample from './globe/GlobeExample'
 import HtmlOverlays from './html-overlays/HtmlOverlaysExample'
 import TextExample from './text/TextExample'
+import UIExample from './ui/UIExample'
 import DragDrop from './dragdrop/DragDropExample'
 import LevelOfDetail from './lod/LevelOfDetailExample'
 import CurveAnim from './curve-anim/CurveAnimExample'
@@ -20,6 +21,7 @@ const EXAMPLES = [
   {id: 'globe', name: 'Globe', component: GlobeExample},
   {id: 'htmlOverlays', name: 'HTML Overlays', component: HtmlOverlays},
   {id: 'text', name: '3D Text', component: TextExample},
+  {id: 'ui', name: 'User Interface', component: UIExample},
   {id: 'dragdrop', name: 'Drag and Drop', component: DragDrop},
   {id: 'lod', name: 'Level of Detail', component: LevelOfDetail},
   {id: 'curveAnim', name: 'Curve Animation', component: CurveAnim},
@@ -98,7 +100,7 @@ class ExamplesApp extends React.Component {
         </header>
         <section className="examples_body" ref={ this._onBodyElRef }>
           { ExampleCmp ?
-            (bodyWidth && bodyHeight ? <ExampleCmp width={ bodyWidth } height={ bodyHeight } stats={ stats } /> : null) :
+            (bodyWidth && bodyHeight ? <ExampleCmp width={ bodyWidth } height={ bodyHeight } stats={ stats } vr={!!this.props.vrDisplay} /> : null) :
             `Unknown example: ${selectedExampleId}`
           }
         </section>
