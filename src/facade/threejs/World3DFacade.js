@@ -331,14 +331,21 @@ World3DFacade.prototype._notifyWorldHandlers = assign(
       delete this._object3DFacadesById[source.$facadeId]
       this._queueForOctreeChange('remove', source)
     },
-    pointerRayChanged(source, ray) {
+    pointerRayMotion(source, ray) {
       // Dispatch a custom event carrying the Ray, which will be used by our `getFacadesAtEvent`
       // override to search for a hovered facade
-      const e = document.createEvent('Events')
-      e.initEvent('mousemove', true, true)
+      const e = new MouseEvent('mousemove')
       e.isRayEvent = true
       e.ray = ray
       this._onPointerMotionEvent(e)
+    },
+    pointerRayAction(source, {ray, type, button}) {
+      // Dispatch a custom event carrying the Ray, which will be used by our `getFacadesAtEvent`
+      // override to search for a hovered facade
+      const e = new MouseEvent(type, {button})
+      e.isRayEvent = true
+      e.ray = ray
+      this._onPointerActionEvent(e)
     }
   }
 )

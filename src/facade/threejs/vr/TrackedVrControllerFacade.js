@@ -2,6 +2,9 @@ import {ConeBufferGeometry, CylinderBufferGeometry, Mesh, MeshStandardMaterial, 
 import Object3DFacade from '../Object3DFacade'
 import VrController from './VrControllerFacade'
 
+
+const CLICK_MAX_DUR = 300
+
 export default class TrackedVrController extends VrController {
 
   constructor(parent) {
@@ -10,6 +13,7 @@ export default class TrackedVrController extends VrController {
       key: 'model',
       facade: BasicControllerModel
     }
+    this._buttonPresses = []
   }
 
   afterUpdate() {
@@ -43,10 +47,27 @@ export default class TrackedVrController extends VrController {
         // TODO arm model?
       }
 
-      // sync matrices for this and all children
+      // Sync matrices for this and all children
       this._matrixChanged = true
       this.traverse(updateFacadeMatrices)
     }
+
+    // Handle button presses
+    const buttons = gamepad.buttons
+    const pressedTimes = this._buttonPresses
+    const now = Date.now()
+    let ray
+    for (let i = 0; i < buttons.length; i++) {
+      if (buttons[i].pressed !== !!pressedTimes[i]) {
+        if (!ray) ray = this.getPointerRay()
+        this.notifyWorld('pointerRayAction', {ray, type: buttons[i].pressed ? 'mousedown' : 'mouseup', button: i})
+        if (pressedTimes[i] && !buttons[i].pressed && now - pressedTimes[i] <= CLICK_MAX_DUR) {
+          this.notifyWorld('pointerRayAction', {ray, type: 'click', button: i})
+        }
+        pressedTimes[i] = buttons[i].pressed ? now : null
+      }
+    }
+    pressedTimes.length = buttons.length
 
     super.onBeforeRender()
   }
