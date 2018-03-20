@@ -42,6 +42,8 @@ function createFlexLayoutProcessor(loadFontFn, measureFn) {
     }
   }
 
+  const sides = ['Top', 'Right', 'Bottom', 'Left']
+
   // Create functions for setting each supported style property on a Yoga node
   const YOGA_SETTERS = Object.create(null)
   // Simple properties
@@ -62,12 +64,7 @@ function createFlexLayoutProcessor(loadFontFn, measureFn) {
     ['alignContent', YOGA_VALUE_MAPPINGS.align],
     ['alignItems', YOGA_VALUE_MAPPINGS.align],
     ['alignSelf', YOGA_VALUE_MAPPINGS.align],
-    ['justifyContent', YOGA_VALUE_MAPPINGS.justify],
-    ['position', YOGA_VALUE_MAPPINGS.position],
-    'left',
-    'right',
-    'top',
-    'bottom',
+    ['justifyContent', YOGA_VALUE_MAPPINGS.justify]
   ].forEach(styleProp => {
     let mapping = null
     if (Array.isArray(styleProp)) {
@@ -86,13 +83,25 @@ function createFlexLayoutProcessor(loadFontFn, measureFn) {
         yogaNode[setter](value)
       }
   })
-  // Top/right/bottom/left properties
+
+  // Position-related properties
+  YOGA_SETTERS.position = (yogaNode, value) => {
+    yogaNode.setPositionType(Yoga[YOGA_VALUE_MAPPINGS.position[value]])
+  }
+  sides.forEach(side => {
+    const edgeConst = YOGA_VALUE_MAPPINGS.edge[side.toLowerCase()]
+    YOGA_SETTERS[side.toLowerCase()] = (yogaNode, value) => {
+      yogaNode.setPosition(Yoga[edgeConst], value)
+    }
+  })
+
+  // Multi-side properties
   ;[
     'margin',
     'padding',
     'border'
   ].forEach(styleProp => {
-    ['Top', 'Right', 'Bottom', 'Left'].forEach(side => {
+    sides.forEach(side => {
       const edgeConst = YOGA_VALUE_MAPPINGS.edge[side.toLowerCase()]
       const setter = `set${styleProp.charAt(0).toUpperCase()}${styleProp.substr(1)}`
       YOGA_SETTERS[`${styleProp}${side}`] = (yogaNode, value) => {
