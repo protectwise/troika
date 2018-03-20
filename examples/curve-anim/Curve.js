@@ -75,6 +75,7 @@ export default class Curve extends Object3DFacade {
       transparent: true,
       vertexShader: strokeVertexShader,
       fragmentShader: strokeFragmentShader,
+      depthTest: false,
       side: DoubleSide
     }))
 
@@ -91,6 +92,7 @@ export default class Curve extends Object3DFacade {
       transparent: true,
       vertexShader: fillVertexShader,
       fragmentShader: fillFragmentShader,
+      depthTest: false,
       side: DoubleSide
     }))
 
@@ -129,6 +131,8 @@ export default class Curve extends Object3DFacade {
       fillUniforms.gradientExp.value = this.fillGradientExp || 1
     }
     this.fillMesh.visible = !!hasFill
+
+    this.fillMesh.renderOrder = this.strokeMesh.renderOrder = this.renderOrder || 0
 
     super.afterUpdate()
   }

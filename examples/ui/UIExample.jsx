@@ -2,8 +2,12 @@ import React from 'react'
 import T from 'prop-types'
 import {Canvas3D, UIBlock3DFacade, Group3DFacade, UIImage3DFacade, ListFacade} from '../../src/index'
 import { MeshStandardMaterial } from 'three'
+import FlexboxGlobe from './FlexboxGlobe'
+import CubeOfCubes from './CubeOfCubes'
+import FlexboxLineGraph from './FlexboxLineGraph'
 
 const mainPanelMaterial = new MeshStandardMaterial({roughness: 0.6, metalness: 0.7})
+const FONT_URL = 'https://fonts.gstatic.com/s/quicksand/v7/6xKtdSZaM9iE8KbpRA_hK1QL.woff'
 
 class UIExample extends React.Component {
   constructor(props) {
@@ -21,7 +25,7 @@ class UIExample extends React.Component {
 
   render() {
     let state = this.state
-    let {width, height} = this.props
+    let {width, height, vr} = this.props
 
     return (
       <div>
@@ -31,7 +35,15 @@ class UIExample extends React.Component {
           width={ width }
           height={ height }
           camera={ {
-
+            y: vr ? 0.25 : 0,
+            lookAt: vr ? null : {x: 0, y: 0, z:-1},
+            animation: vr ? null : {
+              from: {x: -0.1},
+              to: {x: 0.1},
+              duration: 5000,
+              direction: 'alternate',
+              iterations: Infinity
+            }
           } }
           lights={[
             {type: 'point', x: 1},
@@ -57,6 +69,7 @@ class UIExample extends React.Component {
                 backgroundColor: 0x333333,
                 backgroundMaterial: mainPanelMaterial,
                 padding: 20,
+                font: FONT_URL,
                 fontSize: 24,
                 justifyContent: 'space-between',
                 children: [
@@ -118,29 +131,122 @@ class UIExample extends React.Component {
                 y: 512,
                 width: 1024,
                 height: 1024,
-                backgroundColor: 0x333333,
-                backgroundMaterial: mainPanelMaterial,
-                padding: 20,
+                borderWidth: 5,
+                borderColor: 0x333333,
+                borderMaterial: mainPanelMaterial,
                 fontSize: 40,
-                flexDirection: 'row',
-                flexWrap: 'wrap',
                 justifyContent: 'space-between',
-                children: {
-                  key: 'items',
-                  facade: ListFacade,
-                  data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
-                  template: {
-                    key: d => d,
+                children: [
+                  {
+                    key: 'top',
                     facade: UIBlock3DFacade,
-                    padding: 10,
-                    borderColor: 0xffffff,
-                    borderWidth: 2,
-                    borderRadius: 20,
-                    margin: [0, 0, 10],
-                    //z: 50,
-                    text: d => `Item ${d}`
+                    flexDirection: 'row',
+                    minHeight: '50%',
+                    children: [
+                      {
+                        key: 'earthCt',
+                        facade: UIBlock3DFacade,
+                        flex: 1,
+                        padding: 50,
+                        margin: 20,
+                        borderColor: 0x666666,
+                        borderWidth: 2,
+                        borderRadius: 10,
+                        flexDirection: 'row',
+                        children: {
+                          key: 'earth',
+                          facade: FlexboxGlobe,
+                          flex: 1,
+                          alignSelf: 'stretch',
+                          animation: {
+                            from: {rotateY: -Math.PI},
+                            to: {rotateY: Math.PI},
+                            duration: 24000,
+                            iterations: Infinity
+                          }
+                        }
+                      },
+                      {
+                        key: 'cubeCt',
+                        facade: UIBlock3DFacade,
+                        flex: 1,
+                        padding: 50,
+                        margin: 20,
+                        borderColor: 0x666666,
+                        borderWidth: 2,
+                        borderRadius: 10,
+                        children: {
+                          key: 'cube',
+                          facade: CubeOfCubes,
+                          flex: 1,
+                          alignSelf: 'stretch',
+                          onCubeOver: e => {
+                            this.setState({isHoveringCube: true})
+                            clearTimeout(this._cubeOutTimer)
+                          },
+                          onCubeOut: e => {
+                            clearTimeout(this._cubeOutTimer)
+                            this._cubeOutTimer = setTimeout(() => {
+                              this.setState({isHoveringCube: false})
+                            }, 500)
+                          },
+                          animation: {
+                            from: {rotateX: -Math.PI, rotateY: -Math.PI, rotateZ: -Math.PI},
+                            to: {rotateX: Math.PI, rotateY: Math.PI, rotateZ: Math.PI},
+                            duration: 10000,
+                            iterations: Infinity,
+                            paused: this.state.isHoveringCube
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    key: 'bottom',
+                    facade: UIBlock3DFacade,
+                    flex: 1,
+                    backgroundColor: 0x333333,
+                    backgroundMaterial: mainPanelMaterial,
+                    children: [
+                      {
+                        key: 'graph1',
+                        facade: FlexboxLineGraph,
+                        flex: 1,
+                        z: 0,
+                        position: 'absolute',
+                        top: 100,
+                        left: 0,
+                        right: 0,
+                        bottom: 100,
+                        color: 0x996600
+                      },
+                      {
+                        key: 'graph2',
+                        facade: FlexboxLineGraph,
+                        flex: 1,
+                        z: 20,
+                        position: 'absolute',
+                        top: 150,
+                        left: 0,
+                        right: 0,
+                        bottom: 50,
+                        color: 0x006699
+                      },
+                      {
+                        key: 'graph3',
+                        facade: FlexboxLineGraph,
+                        flex: 1,
+                        z: 40,
+                        position: 'absolute',
+                        top: 200,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        color: 0x009966
+                      }
+                    ]
                   }
-                }
+                ]
               },
               {
                 key: 'rightPane',
@@ -161,7 +267,7 @@ class UIExample extends React.Component {
                 backgroundMaterial: mainPanelMaterial,
                 padding: 10,
                 fontSize: 24,
-                font: 'https://fonts.gstatic.com/s/comfortaa/v12/1Ptsg8LJRfWJmhDAuUs4TYFs.woff',
+                font: FONT_URL,
                 justifyContent: 'space-around',
                 children: [
                   {

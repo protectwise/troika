@@ -44,7 +44,7 @@ class UITextNode3DFacade extends extendAsFlexNode(Text3DFacade) {
       const val = getInheritable(this, prop)
       if (val !== flexStyles[prop]) {
         flexStyles[prop] = this[prop]
-        this._needsFlexLayout = true
+        this.needsFlexLayout = true
       }
     }
 
