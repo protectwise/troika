@@ -383,7 +383,7 @@ class Object3DFacade extends PointerEventTarget {
 
 
 // Convenience setters for Object3D simple properties
-;['castShadow', 'receiveShadow'].forEach(prop => {
+;['castShadow', 'receiveShadow', 'renderOrder'].forEach(prop => {
   Object.defineProperty(Object3DFacade.prototype, prop, {
     get() {
       return this.threeObject[prop]
