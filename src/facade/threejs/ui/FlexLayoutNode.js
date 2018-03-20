@@ -30,6 +30,15 @@ export function makeFlexLayoutNode(WrappedFacadeClass) {
     }
 
     afterUpdate() {
+      // Constrain scroll when the contain shrinks
+      if (this._needsOverscrollCheck) {
+        if (this.scrollLeft || this.scrollTop) {
+          this.scrollLeft = Math.min(this.scrollLeft, this.scrollWidth - this.clientWidth)
+          this.scrollTop = Math.min(this.scrollTop, this.scrollHeight - this.clientHeight)
+        }
+        this._needsOverscrollCheck = false
+      }
+
       super.afterUpdate()
 
       // Did something change that requires a layout recalc?
@@ -109,6 +118,7 @@ export function makeFlexLayoutNode(WrappedFacadeClass) {
 
             // Scrolling metrics
             facade.scrollHeight = facade.scrollWidth = 0
+            facade._needsOverscrollCheck = true
             const parent = facade._flexParent
             if (parent) {
               parent.scrollWidth = Math.max(parent.scrollWidth, left + width - parent.clientLeft)
