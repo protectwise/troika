@@ -1,15 +1,83 @@
 import {requestFlexLayout} from './FlexLayoutProcessor'
 import {assign} from '../../../utils'
 
+/**
+ * Extends a given Facade class to become a `FlexNode`, giving it the ability to participate
+ * in flexbox layout. The resulting class behaves just like the original facade class, except:
+ *
+ * - It now accepts a full set of flexbox-related input properties, defined below
+ * - Those input properties get evaluated by a flexbox layout algorithm in the background
+ * - The resulting layout metrics get written to the object as properties that the extended
+ *   facade class can use in its `afterUpdate` method to affect its position/size/styling.
+ *
+ * The flexbox layout algorithm is performed asynchronously within a web worker, so the result
+ * metrics will probably not be available the first time `afterUpdate` is called. This can
+ * sometimes cause issues with rendering due to NaNs, so it's good to check first that the
+ * object has a nonzero `offsetWidth` and `offsetHeight` before displaying the node's object(s).
+ *
+ * Currently the flexbox algorithm implementation is Facebook's Yoga (https://yogalayout.com/)
+ * which is loaded on first use from the JSDelivr CDN. Customization of the Yoga files' location
+ * will be added at a later time.
+ *
+ * *Supported input flexbox style properties:*
+ * - width (number, string percentage, or 'auto')
+ * - height (number, string percentage, or 'auto')
+ * - minWidth (number, string percentage, or 'auto')
+ * - minHeight (number, string percentage, or 'auto')
+ * - maxWidth (number, string percentage, or 'auto')
+ * - maxHeight (number, string percentage, or 'auto')
+ * - aspectRatio (number, as width divided by height, or 'auto')
+ * - flexDirection ('column', 'column-reverse', 'row', or 'row-reverse')
+ * - flexWrap ('wrap' or 'nowrap')
+ * - flex (number, where positive becomes flexGrow and negative becomes flexShrink)
+ * - flexGrow (number)
+ * - flexShrink (number)
+ * - flexBasis (number, string percentage, or 'auto')
+ * - alignContent ('auto', 'baseline', 'center', 'flex-end', 'flex-start', or 'stretch')
+ * - alignItems ('auto', 'baseline', 'center', 'flex-end', 'flex-start', or 'stretch')
+ * - alignSelf ('auto', 'baseline', 'center', 'flex-end', 'flex-start', or 'stretch')
+ * - justifyContent ('center', 'flex-end', 'flex-start', 'space-around', or 'space-between')
+ * - position ('relative' or 'absolute')
+ * - top (number, string percentage, or 'auto')
+ * - right (number, string percentage, or 'auto')
+ * - bottom (number, string percentage, or 'auto')
+ * - left (number, string percentage, or 'auto')
+ * - margin (number, or array of up to four numbers in t-r-b-l order)
+ * - padding (number, or array of up to four numbers in t-r-b-l order)
+ * - borderWidth (number, or array of up to four numbers in t-r-b-l order)
+ *
+ * *Computed layout result properties:*
+ * - offsetLeft
+ * - offsetTop
+ * - offsetWidth
+ * - offsetHeight
+ * - clientLeft
+ * - clientTop
+ * - clientWidth
+ * - clientHeight
+ * - scrollLeft
+ * - scrollTop
+ * - scrollWidth
+ * - scrollHeight
+ * (All of these are `null` initially and then numbers after the layout completes, except
+ * scrollLeft and scrollTop which are `0` initially.)
+ *
+ * *Additional FlexNode-specific properties:*
+ * - isFlexNode (`true`, can be used to find FlexNodes in the facade tree)
+ * - flexNodeDepth (number, where topmost FlexNode's depth is `0` and children increase by 1)
+ * - parentFlexNode (the nearest parent FlexNode instance, or `null` if this is the root FlexNode)
+ * - needsFlexLayout (boolean, can be set to force a recalculation of the full flexbox layout)
+ *
+ * @param {class} WrappedFacadeClass
+ * @return {FlexNode} a new class that extends the WrappedFacadeClass
+ */
+export function extendAsFlexNode(WrappedFacadeClass) {
 
-
-export function makeFlexLayoutNode(WrappedFacadeClass) {
-
-  class FlexLayoutNode extends WrappedFacadeClass {
+  class FlexNode extends WrappedFacadeClass {
     constructor(parent) {
       super(parent)
-      this.isFlexLayoutNode = true
-      this._needsFlexLayout = true
+      this.isFlexNode = true
+      this.needsFlexLayout = true
 
       // Object holding all input styles for this node in the flex tree; see the style object
       // format in FlexLayoutProcessor.js
@@ -20,9 +88,9 @@ export function makeFlexLayoutNode(WrappedFacadeClass) {
       // Look for the nearest flex layout ancestor; if there is one, add to its layout children,
       // otherwise we're a flex layout root.
       let parentFlexFacade = parent
-      while (parentFlexFacade && !parentFlexFacade.isFlexLayoutNode) {parentFlexFacade = parentFlexFacade.parent}
+      while (parentFlexFacade && !parentFlexFacade.isFlexNode) {parentFlexFacade = parentFlexFacade.parent}
       if (parentFlexFacade) {
-        this._flexParent = parentFlexFacade
+        this.parentFlexNode = parentFlexFacade
         this._flexNodeDepth = parentFlexFacade.flexNodeDepth + 1
       } else {
         this._flexNodeDepth = 0
@@ -42,11 +110,11 @@ export function makeFlexLayoutNode(WrappedFacadeClass) {
       super.afterUpdate()
 
       // Did something change that requires a layout recalc?
-      if (this._needsFlexLayout) {
+      if (this.needsFlexLayout) {
         // If we're managed by an ancestor layout root, let it know
-        if (this._flexParent) {
+        if (this.parentFlexNode) {
           this.notifyWorld('needsFlexLayout')
-          this._needsFlexLayout = false
+          this.needsFlexLayout = false
         }
         // If we're the layout root, perform the layout
         else {
@@ -56,8 +124,8 @@ export function makeFlexLayoutNode(WrappedFacadeClass) {
     }
 
     onNotifyWorld(source, message, data) {
-      if (message === 'needsFlexLayout' && !this._flexParent) {
-        this._needsFlexLayout = true
+      if (message === 'needsFlexLayout' && !this.parentFlexNode) {
+        this.needsFlexLayout = true
         return
       }
       super.onNotifyWorld(source, message, data)
@@ -69,13 +137,13 @@ export function makeFlexLayoutNode(WrappedFacadeClass) {
       if (this._hasActiveFlexRequest) return
 
       this._hasActiveFlexRequest = true
-      this._needsFlexLayout = false
+      this.needsFlexLayout = false
 
       // Traverse the flex node tree in document order and add the ordered child
       // relationships to the style nodes at each level
       this.traverseOrdered(facade => {
-        if (facade.isFlexLayoutNode) {
-          const parent = facade._flexParent
+        if (facade.isFlexNode) {
+          const parent = facade.parentFlexNode
           if (parent) {
             const siblings = parent._flexStyles.children || (parent._flexStyles.children = [])
             siblings.push(facade._flexStyles)
@@ -98,7 +166,7 @@ export function makeFlexLayoutNode(WrappedFacadeClass) {
       // Results will be a flat map of facade id to computed layout; traverse the tree
       // and math them up, applying them as `computedXYZ` properties
       this.traverse(facade => {
-        if (facade.isFlexLayoutNode) {
+        if (facade.isFlexNode) {
           const computedLayout = results[facade.$facadeId]
           if (computedLayout) {
             const {left, top, width, height} = computedLayout
@@ -119,7 +187,7 @@ export function makeFlexLayoutNode(WrappedFacadeClass) {
             // Scrolling metrics
             facade.scrollHeight = facade.scrollWidth = 0
             facade._needsOverscrollCheck = true
-            const parent = facade._flexParent
+            const parent = facade.parentFlexNode
             if (parent) {
               parent.scrollWidth = Math.max(parent.scrollWidth, left + width - parent.clientLeft)
               parent.scrollHeight = Math.max(parent.scrollHeight, top + height - parent.clientTop)
@@ -140,7 +208,7 @@ export function makeFlexLayoutNode(WrappedFacadeClass) {
   // Define computed layout properties. Those that depend on a layout computation will be null
   // initially, and set to numbers after layout calculation is completed. Derived facades should
   // use these to update their rendering.
-  assign(FlexLayoutNode.prototype, {
+  assign(FlexNode.prototype, {
     offsetLeft: null,
     offsetTop: null,
     offsetWidth: null,
@@ -181,14 +249,14 @@ export function makeFlexLayoutNode(WrappedFacadeClass) {
     'top',
     'bottom'
   ].forEach(prop => {
-    Object.defineProperty(FlexLayoutNode.prototype, prop, {
+    Object.defineProperty(FlexNode.prototype, prop, {
       get() {
         return this._flexStyles[prop]
       },
       set(value) {
         if (value !== this._flexStyles[prop]) {
           this._flexStyles[prop] = value
-          this._needsFlexLayout = true
+          this.needsFlexLayout = true
         }
       }
     })
@@ -207,7 +275,7 @@ export function makeFlexLayoutNode(WrappedFacadeClass) {
     const rightStyle = styleBase + 'Right'
     const bottomStyle = styleBase + 'Bottom'
     const leftStyle = styleBase + 'Left'
-    Object.defineProperty(FlexLayoutNode.prototype, prop, {
+    Object.defineProperty(FlexNode.prototype, prop, {
       get() {
         return this[privateProp] || (this[privateProp] = Object.freeze([0, 0, 0, 0]))
       },
@@ -230,12 +298,12 @@ export function makeFlexLayoutNode(WrappedFacadeClass) {
           styles[rightStyle] = r
           styles[bottomStyle] = b
           styles[leftStyle] = l
-          this._needsFlexLayout = true
+          this.needsFlexLayout = true
         }
       }
     })
   })
 
-  return FlexLayoutNode
+  return FlexNode
 }
 

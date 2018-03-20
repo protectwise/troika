@@ -23,6 +23,7 @@ export {default as InstancingManager} from './facade/threejs/instancing/Instanci
 export {default as Instanceable3DFacade} from './facade/threejs/instancing/Instanceable3DFacade.js'
 
 // 3D UI
+export {extendAsFlexNode} from './facade/threejs/ui/FlexNode'
 export {default as UIBlock3DFacade} from './facade/threejs/ui/UIBlock3DFacade.js'
 export {default as UIImage3DFacade} from './facade/threejs/ui/UIImage3DFacade.js'
 

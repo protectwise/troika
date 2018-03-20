@@ -2,7 +2,7 @@ import { Mesh, Vector2, Vector4, PlaneBufferGeometry, Sphere, Matrix4 } from 'th
 import Group3DFacade from '../Group3DFacade'
 import UITextNode3DFacade from './UITextNode3DFacade'
 import UIBlockLayer3DFacade from './UIBlockLayer3DFacade'
-import { makeFlexLayoutNode } from './FlexLayoutNode'
+import { extendAsFlexNode } from './FlexNode'
 import { getInheritable } from './uiUtils'
 import { assign } from '../../../utils'
 
@@ -16,7 +16,7 @@ const DEFAULT_LINE_HEIGHT = 1.15
  * can contain text, be styled with background/border, and participate in flexbox layout.
  * Its behavior and styling is very much like an HTML element using flexbox.
  */
-class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
+class UIBlock3DFacade extends extendAsFlexNode(Group3DFacade) {
   constructor(parent) {
     super(parent)
 
@@ -80,7 +80,7 @@ class UIBlock3DFacade extends makeFlexLayoutNode(Group3DFacade) {
     // Update the block's element and size from flexbox computed values
     // TODO pass left/top as uniforms to avoid matrix recalcs
     if (hasLayout) {
-      if (this._flexParent) {
+      if (this.parentFlexNode) {
         this.x = offsetLeft
         this.y = -offsetTop
       }

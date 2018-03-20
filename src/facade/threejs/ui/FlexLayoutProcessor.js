@@ -2,6 +2,20 @@ import {defineWorkerModule} from '../../../WorkerModules'
 import {fontProcessorWorkerModule} from '../text/TextBuilder'
 import {BasicThenable} from '../../../utils'
 
+
+/**
+ * Main entry point. This issues a request to the web worker to perform flexbox layout
+ * on the given `styleTree`, calling the `callback` function with the results when finished.
+ *
+ * @param {Object} styleTree
+ * @param {Function} callback
+ */
+export function requestFlexLayout(styleTree, callback) {
+  flexLayoutProcessorWorkerModule(styleTree).then(callback)
+}
+
+
+
 function createFlexLayoutProcessor(loadFontFn, measureFn) {
   
   const YOGA_VALUE_MAPPINGS = {
@@ -274,9 +288,6 @@ const flexLayoutProcessorWorkerModule = defineWorkerModule({
   }
 })
 
-export function requestFlexLayout(styleTree, callback) {
-  flexLayoutProcessorWorkerModule(styleTree).then(callback)
-}
 
 
 

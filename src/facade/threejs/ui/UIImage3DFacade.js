@@ -1,4 +1,4 @@
-import { makeFlexLayoutNode } from './FlexLayoutNode'
+import { extendAsFlexNode } from './FlexNode'
 import { Mesh, MeshBasicMaterial, PlaneBufferGeometry, TextureLoader } from 'three'
 import Object3DFacade from '../Object3DFacade'
 
@@ -57,4 +57,4 @@ class UIImage3DFacade extends Object3DFacade {
   }
 }
 
-export default makeFlexLayoutNode(UIImage3DFacade)
+export default extendAsFlexNode(UIImage3DFacade)

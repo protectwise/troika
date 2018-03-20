@@ -1,4 +1,4 @@
-import { makeFlexLayoutNode } from './FlexLayoutNode'
+import { extendAsFlexNode } from './FlexNode'
 import Text3DFacade from '../text/Text3DFacade'
 import { getInheritable } from './uiUtils'
 
@@ -10,7 +10,7 @@ const flexLayoutTextProps = ['text', 'font', 'fontSize', 'lineHeight', 'letterSp
  * directly, but will be created as an implicit child by {@link UIBlock3DFacade} when
  * configured with a `text` property.
  */
-class UITextNode3DFacade extends makeFlexLayoutNode(Text3DFacade) {
+class UITextNode3DFacade extends extendAsFlexNode(Text3DFacade) {
   afterUpdate() {
     // Read computed layout
     const {
@@ -22,7 +22,7 @@ class UITextNode3DFacade extends makeFlexLayoutNode(Text3DFacade) {
     // Update position and size if flex layout has been completed
     const hasLayout = offsetWidth !== null
     if (hasLayout) {
-      let {clientLeft, clientTop, clientWidth, clientHeight, scrollLeft, scrollTop} = this._flexParent
+      let {clientLeft, clientTop, clientWidth, clientHeight, scrollLeft, scrollTop} = this.parentFlexNode
       //scrollLeft = scrollTop = 0
       this.x = offsetLeft - scrollLeft
       this.y = -(offsetTop - scrollTop)
