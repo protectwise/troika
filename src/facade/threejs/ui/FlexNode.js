@@ -1,5 +1,5 @@
 import {requestFlexLayout} from './FlexLayoutProcessor'
-import {assign} from '../../../utils'
+import {assign, createClassExtender} from '../../../utils'
 
 /**
  * Extends a given Facade class to become a `FlexNode`, giving it the ability to participate
@@ -68,12 +68,12 @@ import {assign} from '../../../utils'
  * - parentFlexNode (the nearest parent FlexNode instance, or `null` if this is the root FlexNode)
  * - needsFlexLayout (boolean, can be set to force a recalculation of the full flexbox layout)
  *
- * @param {class} WrappedFacadeClass
- * @return {FlexNode} a new class that extends the WrappedFacadeClass
+ * @param {class} BaseFacadeClass
+ * @return {FlexNode} a new class that extends the BaseFacadeClass
  */
-export function extendAsFlexNode(WrappedFacadeClass) {
+export const extendAsFlexNode = createClassExtender('flexNode', BaseFacadeClass => {
 
-  class FlexNode extends WrappedFacadeClass {
+  class FlexNode extends BaseFacadeClass {
     constructor(parent) {
       super(parent)
       this.isFlexNode = true
@@ -305,5 +305,5 @@ export function extendAsFlexNode(WrappedFacadeClass) {
   })
 
   return FlexNode
-}
+})
 

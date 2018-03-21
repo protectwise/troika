@@ -69,6 +69,29 @@ export function removeFromArray(arr, val) {
 }
 
 /**
+ * Utility for the "extend-as" pattern used in several places to decorate facade
+ * classes with extra capabilities.
+ * @param {string} name - unique identifier for this class extension
+ * @param {function} doExtend - the function that creates the actual class extension,
+ *        this is passed the base class and will only be called once per base class.
+ * @return {function(class): class}
+ */
+export function createClassExtender(name, doExtend) {
+  const extProp = `$${name}ClassExtension`
+  const baseProp = `$${name}ExtensionBase`
+  return function(classToExtend) {
+    let extended = classToExtend[extProp]
+    if (!extended || extended[baseProp] !== classToExtend) { //bidir check due to inheritance of statics
+      extended = classToExtend[extProp] = doExtend(classToExtend)
+      extended[baseProp] = classToExtend
+    }
+    return extended
+  }
+
+}
+
+
+/**
  * Super lightweight thenable implementation, for handling async with Promise-like
  * ergonomics without relying on a complete Promise implementation or polyfill. This
  * does _not_ provide full Promise semantics so be careful using it and don't let it

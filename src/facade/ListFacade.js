@@ -1,5 +1,5 @@
 import Facade, {isSpecialDescriptorProperty} from './Facade'
-import {getAnimatableClassFor} from './AnimatableDecorator'
+import {extendAsAnimatable} from './Animatable'
 
 let warnedAboutClassToFacade = false
 
@@ -78,7 +78,7 @@ export default class List extends Facade {
             key += '|dupe'
           }
 
-          // If a transition/animation is present, upgrade the class to a AnimatableDecorator class on demand.
+          // If a transition/animation is present, upgrade the class to a Animatable class on demand.
           // NOTE: changing between animatable/non-animatable results in a full teardown/recreation
           // of this instance *and its entire subtree*, so try to avoid that by always including the `transition`
           // definition if the object is expected to ever need transitions, even if it's temporarily empty.
@@ -86,7 +86,7 @@ export default class List extends Facade {
           let animation = typeof template.animation === 'function' ? template.animation(childData, i, data) : template.animation
           let exitAnimation = typeof template.exitAnimation === 'function' ? template.exitAnimation(childData, i, data) : template.exitAnimation
           if (transition || animation || exitAnimation) {
-            facadeClass = getAnimatableClassFor(facadeClass)
+            facadeClass = extendAsAnimatable(facadeClass)
           }
 
           // If we have an old instance with the same key and class, reuse it; otherwise instantiate a new one

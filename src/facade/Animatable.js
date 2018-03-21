@@ -1,7 +1,8 @@
-import {assign, assignIf} from '../utils'
+import {assignIf} from '../utils'
 import Tween from '../animation/Tween'
 import MultiTween from '../animation/MultiTween'
 import Runner from '../animation/Runner'
+import { createClassExtender } from '../utils'
 
 const DEFAULT_DURATION = 750
 const DEFAULT_EASING = 'easeOutCubic'
@@ -12,20 +13,12 @@ function animationIdJsonReplacer(key, value) {
   return key === 'paused' ? undefined : value === Infinity ? 'Infinity' : value
 }
 
-export function getAnimatableClassFor(facadeClass) {
-  let decorated = facadeClass.$animatableDecoratorClass
-  if (!decorated || decorated.$baseFacadeClass !== facadeClass) { //bidir check due to inheritance of statics
-    decorated = facadeClass.$animatableDecoratorClass = createAnimatableClassFor(facadeClass)
-  }
-  return decorated
-}
-
 function compareByTime(a, b) {
   return a.time - b.time
 }
 
-export function createAnimatableClassFor(BaseFacadeClass) {
-  class AnimatableDecorator extends BaseFacadeClass {
+export const extendAsAnimatable = createClassExtender('animatable', function(BaseFacadeClass) {
+  class AnimatableFacade extends BaseFacadeClass {
 
     constructor(...args) {
       super(...args)
@@ -296,7 +289,7 @@ export function createAnimatableClassFor(BaseFacadeClass) {
   // on the wrapper prototype allows us to avoid per-instance overhead as well as avoid collisions with
   // other custom setters anywhere else in the prototype chain.
   function defineTransitionPropInterceptor(propName, currentInstance) {
-    if (!AnimatableDecorator.prototype.hasOwnProperty(propName)) {
+    if (!AnimatableFacade.prototype.hasOwnProperty(propName)) {
       let actualValueKey = `${ propName }➤actualValue`
       let actuallySetKey = `${ propName }➤actuallySet`
       let hasBeenSetKey = `${ propName }➤hasBeenSet`
@@ -331,11 +324,11 @@ export function createAnimatableClassFor(BaseFacadeClass) {
           this[hasBeenSetKey] = true
         }
       }
-      Object.defineProperty(AnimatableDecorator.prototype, actuallySetKey, { value: actuallySet })
+      Object.defineProperty(AnimatableFacade.prototype, actuallySetKey, { value: actuallySet })
 
 
       // Add the custom getter/setter for this property
-      Object.defineProperty(AnimatableDecorator.prototype, propName, {
+      Object.defineProperty(AnimatableFacade.prototype, propName, {
         get() {
           // Always return the current actual value
           return superGetter ? superGetter.call(this) : this[hasBeenSetKey] ? this[actualValueKey] : BaseFacadeClass.prototype[propName]
@@ -404,7 +397,5 @@ export function createAnimatableClassFor(BaseFacadeClass) {
 
   }
 
-  AnimatableDecorator.$baseFacadeClass = BaseFacadeClass
-
-  return AnimatableDecorator
-}
+  return AnimatableFacade
+})

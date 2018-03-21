@@ -1,5 +1,5 @@
 import Facade, {isSpecialDescriptorProperty} from './Facade'
-import {getAnimatableClassFor} from './AnimatableDecorator'
+import {extendAsAnimatable} from './Animatable'
 
 const TEMP_ARRAY = [null]
 let warnedAboutClassToFacade = false
@@ -77,14 +77,14 @@ export default class ParentFacade extends Facade {
           key += '|dupe'
         }
 
-        // If a transition/animation is present, upgrade the class to a AnimatableDecorator class on demand.
+        // If a transition/animation is present, upgrade the class to a Animatable class on demand.
         // NOTE: changing between animatable/non-animatable results in a full teardown/recreation
         // of this instance *and its entire subtree*, so try to avoid that by always including the `transition`
         // definition if the object is expected to ever need transitions, even if it's temporarily empty.
         let transition = childDesc.transition
         let animation = childDesc.animation
         if (transition || animation || childDesc.exitAnimation) {
-          facadeClass = getAnimatableClassFor(facadeClass)
+          facadeClass = extendAsAnimatable(facadeClass)
         }
 
         // If we have an old instance with the same key and class, update it, otherwise instantiate a new one
