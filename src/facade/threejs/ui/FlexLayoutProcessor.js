@@ -228,6 +228,11 @@ function createFlexLayoutProcessor(loadFontFn, measureFn) {
                 // formalize that contract in the FontProcessor
                 let result = null
                 measureFn(params, r => {result = r})
+                if (result) {
+                  // Apply a fudge factor to avoid issues where the flexbox layout result using this
+                  // measurement ends up slightly smaller (due to rounding?) and making text wrap
+                  result.width += styleNode.fontSize * 0.00001
+                }
                 return result || {width: 0, height: 0}
               })
             }
