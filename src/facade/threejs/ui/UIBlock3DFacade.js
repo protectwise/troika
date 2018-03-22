@@ -41,8 +41,7 @@ class UIBlock3DFacade extends extendAsFlexNode(Group3DFacade) {
     this.textChild = {
       key: 'text',
       facade: UITextNode3DFacade,
-      depthOffset: -depth - 2,
-      clipRect: [0, 0, 0, 0]
+      depthOffset: -depth - 2
     }
 
     this._sizeVec2 = new Vector2()
@@ -63,7 +62,6 @@ class UIBlock3DFacade extends extendAsFlexNode(Group3DFacade) {
       borderColor,
       borderMaterial,
       text,
-      textMaterial,
       offsetLeft,
       offsetTop,
       offsetWidth,
@@ -75,7 +73,6 @@ class UIBlock3DFacade extends extendAsFlexNode(Group3DFacade) {
     const hasNonZeroSize = !!(offsetWidth && offsetHeight)
     const hasBg = hasNonZeroSize && (backgroundColor != null || backgroundMaterial != null)
     const hasBorder = hasNonZeroSize && (borderColor != null || borderMaterial != null) && Math.max(...borderWidth) > 0
-    const hasText = !!text
 
     // Update the block's element and size from flexbox computed values
     // TODO pass left/top as uniforms to avoid matrix recalcs
@@ -127,8 +124,12 @@ class UIBlock3DFacade extends extendAsFlexNode(Group3DFacade) {
     }
     layers.children[1] = borderLayer
 
+    // Allow text to be specified as a single string child
+    if (!text && typeof this.children === 'string') {
+      text = this.children
+    }
     // Update text child...
-    if (hasText) {
+    if (text) {
       textChild.text = text
       textChild.font = getInheritable(this, 'font')
       textChild.fontSize = getInheritable(this, 'fontSize', DEFAULT_FONT_SIZE)
@@ -138,10 +139,30 @@ class UIBlock3DFacade extends extendAsFlexNode(Group3DFacade) {
       textChild.whiteSpace = getInheritable(this, 'whiteSpace')
       textChild.overflowWrap = getInheritable(this, 'overflowWrap')
       textChild.color = getInheritable(this, 'color')
-      textChild.material = textMaterial
+      textChild.material = this.textMaterial
       // textChild.castShadow = this.castShadow
       // textChild.receiveShadow = this.receiveShadow
       this.children = textChild //NOTE: text content will clobber any other defined children
+    } else {
+      // Convert any children specified as plain strings to nested text blocks; handy for JSX style
+      let children = this.children
+      if (Array.isArray(children)) {
+        for (let i = 0, len = children.length; i < len; i++) {
+          if (typeof children[i] === 'string') {
+            children = this.children = children.slice()
+            for (; i < len; i++) { //continue from here
+              if (typeof children[i] === 'string') {
+                children[i] = {
+                  facade: UIBlock3DFacade,
+                  text: children[i],
+                  textMaterial: this.textMaterial
+                }
+              }
+            }
+            break
+          }
+        }
+      }
     }
 
     // Add mousewheel listener if scrollable
