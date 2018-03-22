@@ -48,8 +48,7 @@ export default class ParentFacade extends Facade {
         children = TEMP_ARRAY
       }
 
-      orderedChildKeys.length = children.length
-
+      let childIndex = 0
       for (let i = 0, len = children.length; i < len; i++) {
         let childDesc = children[i]
         if (!childDesc) continue //child members can be null
@@ -121,8 +120,9 @@ export default class ParentFacade extends Facade {
         }
         newImpl.afterUpdate()
         newDict[key] = newImpl
-        orderedChildKeys[i] = key
+        orderedChildKeys[childIndex++] = key
       }
+      orderedChildKeys.length = childIndex
     } else {
       orderedChildKeys.length = 0
     }
