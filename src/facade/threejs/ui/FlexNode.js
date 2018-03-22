@@ -141,7 +141,7 @@ export const extendAsFlexNode = createClassExtender('flexNode', BaseFacadeClass 
 
       // Traverse the flex node tree in document order and add the ordered child
       // relationships to the style nodes at each level
-      this.traverseOrdered(facade => {
+      this.traverse(facade => {
         if (facade.isFlexNode) {
           const parent = facade.parentFlexNode
           if (parent) {

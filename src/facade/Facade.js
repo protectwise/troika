@@ -29,14 +29,28 @@ import {assign} from '../utils'
  * either by custom setters or in `afterUpdate`. There are a few special properties in the
  * descriptor:
  *
- *   - `key`: (required) an identifier that is unique amongst the descriptor's siblings, which
- *     is used to associate the descriptor with its corresponding Facade instance.
  *   - `facade`: (required) a reference to the Facade class that will be instantiated.
+ *   - `key`: (optional) an identifier that is unique amongst the descriptor's siblings, which
+ *     is used to associate the descriptor with its corresponding Facade instance. One will be
+ *     assigned automatically if omitted, but it's preferable that you set one manually to ensure
+ *     descriptors are predictably resolved to the same facade instances when siblings are being
+ *     added or removed.
  *   - `children`: (optional) for `Parent` facade subclasses, defines the child object descriptors.
+ *   - `ref`: (optional) a function that will be called with a reference to the instantiated Facade
+ *     on creation, and with `null` on destruction, allowing external code to maintain references
+ *     to individual facades.
  *   - `transition`: (optional) defines a set of properties that should be transitioned smoothly
  *     when their value changes. See `Animatable` for more details.
  *   - `animation`: (optional) defines one or more keyframe animations. See `Animatable` for more details.
  *   - `exitAnimation`: (optional) defines a keyframe animation to run when the facade is removed from its parent.
+ *
+ * It is also possible to define facade descriptors using JSX (https://reactjs.org/docs/introducing-jsx.html),
+ * if it is precompiled to `React.createElement` calls. In this case, use the facade class as the JSX
+ * element name instead of a `facade` property, and child descriptors are defined as nested JSX elements i
+ * nstead of a `children` property. *NOTE:* While this is often a nicer looking syntax than the plain JS object
+ * form, be aware that the creation of JSX elements does carry a slight performance cost from extra logic
+ * and object allocations, so you should avoid it when defining large numbers of facades or when updating
+ * descriptors on every frame.
  */
 export default class Facade {
   constructor(parent) {

@@ -1,5 +1,6 @@
 import Facade, {isSpecialDescriptorProperty} from './Facade'
 import {extendAsAnimatable} from './Animatable'
+//import { isReactElement } from '../utils'
 
 let warnedAboutClassToFacade = false
 
@@ -27,9 +28,22 @@ let warnedAboutClassToFacade = false
  *     }
  */
 export default class List extends Facade {
+  constructor(parent) {
+    super(parent)
+    this._orderedItemKeys = []
+  }
+
   afterUpdate() {
     let {data, template} = this
     let hasData = data && data.length && Array.isArray(data)
+
+    // Allow the `template` to be defined as a JSX element, i.e. the result of React.createElement()
+    // TODO almost works, except that React stringifies the `key` function
+    // if (isReactElement(template)) {
+    //   template.props.key = template.key
+    //   template.props.facade = template.type
+    //   template = template.props
+    // }
 
     // Some basic validation in dev mode
     if (process.env.NODE_ENV !== 'production') {
@@ -58,8 +72,11 @@ export default class List extends Facade {
     if (this.shouldUpdateChildren()) {
       let oldDict = this._itemsDict || null
       let newDict = this._itemsDict = hasData ? Object.create(null) : null
+      let orderedItemKeys = this._orderedItemKeys
 
       if (hasData) {
+        orderedItemKeys.length = data.length
+
         for (let i = 0, len = data.length; i < len; i++) {
           let childData = data[i]
           let key = template.key(childData, i, data)
@@ -109,6 +126,7 @@ export default class List extends Facade {
           }
           newImpl.afterUpdate()
           newDict[key] = newImpl
+          orderedItemKeys[i] = key
         }
       }
 
@@ -136,58 +154,34 @@ export default class List extends Facade {
 
   /**
    * Walk this facade's descendant tree, invoking a function for it and each descendant.
-   * The iteration order is _not_ guaranteed to match the order in which children/lists
-   * were declared. It may also include items that have been queued for removal but not
-   * yet removed, e.g. facades in the process of an `exitAnimation`.
+   * The iteration order will match the order in which the `data` items were declared. It may
+   * also include items that have been queued for removal but not yet removed, e.g. facades
+   * in the process of an `exitAnimation`.
    * @param {Function} fn
    * @param {Object} [thisArg]
    */
   traverse(fn, thisArg) {
     fn.call(thisArg, this)
+    let keys = this._orderedItemKeys
     let dict = this._itemsDict
-    if (dict) {
-      for (let key in dict) {
-        dict[key].traverse(fn, thisArg)
-      }
+    for (let i = 0, len = keys.length; i < len; i++) {
+      dict[keys[i]].traverse(fn, thisArg)
     }
   }
 
   /**
    * Iterate over this facade's direct child facades, invoking a function for each.
-   * The iteration order is _not_ guaranteed to match the order in which the `data` items
-   * were declared. It may also include items that have been queued for removal but not
-   * yet removed, e.g. facades in the process of an `exitAnimation`.
+   * The iteration order will match the order in which the `data` items were declared. It may
+   * also include items that have been queued for removal but not yet removed, e.g. facades
+   * in the process of an `exitAnimation`.
    * @param {Function} fn
    * @param {Object} [thisArg]
    */
   forEachChild(fn, thisArg) {
+    let keys = this._orderedItemKeys
     let dict = this._itemsDict
-    if (dict) {
-      for (let key in dict) {
-        fn.call(thisArg, dict[key], key)
-      }
-    }
-  }
-
-  /**
-   * Like `traverse`, but guarantees iteration in the same order as the `children` arrays
-   * and list `data` arrays.
-   * @param {Function} fn
-   * @param {Object} [thisArg]
-   */
-  traverseOrdered(fn, thisArg) {
-    fn.call(thisArg, this)
-    let data = this.data
-    let template = this.template
-    let dict = this._itemsDict
-    let hasData = data && data.length && Array.isArray(data)
-    if (hasData && template && dict) {
-      for (let i = 0, len = data.length; i < len; i++) {
-        let key = template.key(data[i], i, data)
-        if (key && dict[key]) {
-          dict[key].traverseOrdered(fn, thisArg)
-        }
-      }
+    for (let i = 0, len = keys.length; i < len; i++) {
+      fn.call(thisArg, dict[keys[i]], keys[i])
     }
   }
 

@@ -122,3 +122,14 @@ export function BasicThenable() {
   }
 }
 
+/**
+ * Determine whether a given object is a React element descriptor object, i.e. the
+ * result of a JSX transpilation to React.createElement().
+ * @param obj
+ * @return {boolean}
+ */
+export function isReactElement(obj) {
+  const t = obj.$$typeof
+  return (t && t.toString && t.toString() === 'Symbol(react.element)') || false
+}
+
