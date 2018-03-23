@@ -437,7 +437,23 @@ forOwn({
 }`)()
     })
   })
+})
 
+// ...and a special shortcut for uniform scale
+Object.defineProperty(Object3DFacade.prototype, 'scale', {
+  get() {
+    // can't guarantee scale was already uniform, so just use scaleX arbitrarily
+    return this.threeObject.scale.x
+  },
+  set(value) {
+    const scaleObj = this.threeObject.scale
+    if (value !== scaleObj.x || value !== scaleObj.y || value !== scaleObj.z) {
+      scaleObj.x = scaleObj.y = scaleObj.z = value
+      if (!this._matrixChanged) {
+        this._matrixChanged = true
+      }
+    }
+  }
 })
 
 
