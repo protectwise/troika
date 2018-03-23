@@ -1,9 +1,10 @@
 {
   "name": "troika",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "description": "Troika - a framework for managing Three.js scenes using point-in-time descriptors. Includes support for automatic transitions, animations, and pointer events.",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "main": "build/troika.js",
+  "module": "src/index.js",
   "jsnext:main": "build/troika.esmodule.js",
   "dependencies": {
     "easingjs": "^1.0.1",

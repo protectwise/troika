@@ -1,10 +1,15 @@
-// NOTE: Babel is only used for running unit tests; Buble is used for the browser build
+// NOTE: Babel is only used for running unit tests; Buble is used for the browser build.
+// Uses jest's BABEL_ENV=test for isolation
 {
-  "presets": [
-    ["env", {
-      "targets": {
-        "node": "current"
-      }
-    }]
-  ]
+  "env": {
+    "test": {
+      "presets": [
+        ["env", {
+          "targets": {
+            "node": "current"
+          }
+        }]
+      ]
+    }
+  }
 }
