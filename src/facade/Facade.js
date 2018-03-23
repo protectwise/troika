@@ -30,11 +30,12 @@ import {assign} from '../utils'
  * descriptor:
  *
  *   - `facade`: (required) a reference to the Facade class that will be instantiated.
- *   - `key`: (optional) an identifier that is unique amongst the descriptor's siblings, which
+ *   - `key`: (recommended) an identifier that is unique amongst the descriptor's siblings, which
  *     is used to associate the descriptor with its corresponding Facade instance. One will be
- *     assigned automatically if omitted, but it's preferable that you set one manually to ensure
+ *     assigned automatically if omitted, but it's recommended that you set one manually to ensure
  *     descriptors are predictably resolved to the same facade instances when siblings are being
- *     added or removed.
+ *     added or removed. Not doing so can lead to unnecessary facade destruction/creation and/or
+ *     unpredictable facade states.
  *   - `children`: (optional) for `Parent` facade subclasses, defines the child object descriptors.
  *   - `ref`: (optional) a function that will be called with a reference to the instantiated Facade
  *     on creation, and with `null` on destruction, allowing external code to maintain references
