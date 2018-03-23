@@ -6,6 +6,7 @@ import {MeshStandardMaterial} from 'three'
 
 const FONTS = {
   'Roboto': 'https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff',
+  'Noto Sans': 'https://fonts.gstatic.com/s/notosans/v7/o-0IIpQlx3QUlC5A4PNr5TRG.woff',
   //too thin: 'Alex Brush': 'https://fonts.gstatic.com/s/alexbrush/v8/SZc83FzrJKuqFbwMKk6EhUXz6w.woff',
   'Comfortaa': 'https://fonts.gstatic.com/s/comfortaa/v12/1Ptsg8LJRfWJmhDAuUs4TYFs.woff',
   'Cookie': 'https://fonts.gstatic.com/s/cookie/v8/syky-y18lb0tSbf9kgqU.woff',
@@ -46,7 +47,7 @@ class TextExample extends React.Component {
     super(props)
     this.state = {
       text: 'Lorem Ipsum',
-      font: 'Roboto',
+      font: 'Noto Sans',
       fontSize: 0.1, //10cm
       textScale: 1,
       lineHeight: 1.15,
