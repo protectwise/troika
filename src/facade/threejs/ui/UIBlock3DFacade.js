@@ -9,7 +9,7 @@ import { assign } from '../../../utils'
 const raycastMesh = new Mesh(new PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0))
 const tempMat4 = new Matrix4()
 const DEFAULT_FONT_SIZE = 16
-const DEFAULT_LINE_HEIGHT = 1.15
+const DEFAULT_LINE_HEIGHT = 'normal'
 
 /**
  * Represents a single block UI element, essentially just a 2D rectangular block that

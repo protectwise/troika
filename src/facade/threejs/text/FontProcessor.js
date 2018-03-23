@@ -125,7 +125,7 @@ export default function createFontProcessor(opentype, config) {
       font=defaultFontUrl,
       fontSize=1,
       letterSpacing=0,
-      lineHeight=1.15,
+      lineHeight='normal',
       maxWidth=INF,
       textAlign='left',
       whiteSpace='normal',
@@ -149,6 +149,12 @@ export default function createFontProcessor(opentype, config) {
       // Find conversion between native font units and fontSize units; this will already be done
       // for the gx/gy values below but everything else we'll need to convert
       const fontSizeMult = fontSize / fontObj.unitsPerEm
+
+      // Determine appropriate value for 'normal' line height based on the font's actual metrics
+      // TODO this does not guarantee individual glyphs won't exceed the line height, e.g. Roboto; should we use yMin/Max instead?
+      if (lineHeight === 'normal') {
+        lineHeight = (fontObj.ascender - fontObj.descender) / fontObj.unitsPerEm
+      }
 
       // Determine line height and leading adjustments
       lineHeight = lineHeight * fontSize

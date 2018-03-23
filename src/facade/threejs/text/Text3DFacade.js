@@ -39,18 +39,7 @@ class Text3DFacade extends Object3DFacade {
     mesh.renderOrder = Number.MAX_SAFE_INTEGER
 
     super(parent, mesh)
-
-    this.text = ''
-    this.font = null //will use default from TextBuilder
-    this.fontSize = 0.1
-    this.letterSpacing = 0
-    this.lineHeight = 1.15 //roughly matches a typical CSS 'normal' value
-    this.maxWidth = Infinity
-    this.depthOffset = 0
-    this.visible = true
-
-    this.material = defaultMaterial
-
+    
     this._textGeometry = geometry
     this._textInfoRequestId = 0
 
@@ -221,6 +210,18 @@ class Text3DFacade extends Object3DFacade {
     super.destructor()
   }
 }
+
+// Defaults
+assign(Text3DFacade.prototype, {
+  text: '',
+  font: null, //will use default from TextBuilder
+  fontSize: 0.1,
+  letterSpacing: 0,
+  lineHeight: 'normal',
+  maxWidth: Infinity,
+  depthOffset: 0,
+  material: defaultMaterial
+})
 
 
 function updateBufferAttrArray(attr, newArray) {
