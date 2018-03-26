@@ -113,6 +113,7 @@ class Text3DFacade extends Object3DFacade {
       uniforms.uTroikaSDFTexture.value = sdfTexture
       uniforms.uTroikaSDFMinDistancePct.value = textInfo.sdfMinDistancePercent
       uniforms.uTroikaGlyphVSize.value = sdfTexture.image.width / sdfTexture.image.height
+      uniforms.uTroikaTotalBounds.value.fromArray(textInfo.totalBounds)
     }
     uniforms.uTroikaSDFDebug.value = !!this.debugSDF
 
@@ -147,6 +148,7 @@ class Text3DFacade extends Object3DFacade {
         uTroikaSDFTexture: {value: null},
         uTroikaSDFMinDistancePct: {value: 0},
         uTroikaGlyphVSize: {value: 0},
+        uTroikaTotalBounds: {value: new Vector4()},
         uTroikaClipRect: {value: new Vector4()},
         uTroikaSDFDebug: {value: false}
       }, baseShaders.uniforms)
@@ -239,13 +241,14 @@ function upgradeShaders(vertexShader, fragmentShader, derivativesSupported) {
   vertexShader = expandShaderIncludes(vertexShader)
   fragmentShader = expandShaderIncludes(fragmentShader)
 
-  // Rename all 'position' attribute refs to a runtime variable so we can modify it
-  vertexShader = vertexShader.replace(/\bposition\b/g, (match, index, fullStr) => {
-    return /\battribute\s+vec3\s+$/.test(fullStr.substr(0, index)) ? match : 'troika_position'
+  // Rename all 'position' and 'uv' attribute refs to runtime variables so we can modify them
+  vertexShader = vertexShader.replace(/\b(?:position|uv)\b/g, (match, index, fullStr) => {
+    return /\battribute\s+vec[23]\s+$/.test(fullStr.substr(0, index)) ? match : `troika_${match}`
   })
 
   vertexShader = vertexShader.replace(voidMainRE, `
 uniform float uTroikaGlyphVSize;
+uniform vec4 uTroikaTotalBounds;
 attribute vec4 aTroikaGlyphBounds;
 attribute float aTroikaGlyphIndex;
 varying vec2 vTroikaGlyphUV;
@@ -264,6 +267,11 @@ vec3 troika_position = vec3(
   0.0
 );
 vTroikaLocalPos = vec3(troika_position);
+
+vec2 troika_uv = vec2( ${''/*TODO make this conditional on whether uv/vUv is actually used*/}
+  (troika_position.x - uTroikaTotalBounds.x) / (uTroikaTotalBounds.z - uTroikaTotalBounds.x),
+  (troika_position.y - uTroikaTotalBounds.y) / (uTroikaTotalBounds.w - uTroikaTotalBounds.y)
+);
 `
   )
 
