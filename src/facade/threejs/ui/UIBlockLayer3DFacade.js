@@ -5,6 +5,7 @@ import Object3DFacade from '../Object3DFacade'
 
 const geometry = new PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0)
 const defaultBgMaterial = new MeshBasicMaterial({color: 0})
+const noclip = Object.freeze(new Vector4())
 
 
 /**
@@ -46,6 +47,7 @@ class UIBlockLayer3DFacade extends Object3DFacade {
     const uniforms = layerMaterial.uniforms
     uniforms.uTroikaBlockSize.value = this.size
     uniforms.uTroikaCornerRadii.value = this.borderRadius
+    uniforms.uTroikaClipRect.value = this.clipRect || noclip
     if (this.isBorder) {
       uniforms.uTroikaBorderWidth.value = this.borderWidth
     }
@@ -83,6 +85,7 @@ class UIBlockLayer3DFacade extends Object3DFacade {
       }
       upgradedMaterial.uniforms = assignIf({ //create uniforms holders; their values will be set in onBeforeRender
         uTroikaBlockSize: {value: new Vector2()},
+        uTroikaClipRect: {value: new Vector4()},
         uTroikaCornerRadii: {value: new Vector4()},
         uTroikaBorderWidth: {value: new Vector4()}
       }, UniformsUtils.clone(baseShaders.uniforms))
@@ -135,6 +138,7 @@ vec3 troika_position = vec3(vec2(position.x, position.y) * uTroikaBlockSize, pos
   // Upgrade fragment shader
   fragmentShader = fragmentShader.replace(voidMainRE, `
 uniform vec2 uTroikaBlockSize;
+uniform vec4 uTroikaClipRect;
 uniform vec4 uTroikaCornerRadii;
 uniform vec4 uTroikaBorderWidth;
 varying vec2 vTroikaPosInBlock;
@@ -164,6 +168,7 @@ float troikaGetAlphaMultiplier() {
   vec4 rad = uTroikaCornerRadii;
   vec4 bdr = uTroikaBorderWidth;
   vec2 pos = vTroikaPosInBlock;
+  vec4 clip = uTroikaClipRect;
 
   float dOuter;
   float dInner;
@@ -190,6 +195,15 @@ float troikaGetAlphaMultiplier() {
     #ifdef TROIKA_UI_BORDER
     dInner = min(min(pos.x - bdr[3], pos.y - bdr[0]), min(dim.x - pos.x - bdr[1], dim.y - pos.y - bdr[2]));
     #endif
+  }
+  
+  // Clipping rect
+  if (clip != vec4(0.,0.,0.,0.)) {
+    float dClip = min(
+      min(pos.x - min(clip.x, clip.z), max(clip.x, clip.z) - pos.x),
+      min(pos.y - min(clip.y, clip.w), max(clip.y, clip.w) - pos.y)
+    );
+    dOuter = min(dOuter, dClip);
   }
 
   #ifdef GL_OES_standard_derivatives

@@ -16,23 +16,20 @@ const DEFAULT_LINE_HEIGHT = 'normal'
  * can contain text, be styled with background/border, and participate in flexbox layout.
  * Its behavior and styling is very much like an HTML element using flexbox.
  */
-class UIBlock3DFacade extends extendAsFlexNode(Group3DFacade) {
+class UIBlock3DFacade extends Group3DFacade {
   constructor(parent) {
     super(parent)
 
     // Create rendering layer child definitions
     // These live separate from the main `children` tree
-    const depth = this.flexNodeDepth
     this.bgLayer = {
       key: 'bg',
-      facade: UIBlockLayer3DFacade,
-      depthOffset: -depth
+      facade: UIBlockLayer3DFacade
     }
     this.borderLayer = {
       key: 'border',
       facade: UIBlockLayer3DFacade,
-      isBorder: true,
-      depthOffset: -depth - 1
+      isBorder: true
     }
     this.layers = new Group3DFacade(this)
     this.layers.children = [null, null]
@@ -40,11 +37,11 @@ class UIBlock3DFacade extends extendAsFlexNode(Group3DFacade) {
     // Create child def for text node
     this.textChild = {
       key: 'text',
-      facade: UITextNode3DFacade,
-      depthOffset: -depth - 2
+      facade: UITextNode3DFacade
     }
 
     this._sizeVec2 = new Vector2()
+    this._clipRectVec4 = new Vector4()
     this._borderWidthVec4 = new Vector4()
     this._borderRadiiVec4 = new Vector4()
     ;(this._geomBoundingSphere = new Sphere()).version = 0
@@ -66,7 +63,10 @@ class UIBlock3DFacade extends extendAsFlexNode(Group3DFacade) {
       offsetTop,
       offsetWidth,
       offsetHeight,
+      parentFlexNode,
+      flexNodeDepth,
       _borderWidthVec4,
+      _clipRectVec4,
       _sizeVec2
     } = this
     const hasLayout = offsetWidth !== null
@@ -75,11 +75,10 @@ class UIBlock3DFacade extends extendAsFlexNode(Group3DFacade) {
     const hasBorder = hasNonZeroSize && (borderColor != null || borderMaterial != null) && Math.max(...borderWidth) > 0
 
     // Update the block's element and size from flexbox computed values
-    // TODO pass left/top as uniforms to avoid matrix recalcs
     if (hasLayout) {
-      if (this.parentFlexNode) {
-        this.x = offsetLeft
-        this.y = -offsetTop
+      if (parentFlexNode) {
+        this.x = offsetLeft - parentFlexNode.scrollLeft
+        this.y = -(offsetTop - parentFlexNode.scrollTop)
       }
       if (offsetWidth !== _sizeVec2.x || offsetHeight !== _sizeVec2.y) {
         _sizeVec2.set(offsetWidth, offsetHeight)
@@ -92,11 +91,10 @@ class UIBlock3DFacade extends extendAsFlexNode(Group3DFacade) {
       }
     }
 
-    // Get normalized border radii Vector4
+    // Update shared vector objects for the sublayers
     const radii = (hasBg || hasBorder) ? this._normalizeBorderRadius() : null
-
-    // Get normalized border widths Vector4
     _borderWidthVec4.fromArray(borderWidth)
+    _clipRectVec4.set(this.clipLeft, this.clipTop, this.clipRight, this.clipBottom)
 
     // Update rendering layers...
     if (hasBg) {
@@ -104,6 +102,8 @@ class UIBlock3DFacade extends extendAsFlexNode(Group3DFacade) {
       bgLayer.color = backgroundColor
       bgLayer.borderRadius = radii
       bgLayer.material = backgroundMaterial
+      bgLayer.clipRect = _clipRectVec4
+      bgLayer.depthOffset = -flexNodeDepth
       // bgLayer.castShadow = this.castShadow
       // bgLayer.receiveShadow = this.receiveShadow
     } else {
@@ -117,6 +117,8 @@ class UIBlock3DFacade extends extendAsFlexNode(Group3DFacade) {
       borderLayer.borderWidth = _borderWidthVec4
       borderLayer.borderRadius = radii
       borderLayer.material = borderMaterial
+      borderLayer.clipRect = _clipRectVec4
+      borderLayer.depthOffset = -flexNodeDepth - 1
       // borderLayer.castShadow = this.castShadow
       // borderLayer.receiveShadow = this.receiveShadow
     } else {
@@ -125,8 +127,8 @@ class UIBlock3DFacade extends extendAsFlexNode(Group3DFacade) {
     layers.children[1] = borderLayer
 
     // Allow text to be specified as a single string child
-    if (!text && typeof this.children === 'string') {
-      text = this.children
+    if (!text && isTextNodeChild(this.children)) {
+      text = '' + this.children
     }
     // Update text child...
     if (text) {
@@ -140,6 +142,7 @@ class UIBlock3DFacade extends extendAsFlexNode(Group3DFacade) {
       textChild.overflowWrap = getInheritable(this, 'overflowWrap')
       textChild.color = getInheritable(this, 'color')
       textChild.material = this.textMaterial
+      textChild.depthOffset = -flexNodeDepth - 1
       // textChild.castShadow = this.castShadow
       // textChild.receiveShadow = this.receiveShadow
       this.children = textChild //NOTE: text content will clobber any other defined children
@@ -148,13 +151,13 @@ class UIBlock3DFacade extends extendAsFlexNode(Group3DFacade) {
       let children = this.children
       if (Array.isArray(children)) {
         for (let i = 0, len = children.length; i < len; i++) {
-          if (typeof children[i] === 'string') {
+          if (isTextNodeChild(children[i])) {
             children = this.children = children.slice()
             for (; i < len; i++) { //continue from here
-              if (typeof children[i] === 'string') {
+              if (isTextNodeChild(children[i])) {
                 children[i] = {
-                  facade: UIBlock3DFacade,
-                  text: children[i],
+                  facade: UIBlock3DFacade$FlexNode,
+                  text: '' + children[i],
                   textMaterial: this.textMaterial
                 }
               }
@@ -166,7 +169,9 @@ class UIBlock3DFacade extends extendAsFlexNode(Group3DFacade) {
     }
 
     // Add mousewheel listener if scrollable
-    const canScroll = this.scrollHeight > this.clientHeight
+    const canScroll = hasNonZeroSize && (
+      this.scrollHeight > this.clientHeight || this.scrollWidth > this.clientWidth
+    )
     this.onWheel = canScroll ? wheelHandler : null
     // TODO scroll via drag:
     // this.onDragStart = canScroll ? dragStartHandler : null
@@ -176,7 +181,7 @@ class UIBlock3DFacade extends extendAsFlexNode(Group3DFacade) {
     super.afterUpdate()
     layers.afterUpdate()
   }
-  
+
   _normalizeBorderRadius() {
     const {
       borderRadius:input,
@@ -273,6 +278,10 @@ class UIBlock3DFacade extends extendAsFlexNode(Group3DFacade) {
     super.destructor()
   }
 }
+
+// Extend as FlexNode
+const UIBlock3DFacade$FlexNode = UIBlock3DFacade = extendAsFlexNode(UIBlock3DFacade)
+
 assign(UIBlock3DFacade.prototype, {
   font: 'inherit',
   fontSize: 'inherit',
@@ -294,17 +303,26 @@ function wheelHandler(e) {
     deltaX *= lineSize
     deltaY *= lineSize
   }
-  facade.scrollLeft = Math.max(0, Math.min(
+  const scrollLeft = Math.max(0, Math.min(
     facade.scrollWidth - facade.clientWidth,
     facade.scrollLeft + deltaX
   ))
-  facade.scrollTop = Math.max(0, Math.min(
+  const scrollTop = Math.max(0, Math.min(
     facade.scrollHeight - facade.clientHeight,
     facade.scrollTop + deltaY
   ))
+  if (scrollLeft !== this.scrollLeft || scrollTop !== this.scrollTop) {
+    this.scrollLeft = scrollLeft
+    this.scrollTop = scrollTop
+    e.stopPropagation() //only scroll deepest
+  }
   facade.afterUpdate()
   facade.notifyWorld('needsRender')
   e.preventDefault()
+}
+
+function isTextNodeChild(child) {
+  return typeof child === 'string' || typeof child === 'number'
 }
 
 

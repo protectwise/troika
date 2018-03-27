@@ -10,7 +10,7 @@ const flexLayoutTextProps = ['text', 'font', 'fontSize', 'lineHeight', 'letterSp
  * directly, but will be created as an implicit child by {@link UIBlock3DFacade} when
  * configured with a `text` property.
  */
-class UITextNode3DFacade extends extendAsFlexNode(Text3DFacade) {
+class UITextNode3DFacade extends Text3DFacade {
   afterUpdate() {
     // Read computed layout
     const {
@@ -22,18 +22,17 @@ class UITextNode3DFacade extends extendAsFlexNode(Text3DFacade) {
     // Update position and size if flex layout has been completed
     const hasLayout = offsetWidth !== null
     if (hasLayout) {
-      let {clientLeft, clientTop, clientWidth, clientHeight, scrollLeft, scrollTop} = this.parentFlexNode
-      //scrollLeft = scrollTop = 0
-      this.x = offsetLeft - scrollLeft
-      this.y = -(offsetTop - scrollTop)
+      let parent = this.parentFlexNode
+      this.x = offsetLeft - parent.scrollLeft
+      this.y = -(offsetTop - parent.scrollTop)
       this.maxWidth = offsetWidth
 
       // Update clip rect based on parent
       const clipRect = this.clipRect || (this.clipRect = [0, 0, 0, 0])
-      clipRect[0] = clientLeft - offsetLeft + scrollLeft
-      clipRect[1] = -(clientTop - offsetTop + scrollTop)
-      clipRect[2] = clipRect[0] + clientWidth
-      clipRect[3] = clipRect[1] - clientHeight
+      clipRect[0] = this.clipLeft
+      clipRect[1] = -this.clipBottom
+      clipRect[2] = this.clipRight
+      clipRect[3] = -this.clipTop
     }
 
     // Check text props that could affect flex layout
@@ -57,6 +56,9 @@ class UITextNode3DFacade extends extendAsFlexNode(Text3DFacade) {
     return null //parent UIBlock3DFacade will handle bounding sphere and raycasting
   }
 }
+
+// Extend as FlexNode
+UITextNode3DFacade = extendAsFlexNode(UITextNode3DFacade)
 
 // Redefine the maxWidth property so it's not treated as a setter that affects flexbox layout
 Object.defineProperty(UITextNode3DFacade.prototype, 'maxWidth', {

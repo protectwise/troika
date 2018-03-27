@@ -59,6 +59,10 @@ import {assign, createClassExtender} from '../../../utils'
  * - scrollTop
  * - scrollWidth
  * - scrollHeight
+ * - clipLeft
+ * - clipTop
+ * - clipRight
+ * - clipBottom
  * (All of these are `null` initially and then numbers after the layout completes, except
  * scrollLeft and scrollTop which are `0` initially.)
  *
@@ -98,13 +102,10 @@ export const extendAsFlexNode = createClassExtender('flexNode', BaseFacadeClass 
     }
 
     afterUpdate() {
-      // Constrain scroll when the contain shrinks
-      if (this._needsOverscrollCheck) {
-        if (this.scrollLeft || this.scrollTop) {
-          this.scrollLeft = Math.min(this.scrollLeft, this.scrollWidth - this.clientWidth)
-          this.scrollTop = Math.min(this.scrollTop, this.scrollHeight - this.clientHeight)
-        }
-        this._needsOverscrollCheck = false
+      // Keep max scroll and clip rects in sync
+      if (this.offsetWidth != null) {
+        this._checkOverscroll()
+        this._updateClipRect()
       }
 
       super.afterUpdate()
@@ -186,7 +187,6 @@ export const extendAsFlexNode = createClassExtender('flexNode', BaseFacadeClass 
 
             // Scrolling metrics
             facade.scrollHeight = facade.scrollWidth = 0
-            facade._needsOverscrollCheck = true
             const parent = facade.parentFlexNode
             if (parent) {
               parent.scrollWidth = Math.max(parent.scrollWidth, left + width - parent.clientLeft)
@@ -195,6 +195,54 @@ export const extendAsFlexNode = createClassExtender('flexNode', BaseFacadeClass 
           }
         }
       })
+    }
+
+    _checkOverscroll() {
+      const {scrollLeft, scrollTop} = this
+      if (scrollLeft || scrollTop) {
+        const maxScrollLeft = Math.max(0, this.scrollWidth - this.clientWidth)
+        const maxScrollTop = Math.max(0, this.scrollHeight - this.clientHeight)
+        if (maxScrollLeft < scrollLeft) {
+          this.scrollLeft = maxScrollLeft
+        }
+        if (maxScrollTop < scrollTop) {
+          this.scrollTop = maxScrollTop
+        }
+      }
+    }
+
+    _updateClipRect() {
+      let child = this
+      let parent = child.parentFlexNode
+      let totalOffsetLeft = 0
+      let totalOffsetTop = 0
+      const negInf = -Infinity
+      let maxInsetLeft = negInf
+      let maxInsetTop = negInf
+      let maxInsetRight = negInf
+      let maxInsetBottom = negInf
+
+      while (parent) {
+        totalOffsetLeft += child.offsetLeft - parent.scrollLeft
+        totalOffsetTop += child.offsetTop - parent.scrollTop
+
+        const insetLeft = parent.clientLeft - totalOffsetLeft
+        const insetTop = parent.clientTop - totalOffsetTop
+        const insetRight = (totalOffsetLeft + this.offsetWidth) - (parent.clientLeft + parent.clientWidth)
+        const insetBottom = (totalOffsetTop + this.offsetHeight) - (parent.clientTop + parent.clientHeight)
+        if (insetLeft > maxInsetLeft) maxInsetLeft = insetLeft
+        if (insetTop > maxInsetTop) maxInsetTop = insetTop
+        if (insetRight > maxInsetRight) maxInsetRight = insetRight
+        if (insetBottom > maxInsetBottom) maxInsetBottom = insetBottom
+
+        child = parent
+        parent = parent.parentFlexNode
+      }
+
+      this.clipLeft = maxInsetLeft
+      this.clipTop = maxInsetTop
+      this.clipRight = this.offsetWidth - maxInsetRight
+      this.clipBottom = this.offsetHeight - maxInsetBottom
     }
 
     /**
@@ -220,7 +268,11 @@ export const extendAsFlexNode = createClassExtender('flexNode', BaseFacadeClass 
     scrollLeft: 0,
     scrollTop: 0,
     scrollWidth: null,
-    scrollHeight: null
+    scrollHeight: null,
+    clipLeft: null,
+    clipTop: null,
+    clipRight: null,
+    clipBottom: null
   })
 
   // Setters for simple flex layout properties that can be copied directly into the
@@ -258,7 +310,8 @@ export const extendAsFlexNode = createClassExtender('flexNode', BaseFacadeClass 
           this._flexStyles[prop] = value
           this.needsFlexLayout = true
         }
-      }
+      },
+      configurable: true
     })
   })
 
