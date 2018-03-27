@@ -17,7 +17,7 @@
  */
 
 import {Matrix4, PerspectiveCamera, Quaternion, Ray, Raycaster, Vector2, Vector3, Vector4} from 'three'
-
+import {createClassExtender} from '../../../utils'
 
 const tempMat4 = new Matrix4()
 const tempQuat = new Quaternion()
@@ -26,17 +26,8 @@ const tempVec3 = new Vector3()
 const tempRaycaster = new Raycaster()
 
 
-export function getVrCameraClassFor(BaseCamFacadeClass) {
-  let decorated = BaseCamFacadeClass.$vrCamDecoratorClass
-  if (!decorated || decorated.$baseFacadeClass !== BaseCamFacadeClass) { //bidir check due to inheritance of statics
-    decorated = BaseCamFacadeClass.$vrCamDecoratorClass = createVrCameraClassFor(BaseCamFacadeClass)
-    console.log('decorated vr camera class')
-  }
-  return decorated
-}
-
-export function createVrCameraClassFor(BaseCamFacadeClass) {
-  class VrCameraDecorator extends BaseCamFacadeClass {
+export const extendAsVrCamera = createClassExtender('vrCamera', function(BaseCamFacadeClass) {
+  class VrCamera extends BaseCamFacadeClass {
     constructor(parent) {
       super(parent)
 
@@ -140,10 +131,8 @@ export function createVrCameraClassFor(BaseCamFacadeClass) {
     }
   }
 
-  VrCameraDecorator.$baseFacadeClass = BaseCamFacadeClass
-
-  return VrCameraDecorator
-}
+  return VrCamera
+})
 
 
 

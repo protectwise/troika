@@ -4,7 +4,7 @@ import WorldBaseFacade from '../WorldBaseFacade'
 import Scene3DFacade from './Scene3DFacade'
 import {PerspectiveCamera3DFacade} from './Camera3DFacade'
 import {BoundingSphereOctree} from './BoundingSphereOctree'
-import {getVrCameraClassFor} from './vr/VrCameraDecorator'
+import {extendAsVrCamera} from './vr/VrCamera'
 import {VrControllerManager} from './vr/VrControllerManager'
 
 
@@ -64,7 +64,7 @@ class World3DFacade extends WorldBaseFacade {
     if (vrDisplay) {
       // Wrap configured camera with VR camera decorator
       camera = assignIf({
-        facade: getVrCameraClassFor(camera.facade),
+        facade: extendAsVrCamera(camera.facade),
         vrDisplay
       }, camera)
 
