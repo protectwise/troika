@@ -119,6 +119,24 @@ export default class Facade {
   }
 
   /**
+   * Add an event listener for the given event type.
+   * @param {String} type
+   * @param {Function} handler
+   */
+  addEventListener(type, handler) {
+    this.notifyWorld('addEventListener', {type, handler})
+  }
+
+  /**
+   * Remove an event listener for the given event type.
+   * @param {String} type
+   * @param {Function} handler
+   */
+  removeEventListener(type, handler) {
+    this.notifyWorld('removeEventListener', {type, handler})
+  }
+
+  /**
    * Called when the instance is being removed from the scene. Override this to implement any
    * custom cleanup logic.
    */
@@ -157,23 +175,26 @@ export function isSpecialDescriptorProperty(name) {
  * Define a property name as an event handler for a given Facade class, so that it
  * automatically updates the global event registry when set.
  * @param facadeClass
- * @param eventName
+ * @param propName
  */
-export function defineEventProperty(facadeClass, eventName) {
-  let privateProp = `${eventName}➤handler`
-  Object.defineProperty(facadeClass.prototype, eventName, {
+export function defineEventProperty(facadeClass, propName, eventType) {
+  let privateProp = `${propName}➤handler`
+  Object.defineProperty(facadeClass.prototype, propName, {
     get() {
       return this[privateProp]
     },
     set(handler) {
-      if ((handler || null) !== (this[privateProp] || null)) {
+      const oldHandler = this[privateProp]
+      if ((handler || null) !== (oldHandler || null)) {
+        // Remove old listener
+        if (oldHandler) {
+          this.removeEventListener(eventType, oldHandler)
+        }
+        // Add new listener
+        if (handler) {
+          this.addEventListener(eventType, handler)
+        }
         this[privateProp] = handler
-
-        // Add/remove from the global event registry
-        this.notifyWorld(handler ? 'addEventListener' : 'removeEventListener', {
-          type: eventName,
-          handler: handler
-        })
       }
     }
   })

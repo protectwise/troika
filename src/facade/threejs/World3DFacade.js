@@ -112,13 +112,13 @@ class World3DFacade extends WorldBaseFacade {
     function invokeHandler(handler) {
       handler(renderer, scene, camera)
     }
-    registry.forEachListenerOfType('onBeforeRender', invokeHandler, this)
+    registry.forEachListenerOfType('beforerender', invokeHandler, this)
 
     // Render scene
     renderer.render(scene, camera)
 
     // Invoke any onAfterRender listeners
-    registry.forEachListenerOfType('onAfterRender', invokeHandler, this)
+    registry.forEachListenerOfType('afterrender', invokeHandler, this)
 
     // Submit VR frame
     if (this._isInVR()) {

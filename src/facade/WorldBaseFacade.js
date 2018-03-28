@@ -1,20 +1,30 @@
 import ParentFacade from './ParentFacade'
 import EventRegistry from './EventRegistry'
-import {pointerActionEventProps, pointerMotionEventProps} from './PointerEventTarget'
+import {pointerActionEventTypes, pointerMotionEventTypes} from './PointerEventTarget'
 
 const TAP_DISTANCE_THRESHOLD = 10
 const TAP_GESTURE_MAX_DUR = 300
 const TAP_DBLCLICK_MAX_DUR = 300
 
-const pointerActionEventTypesToProps = {
-  'click': 'onClick',
-  'dblclick': 'onDoubleClick',
-  'mousedown': 'onMouseDown',
-  'mouseup': 'onMouseUp',
-  'wheel': 'onWheel',
-  'touchstart': 'onMouseDown',
-  'touchend': 'onMouseUp',
-  'touchcancel': 'onMouseUp'
+const domPointerMotionEventTypes = [
+  'mousemove',
+  'mouseout',
+  'touchmove'
+]
+const domPointerActionEventTypes = [
+  'mousedown',
+  'mouseup',
+  'click',
+  'dblclick',
+  'wheel',
+  'touchstart',
+  'touchend',
+  'touchcancel'
+]
+const pointerActionEventTypeMappings = {
+  'touchstart': 'mousedown',
+  'touchend': 'mouseup',
+  'touchcancel': 'mouseup'
 }
 
 const touchDragPropsToNormalize = ['clientX', 'clientY', 'screenX', 'screenY', 'pageX', 'pageY']
@@ -56,37 +66,6 @@ class SyntheticEvent {
     this.propagationStopped = true
     this.nativeEvent.stopPropagation()
   }
-}
-
-function firePointerEvent(handlerProp, nativeEvent, targetFacade, relatedTargetFacade, extra) {
-  let newEvent = new SyntheticEvent(
-    nativeEvent,
-    handlerProp.replace(/^on/, '').toLowerCase(),
-    targetFacade,
-    relatedTargetFacade,
-    extra
-  )
-  // Dispatch with bubbling
-  // TODO genericize bubbling for future non-pointer-related events
-  let currentTarget = targetFacade
-  while (currentTarget && !newEvent.propagationStopped) { //TODO should defaultPrevented mean anything here?
-    let handler = currentTarget[handlerProp]
-    if (handler) {
-      newEvent.currentTarget = currentTarget
-      handler.call(currentTarget, newEvent)
-    }
-    currentTarget = currentTarget.parent
-  }
-}
-
-function hasEventHandlerInParentTree(targetFacade, eventProp) {
-  while (targetFacade) {
-    if (targetFacade[eventProp]) {
-      return true
-    }
-    targetFacade = targetFacade.parent
-  }
-  return false
 }
 
 function isTouchEndOrCancel(e) {
@@ -214,15 +193,14 @@ class WorldBaseFacade extends ParentFacade {
   }
 
   _onPointerMotionEvent(e) {
-    if (pointerMotionEventProps.some(this.eventRegistry.hasListenersOfType)) {
+    if (pointerMotionEventTypes.some(this.eventRegistry.hasAnyListenersOfType)) {
       let dragInfo = this.$dragInfo
       if (dragInfo) {
         if (!dragInfo.dragStartFired) {
-          let handler = dragInfo.draggedFacade.onDragStart
-          if (handler) handler(dragInfo.dragStartEvent)
+          this._firePointerEvent('dragstart', dragInfo.dragStartEvent, dragInfo.draggedFacade, null, null)
           dragInfo.dragStartFired = true
         }
-        firePointerEvent('onDrag', e, dragInfo.draggedFacade, null, null)
+        this._firePointerEvent('drag', e, dragInfo.draggedFacade, null, null)
       }
 
       let lastHovered = this.$hoveredFacade
@@ -230,22 +208,22 @@ class WorldBaseFacade extends ParentFacade {
       let hovered = this.$hoveredFacade = hoverInfo && hoverInfo.facade
       if (hovered !== lastHovered) {
         if (lastHovered) {
-          firePointerEvent('onMouseOut', e, lastHovered, hovered, hoverInfo)
+          this._firePointerEvent('mouseout', e, lastHovered, hovered, hoverInfo)
           if (dragInfo) {
-            firePointerEvent('onDragLeave', e, lastHovered, hovered, hoverInfo)
+            this._firePointerEvent('dragleave', e, lastHovered, hovered, hoverInfo)
           }
         }
         if (hovered) {
-          firePointerEvent('onMouseOver', e, hovered, lastHovered, hoverInfo)
+          this._firePointerEvent('mouseover', e, hovered, lastHovered, hoverInfo)
           if (dragInfo) {
-            firePointerEvent('onDragEnter', e, hovered, lastHovered, hoverInfo)
+            this._firePointerEvent('dragenter', e, hovered, lastHovered, hoverInfo)
           }
         }
       }
       if (hovered) {
-        firePointerEvent('onMouseMove', e, hovered, null, hoverInfo)
+        this._firePointerEvent('mousemove', e, hovered, null, hoverInfo)
         if (dragInfo) {
-          firePointerEvent('onDragOver', e, hovered, null, hoverInfo)
+          this._firePointerEvent('dragover', e, hovered, null, hoverInfo)
         }
       }
     }
@@ -269,14 +247,15 @@ class WorldBaseFacade extends ParentFacade {
       this._enableContextMenu(false)
     }
 
-    if (this.eventRegistry.hasListenersOfType('onDragStart') || pointerActionEventProps.some(this.eventRegistry.hasListenersOfType)) {
+    const eventRegistry = this.eventRegistry
+    if (eventRegistry.hasAnyListenersOfType('dragstart') || pointerActionEventTypes.some(eventRegistry.hasAnyListenersOfType)) {
       let hoverInfo = this._findHoverTarget(e)
       let facade = hoverInfo && hoverInfo.facade
       if (facade) {
-        firePointerEvent(pointerActionEventTypesToProps[e.type], e, facade, null, hoverInfo)
+        this._firePointerEvent(pointerActionEventTypeMappings[e.type] || e.type, e, facade, null, hoverInfo)
 
-        // touchstart/touchend could be start/end of a tap - map to onClick
-        if (hasEventHandlerInParentTree(facade, 'onClick') || hasEventHandlerInParentTree(facade, 'onDoubleClick')) {
+        // touchstart/touchend could be start/end of a tap - map to click
+        if (this._hasEventHandlerInParentTree(facade, 'click') || this._hasEventHandlerInParentTree(facade, 'dblclick')) {
           let tapInfo = this.$tapInfo
           if (e.type === 'touchstart' && e.touches.length === 1) {
             this.$tapInfo = {
@@ -292,9 +271,9 @@ class WorldBaseFacade extends ParentFacade {
               e.touches.length === 0 && e.changedTouches.length === 1 &&
               Date.now() - tapInfo.startTime < TAP_GESTURE_MAX_DUR
             ) {
-              firePointerEvent('onClick', e, facade, null, hoverInfo)
+              this._firePointerEvent('click', e, facade, null, hoverInfo)
               if (tapInfo.isDblClick) {
-                firePointerEvent('onDoubleClick', e, facade, null, hoverInfo)
+                this._firePointerEvent('dblclick', e, facade, null, hoverInfo)
               }
             }
           }
@@ -330,12 +309,45 @@ class WorldBaseFacade extends ParentFacade {
       let hoverInfo = e.target === this._element && this._findHoverTarget(e)
       let targetFacade = hoverInfo && hoverInfo.facade
       if (targetFacade) {
-        firePointerEvent('onDrop', e, targetFacade, null, hoverInfo)
+        this._firePointerEvent('drop', e, targetFacade, null, hoverInfo)
       }
-      firePointerEvent('onDragEnd', e, dragInfo.draggedFacade, null, hoverInfo)
+      this._firePointerEvent('dragend', e, dragInfo.draggedFacade, null, hoverInfo)
       this._toggleDropListeners(false)
       this.$dragInfo = null
     }
+  }
+
+  _firePointerEvent(eventType, originalEvent, targetFacade, relatedTargetFacade, extra) {
+    let newEvent = (originalEvent instanceof SyntheticEvent) ?
+      originalEvent :
+      new SyntheticEvent(
+        originalEvent,
+        eventType,
+        targetFacade,
+        relatedTargetFacade,
+        extra
+      )
+    // Dispatch with bubbling
+    // TODO genericize bubbling for future non-pointer-related events
+    let currentTarget = targetFacade
+    function callHandler(handler) {
+      handler.call(currentTarget, newEvent)
+    }
+    while (currentTarget && !newEvent.propagationStopped) { //TODO should defaultPrevented mean anything here?
+      newEvent.currentTarget = currentTarget
+      this.eventRegistry.forEachFacadeListenerOfType(currentTarget, eventType, callHandler, null)
+      currentTarget = currentTarget.parent
+    }
+  }
+
+  _hasEventHandlerInParentTree(targetFacade, eventType) {
+    while (targetFacade) {
+      if (this.eventRegistry.hasFacadeListenersOfType(eventType)) {
+        return true
+      }
+      targetFacade = targetFacade.parent
+    }
+    return false
   }
 
   _toggleDropListeners(on) {
@@ -348,10 +360,10 @@ class WorldBaseFacade extends ParentFacade {
     let canvas = this._element
     if (canvas) {
       let method = (on ? 'add' : 'remove') + 'EventListener'
-      ;['mousemove', 'mouseout', 'touchmove'].forEach(type => {
+      domPointerMotionEventTypes.forEach(type => {
         canvas[method](type, this._onPointerMotionEvent, false)
       })
-      Object.keys(pointerActionEventTypesToProps).forEach(type => {
+      domPointerActionEventTypes.forEach(type => {
         canvas[method](type, this._onPointerActionEvent, false)
       })
     }
@@ -393,7 +405,7 @@ class WorldBaseFacade extends ParentFacade {
       // Find nearest that should intercept mouse events
       for (let i = 0; i < allHits.length; i++) {
         let facade = allHits[i].facade
-        if (facade.isPointerEventTarget && facade.interceptsPointerEvents()) {
+        if (facade.isPointerEventTarget && facade.interceptsPointerEvents(this.eventRegistry)) {
           return allHits[i]
         }
       }
@@ -423,7 +435,7 @@ WorldBaseFacade.prototype._notifyWorldHandlers = {
     this.eventRegistry.addListenerForFacade(source, data.type, data.handler)
   },
   removeEventListener(source, data) {
-    this.eventRegistry.removeListenerForFacade(source, data.type)
+    this.eventRegistry.removeListenerForFacade(source, data.type, data.handler)
   },
   removeAllEventListeners(source) {
     this.eventRegistry.removeAllListenersForFacade(source)

@@ -472,8 +472,8 @@ assign(Object3DFacade.prototype, {
 })
 
 // Define onBeforeRender/onAfterRender event handler properties
-defineEventProperty(Object3DFacade, 'onBeforeRender')
-defineEventProperty(Object3DFacade, 'onAfterRender')
+defineEventProperty(Object3DFacade, 'onBeforeRender', 'beforerender')
+defineEventProperty(Object3DFacade, 'onAfterRender', 'afterrender')
 
 
 export default Object3DFacade

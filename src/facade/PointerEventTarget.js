@@ -25,8 +25,15 @@ export const pointerActionEventProps = [
   'onWheel'
 ]
 
-export const pointerEventProps = pointerMotionEventProps.concat(pointerActionEventProps)
+export const pointerActionEventTypes = pointerActionEventProps.map(eventPropToType)
+export const pointerMotionEventTypes = pointerMotionEventProps.map(eventPropToType)
 
+export const pointerEventProps = pointerMotionEventProps.concat(pointerActionEventProps)
+export const pointerEventTypes = pointerMotionEventTypes.concat(pointerActionEventTypes)
+
+function eventPropToType(prop) {
+  return prop === 'onDoubleClick' ? 'dblclick' : prop.replace(/^on/, '').toLowerCase()
+}
 
 
 class PointerEventTarget extends ParentFacade {
@@ -36,15 +43,15 @@ class PointerEventTarget extends ParentFacade {
    * - If an object should definitely block events from objects behind it, set `pointerEvents:true`
    * - If an object has one of the pointer event properties but should be ignored in picking, set `pointerEvents:false`
    */
-  interceptsPointerEvents() {
+  interceptsPointerEvents(eventRegistry) {
     if (this.pointerEvents === false) {
       return false
     }
     if (this.pointerEvents) {
       return true
     }
-    for (let i = pointerEventProps.length; i--;) {
-      if (this[pointerEventProps[i]]) {
+    for (let i = 0, len = pointerEventTypes.length; i < len; i++) {
+      if (eventRegistry.hasFacadeListenersOfType(this, pointerEventTypes[i])) {
         return true
       }
     }
@@ -56,8 +63,8 @@ Object.defineProperty(PointerEventTarget.prototype, 'isPointerEventTarget', {val
 
 
 // Add handlers for pointer event properties
-pointerEventProps.forEach(eventName => {
-  defineEventProperty(PointerEventTarget, eventName)
+pointerEventProps.forEach(propName => {
+  defineEventProperty(PointerEventTarget, propName, eventPropToType(propName))
 })
 
 export default PointerEventTarget
