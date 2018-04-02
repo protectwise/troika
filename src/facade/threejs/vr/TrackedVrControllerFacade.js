@@ -81,17 +81,17 @@ export default class TrackedVrController extends VrController {
     // For now, only handle 2 axes, assume they're in x-y order, and map to wheel events.
     // TODO investigate better mapping
     const axes = gamepad.axes
-    for (let i = 0; i < 2; i++) {
-      if (axes[i]) {
-        if (!ray) ray = this.getPointerRay()
-        this.notifyWorld('pointerRayAction', {
-          ray,
-          type: 'wheel',
-          deltaX: i === 0 ? axes[i] * 10 : 0,
-          deltaY: i === 1 ? axes[i] * 10 : 0,
-          deltaMode: 0 //pixel mode
-        })
-      }
+    const deltaX = (axes[0] || 0) * 10
+    const deltaY = (axes[1] || 0) * 10
+    if (deltaX || deltaY) {
+      if (!ray) ray = this.getPointerRay()
+      this.notifyWorld('pointerRayAction', {
+        ray,
+        type: 'wheel',
+        deltaX,
+        deltaY,
+        deltaMode: 0 //pixel mode
+      })
     }
 
     super.onBeforeRender()
