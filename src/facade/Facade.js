@@ -42,8 +42,14 @@ import {assign} from '../utils'
  *     to individual facades.
  *   - `transition`: (optional) defines a set of properties that should be transitioned smoothly
  *     when their value changes. See `Animatable` for more details.
- *   - `animation`: (optional) defines one or more keyframe animations. See `Animatable` for more details.
- *   - `exitAnimation`: (optional) defines a keyframe animation to run when the facade is removed from its parent.
+ *   - `animation`: (optional) defines one or more keyframe animations. See `Animatable` for more
+ *     details.
+ *   - `exitAnimation`: (optional) defines a keyframe animation to run when the facade is removed
+ *     from its parent.
+ *   - `pointerStates`: (optional) defines sets of property values that should be used in place
+ *     of those defined on the main object, when the user's pointer (mouse, touch, vr controller,
+ *     etc.) is in `hover` or `active` interaction state with the facade. See `PointerStates`
+ *     for more details.
  *
  * It is also possible to define facade descriptors using JSX (https://reactjs.org/docs/introducing-jsx.html),
  * if it is precompiled to `React.createElement` calls. In this case, use the facade class as the JSX

@@ -1,6 +1,6 @@
-import Facade, {isSpecialDescriptorProperty} from './Facade'
-import {extendAsAnimatable} from './Animatable'
-//import { isReactElement } from '../utils'
+import Facade, { isSpecialDescriptorProperty } from './Facade'
+import { extendAsAnimatable } from './Animatable'
+import { extendAsPointerStatesAware } from './PointerStates'
 
 let warnedAboutClassToFacade = false
 
@@ -104,6 +104,12 @@ export default class List extends Facade {
           let exitAnimation = typeof template.exitAnimation === 'function' ? template.exitAnimation(childData, i, data) : template.exitAnimation
           if (transition || animation || exitAnimation) {
             facadeClass = extendAsAnimatable(facadeClass)
+          }
+
+          // Same for pointer states
+          let pointerStates = template.pointerStates
+          if (pointerStates === 'function' ? pointerStates(childData, i, data) : pointerStates) {
+            facadeClass = extendAsPointerStatesAware(facadeClass)
           }
 
           // If we have an old instance with the same key and class, reuse it; otherwise instantiate a new one

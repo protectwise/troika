@@ -158,7 +158,7 @@ export const extendAsAnimatable = createClassExtender('animatable', function(Bas
                           // Ensure setter is in place
                           defineTransitionPropInterceptor(animProp, this)
                           // Stop any active transition tweens for this property
-                          let tweenKey = animProp + '➤tween'
+                          let tweenKey = animProp + '➤anim:tween'
                           if (this[tweenKey]) {
                             runner.stop(this[tweenKey])
                             this[tweenKey] = null
@@ -191,7 +191,7 @@ export const extendAsAnimatable = createClassExtender('animatable', function(Bas
                   }
                   if (prevKeyframe) {
                     let propTween = new Tween(
-                      this[prop + '➤actuallySet'].bind(this), //callback
+                      this[prop + '➤anim:actuallySet'].bind(this), //callback
                       prevKeyframe.props[prop], //fromValue
                       props[prop], //toValue
                       (keyframe.time - prevKeyframe.time) * duration, //duration
@@ -216,7 +216,7 @@ export const extendAsAnimatable = createClassExtender('animatable', function(Bas
               let firstKeyframeProps = keyframes[0].props
               for (let prop in firstKeyframeProps) {
                 if (firstKeyframeProps.hasOwnProperty(prop)) {
-                  this[prop + '➤actuallySet'](firstKeyframeProps[prop])
+                  this[prop + '➤anim:actuallySet'](firstKeyframeProps[prop])
                 }
               }
             }
@@ -290,10 +290,10 @@ export const extendAsAnimatable = createClassExtender('animatable', function(Bas
   // other custom setters anywhere else in the prototype chain.
   function defineTransitionPropInterceptor(propName, currentInstance) {
     if (!AnimatableFacade.prototype.hasOwnProperty(propName)) {
-      let actualValueKey = `${ propName }➤actualValue`
-      let actuallySetKey = `${ propName }➤actuallySet`
-      let hasBeenSetKey = `${ propName }➤hasBeenSet`
-      let activeTweenKey = `${ propName }➤tween`
+      let actualValueKey = `${ propName }➤anim:actualValue`
+      let actuallySetKey = `${ propName }➤anim:actuallySet`
+      let hasBeenSetKey = `${ propName }➤anim:hasBeenSet`
+      let activeTweenKey = `${ propName }➤anim:tween`
 
       // Find the nearest getter/setter up the prototype chain, if one exists. Assuming the prototype won't change after the fact.
       let superGetter, superSetter
@@ -391,7 +391,7 @@ export const extendAsAnimatable = createClassExtender('animatable', function(Bas
     // If the instance had this property set before the intercepting setter was added to the
     // prototype, that would continue to take precedence, so move its value to the private property.
     if (currentInstance.hasOwnProperty(propName)) {
-      currentInstance[`${ propName }➤actualValue`] = currentInstance[propName]
+      currentInstance[`${ propName }➤anim:actualValue`] = currentInstance[propName]
       delete currentInstance[propName]
     }
 

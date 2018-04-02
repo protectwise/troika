@@ -1,6 +1,7 @@
 import Facade, {isSpecialDescriptorProperty} from './Facade'
 import {extendAsAnimatable} from './Animatable'
 import {isReactElement} from '../utils'
+import { extendAsPointerStatesAware } from './PointerStates'
 
 const TEMP_ARRAY = [null]
 let warnedAboutClassToFacade = false
@@ -98,6 +99,11 @@ export default class ParentFacade extends Facade {
         let animation = propsObj.animation
         if (transition || animation || propsObj.exitAnimation) {
           facadeClass = extendAsAnimatable(facadeClass)
+        }
+
+        // Same for pointer states
+        if (propsObj.pointerStates) {
+          facadeClass = extendAsPointerStatesAware(facadeClass)
         }
 
         // If we have an old instance with the same key and class, update it, otherwise instantiate a new one
