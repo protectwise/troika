@@ -95,9 +95,9 @@ export const extendAsFlexNode = createClassExtender('flexNode', BaseFacadeClass 
       while (parentFlexFacade && !parentFlexFacade.isFlexNode) {parentFlexFacade = parentFlexFacade.parent}
       if (parentFlexFacade) {
         this.parentFlexNode = parentFlexFacade
-        this._flexNodeDepth = parentFlexFacade.flexNodeDepth + 1
+        this.flexNodeDepth = parentFlexFacade.flexNodeDepth + 1
       } else {
-        this._flexNodeDepth = 0
+        this.flexNodeDepth = 0
       }
     }
 
@@ -243,13 +243,6 @@ export const extendAsFlexNode = createClassExtender('flexNode', BaseFacadeClass 
       this.clipTop = maxInsetTop
       this.clipRight = this.offsetWidth - maxInsetRight
       this.clipBottom = this.offsetHeight - maxInsetBottom
-    }
-
-    /**
-     * Get the depth of this node in the flexbox tree, where the root is 0
-     */
-    get flexNodeDepth() {
-      return this._flexNodeDepth
     }
   }
 

@@ -24,7 +24,7 @@ class UIImage3DFacade extends Object3DFacade {
       this.scaleX = offsetWidth
       this.scaleY = offsetHeight
 
-      const depth = this._flexNodeDepth
+      const depth = this.flexNodeDepth
       material.polygonOffset = !!depth
       material.polygonOffsetFactor = material.polygonOffsetUnits = -depth || 0
       mesh.renderOrder = depth

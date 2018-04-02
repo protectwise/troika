@@ -169,14 +169,11 @@ class UIBlock3DFacade extends Group3DFacade {
     }
 
     // Add mousewheel listener if scrollable
+    // TODO scroll via drag?
     const canScroll = hasNonZeroSize && (
       this.scrollHeight > this.clientHeight || this.scrollWidth > this.clientWidth
     )
-    this.onWheel = canScroll ? wheelHandler : null
-    // TODO scroll via drag:
-    // this.onDragStart = canScroll ? dragStartHandler : null
-    // this.onDrag = canScroll ? dragHandler : null
-    // this.onDragEnd = canScroll ? dragEndHandler : null
+    this[`${canScroll ? 'add' : 'remove'}EventListener`]('wheel', wheelHandler)
 
     super.afterUpdate()
     layers.afterUpdate()
@@ -264,7 +261,7 @@ class UIBlock3DFacade extends Group3DFacade {
         // Add a distance bias (used as secondary sort for equidistant intersections) to prevent
         // container blocks from intercepting pointer events for their children
         result.forEach(result => {
-          result.distanceBias = -this._flexNodeDepth
+          result.distanceBias = -this.flexNodeDepth
         })
       }
       return result
@@ -299,7 +296,7 @@ function wheelHandler(e) {
   let {deltaX, deltaY, deltaMode} = e.nativeEvent
   if (deltaMode === 0x01) { //line mode
     const lineSize = getInheritable(facade, 'fontSize', DEFAULT_FONT_SIZE) *
-      getInheritable(facade, 'lineHeight', DEFAULT_LINE_HEIGHT)
+      getInheritable(facade, 'lineHeight', 1.2) //Note: fixed default since we can't resolve 'normal' here
     deltaX *= lineSize
     deltaY *= lineSize
   }
@@ -311,7 +308,13 @@ function wheelHandler(e) {
     facade.scrollHeight - facade.clientHeight,
     facade.scrollTop + deltaY
   ))
-  if (scrollLeft !== this.scrollLeft || scrollTop !== this.scrollTop) {
+
+  // Only scroll if the major scroll direction would actually result in a scroll change
+  const abs = Math.abs
+  if (
+    (scrollLeft !== this.scrollLeft && abs(deltaX) > abs(deltaY)) ||
+    (scrollTop !== this.scrollTop && abs(deltaY) > abs(deltaX))
+  ) {
     this.scrollLeft = scrollLeft
     this.scrollTop = scrollTop
     e.stopPropagation() //only scroll deepest
