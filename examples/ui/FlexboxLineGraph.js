@@ -1,25 +1,29 @@
 import Curve from '../curve-anim/Curve'
+import {interpolateArray} from '../curve-anim/CurveAnimExample'
 import { extendAsFlexNode, Group3DFacade } from '../../src/index'
 
 class FlexboxLineGraph extends Group3DFacade {
   constructor(parent) {
     super(parent)
 
-    const values = []
-    for (let i = 0; i < 50; i++) {
-      values.push(Math.random() * 10 + 5)
-    }
-
     this.curveChildDef = {
       key: 'curve',
       facade: Curve,
-      values
+      values: [],
+      transition: {
+        values: {
+          duration: 1000,
+          easing: 'easeInOutCubic',
+          interpolate: interpolateArray
+        }
+      }
     }
   }
 
   afterUpdate() {
     if (this.offsetWidth) {
       const childDef = this.curveChildDef
+      childDef.values = this.values
       childDef.x = this.offsetLeft + this.clientLeft
       childDef.y = -(this.offsetTop + this.clientTop + this.clientHeight)
       childDef.width = this.clientWidth

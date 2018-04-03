@@ -8,7 +8,7 @@ const PATH_SHAPES = ['curve', 'step']
 const GRADIENT_SCALES = ['per-value', 'max-value']
 
 // Custom interpolator function for transitioning the values array
-function interpolateArray(fromValue, toValue, progress) {
+export function interpolateArray(fromValue, toValue, progress) {
   let interpolated = new Float32Array(toValue.length)
   for (let i = interpolated.length; i--; ) {
     let from = i < fromValue.length ? fromValue[i] : 0

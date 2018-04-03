@@ -5,7 +5,7 @@ import { BoxBufferGeometry, Color, Mesh, MeshStandardMaterial } from 'three'
 const cubeMaterial = new MeshStandardMaterial()
 cubeMaterial.instanceUniforms = ['diffuse']
 const cubeMesh = new Mesh(
-  new BoxBufferGeometry(1, 1, 1).translate(0.5, 0.5, 0.5),
+  new BoxBufferGeometry(1, 1, 1),
   cubeMaterial
 )
 class Cube extends Instanceable3DFacade {
@@ -15,6 +15,10 @@ class Cube extends Instanceable3DFacade {
   }
   set color(c) {
     this.setInstanceUniform('diffuse', new Color(c))
+    this._color = c
+  }
+  get color() {
+    return this._color
   }
 }
 Cube.prototype.instancedThreeObject = cubeMesh
@@ -24,33 +28,41 @@ class CubeOfCubes extends Group3DFacade {
   constructor(parent) {
     super(parent)
 
-    const count = 5
+    const count = 4
     let cubes = []
     for (let x = 0; x < count; x++) {
       for (let y = 0; y < count; y++) {
         for (let z = 0; z < count; z++) {
-          cubes.push({
-            key: `${x}.${y}.${z}`,
-            facade: Cube,
-            x: -0.5 + x / count,
-            y: -0.5 + y / count,
-            z: -0.5 + z / count,
-            scaleX: 1 / count / 2,
-            scaleY: 1 / count / 2,
-            scaleZ: 1 / count / 2,
-            pointerEvents: true //bubbles
-          })
+          if (x*y*z === 0 || x === count-1 || y === count-1 || z === count-1) {
+            cubes.push({
+              key: `${x}.${y}.${z}`,
+              facade: Cube,
+              x: -0.5 + x / (count - 1),
+              y: -0.5 + y / (count - 1),
+              z: -0.5 + z / (count - 1),
+              scale: 1 / (count - 1) / 2,
+              color: 0x3ba7db,
+              pointerStates: {
+                hover: {
+                  color: 0xffffff,
+                  scale: 1 / (count - 1) / 1.5
+                }
+              },
+              transition: {
+                scale: true,
+                color: {interpolate: 'color', duration: 300}
+              }
+            })
+          }
         }
       }
     }
     this.children = cubes
 
     this.onMouseOver = e => {
-      e.target.color = 0xffffff
       this.onCubeOver()
     }
     this.onMouseOut = e => {
-      e.target.color = 0x3ba7db
       this.onCubeOut()
     }
   }
