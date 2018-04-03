@@ -135,7 +135,7 @@ export const extendAsPointerStatesAware = createClassExtender('pointerStates', f
     afterPointerStateChange(e)
   }
   function hoverOutHandler(e) {
-    e.currentTarget[isHoveringProp] = false
+    e.currentTarget[isHoveringProp] = e.currentTarget[isActiveProp] = false
     afterPointerStateChange(e)
   }
   function activeDownHandler(e) {
