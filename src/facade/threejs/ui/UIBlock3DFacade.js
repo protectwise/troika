@@ -259,8 +259,11 @@ class UIBlock3DFacade extends Group3DFacade {
       const result = this._raycastObject(raycastMesh, raycaster)
       if (result) {
         // Add a distance bias (used as secondary sort for equidistant intersections) to prevent
-        // container blocks from intercepting pointer events for their children
+        // container blocks from intercepting pointer events for their children. Also apply a
+        // slight rounding prevent floating point precision irregularities from reporting different
+        // distances for coplanar blocks.
         result.forEach(result => {
+          result.distance = parseFloat(result.distance.toFixed(12))
           result.distanceBias = -this.flexNodeDepth
         })
       }
