@@ -180,8 +180,9 @@ export function isSpecialDescriptorProperty(name) {
 /**
  * Define a property name as an event handler for a given Facade class, so that it
  * automatically updates the global event registry when set.
- * @param facadeClass
- * @param propName
+ * @param {class} facadeClass - the class whose prototype the property should be defined on
+ * @param {String} propName - the name of the event handler property, e.g. 'onMouseOver'
+ * @param {String} eventType - the type of the event that will trigger the handler, e.g. 'mouseover'
  */
 export function defineEventProperty(facadeClass, propName, eventType) {
   let privateProp = `${propName}➤handler`
