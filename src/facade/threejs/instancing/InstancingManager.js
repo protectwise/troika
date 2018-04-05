@@ -35,8 +35,8 @@ class InstancingManager extends Group3DFacade {
     this._instanceables = Object.create(null)
     this._batchGeometryPool = new BatchGeometryPool()
     this._needsRebatch = true
-    this.onBeforeRender = this._setupBatchObjects.bind(this)
-    this.onAfterRender = this._teardownBatchObjects.bind(this)
+    this.addEventListener('beforerender', this._setupBatchObjects.bind(this))
+    this.addEventListener('afterrender', this._teardownBatchObjects.bind(this))
   }
 
   onNotifyWorld(source, message, data) {

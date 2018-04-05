@@ -50,7 +50,7 @@ export const extendAsVrCamera = createClassExtender('vrCamera', function(BaseCam
       mainCam.layers.enable(2)
 
       // Update matrices on every render frame
-      this.onBeforeRender = this.updateMatrices.bind(this)
+      this.addEventListener('beforerender', this.updateMatrices.bind(this))
 
       this.vrDisplay = null
       this._frameData = new VRFrameData()

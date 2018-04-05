@@ -41,9 +41,8 @@ class Text3DFacade extends Object3DFacade {
     super(parent, mesh)
     
     this._textGeometry = geometry
-    this._textInfoRequestId = 0
 
-    this.onBeforeRender = this.onBeforeRender.bind(this)
+    this.addEventListener('beforerender', this.onBeforeRender.bind(this))
   }
 
   afterUpdate() {

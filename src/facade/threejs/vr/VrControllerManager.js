@@ -12,7 +12,7 @@ const gamepadCheckFrequency = 1000
 export class VrControllerManager extends Group3DFacade {
   constructor(parent) {
     super(parent)
-    this.onBeforeRender = this.onBeforeRender.bind(this)
+    this.addEventListener('beforerender', this.onBeforeRender.bind(this))
   }
 
   onBeforeRender(renderer, scene, camera) {
