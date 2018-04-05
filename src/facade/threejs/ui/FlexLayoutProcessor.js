@@ -221,7 +221,7 @@ function createFlexLayoutProcessor(loadFontFn, measureFn) {
                   letterSpacing: styleNode.letterSpacing,
                   whiteSpace: styleNode.whiteSpace,
                   overflowWrap: styleNode.overflowWrap,
-                  maxWidth: innerWidth
+                  maxWidth: isNaN(innerWidth) ? Infinity : innerWidth
                 }
                 // TODO: this assumes the measureFn will exec the callback synchronously; this works
                 // with current impl since we preload all needed fonts above, but it would be good to
