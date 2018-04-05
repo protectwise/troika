@@ -9,15 +9,12 @@ export default class TrackedVrController extends VrController {
 
   constructor(parent) {
     super(parent)
-    this.children = {
-      key: 'model',
-      facade: BasicControllerModel
-    }
+    this.model = new BasicControllerModel(this)
     this._buttonPresses = []
   }
 
   afterUpdate() {
-    this.children.showLaser = this.isPointing
+    this.model.showLaser = this.isPointing
     super.afterUpdate()
   }
 
@@ -30,6 +27,12 @@ export default class TrackedVrController extends VrController {
       ray.direction.set(0, 0, -1).transformDirection(matrix)
       return ray
     }
+  }
+
+  onPointerRayIntersectionChange(localIntersectionPoint) {
+    this.model.laserLength = localIntersectionPoint ? localIntersectionPoint.length() : null
+    this.model.afterUpdate()
+    super.onPointerRayIntersectionChange(localIntersectionPoint)
   }
 
   onBeforeRender(renderer, scene, camera) {
@@ -97,6 +100,10 @@ export default class TrackedVrController extends VrController {
     super.onBeforeRender()
   }
 
+  destructor() {
+    this.model.destructor()
+    super.destructor()
+  }
 }
 
 function updateFacadeMatrices(facade) {
@@ -119,6 +126,7 @@ class BasicControllerModel extends Object3DFacade {
 
   afterUpdate() {
     this.children = this.showLaser ? this._laser : null
+    this._laser.length = this.laserLength || 1e10
     super.afterUpdate()
   }
 }
@@ -136,8 +144,11 @@ class LaserPointerModel extends Object3DFacade {
     const mesh = new Mesh(LaserPointerModel.geometry, LaserPointerModel.material)
     super(parent, mesh)
   }
+  set length(val) {
+    this.scaleZ = val
+  }
 }
-LaserPointerModel.geometry = new CylinderBufferGeometry(0.001, 0.001, 1).translate(0, 0.5, 0).rotateX(Math.PI / -2).scale(1, 1, 1e10)
+LaserPointerModel.geometry = new CylinderBufferGeometry(0.001, 0.001, 1).translate(0, 0.5, 0).rotateX(Math.PI / -2)
 LaserPointerModel.material = new MeshStandardMaterial({
   transparent: true,
   opacity: 0.2,
