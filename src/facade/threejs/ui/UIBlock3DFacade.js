@@ -77,8 +77,9 @@ class UIBlock3DFacade extends Group3DFacade {
     // Update the block's element and size from flexbox computed values
     if (hasLayout) {
       if (parentFlexNode) {
-        this.x = offsetLeft - parentFlexNode.scrollLeft
-        this.y = -(offsetTop - parentFlexNode.scrollTop)
+        const isAbsPos = this.position === 'absolute'
+        this.x = offsetLeft - (isAbsPos ? 0 : parentFlexNode.scrollLeft)
+        this.y = -(offsetTop - (isAbsPos ? 0 : parentFlexNode.scrollTop))
       }
       if (offsetWidth !== _sizeVec2.x || offsetHeight !== _sizeVec2.y) {
         _sizeVec2.set(offsetWidth, offsetHeight)
@@ -256,18 +257,18 @@ class UIBlock3DFacade extends Group3DFacade {
         this.threeObject.matrixWorld,
         tempMat4.makeScale(offsetWidth, offsetHeight, 1)
       )
-      const result = this._raycastObject(raycastMesh, raycaster)
-      if (result) {
+      const hits = this._raycastObject(raycastMesh, raycaster)
+      if (hits) {
         // Add a distance bias (used as secondary sort for equidistant intersections) to prevent
         // container blocks from intercepting pointer events for their children. Also apply a
         // slight rounding prevent floating point precision irregularities from reporting different
         // distances for coplanar blocks.
-        result.forEach(result => {
-          result.distance = parseFloat(result.distance.toFixed(12))
-          result.distanceBias = -this.flexNodeDepth
+        hits.forEach(hit => {
+          hit.distance = parseFloat(hit.distance.toFixed(12))
+          hit.distanceBias = -this.flexNodeDepth
         })
       }
-      return result
+      return hits
     }
     return null
   }

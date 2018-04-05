@@ -222,7 +222,7 @@ export const extendAsFlexNode = createClassExtender('flexNode', BaseFacadeClass 
       let maxInsetRight = negInf
       let maxInsetBottom = negInf
 
-      while (parent) {
+      while (parent && child.position !== 'absolute') {
         totalOffsetLeft += child.offsetLeft - parent.scrollLeft
         totalOffsetTop += child.offsetTop - parent.scrollTop
 
