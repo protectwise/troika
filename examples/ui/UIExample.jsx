@@ -99,7 +99,7 @@ class UIExample extends React.Component {
           objects={
             <Group3DFacade
               key="root"
-              z={-0.8}
+              z={vr ? -1.2 : -0.8}
               scale={0.5 / 1024}
             >
               <Block
@@ -220,24 +220,55 @@ class UIExample extends React.Component {
                   >
                     <CubeOfCubes
                       flex={1}
-                      onCubeOver={e => {
+                      selectedCubeId={state.selectedCubeId}
+                      onCubeOver={id => {
                         this.setState({isHoveringCube: true})
                         clearTimeout(this._cubeOutTimer)
                       }}
-                      onCubeOut={e => {
+                      onCubeOut={id => {
                         clearTimeout(this._cubeOutTimer)
                         this._cubeOutTimer = setTimeout(() => {
                           this.setState({isHoveringCube: false})
                         }, 500)
+                      }}
+                      onCubeClick={id => {
+                        this.setState({selectedCubeId: id})
                       }}
                       animation={{
                         from: {rotateX: -Math.PI, rotateY: -Math.PI, rotateZ: -Math.PI},
                         to: {rotateX: Math.PI, rotateY: Math.PI, rotateZ: Math.PI},
                         duration: 10000,
                         iterations: Infinity,
-                        paused: state.isHoveringCube
+                        paused: state.isHoveringCube || state.selectedCubeId
                       }}
                     />
+                    { state.selectedCubeId ? (
+                      <Icon
+                        key="back"
+                        position="absolute"
+                        left={20}
+                        top={20}
+                        text="arrow_back"
+                        size={40}
+                        lineHeight={1}
+                        onClick={e => {this.setState({selectedCubeId: null})}}
+                        color={0}
+                        backgroundColor={0x666666}
+                        borderRadius={5}
+                        padding={5}
+                        pointerStates={{
+                          hover: {backgroundColor: 0x999999},
+                          active: {backgroundColor: 0xaaaaaa}
+                        }}
+                        transition={{backgroundColor: {interpolate:'color'}}}
+                        animation={{
+                          from: {scale: 0.1},
+                          to: {scale: 1},
+                          duration: 500,
+                          easing: 'easeOutBounce'
+                        }}
+                      />
+                    ) : null }
                   </Block>
                 </Block>
                 <Block
@@ -291,7 +322,7 @@ class UIExample extends React.Component {
                   >
                     <Icon
                       icon={state.lineGraphsLayered ? 'layers' : 'layers_clear'}
-                      size={32}
+                      size={40}
                       lineHeight={1}
                       onClick={e => this.setState({lineGraphsLayered : !state.lineGraphsLayered})}
                       backgroundColor={0x666666}
@@ -306,7 +337,7 @@ class UIExample extends React.Component {
                     />
                     <Icon
                       icon="refresh"
-                      size={32}
+                      size={40}
                       lineHeight={1}
                       onClick={e => this.randomizeLineGraphs()}
                       backgroundColor={0x666666}

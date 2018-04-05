@@ -1,8 +1,8 @@
-import { Group3DFacade, Instanceable3DFacade, extendAsFlexNode } from '../../src/index'
+import { Group3DFacade, Instanceable3DFacade, extendAsFlexNode, ListFacade } from '../../src/index'
 import { BoxBufferGeometry, Color, Mesh, MeshStandardMaterial } from 'three'
 
 
-const cubeMaterial = new MeshStandardMaterial()
+const cubeMaterial = new MeshStandardMaterial({roughness: 0.7, shininess: 0.7})
 cubeMaterial.instanceUniforms = ['diffuse']
 const cubeMesh = new Mesh(
   new BoxBufferGeometry(1, 1, 1),
@@ -29,41 +29,59 @@ class CubeOfCubes extends Group3DFacade {
     super(parent)
 
     const count = 4
-    let cubes = []
+    let cubesData = []
     for (let x = 0; x < count; x++) {
       for (let y = 0; y < count; y++) {
         for (let z = 0; z < count; z++) {
           if (x*y*z === 0 || x === count-1 || y === count-1 || z === count-1) {
-            cubes.push({
-              key: `${x}.${y}.${z}`,
-              facade: Cube,
+            cubesData.push({
+              id: `${x}.${y}.${z}`,
               x: -0.5 + x / (count - 1),
               y: -0.5 + y / (count - 1),
               z: -0.5 + z / (count - 1),
-              scale: 1 / (count - 1) / 2,
-              color: 0x3ba7db,
-              pointerStates: {
-                hover: {
-                  color: 0xffffff,
-                  scale: 1 / (count - 1) / 1.5
-                }
-              },
-              transition: {
-                scale: true,
-                color: {interpolate: 'color', duration: 300}
-              }
+              color: ((64 + x / count * 128) << 16) | ((64 + y / count * 128) << 8) | (64 + z / count * 128)
             })
           }
         }
       }
     }
-    this.children = cubes
+    this.children = {
+      facade: ListFacade,
+      data: cubesData,
+      template: {
+        key: d => d.id,
+        id: d => d.id,
+        facade: Cube,
+        x: d => this.selectedCubeId === d.id ? 0 : d.x,
+        y: d => this.selectedCubeId === d.id ? 0 : d.y,
+        z: d => this.selectedCubeId === d.id ? 0 : d.z,
+        scale: d => this.selectedCubeId === d.id ? 1.3 : 1 / (count - 1) / 2,
+        color: d => d.color,
+        pointerStates: d => this.selectedCubeId ? {} : {
+          hover: {
+            color: 0xffffff,
+            scale: 1 / (count - 1) / 1.6
+          }
+        },
+        pointerEvents: true,
+        transition: {
+          x: {duration: 500, easing: 'easeOutBounce'},
+          y: {duration: 500, easing: 'easeOutBounce'},
+          z: {duration: 500, easing: 'easeOutBounce'},
+          scale: {duration: 500, easing: 'easeOutBounce'},
+          color: {interpolate: 'color', duration: 300}
+        }
+      }
+    }
 
     this.onMouseOver = e => {
-      this.onCubeOver()
+      this.onCubeOver(e.target.id)
     }
     this.onMouseOut = e => {
-      this.onCubeOut()
+      this.onCubeOut(e.target.id)
+    }
+    this.onClick = e => {
+      this.onCubeClick(e.target.id)
     }
   }
 
