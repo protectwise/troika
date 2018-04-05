@@ -17,7 +17,7 @@ import { assign, createClassExtender } from '../utils'
 export const extendAsPointerStatesAware = createClassExtender('pointerStates', function(BaseFacadeClass) {
   const isHoveringProp = '➤pntr:isHovering'
   const isActiveProp = '➤pntr:isActive'
-
+  const propsWithInterceptors = Object.create(null)
 
   class PointerStatesAware extends BaseFacadeClass {
     constructor(parent) {
@@ -38,7 +38,7 @@ export const extendAsPointerStatesAware = createClassExtender('pointerStates', f
       const hoverValuesToUse = (pointerStates && this[isHoveringProp] && pointerStates.hover) || null
       const activeValuesToUse = (pointerStates && this[isActiveProp] && pointerStates.active) || null
 
-      const lastAppliedValues = this['➤pntr:lastAppliedValues'] || null
+      const lastAppliedValues = this['➤pntr:lastAppliedValues'] || propsWithInterceptors
       const appliedValues = this['➤pntr:lastAppliedValues'] =
         (hoverValuesToUse || activeValuesToUse) ? assign(Object.create(null), hoverValuesToUse, activeValuesToUse) : null
 
@@ -75,6 +75,7 @@ export const extendAsPointerStatesAware = createClassExtender('pointerStates', f
     }
 
     if (!PointerStatesAware.prototype.hasOwnProperty(propName)) {
+      propsWithInterceptors[propName] = 1
       const baseValueProp = `${ propName }➤pntr:baseValue`
       const appliedValueProp = `${propName}➤pntr:appliedValue`
 
