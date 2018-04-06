@@ -37,8 +37,8 @@ class DragDropExample extends React.Component {
     for (let i = 0; i < 10; i++) {
       planets.push({
         id: `box${i}`,
-        radius: 2 + Math.random() * 8,
-        distance: 50 + i * 20,
+        radius: .02 + Math.random() * .08,
+        distance: .5 + i * .2,
         color: Math.round(Math.random() * 0xffffff),
         initialAngle: Math.random() * Math.PI * 2
       })
@@ -75,21 +75,17 @@ class DragDropExample extends React.Component {
     // Determine event's point on the orbital plane
     let systemTransformMatrix = new Matrix4().makeRotationX(ORBITAL_PLANE_ROTATEX)
     let systemPlane = new Plane().setComponents(0, 0, 1, 0).applyMatrix4(systemTransformMatrix)
-    let mainRect = ReactDOM.findDOMNode(this).getBoundingClientRect()
-    let mouseCoords = new Vector2(
-      (e.clientX - mainRect.left) / mainRect.width * 2 - 1,
-      (e.clientY - mainRect.top) / mainRect.height * -2 + 1
-    )
-    let raycaster = new Raycaster()
-    raycaster.setFromCamera(mouseCoords, this._cameraFacade.threeObject)
-    let posVec3 = raycaster.ray.intersectPlane(systemPlane)
-    posVec3.applyMatrix4(new Matrix4().getInverse(systemTransformMatrix))
+    let ray = e.ray //all pointer events in a 3D world are guaranteed to have a `ray`
+    let posVec3 = ray.intersectPlane(systemPlane)
+    if (posVec3) {
+      posVec3.applyMatrix4(new Matrix4().getInverse(systemTransformMatrix))
 
-    // Update dragged planet's current angle and distance
-    let planetData = find(this.state.planets, {id: e.target.id})
-    planetData.initialAngle = posVec3.x === 0 ? 0 : Math.atan(posVec3.y / posVec3.x) + (posVec3.x < 0 ? Math.PI : 0)
-    planetData.distance = Math.sqrt(posVec3.x * posVec3.x + posVec3.y * posVec3.y)
-    this.forceUpdate()
+      // Update dragged planet's current angle and distance
+      let planetData = find(this.state.planets, {id: e.target.id})
+      planetData.initialAngle = posVec3.x === 0 ? 0 : Math.atan(posVec3.y / posVec3.x) + (posVec3.x < 0 ? Math.PI : 0)
+      planetData.distance = Math.sqrt(posVec3.x * posVec3.x + posVec3.y * posVec3.y)
+      this.forceUpdate()
+    }
   }
 
   _onPlanetDragEnd(e) {
@@ -139,7 +135,7 @@ class DragDropExample extends React.Component {
             { type: 'point', color: 0xffffff }
           ] }
           camera={ {
-            z: 400,
+            z: 4,
             ref: this._onCameraRef
           } }
           objects={ {
@@ -160,7 +156,7 @@ class DragDropExample extends React.Component {
                 animation: isDraggedPlanet ? [] : {
                   from: {rotateZ: planet.initialAngle},
                   to: {rotateZ: planet.initialAngle + Math.PI * 2},
-                  duration: 20 * Math.sqrt(Math.pow(planet.distance, 3)), //very basic, probably incorrect, orbital period
+                  duration: 15000 * Math.sqrt(Math.pow(planet.distance, 3)), //very basic, probably incorrect, orbital period
                   iterations: Infinity,
                   paused: isHoveredPlanet || isDroppablePlanet
                 },
@@ -199,11 +195,7 @@ class DragDropExample extends React.Component {
               }
             }).concat({
               key: 'sun',
-              facade: Sun,
-              radius: 1,
-              distance: 0,
-              color: 0xffffff,
-              highlight: true
+              facade: Sun
             })
           } }
         />

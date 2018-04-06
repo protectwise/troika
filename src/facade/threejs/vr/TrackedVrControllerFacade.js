@@ -63,13 +63,13 @@ export default class TrackedVrController extends VrController {
     for (let i = 0; i < buttons.length; i++) {
       if (buttons[i].pressed !== !!pressedTimes[i]) {
         if (!ray) ray = this.getPointerRay()
-        this.notifyWorld('pointerRayAction', {
+        this.notifyWorld('rayPointerAction', {
           ray,
           type: buttons[i].pressed ? 'mousedown' : 'mouseup',
           button: i
         })
         if (pressedTimes[i] && !buttons[i].pressed && now - pressedTimes[i] <= CLICK_MAX_DUR) {
-          this.notifyWorld('pointerRayAction', {
+          this.notifyWorld('rayPointerAction', {
             ray,
             type: 'click',
             button: i
@@ -88,7 +88,7 @@ export default class TrackedVrController extends VrController {
     const deltaY = (axes[1] || 0) * 10
     if (deltaX || deltaY) {
       if (!ray) ray = this.getPointerRay()
-      this.notifyWorld('pointerRayAction', {
+      this.notifyWorld('rayPointerAction', {
         ray,
         type: 'wheel',
         deltaX,

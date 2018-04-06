@@ -8,7 +8,7 @@ import {
 } from '../../src/index'
 
 
-const geometry = new SphereBufferGeometry(2, 16, 16)
+const geometry = new SphereBufferGeometry(.02, 16, 16)
 const material = new MeshBasicMaterial({
   color: 0xffffff
 })

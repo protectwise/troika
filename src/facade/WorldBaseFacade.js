@@ -1,6 +1,7 @@
 import ParentFacade from './ParentFacade'
 import EventRegistry from './EventRegistry'
 import {pointerActionEventTypes, pointerMotionEventTypes} from './PointerEventTarget'
+import {assign} from '../utils'
 
 const TAP_DISTANCE_THRESHOLD = 10
 const TAP_GESTURE_MAX_DUR = 300
@@ -21,6 +22,11 @@ const domPointerActionEventTypes = [
   'touchend',
   'touchcancel'
 ]
+const dropEventTypes = [
+  'mouseup',
+  'touchend',
+  'touchcancel'
+]
 const pointerActionEventTypeMappings = {
   'touchstart': 'mousedown',
   'touchend': 'mouseup',
@@ -30,31 +36,20 @@ const pointerActionEventTypeMappings = {
 const touchDragPropsToNormalize = ['clientX', 'clientY', 'screenX', 'screenY', 'pageX', 'pageY']
 
 class SyntheticEvent {
-  constructor(nativeEvent, type, target, relatedTarget, extra) {
+  constructor(nativeEvent, type, target, relatedTarget, extraProps) {
     // Copy native event properties - TODO investigate using a Proxy
-    Object.keys(nativeEvent.constructor.prototype).forEach(key => {
-      if (typeof nativeEvent[key] !== 'function') {
-        this[key] = nativeEvent[key]
+    for (let prop in nativeEvent) {
+      if (nativeEvent.hasOwnProperty(prop) && typeof nativeEvent[prop] !== 'function') {
+        this[prop] = nativeEvent[prop]
       }
-    })
+    }
 
     // Adjust to custom params
     this.target = target
     this.relatedTarget = relatedTarget
     this.type = type
     this.nativeEvent = nativeEvent
-    this.extra = extra
-
-    // normalize position properties on touch events with a single touch, to facilitate
-    // downstream handlers that expect them to look like mouse events
-    if (nativeEvent.touches) {
-      let touches = isTouchEndOrCancel(nativeEvent) ? nativeEvent.changedTouches : nativeEvent.touches
-      if (touches.length === 1) {
-        touchDragPropsToNormalize.forEach(prop => {
-          this[prop] = touches[0][prop]
-        })
-      }
-    }
+    assign(this, extraProps)
   }
 
   preventDefault() {
@@ -192,20 +187,48 @@ class WorldBaseFacade extends ParentFacade {
     }
   }
 
+  /**
+   * Pre-normalizes native pointer events, to satisfy assumptions that downstream code may
+   * make about them, and make them simpler to work with.
+   * @param {Event} e
+   * @protected
+   */
+  _normalizePointerEvent(e) {
+    // normalize position properties on touch events with a single touch, to facilitate
+    // downstream handlers that expect them to look like mouse events
+    if (e.touches) {
+      let touches = isTouchEndOrCancel(e) ? e.changedTouches : e.touches
+      if (touches.length === 1) {
+        touchDragPropsToNormalize.forEach(prop => {
+          e[prop] = touches[0][prop]
+        })
+      }
+    }
+  }
+
+  /**
+   * Entry point for handling events related to pointer motion (e.g. mouse or touch movement).
+   * This will be called by the code that wraps this World facade to bridge native DOM events
+   * into the Troika world.
+   * @param {Event} e
+   */
   _onPointerMotionEvent(e) {
+    this._normalizePointerEvent(e)
+
     if (pointerMotionEventTypes.some(this.eventRegistry.hasAnyListenersOfType)) {
+      let hoverInfo = (e.type === 'mouseout' || isTouchEndOrCancel(e)) ? null : this._findHoverTarget(e)
+      let lastHovered = this.$hoveredFacade
+      let hovered = this.$hoveredFacade = hoverInfo && hoverInfo.facade
+
       let dragInfo = this.$dragInfo
       if (dragInfo) {
         if (!dragInfo.dragStartFired) {
-          this._firePointerEvent('dragstart', dragInfo.dragStartEvent, dragInfo.draggedFacade, null, null)
+          this._firePointerEvent('dragstart', dragInfo.dragStartEvent, dragInfo.draggedFacade, null, hoverInfo)
           dragInfo.dragStartFired = true
         }
-        this._firePointerEvent('drag', e, dragInfo.draggedFacade, null, null)
+        this._firePointerEvent('drag', e, dragInfo.draggedFacade, null, hoverInfo)
       }
 
-      let lastHovered = this.$hoveredFacade
-      let hoverInfo = (e.type === 'mouseout' || isTouchEndOrCancel(e)) ? null : this._findHoverTarget(e)
-      let hovered = this.$hoveredFacade = hoverInfo && hoverInfo.facade
       if (hovered !== lastHovered) {
         if (lastHovered) {
           this._firePointerEvent('mouseout', e, lastHovered, hovered, hoverInfo)
@@ -238,7 +261,21 @@ class WorldBaseFacade extends ParentFacade {
     }
   }
 
+  /**
+   * Entry point for handling events related to pointer motion (e.g. mouse clicks or touch taps).
+   * This will be called by the code that wraps this World facade to bridge native DOM events
+   * into the Troika world.
+   * @param {Event} e
+   */
   _onPointerActionEvent(e) {
+    this._normalizePointerEvent(e)
+
+    // Handle drop events, in the case they weren't captured by the listeners on `document`
+    // e.g. synthetic events dispatched internally
+    if (dropEventTypes.indexOf(e.type) > -1) {
+      this._onDropEvent(e)
+    }
+
     // Map touch start to mouseover, and disable touch-hold context menu
     if (e.type === 'touchstart') {
       if (e.touches.length === 1) {
@@ -281,7 +318,7 @@ class WorldBaseFacade extends ParentFacade {
 
         // mousedown/touchstart could be prepping for drag gesture
         if (facade.onDragStart && (e.type === 'mousedown' || e.type === 'touchstart')) {
-          let dragStartEvent = new SyntheticEvent(e, 'dragstart', facade, null)
+          let dragStartEvent = new SyntheticEvent(e, 'dragstart', facade, null, hoverInfo)
           this.$dragInfo = {
             draggedFacade: facade,
             dragStartFired: false,
@@ -306,7 +343,8 @@ class WorldBaseFacade extends ParentFacade {
   _onDropEvent(e) {
     let dragInfo = this.$dragInfo
     if (dragInfo) {
-      let hoverInfo = e.target === this._element && this._findHoverTarget(e)
+      this._normalizePointerEvent(e)
+      let hoverInfo = this._findHoverTarget(e)
       let targetFacade = hoverInfo && hoverInfo.facade
       if (targetFacade) {
         this._firePointerEvent('drop', e, targetFacade, null, hoverInfo)
@@ -351,7 +389,7 @@ class WorldBaseFacade extends ParentFacade {
   }
 
   _toggleDropListeners(on) {
-    ['mouseup', 'touchend', 'touchcancel'].forEach(type => {
+    dropEventTypes.forEach(type => {
       document[(on ? 'add' : 'remove') + 'EventListener'](type, this._onDropEvent, true)
     })
   }
@@ -378,25 +416,18 @@ class WorldBaseFacade extends ParentFacade {
 
   /**
    * @abstract
+   * @return {Array|null}
    */
-  getFacadesAtPosition(clientX, clientY, elementRect) {
+  getFacadesAtEvent(e) {
     throw new Error('getFacadesAtEvent: no impl')
   }
 
-  /**
-   * @protected
-   */
-  getFacadesAtEvent(e) {
-    // handle touch events
-    let posInfo = e
-    if (e.touches) {
-      if (e.touches.length > 1) return null //only handle single touches for now
-      posInfo = e.touches[0] || e.changedTouches[0]
-    }
-    return this.getFacadesAtPosition(posInfo.clientX, posInfo.clientY, e.target.getBoundingClientRect())
-  }
-
   _findHoverTarget(e) {
+    //only handle single touches for now
+    if (e.touches && e.touches.length > 1) {
+      return null
+    }
+
     let allHits = this.getFacadesAtEvent(e)
     if (allHits) {
       // Sort by distance, or by distanceBias if distance is the same

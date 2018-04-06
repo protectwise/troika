@@ -197,35 +197,39 @@ class World3DFacade extends WorldBaseFacade {
     return new Vector3(screenX, screenY, signedDistance)
   }
 
-
   /**
-   * @override to handle ray events e.g. from a vr controller
+   * @override
+   * In 3D worlds, we will normalize all pointer events so they always carry a `ray` property;
+   * handlers for these events should then only rely on that, which is guaranteed to be present,
+   * unlike `clientX/Y` etc. which are only present for pointer events originating from a screen.
    */
-  getFacadesAtEvent(e) {
-    if (e.isRayEvent) {
-      return e.ray ? this.getFacadesOnRay(e.ray) : null
-    } else {
-      return super.getFacadesAtEvent(e)
+  _normalizePointerEvent(e) {
+    // All pointer events in a 3D world will be given a `ray` property.
+    if (!e.ray) {
+      // convert mouse position to normalized device coords (-1 to 1)
+      const canvasRect = e.target.getBoundingClientRect() //e.target is the canvas
+      let width = canvasRect.width || this.width //use logical size if no visible rect, e.g. offscreen canvas
+      let height = canvasRect.height || this.height
+      let u = ((e.clientX || 0) - (canvasRect.left || 0)) / width * 2 - 1
+      let v = ((e.clientY || 0) - (canvasRect.top || 0)) / height * -2 + 1
+
+      // ensure camera's matrix is up to date
+      let camera = this.getChildByKey('camera')
+      camera.updateMatrices()
+
+      // calculate the ray and put it on the event
+      e.ray = camera.getRayAtProjectedCoords(u, v)
     }
+
+    super._normalizePointerEvent(e)
   }
 
   /**
-   * Implementation of abstract
+   * @override
+   * @return {Array|null}
    */
-  getFacadesAtPosition(clientX, clientY, canvasRect) {
-    // convert mouse position to normalized device coords (-1 to 1)
-    let width = canvasRect.width || this.width //use logical size if no visible rect, e.g. offscreen canvas
-    let height = canvasRect.height || this.height
-    let u = (clientX - (canvasRect.left || 0)) / width * 2 - 1
-    let v = (clientY - (canvasRect.top || 0)) / height * -2 + 1
-
-    // ensure camera's matrix is updated
-    let camera = this.getChildByKey('camera')
-    camera.updateMatrices()
-
-    // calculate the ray and use it to find intersecting facades
-    let ray = camera.getRayAtProjectedCoords(u, v)
-    return ray ? this.getFacadesOnRay(ray) : null
+  getFacadesAtEvent(e) {
+    return e.ray ? this.getFacadesOnRay(e.ray) : null
   }
 
   getFacadesOnRay(ray) {
@@ -331,7 +335,7 @@ World3DFacade.prototype._notifyWorldHandlers = assign(
       delete this._object3DFacadesById[source.$facadeId]
       this._queueForOctreeChange('remove', source)
     },
-    pointerRayMotion(source, ray) {
+    rayPointerMotion(source, ray) {
       // Dispatch a custom event carrying the Ray, which will be used by our `getFacadesAtEvent`
       // override to search for a hovered facade
       const e = new MouseEvent('mousemove')
@@ -340,7 +344,7 @@ World3DFacade.prototype._notifyWorldHandlers = assign(
       e.raySource = source
       this._onPointerMotionEvent(e)
     },
-    pointerRayAction(source, eventParams) {
+    rayPointerAction(source, eventParams) {
       // Dispatch a custom event carrying the Ray, which will be used by our `getFacadesAtEvent`
       // override to search for a hovered facade
       const e = new (eventParams.type === 'wheel' ? WheelEvent : MouseEvent)(eventParams.type, eventParams)

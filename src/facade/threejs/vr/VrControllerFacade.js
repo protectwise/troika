@@ -39,7 +39,7 @@ export default class VrController extends Group3DFacade {
     if (now - (this._lastRaycast || 0) > raycastFrequency) {
       const ray = this.getPointerRay() //may be null
       if (ray) {
-        this.notifyWorld('pointerRayMotion', ray)
+        this.notifyWorld('rayPointerMotion', ray)
       }
       this._lastRaycast = now
     }
@@ -74,7 +74,7 @@ export default class VrController extends Group3DFacade {
     if (e.nativeEvent.raySource === this) {
       // Find point of intersection in local coordinates
       let localPoint = null
-      const worldPoint = e.extra.point
+      const worldPoint = e.point
       if (worldPoint) {
         localPoint = worldPoint.clone().applyMatrix4(tempMat4.getInverse(this.threeObject.matrixWorld))
       }
