@@ -107,7 +107,7 @@ export function makeWorldTextureProvider(WrappedFacadeClass) {
     _refireAsInnerEvent(e) {
       const world = this._worldFacade
       if (world) {
-        const uv = e.uv
+        const uv = e.intersection && e.intersection.uv
         const x = uv ? Math.round(uv.x * world.width) : -1
         const y = uv ? Math.round((1 - uv.y) * world.height) : -1
 

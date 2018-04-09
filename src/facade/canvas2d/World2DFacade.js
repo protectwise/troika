@@ -111,7 +111,8 @@ class World2DFacade extends WorldBaseFacade {
   }
 
   /**
-   * Implementation of abstract
+   * @override Implementation of abstract
+   * @return {Array<{facade, distance, ?distanceBias, ...}>|null}
    */
   getFacadesAtEvent(e) {
     const canvasRect = e.target.getBoundingClientRect() //e.target is the canvas

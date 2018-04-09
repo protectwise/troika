@@ -206,12 +206,21 @@ class World3DFacade extends WorldBaseFacade {
   _normalizePointerEvent(e) {
     // All pointer events in a 3D world will be given a `ray` property.
     if (!e.ray) {
+      // normalize touch events
+      let posInfo = e
+      if (e.touches) {
+        let touches = /^touch(end|cancel)$/.test(e.type) ? e.changedTouches : e.touches
+        if (touches.length === 1) {
+          posInfo = touches[0]
+        }
+      }
+
       // convert mouse position to normalized device coords (-1 to 1)
       const canvasRect = e.target.getBoundingClientRect() //e.target is the canvas
       let width = canvasRect.width || this.width //use logical size if no visible rect, e.g. offscreen canvas
       let height = canvasRect.height || this.height
-      let u = ((e.clientX || 0) - (canvasRect.left || 0)) / width * 2 - 1
-      let v = ((e.clientY || 0) - (canvasRect.top || 0)) / height * -2 + 1
+      let u = ((posInfo.clientX || 0) - (canvasRect.left || 0)) / width * 2 - 1
+      let v = ((posInfo.clientY || 0) - (canvasRect.top || 0)) / height * -2 + 1
 
       // ensure camera's matrix is up to date
       let camera = this.getChildByKey('camera')
@@ -225,8 +234,8 @@ class World3DFacade extends WorldBaseFacade {
   }
 
   /**
-   * @override
-   * @return {Array|null}
+   * @override Implementation of abstract
+   * @return {Array<{facade, distance, ?distanceBias, ...}>|null}
    */
   getFacadesAtEvent(e) {
     return e.ray ? this.getFacadesOnRay(e.ray) : null

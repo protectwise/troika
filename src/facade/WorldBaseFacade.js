@@ -50,6 +50,18 @@ class SyntheticEvent {
     this.type = type
     this.nativeEvent = nativeEvent
     assign(this, extraProps)
+
+    // normalize position properties on touch events with a single touch, to facilitate
+    // downstream handlers that expect them to look like mouse events
+    // NOTE: can't do this in _normalizePointerEvent() as these props are unwritable on native Event objects
+    if (nativeEvent.touches) {
+      let touches = isTouchEndOrCancel(nativeEvent) ? nativeEvent.changedTouches : nativeEvent.touches
+      if (touches.length === 1) {
+        touchDragPropsToNormalize.forEach(prop => {
+          e[prop] = touches[0][prop]
+        })
+      }
+    }
   }
 
   preventDefault() {
@@ -188,22 +200,12 @@ class WorldBaseFacade extends ParentFacade {
   }
 
   /**
-   * Pre-normalizes native pointer events, to satisfy assumptions that downstream code may
-   * make about them, and make them simpler to work with.
+   * Hook allowing world implementations to pre-normalize native pointer events, for instance
+   * computing derived worldspace properties that are simpler for downstream code to use.
    * @param {Event} e
    * @protected
    */
   _normalizePointerEvent(e) {
-    // normalize position properties on touch events with a single touch, to facilitate
-    // downstream handlers that expect them to look like mouse events
-    if (e.touches) {
-      let touches = isTouchEndOrCancel(e) ? e.changedTouches : e.touches
-      if (touches.length === 1) {
-        touchDragPropsToNormalize.forEach(prop => {
-          e[prop] = touches[0][prop]
-        })
-      }
-    }
   }
 
   /**
@@ -355,7 +357,7 @@ class WorldBaseFacade extends ParentFacade {
     }
   }
 
-  _firePointerEvent(eventType, originalEvent, targetFacade, relatedTargetFacade, extra) {
+  _firePointerEvent(eventType, originalEvent, targetFacade, relatedTargetFacade, intersection) {
     let newEvent = (originalEvent instanceof SyntheticEvent) ?
       originalEvent :
       new SyntheticEvent(
@@ -363,7 +365,7 @@ class WorldBaseFacade extends ParentFacade {
         eventType,
         targetFacade,
         relatedTargetFacade,
-        extra
+        {intersection}
       )
     // Dispatch with bubbling
     // TODO genericize bubbling for future non-pointer-related events
@@ -416,7 +418,11 @@ class WorldBaseFacade extends ParentFacade {
 
   /**
    * @abstract
-   * @return {Array|null}
+   * Given a pointer-related Event, find and return all facade objects that are intersected
+   * by that event. If any hits are found, this should return an array of objects that contain
+   * at least `facade` and `distance` properties. Any additional properties will be exposed to
+   * event listeners on the synthetic event object as an `intersection` property.
+   * @return {Array<{facade, distance, ?distanceBias, ...}>|null}
    */
   getFacadesAtEvent(e) {
     throw new Error('getFacadesAtEvent: no impl')
