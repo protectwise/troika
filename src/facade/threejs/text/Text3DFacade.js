@@ -41,8 +41,6 @@ class Text3DFacade extends Object3DFacade {
     super(parent, mesh)
     
     this._textGeometry = geometry
-
-    this.addEventListener('beforerender', this.onBeforeRender.bind(this))
   }
 
   afterUpdate() {
@@ -100,11 +98,13 @@ class Text3DFacade extends Object3DFacade {
       }
     }
 
+    this._prepareMaterial()
+
     super.afterUpdate()
   }
 
-  onBeforeRender(renderer, scene, camera) {
-    const textMaterial = this._getTextMaterial(renderer)
+  _prepareMaterial() {
+    const textMaterial = this._getTextMaterial()
     const textInfo = this._textRenderInfo
     const uniforms = textMaterial.uniforms
     if (textInfo) {
@@ -126,7 +126,7 @@ class Text3DFacade extends Object3DFacade {
     this.threeObject.material = textMaterial
   }
 
-  _getTextMaterial(renderer) {
+  _getTextMaterial() {
     let textMaterial = this._textMaterial
     const baseMaterial = this.material || defaultMaterial
     if (!textMaterial || textMaterial._baseMaterial !== baseMaterial) {
@@ -135,15 +135,14 @@ class Text3DFacade extends Object3DFacade {
       }
 
       const baseShaders = getShadersForMaterial(baseMaterial)
-      const derivativesSupported = renderer.extensions.get('OES_standard_derivatives')
-      const upgradedShaders = upgradeShaders(baseShaders.vertexShader, baseShaders.fragmentShader, derivativesSupported)
+      const upgradedShaders = upgradeShaders(baseShaders.vertexShader, baseShaders.fragmentShader)
 
       // Clone the material and upgrade it
       textMaterial = this._textMaterial = baseMaterial.clone()
       textMaterial._baseMaterial = baseMaterial
       textMaterial.transparent = true //force transparency - TODO is this reasonable?
       textMaterial.defines = assignIf({TROIKA_TEXT: ''}, baseMaterial.defines)
-      textMaterial.uniforms = assignIf({ //create uniforms holders; their values will be set in onBeforeRender
+      textMaterial.uniforms = assignIf({
         uTroikaSDFTexture: {value: null},
         uTroikaSDFMinDistancePct: {value: 0},
         uTroikaGlyphVSize: {value: 0},
@@ -151,9 +150,7 @@ class Text3DFacade extends Object3DFacade {
         uTroikaClipRect: {value: new Vector4()},
         uTroikaSDFDebug: {value: false}
       }, baseShaders.uniforms)
-      if (derivativesSupported) {
-        textMaterial.extensions = assignIf({derivatives: true}, baseMaterial.extensions)
-      }
+      textMaterial.extensions = assignIf({derivatives: true}, baseMaterial.extensions)
       textMaterial.onBeforeCompile = shaderInfo => {
         // Inject the upgraded shaders/uniforms before program switch
         baseMaterial.onBeforeCompile.call(this, shaderInfo)
@@ -235,7 +232,7 @@ function updateBufferAttrArray(attr, newArray) {
 }
 
 
-function upgradeShaders(vertexShader, fragmentShader, derivativesSupported) {
+function upgradeShaders(vertexShader, fragmentShader) {
   // Pre-expand includes
   vertexShader = expandShaderIncludes(vertexShader)
   fragmentShader = expandShaderIncludes(fragmentShader)
@@ -305,21 +302,25 @@ $&
 troikaApplyClipping();
 
 float troikaSDFValue = texture2D(uTroikaSDFTexture, vTroikaGlyphUV).r;
-float troikaAntiAliasDist = ${derivativesSupported ?
-  // When the standard derivatives extension is available, we choose an antialiasing alpha threshold based
-  // on the potential change in the SDF's alpha from this fragment to its neighbor. This strategy maximizes 
-  // readability and edge crispness at all sizes and screen resolutions. Interestingly, this also means that 
-  // below a minimum size we're effectively displaying the SDF texture unmodified.
-  `min(
+
+${''/*
+When the standard derivatives extension is available, we choose an antialiasing alpha threshold based
+on the potential change in the SDF's alpha from this fragment to its neighbor. This strategy maximizes 
+readability and edge crispness at all sizes and screen resolutions. Interestingly, this also means that 
+below a minimum size we're effectively displaying the SDF texture unmodified.
+*/}
+#ifdef GL_OES_standard_derivatives
+  float troikaAntiAliasDist = min(
     0.5,
     0.5 * min(
       fwidth(vTroikaGlyphUV.x), 
       fwidth(vTroikaGlyphUV.y / uTroikaGlyphVSize)
     )
-  ) / uTroikaSDFMinDistancePct` :
-  // Fallback for no derivatives extension:
-  '0.01'
-};
+  ) / uTroikaSDFMinDistancePct;
+#else
+  float troikaAntiAliasDist = 0.01;
+#endif
+
 float textAlphaMult = uTroikaSDFDebug ? troikaSDFValue : smoothstep(
   0.5 - troikaAntiAliasDist,
   0.5 + troikaAntiAliasDist,

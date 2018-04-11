@@ -83,7 +83,7 @@ class UIBlockLayer3DFacade extends Object3DFacade {
       if (this.isBorder) {
         upgradedMaterial.defines.TROIKA_UI_BORDER = ''
       }
-      upgradedMaterial.uniforms = assignIf({ //create uniforms holders; their values will be set in onBeforeRender
+      upgradedMaterial.uniforms = assignIf({
         uTroikaBlockSize: {value: new Vector2()},
         uTroikaClipRect: {value: new Vector4()},
         uTroikaCornerRadii: {value: new Vector4()},
