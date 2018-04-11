@@ -90,6 +90,9 @@ class UIBlock3DFacade extends Group3DFacade {
         sphere.center.set(offsetWidth / 2, -offsetHeight / 2, 0)
         sphere.version++
       }
+
+      // If fully hidden by parent clipping rect, cull the whole Group out of the scene
+      this.threeObject.visible = !this.isFullyClipped
     }
 
     // Update shared vector objects for the sublayers

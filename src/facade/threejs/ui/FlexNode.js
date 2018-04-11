@@ -213,6 +213,7 @@ export const extendAsFlexNode = createClassExtender('flexNode', BaseFacadeClass 
 
     _updateClipRect() {
       let child = this
+      const {offsetWidth, offsetHeight} = this
       let parent = child.parentFlexNode
       let totalOffsetLeft = 0
       let totalOffsetTop = 0
@@ -228,8 +229,8 @@ export const extendAsFlexNode = createClassExtender('flexNode', BaseFacadeClass 
 
         const insetLeft = parent.clientLeft - totalOffsetLeft
         const insetTop = parent.clientTop - totalOffsetTop
-        const insetRight = (totalOffsetLeft + this.offsetWidth) - (parent.clientLeft + parent.clientWidth)
-        const insetBottom = (totalOffsetTop + this.offsetHeight) - (parent.clientTop + parent.clientHeight)
+        const insetRight = (totalOffsetLeft + offsetWidth) - (parent.clientLeft + parent.clientWidth)
+        const insetBottom = (totalOffsetTop + offsetHeight) - (parent.clientTop + parent.clientHeight)
         if (insetLeft > maxInsetLeft) maxInsetLeft = insetLeft
         if (insetTop > maxInsetTop) maxInsetTop = insetTop
         if (insetRight > maxInsetRight) maxInsetRight = insetRight
@@ -241,8 +242,10 @@ export const extendAsFlexNode = createClassExtender('flexNode', BaseFacadeClass 
 
       this.clipLeft = maxInsetLeft
       this.clipTop = maxInsetTop
-      this.clipRight = this.offsetWidth - maxInsetRight
-      this.clipBottom = this.offsetHeight - maxInsetBottom
+      this.clipRight = offsetWidth - maxInsetRight
+      this.clipBottom = offsetHeight - maxInsetBottom
+      this.isFullyClipped = maxInsetLeft >= offsetWidth || maxInsetTop >= offsetHeight ||
+        maxInsetRight >= offsetWidth || maxInsetBottom >= offsetHeight
     }
   }
 
@@ -265,7 +268,8 @@ export const extendAsFlexNode = createClassExtender('flexNode', BaseFacadeClass 
     clipLeft: null,
     clipTop: null,
     clipRight: null,
-    clipBottom: null
+    clipBottom: null,
+    isFullyClipped: false
   })
 
   // Setters for simple flex layout properties that can be copied directly into the

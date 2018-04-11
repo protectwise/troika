@@ -33,6 +33,9 @@ class UITextNode3DFacade extends Text3DFacade {
       clipRect[1] = -this.clipBottom
       clipRect[2] = this.clipRight
       clipRect[3] = -this.clipTop
+
+      // If fully hidden by parent clipping rect, cull this object out of the scene
+      this.threeObject.visible = !this.isFullyClipped
     }
 
     // Check text props that could affect flex layout
