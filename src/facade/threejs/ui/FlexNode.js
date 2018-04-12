@@ -212,40 +212,28 @@ export const extendAsFlexNode = createClassExtender('flexNode', BaseFacadeClass 
     }
 
     _updateClipRect() {
-      let child = this
-      const {offsetWidth, offsetHeight} = this
-      let parent = child.parentFlexNode
-      let totalOffsetLeft = 0
-      let totalOffsetTop = 0
-      const negInf = -Infinity
-      let maxInsetLeft = negInf
-      let maxInsetTop = negInf
-      let maxInsetRight = negInf
-      let maxInsetBottom = negInf
+      const {offsetWidth, offsetHeight, parentFlexNode:parent} = this
+      let clipLeft, clipTop, clipRight, clipBottom
 
-      while (parent && child.position !== 'absolute') {
-        totalOffsetLeft += child.offsetLeft - parent.scrollLeft
-        totalOffsetTop += child.offsetTop - parent.scrollTop
-
-        const insetLeft = parent.clientLeft - totalOffsetLeft
-        const insetTop = parent.clientTop - totalOffsetTop
-        const insetRight = (totalOffsetLeft + offsetWidth) - (parent.clientLeft + parent.clientWidth)
-        const insetBottom = (totalOffsetTop + offsetHeight) - (parent.clientTop + parent.clientHeight)
-        if (insetLeft > maxInsetLeft) maxInsetLeft = insetLeft
-        if (insetTop > maxInsetTop) maxInsetTop = insetTop
-        if (insetRight > maxInsetRight) maxInsetRight = insetRight
-        if (insetBottom > maxInsetBottom) maxInsetBottom = insetBottom
-
-        child = parent
-        parent = parent.parentFlexNode
+      if (parent && this.position !== 'absolute') {
+        const scrolledLeft = this.offsetLeft - parent.scrollLeft
+        const scrolledTop = this.offsetTop - parent.scrollTop
+        clipLeft = Math.max(parent.clientLeft, parent.clipLeft) - scrolledLeft
+        clipTop = Math.max(parent.clientTop, parent.clipTop) - scrolledTop
+        clipRight = Math.min(parent.clientLeft + parent.clientWidth, parent.clipRight) - scrolledLeft
+        clipBottom = Math.min(parent.clientTop + parent.clientHeight, parent.clipBottom) - scrolledTop
+      } else {
+        clipLeft = clipTop = -Infinity
+        clipRight = clipBottom = Infinity
       }
 
-      this.clipLeft = maxInsetLeft
-      this.clipTop = maxInsetTop
-      this.clipRight = offsetWidth - maxInsetRight
-      this.clipBottom = offsetHeight - maxInsetBottom
-      this.isFullyClipped = maxInsetLeft >= offsetWidth || maxInsetTop >= offsetHeight ||
-        maxInsetRight >= offsetWidth || maxInsetBottom >= offsetHeight
+      this.clipLeft = clipLeft
+      this.clipTop = clipTop
+      this.clipRight = clipRight
+      this.clipBottom = clipBottom
+      this.isFullyClipped = clipLeft >= offsetWidth || clipTop >= offsetHeight ||
+        clipRight <= 0 || clipBottom <= 0 ||
+        clipLeft === clipRight || clipTop === clipBottom
     }
   }
 
