@@ -11,6 +11,15 @@ const tempMat4 = new Matrix4()
 const DEFAULT_FONT_SIZE = 16
 const DEFAULT_LINE_HEIGHT = 'normal'
 
+const groupVisiblePropDef = {
+  get() {
+    return !this._priv_hidden && !this.$facade.isFullyClipped
+  },
+  set(value) {
+    this._priv_hidden = !value
+  }
+}
+
 /**
  * Represents a single block UI element, essentially just a 2D rectangular block that
  * can contain text, be styled with background/border, and participate in flexbox layout.
@@ -19,6 +28,9 @@ const DEFAULT_LINE_HEIGHT = 'normal'
 class UIBlock3DFacade extends Group3DFacade {
   constructor(parent) {
     super(parent)
+
+    // If fully hidden by parent clipping rect, cull the whole Group out of the scene
+    Object.defineProperty(this.threeObject, 'visible', groupVisiblePropDef)
 
     // Create rendering layer child definitions
     // These live separate from the main `children` tree
@@ -47,6 +59,17 @@ class UIBlock3DFacade extends Group3DFacade {
     ;(this._geomBoundingSphere = new Sphere()).version = 0
   }
 
+  /**
+   * @override When fully clipped out of view, skip updating children entirely. We do this by
+   * overriding `updateChildren` instead of using the `shouldUpdateChildren` hook, because the
+   * latter would still traverse the child tree to sync matrices, which we don't need here.
+   */
+  updateChildren(children) {
+    if (!this.isFullyClipped) {
+      super.updateChildren(children)
+    }
+  }
+
   afterUpdate() {
     let {
       bgLayer,
@@ -65,14 +88,15 @@ class UIBlock3DFacade extends Group3DFacade {
       offsetHeight,
       parentFlexNode,
       flexNodeDepth,
+      isFullyClipped,
       _borderWidthVec4,
       _clipRectVec4,
       _sizeVec2
     } = this
     const hasLayout = offsetWidth !== null
     const hasNonZeroSize = !!(offsetWidth && offsetHeight)
-    const hasBg = hasNonZeroSize && (backgroundColor != null || backgroundMaterial != null)
-    const hasBorder = hasNonZeroSize && (borderColor != null || borderMaterial != null) && Math.max(...borderWidth) > 0
+    const hasBg = hasNonZeroSize && !isFullyClipped && (backgroundColor != null || backgroundMaterial != null)
+    const hasBorder = hasNonZeroSize && !isFullyClipped && (borderColor != null || borderMaterial != null) && Math.max(...borderWidth) > 0
 
     // Update the block's element and size from flexbox computed values
     if (hasLayout) {
@@ -90,83 +114,82 @@ class UIBlock3DFacade extends Group3DFacade {
         sphere.center.set(offsetWidth / 2, -offsetHeight / 2, 0)
         sphere.version++
       }
-
-      // If fully hidden by parent clipping rect, cull the whole Group out of the scene
-      this.threeObject.visible = !this.isFullyClipped
     }
 
-    // Update shared vector objects for the sublayers
-    const radii = (hasBg || hasBorder) ? this._normalizeBorderRadius() : null
-    _borderWidthVec4.fromArray(borderWidth)
-    _clipRectVec4.set(this.clipLeft, this.clipTop, this.clipRight, this.clipBottom)
+    if (!isFullyClipped) {
+      // Update shared vector objects for the sublayers
+      const radii = (hasBg || hasBorder) ? this._normalizeBorderRadius() : null
+      _borderWidthVec4.fromArray(borderWidth)
+      _clipRectVec4.set(this.clipLeft, this.clipTop, this.clipRight, this.clipBottom)
 
-    // Update rendering layers...
-    if (hasBg) {
-      bgLayer.size = _sizeVec2
-      bgLayer.color = backgroundColor
-      bgLayer.borderRadius = radii
-      bgLayer.material = backgroundMaterial
-      bgLayer.clipRect = _clipRectVec4
-      bgLayer.depthOffset = -flexNodeDepth
-      // bgLayer.castShadow = this.castShadow
-      // bgLayer.receiveShadow = this.receiveShadow
-    } else {
-      bgLayer = null
-    }
-    layers.children[0] = bgLayer
+      // Update rendering layers...
+      if (hasBg) {
+        bgLayer.size = _sizeVec2
+        bgLayer.color = backgroundColor
+        bgLayer.borderRadius = radii
+        bgLayer.material = backgroundMaterial
+        bgLayer.clipRect = _clipRectVec4
+        bgLayer.depthOffset = -flexNodeDepth
+        // bgLayer.castShadow = this.castShadow
+        // bgLayer.receiveShadow = this.receiveShadow
+      } else {
+        bgLayer = null
+      }
+      layers.children[0] = bgLayer
 
-    if (hasBorder) {
-      borderLayer.size = _sizeVec2
-      borderLayer.color = borderColor
-      borderLayer.borderWidth = _borderWidthVec4
-      borderLayer.borderRadius = radii
-      borderLayer.material = borderMaterial
-      borderLayer.clipRect = _clipRectVec4
-      borderLayer.depthOffset = -flexNodeDepth - 1
-      // borderLayer.castShadow = this.castShadow
-      // borderLayer.receiveShadow = this.receiveShadow
-    } else {
-      borderLayer = null
-    }
-    layers.children[1] = borderLayer
+      if (hasBorder) {
+        borderLayer.size = _sizeVec2
+        borderLayer.color = borderColor
+        borderLayer.borderWidth = _borderWidthVec4
+        borderLayer.borderRadius = radii
+        borderLayer.material = borderMaterial
+        borderLayer.clipRect = _clipRectVec4
+        borderLayer.depthOffset = -flexNodeDepth - 1
+        // borderLayer.castShadow = this.castShadow
+        // borderLayer.receiveShadow = this.receiveShadow
+      } else {
+        borderLayer = null
+      }
+      layers.children[1] = borderLayer
 
-    // Allow text to be specified as a single string child
-    if (!text && isTextNodeChild(this.children)) {
-      text = '' + this.children
-    }
-    // Update text child...
-    if (text) {
-      textChild.text = text
-      textChild.font = getInheritable(this, 'font')
-      textChild.fontSize = getInheritable(this, 'fontSize', DEFAULT_FONT_SIZE)
-      textChild.textAlign = getInheritable(this, 'textAlign')
-      textChild.lineHeight = getInheritable(this, 'lineHeight', DEFAULT_LINE_HEIGHT)
-      textChild.letterSpacing = getInheritable(this, 'letterSpacing', 0)
-      textChild.whiteSpace = getInheritable(this, 'whiteSpace')
-      textChild.overflowWrap = getInheritable(this, 'overflowWrap')
-      textChild.color = getInheritable(this, 'color')
-      textChild.material = this.textMaterial
-      textChild.depthOffset = -flexNodeDepth - 1
-      // textChild.castShadow = this.castShadow
-      // textChild.receiveShadow = this.receiveShadow
-      this.children = textChild //NOTE: text content will clobber any other defined children
-    } else {
-      // Convert any children specified as plain strings to nested text blocks; handy for JSX style
-      let children = this.children
-      if (Array.isArray(children)) {
-        for (let i = 0, len = children.length; i < len; i++) {
-          if (isTextNodeChild(children[i])) {
-            children = this.children = children.slice()
-            for (; i < len; i++) { //continue from here
-              if (isTextNodeChild(children[i])) {
-                children[i] = {
-                  facade: UIBlock3DFacade$FlexNode,
-                  text: '' + children[i],
-                  textMaterial: this.textMaterial
+      // Allow text to be specified as a single string child
+      if (!text && isTextNodeChild(this.children)) {
+        text = '' + this.children
+      }
+      // Update text child...
+      if (text) {
+        textChild.text = text
+        textChild.font = getInheritable(this, 'font')
+        textChild.fontSize = getInheritable(this, 'fontSize', DEFAULT_FONT_SIZE)
+        textChild.textAlign = getInheritable(this, 'textAlign')
+        textChild.lineHeight = getInheritable(this, 'lineHeight', DEFAULT_LINE_HEIGHT)
+        textChild.letterSpacing = getInheritable(this, 'letterSpacing', 0)
+        textChild.whiteSpace = getInheritable(this, 'whiteSpace')
+        textChild.overflowWrap = getInheritable(this, 'overflowWrap')
+        textChild.color = getInheritable(this, 'color')
+        textChild.material = this.textMaterial
+        textChild.depthOffset = -flexNodeDepth - 1
+        // textChild.castShadow = this.castShadow
+        // textChild.receiveShadow = this.receiveShadow
+        this.children = textChild //NOTE: text content will clobber any other defined children
+      } else {
+        // Convert any children specified as plain strings to nested text blocks; handy for JSX style
+        let children = this.children
+        if (Array.isArray(children)) {
+          for (let i = 0, len = children.length; i < len; i++) {
+            if (isTextNodeChild(children[i])) {
+              children = this.children = children.slice()
+              for (; i < len; i++) { //continue from here
+                if (isTextNodeChild(children[i])) {
+                  children[i] = {
+                    facade: UIBlock3DFacade$FlexNode,
+                    text: '' + children[i],
+                    textMaterial: this.textMaterial
+                  }
                 }
               }
+              break
             }
-            break
           }
         }
       }
@@ -180,7 +203,9 @@ class UIBlock3DFacade extends Group3DFacade {
     this[`${canScroll ? 'add' : 'remove'}EventListener`]('wheel', wheelHandler)
 
     super.afterUpdate()
-    layers.afterUpdate()
+    if (!isFullyClipped) {
+      layers.afterUpdate()
+    }
   }
 
   _normalizeBorderRadius() {
@@ -243,11 +268,11 @@ class UIBlock3DFacade extends Group3DFacade {
   }
 
   /**
-   * @override Use our textGeometry's boundingSphere which we keep updated as we get new
+   * @override Use our private boundingSphere which we keep updated as we get new
    * layout metrics.
    */
   _getGeometryBoundingSphere() {
-    return this._geomBoundingSphere.radius ? this._geomBoundingSphere : null
+    return this._geomBoundingSphere.radius && !this.isFullyClipped ? this._geomBoundingSphere : null
   }
 
   /**
@@ -324,10 +349,10 @@ function wheelHandler(e) {
   ) {
     this.scrollLeft = scrollLeft
     this.scrollTop = scrollTop
+    facade.afterUpdate()
+    facade.notifyWorld('needsRender')
     e.stopPropagation() //only scroll deepest
   }
-  facade.afterUpdate()
-  facade.notifyWorld('needsRender')
   e.preventDefault()
 }
 
