@@ -45,6 +45,7 @@ import {assign, createClassExtender} from '../../../utils'
  * - margin (number, or array of up to four numbers in t-r-b-l order)
  * - padding (number, or array of up to four numbers in t-r-b-l order)
  * - borderWidth (number, or array of up to four numbers in t-r-b-l order)
+ * - overflow ('visible', 'hidden', or 'scroll')
  *
  * *Computed layout result properties:*
  * - offsetLeft
@@ -213,18 +214,20 @@ export const extendAsFlexNode = createClassExtender('flexNode', BaseFacadeClass 
 
     _updateClipRect() {
       const {offsetWidth, offsetHeight, parentFlexNode:parent} = this
+      const INF = Infinity
       let clipLeft, clipTop, clipRight, clipBottom
 
       if (parent && this.position !== 'absolute') {
         const scrolledLeft = this.offsetLeft - parent.scrollLeft
         const scrolledTop = this.offsetTop - parent.scrollTop
-        clipLeft = Math.max(parent.clientLeft, parent.clipLeft) - scrolledLeft
-        clipTop = Math.max(parent.clientTop, parent.clipTop) - scrolledTop
-        clipRight = Math.min(parent.clientLeft + parent.clientWidth, parent.clipRight) - scrolledLeft
-        clipBottom = Math.min(parent.clientTop + parent.clientHeight, parent.clipBottom) - scrolledTop
+        const doesParentClip = parent.overflow !== 'visible'
+        clipLeft = Math.max(doesParentClip ? parent.clientLeft : -INF, parent.clipLeft) - scrolledLeft
+        clipTop = Math.max(doesParentClip ? parent.clientTop : -INF, parent.clipTop) - scrolledTop
+        clipRight = Math.min(doesParentClip ? parent.clientLeft + parent.clientWidth : INF, parent.clipRight) - scrolledLeft
+        clipBottom = Math.min(doesParentClip ? parent.clientTop + parent.clientHeight : INF, parent.clipBottom) - scrolledTop
       } else {
-        clipLeft = clipTop = -Infinity
-        clipRight = clipBottom = Infinity
+        clipLeft = clipTop = -INF
+        clipRight = clipBottom = INF
       }
 
       this.clipLeft = clipLeft
@@ -257,7 +260,8 @@ export const extendAsFlexNode = createClassExtender('flexNode', BaseFacadeClass 
     clipTop: null,
     clipRight: null,
     clipBottom: null,
-    isFullyClipped: false
+    isFullyClipped: false,
+    overflow: 'visible'
   })
 
   // Setters for simple flex layout properties that can be copied directly into the

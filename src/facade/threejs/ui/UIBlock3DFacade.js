@@ -197,7 +197,7 @@ class UIBlock3DFacade extends Group3DFacade {
 
     // Add mousewheel listener if scrollable
     // TODO scroll via drag?
-    const canScroll = hasNonZeroSize && (
+    const canScroll = hasNonZeroSize && (this.overflow === 'scroll' || this.overflow === 'auto') && (
       this.scrollHeight > this.clientHeight || this.scrollWidth > this.clientWidth
     )
     this[`${canScroll ? 'add' : 'remove'}EventListener`]('wheel', wheelHandler)
