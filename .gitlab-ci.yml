@@ -1,4 +1,4 @@
-image: node:6.11
+image: node:8.9
 
 before_script:
   - node --version
