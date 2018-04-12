@@ -13,6 +13,7 @@ import FlexboxGlobe from './FlexboxGlobe'
 import CubeOfCubes from './CubeOfCubes'
 import FlexboxLineGraph from './FlexboxLineGraph'
 import Checkbox from './Checkbox'
+import UITableFacade from './UITableFacade'
 
 const mainPanelMaterial = new MeshStandardMaterial({roughness: 0.6, metalness: 0.8})
 const FONT_URL = 'https://fonts.gstatic.com/s/notosans/v7/o-0IIpQlx3QUlC5A4PNr5TRG.woff'
@@ -117,13 +118,21 @@ class UIExample extends React.Component {
                 fontSize={24}
                 justifyContent='space-between'
               >
+                {/*
+                <UITableFacade
+                  cellSpacing={2.5}
+                  cellPadding={5}
+                  flexShrink={1}
+                  borderColor={0x999999}
+                  borderWidth={2}
+                />
+                */}
+
                 <Block
                   borderColor={0x999999}
                   borderWidth={1}
                   padding={20}
                   borderRadius={20}
-                  minHeight={0}
-                  flexShrink={1}
                   // Computed flexbox layout properties are animatable just like any other!
                   transition={{offsetHeight: true, clientHeight: true}}
                 >
@@ -414,6 +423,7 @@ class UIExample extends React.Component {
                   padding={10}
                   minHeight={0}
                   flexShrink={1}
+                  overflow='scroll'
                 >
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
@@ -423,6 +433,7 @@ class UIExample extends React.Component {
                     flexDirection="row"
                     padding={5}
                     margin={[0, 0, 20]}
+                    overflow='scroll'
                     // children={[1,2,3,4,5,6,7,8].map(n =>
                     //   <Block
                     //     key={n}
