@@ -39,7 +39,9 @@ class SyntheticEvent {
   constructor(nativeEvent, type, target, relatedTarget, extraProps) {
     // Copy native event properties - TODO investigate using a Proxy
     for (let prop in nativeEvent) {
-      if (nativeEvent.hasOwnProperty(prop) && typeof nativeEvent[prop] !== 'function') {
+      // NOTE: we don't check hasOwnProperty in this loop because properties that will return
+      // false for properties that are defined by getters on inherited prototypes
+      if (typeof nativeEvent[prop] !== 'function') {
         this[prop] = nativeEvent[prop]
       }
     }
