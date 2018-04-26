@@ -91,8 +91,9 @@ export default class CanvasBase extends React.Component {
         let world = (this._world = this.initWorld(canvas))
         this._updateWorld(world)
       } catch (e) {
-        console.warn(`Troika.${this.constructor.displayName}: world init failed`, e)
+        console.warn(`Troika.${this.constructor.displayName}: world init failed, using fallback content.`, e)
         this._failedWorldInit = true
+        this._world = null
         this.forceUpdate()
       }
     } else {
