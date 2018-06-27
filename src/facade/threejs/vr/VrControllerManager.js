@@ -25,80 +25,56 @@ export class VrControllerManager extends Group3DFacade {
   constructor(parent) {
     super(parent)
     this.addEventListener('beforerender', this._onBeforeRender.bind(this))
-  }
-
-  _onBeforeRender(renderer, scene, camera) {
-    // Poll for changes to the set of usable gamepads every so often.
-    const now = Date.now()
-    if (now - (this._lastCheckTime || 0) > gamepadCheckFrequency) {
-      this._checkGamepads()
-      this._lastCheckTime = now
-    }
-
-    // Sync the VrControllerManager group container to the worldspace transform of the camera prior to headset
-    // pose; this allows each controller to just maintain its own local pose transform
-    this.threeObject.matrixWorld.compose(camera.position, camera.quaternion, camera.scale)
-
-    // Invoke afterUpdate of all controller facades on every frame
-    this.forEachChild(invokeAfterUpdate)
+    this._isInRenderFrame = false
+    this.children = []
   }
 
   shouldUpdateChildren() {
-    // Never update children during normal afterUpdate, that will happen explicitly during
-    // the onBeforeRender handler above.
-    return false
+    // Only allow child controllers to be updated during render frames (onBeforeRender), since
+    // that's when the VR display and gamepad objects will be queryable and current.
+    return this._isInRenderFrame
   }
 
-  _checkGamepads() {
-    let gamepads = null
-    if (this.vrDisplay) {
+  _onBeforeRender(renderer, scene, camera) {
+    const {vrDisplay, children} = this
+    children.length = 0
+
+    // Sync the VrControllerManager group container to the worldspace transform of the camera prior
+    // to headset pose; this allows each controller to just maintain its own local pose transform
+    this.threeObject.matrixWorld.compose(camera.position, camera.quaternion, camera.scale)
+
+    // Add a tracked controller for each available gamepad
+    if (vrDisplay) {
       const allGamepads = navigator.getGamepads && navigator.getGamepads()
       if (allGamepads) {
-        for (let i = 0, len = allGamepads.length; i < len; i++) {
+        for (let i = allGamepads.length; i--;) { //iterate backwards so first encountered is primary
           const gamepad = allGamepads[i]
           // Only include gamepads that match the active VRDisplay's id, and that are in use (have pose data).
           // Note: we don't use the `gamepad.connected` property as there's indication in other projects
           // that it is not accurate in some browsers, but we should verify that's still true.
-          if (gamepad && gamepad.displayId === this.vrDisplay.displayId && gamepad.pose && gamepad.pose.orientation) {
-            (gamepads || (gamepads = [])).push(gamepad)
+          if (gamepad && gamepad.displayId === vrDisplay.displayId && gamepad.pose && gamepad.pose.orientation) {
+            children.push({
+              key: `tracked${i}`,
+              facade: TrackedVrController,
+              gamepad,
+              isPointing: !children.length
+            })
           }
         }
       }
     }
 
-    // If the available gamepads changed in any way, update the child controller facade configs
-    if (!arraysAreEqual(gamepads, this.gamepads)) {
-      const controllerChildren = []
-
-      // Add a tracked controller for each gamepad
-      if (gamepads) {
-        for (let i = 0, len = gamepads.length; i < len; i++) {
-          controllerChildren.push({
-            key: `tracked${i}`,
-            facade: TrackedVrController,
-            gamepad: gamepads[i],
-            isPointing: i === len - 1
-          })
-        }
-      }
-
-      // Gaze controller as fallback
-      if (!controllerChildren.length) {
-        controllerChildren.push({
-          key: 'gaze',
-          facade: GazeVrController
-        })
-      }
-
-      this.gamepads = gamepads
-      this.updateChildren(controllerChildren)
-      this.afterUpdate() //in case any children were removed, this will sync the threejs scene
+    // Use a single gaze controller as fallback
+    if (!children.length) {
+      children.push({
+        key: 'gaze',
+        facade: GazeVrController
+      })
     }
+
+    this._isInRenderFrame = true
+    this.afterUpdate()
+    this._isInRenderFrame = false
   }
 }
-
-function invokeAfterUpdate(f) {
-  f.afterUpdate()
-}
-
 
