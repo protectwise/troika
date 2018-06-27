@@ -88,6 +88,7 @@ export default class TrackedVrController extends VrController {
         threeObj.position.fromArray(gamepad.pose.position)
       } else {
         // TODO arm model?
+        threeObj.position.set(0.2, -0.5, -0.25)
       }
 
       // Sync matrices to new pose components
@@ -144,10 +145,6 @@ export default class TrackedVrController extends VrController {
 
     super.afterUpdate()
   }
-}
-
-function updateFacadeMatrices(facade) {
-  facade.updateMatrices && facade.updateMatrices()
 }
 
 
