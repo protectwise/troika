@@ -82,7 +82,7 @@ export const extendAsVrCamera = createClassExtender('vrCamera', function(BaseCam
 
           // Sync eye cameras; note the eye matrices include the pose transform so we do this prior to
           // applying the pose transform to the main camera.
-          function syncEye(eyeCam, eyeViewMatrix, eyeProjMatrix, eyeBounds) {
+          const syncEye = function(eyeCam, eyeViewMatrix, eyeProjMatrix, eyeBounds) {
             eyeCam.near = mainCam.near
             eyeCam.far = mainCam.far
             eyeCam.matrixWorldInverse.multiplyMatrices(tempMat4.fromArray(eyeViewMatrix), mainCam.matrixWorldInverse)

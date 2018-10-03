@@ -165,7 +165,7 @@ function createFlexLayoutProcessor(loadFontFn, measureFn) {
         main: 'https://cdn.jsdelivr.net/npm/yoga-layout@1.9.3/dist/entry-browser.min.js'
       }
 
-      function fakeRequire(scriptId) {
+      const fakeRequire = function(scriptId) {
         // Synchronously load the script content
         const xhr = new XMLHttpRequest()
         xhr.open('GET', paths[scriptId], false)
