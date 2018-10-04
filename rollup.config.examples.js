@@ -4,6 +4,7 @@ import nodeResolve from 'rollup-plugin-node-resolve'
 import commonjs from 'rollup-plugin-commonjs'
 import replace from 'rollup-plugin-replace'
 import importStrings from 'rollup-plugin-string'
+import importJson from 'rollup-plugin-json'
 import serve from 'rollup-plugin-serve'
 
 
@@ -14,6 +15,7 @@ export default {
     importStrings({
       include: '**/*.glsl',
     }),
+    importJson(),
     replace({
       'process.env.NODE_ENV': '"production"'
     }),

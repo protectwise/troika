@@ -1,32 +1,20 @@
 import {ListFacade, Object3DFacade} from '../../src/index'
 import {Mesh, MeshPhongMaterial, SphereBufferGeometry, TextureLoader} from 'three'
 import Country from './Country'
-import 'whatwg-fetch' //polyfill
-
-const geojsonUrl = 'globe/countries.geojson.json'
-
-var countriesData = null
-function loadCountriesData(onLoad) {
-  fetch(geojsonUrl)
-    .then(function(response) {
-      return response.json()
-    })
-    .catch(function() {
-      alert('Could not load countries geojson data')
-    })
-    .then(function(geojson) {
-      countriesData = []
-      Object.keys(geojson).forEach(region => {
-        geojson[region].forEach(country => {
-          countriesData.push(country)
-        })
-      })
-      onLoad(countriesData)
-    })
-}
-
+import geojson from './countries.geojson.json'
 
 const textureLoader = new TextureLoader()
+
+
+
+
+const countriesData = []
+Object.keys(geojson).forEach(region => {
+  geojson[region].forEach(country => {
+    countriesData.push(country)
+  })
+})
+
 
 
 class Earth extends Object3DFacade {
@@ -50,7 +38,7 @@ class Earth extends Object3DFacade {
     this.children = {
       key: 'countries',
       facade: ListFacade,
-      data: countriesData || [],
+      data: countriesData,
       template: {
         key: d => d.id,
         facade: Country,
@@ -65,13 +53,6 @@ class Earth extends Object3DFacade {
           color: {interpolate: 'color'}
         }
       }
-    }
-
-    if (!countriesData) {
-      loadCountriesData((data) => {
-        this.children.data = data
-        this.afterUpdate()
-      })
     }
   }
 
