@@ -9,7 +9,7 @@
   "dependencies": {
     "easingjs": "^1.0.1",
     "prop-types": "^15.5.10",
-    "three": "0.92.x"
+    "three": "0.97.x"
   },
   "engines": {
     "node": "=8.9.4",

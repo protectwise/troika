@@ -352,7 +352,7 @@ export class BoundingSphereOctree {
    * @param {Object} scope
    */
   forEachSphereOnRay(ray, callback, scope) {
-    return this._forEachMatchingSphere(rayIntersectsSphere.bind(null, ray), callback, scope)
+    return this._forEachMatchingSphere(ray.intersectsSphere.bind(ray), callback, scope)
   }
 
   forEachIntersectingSphere(sphere, callback, scope) {
@@ -587,18 +587,4 @@ const _createBranchFromLeaf = (function() {
     return branch
   }
 })()
-
-
-
-
-/**
- * Custom ray-sphere intersection tester that's faster than ThreeJS's
- * `ray.intersectsSphere(sphere)` because it avoids Math.sqrt() in favor of multiplication.
- * See https://jsperf.com/threejs-ray-intersectssphere/1
- * @param {Ray} ray
- * @param {Sphere} sphere
- */
-export function rayIntersectsSphere(ray, sphere) {
-  return ray.distanceSqToPoint(sphere.center) <= sphere.radius * sphere.radius
-}
 

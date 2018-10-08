@@ -1,8 +1,7 @@
 import React from 'react'
 import T from 'prop-types'
-import ReactDOM from 'react-dom'
 import {Canvas3D, Group3DFacade} from '../../src/index'
-import {Plane, Vector2, Matrix4, Raycaster} from 'three'
+import {Plane, Vector3, Matrix4} from 'three'
 import Planet from './Planet'
 import Sun from './Sun'
 import Orbit from './Orbit'
@@ -76,7 +75,7 @@ class DragDropExample extends React.Component {
     let systemTransformMatrix = new Matrix4().makeRotationX(ORBITAL_PLANE_ROTATEX)
     let systemPlane = new Plane().setComponents(0, 0, 1, 0).applyMatrix4(systemTransformMatrix)
     let ray = e.ray //all pointer events in a 3D world are guaranteed to have a `ray`
-    let posVec3 = ray.intersectPlane(systemPlane)
+    let posVec3 = ray.intersectPlane(systemPlane, new Vector3())
     if (posVec3) {
       posVec3.applyMatrix4(new Matrix4().getInverse(systemTransformMatrix))
 

@@ -1,5 +1,5 @@
 import {Ray, Sphere, Vector3} from 'three'
-import {BoundingSphereOctree, rayIntersectsSphere} from '../../../src/facade/threejs/BoundingSphereOctree'
+import {BoundingSphereOctree} from '../../../src/facade/threejs/BoundingSphereOctree'
 
 
 let octree, skipTreeValidation
