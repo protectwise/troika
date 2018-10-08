@@ -2,4 +2,3 @@ node_modules
 build
 .tmp
 .DS_store
-package-lock.json
