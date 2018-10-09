@@ -4,4 +4,4 @@
 ```
 npm run examples
 ```
-Navigate to [http://localhost:10001/examples/index.html](http://localhost:10001/examples/index.html)
+Navigate to [http://localhost:10001](http://localhost:10001)

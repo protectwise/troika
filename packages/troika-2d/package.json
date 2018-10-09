@@ -1,0 +1,26 @@
+{
+  "name": "troika-2d",
+  "version": "0.11.0",
+  "description": "Troika 2D",
+  "author": "Jason Johnston <jason.johnston@protectwise.com>",
+  "homepage": "",
+  "license": "MIT",
+  "main": "dist/troika-2d.js",
+  "module": "src/index.js",
+  "directories": {
+    "lib": "dist",
+    "test": "__tests__"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "registry": "https://internal-npm/content/repositories/npm-all/"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "dependencies": {
+    "troika-core": "^0.11.0"
+  }
+}

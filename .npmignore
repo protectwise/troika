@@ -2,3 +2,4 @@ node_modules
 .tmp
 .DS_store
 .vscode
+lerna-debug.log

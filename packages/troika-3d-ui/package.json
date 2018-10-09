@@ -1,0 +1,28 @@
+{
+  "name": "troika-3d-ui",
+  "version": "0.11.0",
+  "description": "Troika 3D User Interface Toolkit",
+  "author": "Jason Johnston <jason.johnston@protectwise.com>",
+  "homepage": "",
+  "license": "MIT",
+  "main": "dist/troika-3d-ui.js",
+  "module": "src/index.js",
+  "directories": {
+    "lib": "dist",
+    "test": "__tests__"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "registry": "https://internal-npm/content/repositories/npm-all/"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "dependencies": {
+    "troika-3d": "^0.11.0",
+    "troika-3d-text": "^0.11.0",
+    "troika-core": "^0.11.0"
+  }
+}

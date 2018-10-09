@@ -1,0 +1,29 @@
+{
+  "name": "troika-examples",
+  "version": "0.11.0",
+  "private": true,
+  "description": "Troika Examples",
+  "author": "Jason Johnston <jason.johnston@protectwise.com>",
+  "homepage": "",
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://internal-npm/content/repositories/npm-all/"
+  },
+  "scripts": {
+    "serve": "rollup -w -c rollup.config.examples.js"
+  },
+  "dependencies": {
+    "troika-2d": "^0.11.0",
+    "troika-3d": "^0.11.0",
+    "troika-3d-text": "^0.11.0",
+    "troika-3d-ui": "^0.11.0",
+    "troika-core": "^0.11.0",
+    "adaptive-bezier-curve": "^1.0.3",
+    "d3-hierarchy": "^1.1.8",
+    "d3-voronoi": "^1.1.4",
+    "lodash": "^4.17.11",
+    "react": "^16.5.2",
+    "react-dom": "^16.5.2",
+    "three-line-2d": "^1.1.6"
+  }
+}

@@ -18,5 +18,6 @@ build:
     - master
   script:
     - npm install
+    - npm run bootstrap
     - npm run build
     - npm publish --registry https://internal-npm/content/repositories/npm/

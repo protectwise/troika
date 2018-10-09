@@ -1,0 +1,25 @@
+{
+  "name": "troika-core",
+  "version": "0.11.0",
+  "description": "Troika Core",
+  "author": "Jason Johnston <jason.johnston@protectwise.com>",
+  "homepage": "",
+  "license": "MIT",
+  "main": "dist/troika-core.js",
+  "module": "src/index.js",
+  "directories": {
+    "lib": "dist",
+    "test": "__tests__"
+  },
+  "publishConfig": {
+    "registry": "https://internal-npm/content/repositories/npm-all/"
+  },
+  "dependencies": {
+    "easingjs": "^1.0.1",
+    "prop-types": "^15.6.2"
+  },
+  "peerDependencies": {
+    "react": "^16.5.2",
+    "react-dom": "^16.5.2"
+  }
+}

@@ -1,40 +1,24 @@
 {
   "name": "troika",
-  "version": "0.10.6",
+  "version": "0.11.0",
+  "private": true,
   "description": "Troika - a framework for managing Three.js scenes using point-in-time descriptors. Includes support for automatic transitions, animations, and pointer events.",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
-  "main": "build/troika.js",
-  "module": "src/index.js",
-  "jsnext:main": "build/troika.esmodule.js",
-  "dependencies": {
-    "easingjs": "^1.0.1",
-    "prop-types": "^15.6.2",
-    "three": "0.97.x"
-  },
   "engines": {
     "node": "=8.9.4",
     "npm": "=5.8.0"
   },
-  "peerDependencies": {
-    "react": "^16.0.0",
-    "react-dom": "^16.0.0"
-  },
   "devDependencies": {
     "@ampproject/rollup-plugin-closure-compiler": "^0.7.3",
-    "adaptive-bezier-curve": "^1.0.3",
     "babel": "^6.23.0",
     "babel-preset-env": "^1.7.0",
     "babel-preset-react": "^6.24.1",
     "buble": "^0.19.4",
-    "d3-hierarchy": "^1.1.8",
-    "d3-voronoi": "^1.1.4",
     "esdoc": "^1.1.0",
     "esdoc-jsx-plugin": "^1.0.0",
     "esdoc-standard-plugin": "^1.0.0",
     "jest": "^23.6.0",
-    "lodash": "^4.17.11",
-    "react": "^16.5.2",
-    "react-dom": "^16.5.2",
+    "lerna": "^3.4.1",
     "rollup": "^0.66.4",
     "rollup-plugin-buble": "^0.19.2",
     "rollup-plugin-commonjs": "^9.1.8",
@@ -44,17 +28,16 @@
     "rollup-plugin-serve": "^0.6.0",
     "rollup-plugin-string": "^2.0.2",
     "rollup-watch": "^4.3.1",
-    "standard": "^12.0.1",
-    "three-line-2d": "^1.1.6"
+    "standard": "^12.0.1"
   },
   "scripts": {
-    "build": "rollup -c",
-    "watch": "rollup -w -c",
+    "bootstrap": "lerna bootstrap --hoist",
+    "build": "lerna exec --ignore=troika-examples -- rollup -c \\$LERNA_ROOT_PATH/rollup.config.js",
     "test": "jest",
-    "examples": "rollup -w -c rollup.config.examples.js",
-    "docs": "esdoc",
-    "clean": "rm -rf build",
-    "lint": "standard src/**/*.js src/**/*.jsx"
+    "examples": "lerna exec --scope=troika-examples -- npm run serve",
+    "docs": "lerna exec -- esdoc",
+    "clean": "lerna exec -- rm -rf dist",
+    "lint": "lerna exec -- standard src/**/*.js src/**/*.jsx"
   },
   "esdoc": {
     "source": "./src",
