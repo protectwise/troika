@@ -1,6 +1,6 @@
 {
   "name": "troika-2d",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "Troika 2D",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "homepage": "",
@@ -21,6 +21,6 @@
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "dependencies": {
-    "troika-core": "^0.11.0"
+    "troika-core": "^0.11.1"
   }
 }
