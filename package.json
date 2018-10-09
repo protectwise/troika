@@ -1,6 +1,5 @@
 {
   "name": "troika",
-  "version": "0.11.0",
   "private": true,
   "description": "Troika - a framework for managing Three.js scenes using point-in-time descriptors. Includes support for automatic transitions, animations, and pointer events.",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
@@ -31,7 +30,7 @@
     "standard": "^12.0.1"
   },
   "scripts": {
-    "bootstrap": "lerna bootstrap --hoist",
+    "postinstall": "lerna bootstrap --hoist",
     "build": "lerna exec --ignore=troika-examples -- rollup -c \\$LERNA_ROOT_PATH/rollup.config.js",
     "test": "jest",
     "examples": "lerna exec --scope=troika-examples -- npm run serve",

@@ -48,7 +48,10 @@ export default {
       main: true,
       browser: true
     }),
-    serve()
+    serve({
+      open: true,
+      contentBase: ''
+    })
   ],
   output: {
     format: 'iife',

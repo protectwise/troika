@@ -2,9 +2,20 @@ import buble from 'rollup-plugin-buble'
 import closureCompiler from '@ampproject/rollup-plugin-closure-compiler'
 
 
+
+/*
+
+This is the primary shared Rollup configuration used for building most of Troika's
+subpackages. To build all packages, make sure you're in the repository root and run:
+
+  npm run build
+
+*/
+
+
 const { LERNA_PACKAGE_NAME, LERNA_ROOT_PATH } = process.env
 if (!LERNA_PACKAGE_NAME || !LERNA_ROOT_PATH) {
-  throw new Error("The build must be run using `lerna exec`")
+  throw new Error("The build must be run by Lerna; please use `npm run build` from the repository root.")
 }
 
 
