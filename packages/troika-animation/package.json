@@ -1,11 +1,11 @@
 {
-  "name": "troika-core",
+  "name": "troika-animation",
   "version": "0.11.1",
-  "description": "Troika Core",
+  "description": "Troika Animation Utilities",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "homepage": "",
   "license": "MIT",
-  "main": "dist/troika-core.js",
+  "main": "dist/troika-animation.js",
   "module": "src/index.js",
   "directories": {
     "lib": "dist",
@@ -15,11 +15,6 @@
     "registry": "https://internal-npm/content/repositories/npm-all/"
   },
   "dependencies": {
-    "prop-types": "^15.6.2",
-    "troika-animation": "^0.11.1"
-  },
-  "peerDependencies": {
-    "react": "^16.5.2",
-    "react-dom": "^16.5.2"
+    "easingjs": "^1.0.1"
   }
 }

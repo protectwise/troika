@@ -1,10 +1,5 @@
 // Troika core exports
 
-// Animation
-export {default as MultiTween} from './animation/MultiTween.js'
-export {default as Runner} from './animation/Runner.js'
-export {default as Tween} from './animation/Tween.js'
-
 // Facade basics
 export {default as Facade} from './facade/Facade.js'
 export {default as ListFacade} from './facade/ListFacade.js'

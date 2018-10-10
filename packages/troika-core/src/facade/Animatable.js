@@ -1,7 +1,5 @@
-import {assignIf} from '../utils'
-import Tween from '../animation/Tween'
-import MultiTween from '../animation/MultiTween'
-import Runner from '../animation/Runner'
+import { assignIf } from '../utils'
+import { Tween, MultiTween, Runner } from 'troika-animation'
 import { createClassExtender } from '../utils'
 
 const DEFAULT_DURATION = 750
