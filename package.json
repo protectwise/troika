@@ -33,6 +33,8 @@
     "postinstall": "npm run bootstrap",
     "bootstrap": "lerna bootstrap --hoist",
     "build": "lerna exec --ignore=troika-examples -- rollup -c \\$LERNA_ROOT_PATH/rollup.config.js",
+    "build-opentype": "npm run bootstrap && lerna exec --scope=troika-3d-text -- npm run build-opentype",
+    "build-yoga": "npm run bootstrap && lerna exec --scope=troika-3d-ui -- npm run build-yoga",
     "test": "jest",
     "examples": "lerna exec --scope=troika-examples -- npm run serve",
     "docs": "lerna exec -- esdoc",

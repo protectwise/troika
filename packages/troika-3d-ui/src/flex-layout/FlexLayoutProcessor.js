@@ -1,5 +1,6 @@
 import { defineWorkerModule, utils } from 'troika-core'
 import { fontProcessorWorkerModule } from 'troika-3d-text'
+import yogaFactory from '../../libs/yoga.factory.js'
 
 const { BasicThenable } = utils
 
@@ -17,7 +18,7 @@ export function requestFlexLayout(styleTree, callback) {
 
 
 
-function createFlexLayoutProcessor(loadFontFn, measureFn) {
+function createFlexLayoutProcessor(Yoga, loadFontFn, measureFn) {
   
   const YOGA_VALUE_MAPPINGS = {
     align: {
@@ -156,39 +157,7 @@ function createFlexLayoutProcessor(loadFontFn, measureFn) {
     }
   }
 
-  let Yoga = null
-  function loadYogaLib() {
-    if (!Yoga) {
-      const paths = {
-        './YGEnums': 'https://cdn.jsdelivr.net/npm/yoga-layout@1.9.3/dist/YGEnums.min.js',
-        '../build/Release/nbind.js': 'https://cdn.jsdelivr.net/npm/yoga-layout@1.9.3/build/Release/nbind.min.js',
-        './entry-common': 'https://cdn.jsdelivr.net/npm/yoga-layout@1.9.3/dist/entry-common.min.js',
-        main: 'https://cdn.jsdelivr.net/npm/yoga-layout@1.9.3/dist/entry-browser.min.js'
-      }
-
-      const fakeRequire = function(scriptId) {
-        // Synchronously load the script content
-        const xhr = new XMLHttpRequest()
-        xhr.open('GET', paths[scriptId], false)
-        xhr.send()
-
-        // Execute as a wrapped function, given our local require impl and a module object,
-        // and return the exports that the script attached
-        const module = {exports: {}}
-        new Function('require', 'module', '_a', `${xhr.responseText}`)(fakeRequire, module) //_a is to fix nbind.js writing to a global of that name
-        return module.exports
-      }
-
-      // Kick it off with the entry point script
-      Yoga = fakeRequire('main')
-    }
-    return Yoga
-  }
-
   function process(styleTree, callback) {
-    // Make sure the lib is loaded
-    loadYogaLib()
-
     // Init common node config
     const yogaConfig = Yoga.Config.create()
     yogaConfig.setPointScaleFactor(0) //disable value rounding
@@ -280,12 +249,14 @@ function createFlexLayoutProcessor(loadFontFn, measureFn) {
 
 const flexLayoutProcessorWorkerModule = defineWorkerModule({
   dependencies: [
+    yogaFactory,
     fontProcessorWorkerModule,
     createFlexLayoutProcessor,
     BasicThenable
   ],
-  init({loadFont, measure}, create, BasicThenable) {
-    const process = create(loadFont, measure)
+  init(yogaFactory, fontProcessor, create, BasicThenable) {
+    const Yoga = yogaFactory()
+    const process = create(Yoga, fontProcessor.loadFont, fontProcessor.measure)
     return function(styleTree) {
       const thenable = new BasicThenable()
       process(styleTree, thenable.resolve)

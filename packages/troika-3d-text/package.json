@@ -17,5 +17,11 @@
   "dependencies": {
     "troika-3d": "^0.11.1",
     "troika-core": "^0.11.1"
+  },
+  "devDependencies": {
+    "opentype.js": "^0.10.0"
+  },
+  "scripts": {
+    "build-opentype": "rollup -c rollup.config.build-opentype.js"
   }
 }

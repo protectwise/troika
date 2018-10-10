@@ -18,5 +18,11 @@
     "troika-3d": "^0.11.1",
     "troika-3d-text": "^0.11.1",
     "troika-core": "^0.11.1"
+  },
+  "devDependencies": {
+    "yoga-layout": "^1.9.3"
+  },
+  "scripts": {
+    "build-yoga": "rollup -c rollup.config.build-yoga.js"
   }
 }

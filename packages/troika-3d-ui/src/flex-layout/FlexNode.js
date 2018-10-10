@@ -16,9 +16,7 @@ const { assign, createClassExtender } = utils
  * sometimes cause issues with rendering due to NaNs, so it's good to check first that the
  * object has a nonzero `offsetWidth` and `offsetHeight` before displaying the node's object(s).
  *
- * Currently the flexbox algorithm implementation is Facebook's Yoga (https://yogalayout.com/)
- * which is loaded on first use from the JSDelivr CDN. Customization of the Yoga files' location
- * will be added at a later time.
+ * Currently the flexbox algorithm implementation is Facebook's Yoga. (https://yogalayout.com/)
  *
  * *Supported input flexbox style properties:*
  * - width (number, string percentage, or 'auto')

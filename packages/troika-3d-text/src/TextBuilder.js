@@ -1,12 +1,12 @@
 import { DataTexture, LinearFilter, LuminanceFormat } from 'three'
 import createFontProcessor from './FontProcessor'
+import opentypeFactory from '../libs/opentype.factory.js'
 import { defineWorkerModule, utils } from 'troika-core'
 
 const { assign, BasicThenable } = utils
 
 const CONFIG = {
   defaultFontURL: 'https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff', //Roboto Regular
-  openTypeURL: 'https://cdn.jsdelivr.net/npm/opentype.js@0.8/dist/opentype.min.js',
   sdfGlyphSize: 64
 }
 let hasRequested = false
@@ -18,9 +18,6 @@ let hasRequested = false
  * @param {String} config.defaultFontURL - The URL of the default font to use for text processing
  *                 requests, in case none is specified or the specifiede font fails to load or parse.
  *                 Defaults to "Roboto Regular" from Google Fonts.
- * @param {String} config.openTypeURL - The URL from which to load the opentype.js library within the
- *                 web worker. Defaults to loading from the JSDelivr CDN, but can be modified to use,
- *                 for example, a URL of a custom opentype.js build in the local domain.
  * @param {Number} config.sdfGlyphSize - The size of each glyph's SDF (signed distance field) texture
  *                 that is used for rendering. Must be a power-of-two number, and applies to all fonts.
  *                 Larger sizes can improve the quality of glyph rendering by increasing the sharpness
@@ -137,14 +134,11 @@ export const fontProcessorWorkerModule = defineWorkerModule({
     CONFIG.defaultFontURL,
     CONFIG.sdfGlyphSize,
     SDF_DISTANCE_PERCENT,
-    CONFIG.openTypeURL,
+    opentypeFactory,
     createFontProcessor
   ],
-  init(defaultFontUrl, sdfTextureSize, sdfDistancePercent, openTypeURL, createFontProcessor) {
-    self.window = self //needed to trick opentype out of thinking we're in Node
-    const opentype = self.opentype = {} //gives opentype's UMD somewhere to temporarily attach its exports
-    importScripts(openTypeURL) //synchronous
-    delete self.opentype
+  init(defaultFontUrl, sdfTextureSize, sdfDistancePercent, opentypeFactory, createFontProcessor) {
+    const opentype = opentypeFactory()
     return createFontProcessor(opentype, {defaultFontUrl, sdfTextureSize, sdfDistancePercent})
   }
 })
