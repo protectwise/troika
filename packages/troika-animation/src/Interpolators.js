@@ -32,9 +32,7 @@ export function color(fromValue, toValue, progress) {
  * @return {*}
  */
 const colorValueToNumber = (function() {
-  // 2D canvas for evaluating string values
-  const colorCanvas = document.createElement('canvas')
-  const colorCanvasCtx = colorCanvas.getContext('2d')
+  let colorCanvas, colorCanvasCtx
 
   // Cache for evaluated string values
   let stringCache = Object.create(null)
@@ -49,6 +47,13 @@ const colorValueToNumber = (function() {
       if (value in stringCache) {
         return stringCache[value]
       }
+
+      // 2D canvas for evaluating string values
+      if (!colorCanvas) {
+        colorCanvas = document.createElement('canvas')
+        colorCanvasCtx = colorCanvas.getContext('2d')
+      }
+
       colorCanvas.width = colorCanvas.height = 1
       colorCanvasCtx.fillStyle = value
       colorCanvasCtx.fillRect(0, 0, 1, 1)
