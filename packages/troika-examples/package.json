@@ -16,7 +16,6 @@
     "adaptive-bezier-curve": "^1.0.3",
     "d3-hierarchy": "^1.1.8",
     "d3-voronoi": "^1.1.4",
-    "lodash": "^4.17.11",
     "react": "^16.5.2",
     "react-dom": "^16.5.2",
     "three-line-2d": "^1.1.6",

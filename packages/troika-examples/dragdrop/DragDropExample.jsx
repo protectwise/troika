@@ -5,7 +5,16 @@ import {Plane, Vector3, Matrix4} from 'three'
 import Planet from './Planet'
 import Sun from './Sun'
 import Orbit from './Orbit'
-import find from 'lodash/find'
+
+
+function find(arr, testFn) {
+  for (let i = 0, len = arr.length; i < len; i++) {
+    if (testFn(arr[i])) {
+      return arr[i]
+    }
+  }
+  return null
+}
 
 
 const ORBITAL_PLANE_ROTATEX = -Math.PI / 3
@@ -80,7 +89,7 @@ class DragDropExample extends React.Component {
       posVec3.applyMatrix4(new Matrix4().getInverse(systemTransformMatrix))
 
       // Update dragged planet's current angle and distance
-      let planetData = find(this.state.planets, {id: e.target.id})
+      let planetData = find(this.state.planets, d => d.id === e.target.id)
       planetData.initialAngle = posVec3.x === 0 ? 0 : Math.atan(posVec3.y / posVec3.x) + (posVec3.x < 0 ? Math.PI : 0)
       planetData.distance = Math.sqrt(posVec3.x * posVec3.x + posVec3.y * posVec3.y)
       this.forceUpdate()
@@ -104,8 +113,8 @@ class DragDropExample extends React.Component {
 
   _onPlanetDrop(e) {
     let {draggedPlanet, droppablePlanet, planets} = this.state
-    draggedPlanet = find(planets, {id: draggedPlanet})
-    droppablePlanet = find(planets, {id: droppablePlanet})
+    draggedPlanet = find(planets, d => d.id === draggedPlanet)
+    droppablePlanet = find(planets, d => d.id === droppablePlanet)
     if (draggedPlanet && droppablePlanet) {
       // Merge the two planets into a bigger one
       droppablePlanet.radius = Math.cbrt(Math.pow(draggedPlanet.radius, 3) + Math.pow(droppablePlanet.radius, 3))

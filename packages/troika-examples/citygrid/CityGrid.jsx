@@ -1,6 +1,3 @@
-import random from 'lodash/random'
-import sample from 'lodash/sample'
-import clone from 'lodash/clone'
 import React from 'react'
 import T from 'prop-types'
 import {hierarchy, treemap, treemapResquarify} from 'd3-hierarchy'
@@ -10,6 +7,24 @@ import Ground from './Ground'
 import Host from './Host'
 import Zone from './Zone'
 import Camera from './Camera'
+
+function clone(obj) {
+  const newObj = {}
+  for (let p in obj) {
+    if (obj.hasOwnProperty(p)) {
+      newObj[p] = obj[p]
+    }
+  }
+  return newObj
+}
+
+function sample(arr) {
+  return arr[random(0, arr.length - 1)]
+}
+
+function random(min, max) {
+  return min + Math.floor(Math.random() * (max - min + 1))
+}
 
 const CAMERA_UP = {x: 0, y: 0, z: 1}
 const DROPAWAY_Z = -100
