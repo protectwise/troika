@@ -21,3 +21,6 @@ export {makeVrAware} from './react/VrAware.jsx'
 // Other
 import * as shaderUtils from './shaderUtils.js'
 export {shaderUtils}
+
+// Convenience shortcuts for some common troika-core exports
+export {Facade, ListFacade, ParentFacade} from 'troika-core'
