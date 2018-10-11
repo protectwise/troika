@@ -2,7 +2,7 @@
 // Custom build of Yoga (https://yogalayout.com/) for use in Troika UI layout.
 // Original MIT license applies: https://github.com/facebook/yoga/blob/master/LICENSE
 
-module.exports = function() {
+export default function() {
   
 var Yoga = (function () {
   'use strict';

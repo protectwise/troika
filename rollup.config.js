@@ -23,6 +23,7 @@ if (!LERNA_PACKAGE_NAME || !LERNA_ROOT_PATH) {
 // Names of all the packages to build
 // TODO build this dynamically from filesystem?
 const SIBLING_PACKAGES = [
+  'troika-animation',
   'troika-core',
   'troika-2d',
   'troika-3d',
@@ -44,10 +45,11 @@ const EXTERNAL_GLOBALS = SIBLING_PACKAGES.reduce((out, sib) => {
 
 
 const builds = [
+  // ES module file
   {
     input: 'src/index.js',
     output: {
-      format: 'es',
+      format: 'esm',
       file: `dist/${LERNA_PACKAGE_NAME}.esmodule.js`
     },
     external: Object.keys(EXTERNAL_GLOBALS),
@@ -55,6 +57,7 @@ const builds = [
       buble()
     ]
   },
+  // UMD file
   {
     input: 'src/index.js',
     output: {
@@ -68,6 +71,7 @@ const builds = [
       buble()
     ]
   },
+  // UMD file, minified
   {
     input: 'src/index.js',
     output: {

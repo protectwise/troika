@@ -18,7 +18,7 @@ const OUTPUT_TEMPLATE = `
 // Custom build of OpenType (https://opentype.js.org/) for use in Troika text rendering. 
 // Original MIT license applies: https://github.com/nodebox/opentype.js/blob/master/LICENSE
 
-module.exports = function() {
+export default function() {
   // Trick opentype into being able to run in a web worker
   if (typeof window === 'undefined') {
     self.window = self

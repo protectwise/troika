@@ -49,7 +49,7 @@ export default {
       browser: true
     }),
     serve({
-      open: true,
+      //open: true,
       contentBase: ''
     })
   ],
