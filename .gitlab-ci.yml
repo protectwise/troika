@@ -13,10 +13,26 @@ before_script:
   - echo "tag ${CI_BUILD_TAG}"
   - echo "build ${CI_BUILD_ID}"
 
+stages:
+  - build
+  - test
+  - deploy
+
 build:
-  only:
-    - master
+  stage: build
   script:
     - npm install
     - npm run build
-    - npm publish --registry https://internal-npm/content/repositories/npm/
+
+test:
+  stage: test
+  script:
+    - npm run test
+
+deploy:
+  stage: deploy
+  only:
+    - tags
+  script:
+    - lerna publish from-git
+
