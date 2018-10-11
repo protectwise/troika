@@ -5,12 +5,13 @@
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "homepage": "",
   "license": "MIT",
-  "main": "dist/troika-animation.js",
-  "module": "src/index.js",
-  "directories": {
-    "lib": "dist",
-    "test": "__tests__"
-  },
+
+  "main": "dist/troika-animation.umd.js",
+  "browser": "dist/troika-animation.umd.js",
+  "jsnext:main": "dist/troika-animation.esm.js",
+  "module": "dist/troika-animation.esm.js",
+  "module:es2015": "src/index.js",
+
   "publishConfig": {
     "registry": "https://internal-npm/content/repositories/npm-all/"
   },

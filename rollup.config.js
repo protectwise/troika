@@ -44,13 +44,13 @@ const EXTERNAL_GLOBALS = SIBLING_PACKAGES.reduce((out, sib) => {
 
 
 
-const builds = [
+export default [
   // ES module file
   {
     input: 'src/index.js',
     output: {
       format: 'esm',
-      file: `dist/${LERNA_PACKAGE_NAME}.esmodule.js`
+      file: `dist/${LERNA_PACKAGE_NAME}.esm.js`
     },
     external: Object.keys(EXTERNAL_GLOBALS),
     plugins: [
@@ -62,7 +62,7 @@ const builds = [
     input: 'src/index.js',
     output: {
       format: 'umd',
-      file: `dist/${LERNA_PACKAGE_NAME}.js`,
+      file: `dist/${LERNA_PACKAGE_NAME}.umd.js`,
       name: EXTERNAL_GLOBALS[LERNA_PACKAGE_NAME],
       globals: EXTERNAL_GLOBALS
     },
@@ -76,7 +76,7 @@ const builds = [
     input: 'src/index.js',
     output: {
       format: 'umd',
-      file: `dist/${LERNA_PACKAGE_NAME}.min.js`,
+      file: `dist/${LERNA_PACKAGE_NAME}.umd.min.js`,
       name: EXTERNAL_GLOBALS[LERNA_PACKAGE_NAME],
       globals: EXTERNAL_GLOBALS
     },
@@ -87,64 +87,3 @@ const builds = [
     ]
   }
 ]
-
-
-export default builds
-
-
-
-
-
-
-
-
-
-
-// const esmoduleMain = {
-//   input: 'src/index.js',
-//   plugins: [
-//     buble()
-//   ],
-//   external,
-//   output: {
-//     format: 'es',
-//     file: 'build/troika.esmodule.js'
-//   }
-// }
-//
-// const esmoduleMin = Object.assign({}, esmoduleMain, {
-//   plugins: esmoduleMain.plugins.concat(closureCompiler()),
-//   output: Object.assign({}, esmoduleMain.output, {file: 'build/troika.esmodule.min.js'})
-// })
-//
-// const umdMain = {
-//   input: 'src/index.js',
-//   plugins: [
-//     buble()
-//   ],
-//   external,
-//   output: {
-//     format: 'umd',
-//     file: 'build/troika.js',
-//     name: 'Troika',
-//     globals: {
-//       easingjs: 'easing',
-//       react: 'React',
-//       three: 'THREE',
-//       'prop-types': 'T'
-//     }
-//   }
-// }
-//
-// const umdMin = Object.assign({}, umdMain, {
-//   plugins: umdMain.plugins.concat(closureCompiler()),
-//   output: Object.assign({}, umdMain.output, {file: 'build/troika.min.js'})
-// })
-//
-//
-// export default [
-//   esmoduleMain,
-//   esmoduleMin,
-//   umdMain,
-//   umdMin
-// ]
