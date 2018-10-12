@@ -32,5 +32,5 @@ deploy:
     - npm install
     - npm run build
     - npm run test
-    - lerna publish from-git
+    - npx lerna publish from-git
 
