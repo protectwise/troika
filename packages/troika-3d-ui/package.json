@@ -7,7 +7,7 @@
   "license": "MIT",
 
   "main": "dist/troika-3d-ui.umd.js",
-  "browser": "dist/troika-3d-ui.umdjs",
+  "browser": "dist/troika-3d-ui.umd.js",
   "jsnext:main": "dist/troika-3d-ui.esm.js",
   "module": "dist/troika-3d-ui.esm.js",
   "module:es2015": "src/index.js",
