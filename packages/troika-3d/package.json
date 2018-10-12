@@ -1,22 +1,20 @@
 {
   "name": "troika-3d",
-  "version": "0.11.1",
+  "version": "0.11.2",
   "description": "Troika 3D",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "homepage": "",
   "license": "MIT",
-
   "main": "dist/troika-3d.umd.js",
   "browser": "dist/troika-3d.umd.js",
   "jsnext:main": "dist/troika-3d.esm.js",
   "module": "dist/troika-3d.esm.js",
   "module:es2015": "src/index.js",
-
   "publishConfig": {
     "registry": "https://internal-npm/content/repositories/npm-all/"
   },
   "dependencies": {
     "three": "^0.97.0",
-    "troika-core": "^0.11.1"
+    "troika-core": "^0.11.2"
   }
 }

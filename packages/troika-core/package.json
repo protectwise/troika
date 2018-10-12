@@ -1,23 +1,21 @@
 {
   "name": "troika-core",
-  "version": "0.11.1",
+  "version": "0.11.2",
   "description": "Troika Core",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "homepage": "",
   "license": "MIT",
-
   "main": "dist/troika-core.umd.js",
   "browser": "dist/troika-core.umd.js",
   "jsnext:main": "dist/troika-core.esm.js",
   "module": "dist/troika-core.esm.js",
   "module:es2015": "src/index.js",
-
   "publishConfig": {
     "registry": "https://internal-npm/content/repositories/npm-all/"
   },
   "dependencies": {
     "prop-types": "^15.6.2",
-    "troika-animation": "^0.11.1"
+    "troika-animation": "^0.11.2"
   },
   "peerDependencies": {
     "react": "^16.5.2",

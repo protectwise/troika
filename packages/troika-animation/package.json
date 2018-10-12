@@ -1,17 +1,15 @@
 {
   "name": "troika-animation",
-  "version": "0.11.1",
+  "version": "0.11.2",
   "description": "Troika Animation Utilities",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "homepage": "",
   "license": "MIT",
-
   "main": "dist/troika-animation.umd.js",
   "browser": "dist/troika-animation.umd.js",
   "jsnext:main": "dist/troika-animation.esm.js",
   "module": "dist/troika-animation.esm.js",
   "module:es2015": "src/index.js",
-
   "publishConfig": {
     "registry": "https://internal-npm/content/repositories/npm-all/"
   },

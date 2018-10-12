@@ -1,21 +1,19 @@
 {
   "name": "troika-2d",
-  "version": "0.11.1",
+  "version": "0.11.2",
   "description": "Troika 2D",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "homepage": "",
   "license": "MIT",
-
   "main": "dist/troika-2d.umd.js",
   "browser": "dist/troika-2d.umd.js",
   "jsnext:main": "dist/troika-2d.esm.js",
   "module": "dist/troika-2d.esm.js",
   "module:es2015": "src/index.js",
-
   "publishConfig": {
     "registry": "https://internal-npm/content/repositories/npm-all/"
   },
   "dependencies": {
-    "troika-core": "^0.11.1"
+    "troika-core": "^0.11.2"
   }
 }

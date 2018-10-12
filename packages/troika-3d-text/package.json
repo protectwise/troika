@@ -1,23 +1,21 @@
 {
   "name": "troika-3d-text",
-  "version": "0.11.1",
+  "version": "0.11.2",
   "description": "Troika 3D Text",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "homepage": "",
   "license": "MIT",
-
   "main": "dist/troika-3d-text.umd.js",
   "browser": "dist/troika-3d-text.umd.js",
   "jsnext:main": "dist/troika-3d-text.esm.js",
   "module": "dist/troika-3d-text.esm.js",
   "module:es2015": "src/index.js",
-
   "publishConfig": {
     "registry": "https://internal-npm/content/repositories/npm-all/"
   },
   "dependencies": {
-    "troika-3d": "^0.11.1",
-    "troika-core": "^0.11.1"
+    "troika-3d": "^0.11.2",
+    "troika-core": "^0.11.2"
   },
   "devDependencies": {
     "opentype.js": "^0.10.0"
