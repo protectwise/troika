@@ -14,25 +14,23 @@ before_script:
   - echo "build ${CI_BUILD_ID}"
 
 stages:
-  - build
   - test
   - deploy
-
-build:
-  stage: build
-  script:
-    - npm install
-    - npm run build
 
 test:
   stage: test
   script:
+    - npm install
     - npm run test
+    - npm run build
 
 deploy:
   stage: deploy
   only:
     - tags
   script:
+    - npm install
+    - npm run test
+    - npm run build
     - lerna publish from-git
 
