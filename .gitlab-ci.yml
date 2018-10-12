@@ -21,8 +21,8 @@ test:
   stage: test
   script:
     - npm install
-    - npm run test
     - npm run build
+    - npm run test
 
 deploy:
   stage: deploy
@@ -30,7 +30,7 @@ deploy:
     - tags
   script:
     - npm install
-    - npm run test
     - npm run build
+    - npm run test
     - lerna publish from-git
 
