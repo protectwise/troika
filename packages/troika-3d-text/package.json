@@ -1,6 +1,6 @@
 {
   "name": "troika-3d-text",
-  "version": "0.11.2",
+  "version": "0.11.3",
   "description": "Troika 3D Text",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "homepage": "",
@@ -14,8 +14,8 @@
     "registry": "https://internal-npm/content/repositories/npm-all/"
   },
   "dependencies": {
-    "troika-3d": "^0.11.2",
-    "troika-core": "^0.11.2"
+    "troika-3d": "^0.11.3",
+    "troika-core": "^0.11.3"
   },
   "devDependencies": {
     "opentype.js": "^0.10.0"

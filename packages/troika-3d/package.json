@@ -1,6 +1,6 @@
 {
   "name": "troika-3d",
-  "version": "0.11.2",
+  "version": "0.11.3",
   "description": "Troika 3D",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "homepage": "",
@@ -15,6 +15,6 @@
   },
   "dependencies": {
     "three": "^0.97.0",
-    "troika-core": "^0.11.2"
+    "troika-core": "^0.11.3"
   }
 }
