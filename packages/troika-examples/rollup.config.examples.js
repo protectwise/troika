@@ -8,8 +8,19 @@ import importJson from 'rollup-plugin-json'
 import serve from 'rollup-plugin-serve'
 
 
+const { LERNA_PACKAGE_NAME, LERNA_ROOT_PATH } = process.env
+if (!LERNA_PACKAGE_NAME || !LERNA_ROOT_PATH) {
+  throw new Error("The examples build must be run by Lerna; please use `npm run examples` from the repository root.")
+}
+
+
 export default {
   input: 'index.js',
+
+  output: {
+    format: 'iife',
+    file: 'dist/examples-bundle.js'
+  },
 
   plugins: [
     importStrings({
@@ -19,42 +30,30 @@ export default {
     replace({
       'process.env.NODE_ENV': '"production"'
     }),
-    // babel({
-    //   exclude: 'node_modules/**',
-    //   runtimeHelpers: true
-    // }),
     buble(),
     commonjs({
-      // non-CommonJS modules will be ignored, but you can also specifically include/exclude files
-      // include: 'node_modules/**',  // Default: undefined
-      // exclude: [ 'node_modules/foo/**', 'node_modules/bar/**' ],  // Default: undefined
-
-      // search for files other than .js files (must already
-      // be transpiled by a previous plugin!)
       extensions: [ '.js', '.jsx' ],  // Default: [ '.js' ]
-
-      // if true then uses of `global` won't be dealt with by this plugin
-      // ignoreGlobal: false,  // Default: false
-
-      // if false then skip sourceMap generation for CommonJS modules
-      sourceMap: false,  // Default: true
-
-      // explicitly specify unresolvable named exports
-      // (see below for more details)
-      // namedExports: { './module.js': ['foo', 'bar' ] }  // Default: undefined
+      //sourceMap: false,  // Default: true
     }),
     nodeResolve({
-      jsnext: true,
-      main: true,
-      browser: true
+      // The default resolution ends up favoring the pkg.browser field, which for the Troika
+      // packages is the UMD build which for some reason the commonjs plugin can't seem to
+      // handle. So we override the packageFilter option (https://github.com/browserify/resolve#resolveid-opts-cb)
+      // to favor our custom "module:es2015" field which points to the source.
+      customResolveOptions: {
+        packageFilter(pkg, pkgPath) {
+          pkg.main = pkg['module:es2015'] ||
+            pkg.module ||
+            pkg['jsnext:main'] ||
+            (typeof pkg.browser === 'string' && pkg.browser) ||
+            pkg.main
+          return pkg
+        }
+      }
     }),
     serve({
       //open: true,
       contentBase: ''
     })
-  ],
-  output: {
-    format: 'iife',
-    file: 'dist/examples-bundle.js'
-  }
+  ]
 }
