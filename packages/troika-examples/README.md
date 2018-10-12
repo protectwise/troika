@@ -1,11 +1,14 @@
 # `troika-examples`
 
-> TODO: description
+> A collection of examples demonstrating various Troika features and patterns.
 
 ## Usage
 
-```
-const troikaExamples = require('troika-examples');
+From the repository root, run:
 
-// TODO: DEMONSTRATE API
 ```
+npm install
+npm run examples
+```
+
+Then point your browser to [http://localhost:10001](http://localhost:10001)
