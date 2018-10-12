@@ -34,7 +34,7 @@ openRequests._count = 0
  */
 export function defineWorkerModule({dependencies, init, getTransferables}) {
   const id = `workerModule${++_workerModuleId}`
-  let hasRegistered = false
+  let registrationThenable = null
 
   dependencies = dependencies && dependencies.map(dep => {
     // Wrap raw functions as worker modules with no dependencies
@@ -52,22 +52,21 @@ export function defineWorkerModule({dependencies, init, getTransferables}) {
 
   function moduleFunc(...args) {
     // Register this module if needed
-    if (hasRegistered) {
-      callModule()
-    } else {
-      callWorker('registerModule', moduleFunc.workerModuleData, callModule)
+    if (!registrationThenable) {
+      registrationThenable = new BasicThenable()
+      callWorker('registerModule', moduleFunc.workerModuleData, registrationThenable.resolve)
     }
 
     // Invoke the module, returning a thenable
     const thenable = new BasicThenable()
-    function callModule() {
+    registrationThenable.then(() => {
       callWorker('callModule', {
         id,
         args
       }, result => {
         thenable.resolve(result)
       })
-    }
+    })
     return thenable
   }
   moduleFunc.workerModuleData = {
