@@ -11,7 +11,7 @@
   "module": "dist/troika-core.esm.js",
   "module:es2015": "src/index.js",
   "publishConfig": {
-    "registry": "https://internal-npm/content/repositories/npm-all/"
+    "registry": "https://internal-npm/content/repositories/npm/"
   },
   "dependencies": {
     "prop-types": "^15.6.2",

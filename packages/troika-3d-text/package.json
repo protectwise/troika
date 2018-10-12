@@ -11,7 +11,7 @@
   "module": "dist/troika-3d-text.esm.js",
   "module:es2015": "src/index.js",
   "publishConfig": {
-    "registry": "https://internal-npm/content/repositories/npm-all/"
+    "registry": "https://internal-npm/content/repositories/npm/"
   },
   "dependencies": {
     "troika-3d": "^0.11.4-alpha.0",

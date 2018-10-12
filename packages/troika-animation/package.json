@@ -11,7 +11,7 @@
   "module": "dist/troika-animation.esm.js",
   "module:es2015": "src/index.js",
   "publishConfig": {
-    "registry": "https://internal-npm/content/repositories/npm-all/"
+    "registry": "https://internal-npm/content/repositories/npm/"
   },
   "dependencies": {
     "easingjs": "^1.0.1"

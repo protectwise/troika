@@ -19,6 +19,8 @@ stages:
 
 test:
   stage: test
+  except:
+    - tags
   script:
     - npm install
     - npm run build
