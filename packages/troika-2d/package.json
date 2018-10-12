@@ -1,6 +1,6 @@
 {
   "name": "troika-2d",
-  "version": "0.11.4-alpha.0",
+  "version": "0.11.4-alpha.1",
   "description": "Troika 2D",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "homepage": "",
@@ -14,6 +14,6 @@
     "registry": "https://internal-npm/content/repositories/npm/"
   },
   "dependencies": {
-    "troika-core": "^0.11.4-alpha.0"
+    "troika-core": "^0.11.4-alpha.1"
   }
 }
