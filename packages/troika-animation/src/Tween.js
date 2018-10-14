@@ -40,10 +40,22 @@ class Tween {
     this.direction = direction
     this.interpolate = typeof interpolate === 'function' ? interpolate : Interpolators[interpolate] || Interpolators.number
 
-    // precalculate total elapsed time
+    /**
+     * @property totalElapsed
+     * @type {number}
+     * The total duration of this tween from 0 to its completion, taking into account its `duration`, `delay`, and
+     * `iterations`. This is calculated once upon instantiation, and may be used to determine whether the tween is
+     * finished or not at a given time.
+     */
     this.totalElapsed = this.iterations < maxSafeInteger ? this.delay + (this.duration * this.iterations) : maxSafeInteger
   }
 
+  /**
+   * For a given elapsed time relative to the start of the tween, calculates the value at that time and calls the
+   * `callback` function with that value. If the given time is during the `delay` period, the callback will not be
+   * invoked.
+   * @param {number} time
+   */
   gotoElapsedTime(time) {
     let duration = this.duration
     let delay = this.delay
@@ -59,12 +71,11 @@ class Tween {
     }
   }
 
+  /**
+   * Like `gotoElapsedTime` but goes to the very end of the tween.
+   */
   gotoEnd() {
     this.gotoElapsedTime(this.totalElapsed)
-  }
-
-  interpolate(fromValue, toValue, progress) {
-    return fromValue + (toValue - fromValue) * progress
   }
 }
 
