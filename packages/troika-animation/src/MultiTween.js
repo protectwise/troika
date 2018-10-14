@@ -22,12 +22,12 @@ class MultiTween extends Tween {
       this.callback = tweens[0].gotoElapsedTime.bind(tweens[0])
     } else {
       tweens.sort(endTimeComparator) //sort by end time to ensure proper iteration in syncTweens
-      this.callback = this.syncTweens.bind(this)
+      this.callback = this._syncTweens
     }
     this.tweens = tweens
   }
 
-  syncTweens(time) {
+  _syncTweens(time) {
     // NOTE: forward iteration is important here so the tweens are evaluated in order
     // of when they end; that way later tweens will take precedence over earlier ones.
     // TODO would be nice to ignore tweens past their totalElapsed entirely, but have to
