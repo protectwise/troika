@@ -268,6 +268,13 @@ describe('interpolate', () => {
     expect(callback).toHaveBeenLastCalledWith(0x773344)
   })
 
+  test('uses number interpolation for unknown keyword', () => {
+    const callback = jest.fn()
+    let tween = new Tween(callback, 0, 1, 1000, 0, 'linear', 4, 'forward', 'notarealinterpolator')
+    tween.gotoElapsedTime(234)
+    expect(callback).toHaveBeenLastCalledWith(0.234)
+  })
+
   test('custom interpolator function', () => {
     const callback = jest.fn()
     const interpolator = jest.fn((from, to, progress) => {
