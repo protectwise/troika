@@ -93,34 +93,70 @@ export function createClassExtender(name, doExtend) {
 
 /**
  * Super lightweight thenable implementation, for handling async with Promise-like
- * ergonomics without relying on a complete Promise implementation or polyfill. This
- * does _not_ provide full Promise semantics so be careful using it and don't let it
- * leak outside of private impl confines.
+ * ergonomics without relying on a complete Promise implementation or polyfill, and
+ * wrapped as a single function so it can be easily shipped across to a WorkerModule.
+ * This does _not_ provide full Promise semantics so be careful using it and don't let
+ * it leak outside of private impl confines.
  */
 export function BasicThenable() {
-  let handlers
-  let resolved = false
-  let resValue = null
-  return {
-    then(fn) {
-      if (resolved) {
-        fn(resValue)
-      } else {
-        (handlers || (handlers = [])).push(fn)
-      }
-    },
-    resolve(val) {
-      resolved = true
-      resValue = val
-      if (handlers) {
-        for (let i = handlers.length; i--;) {
-          handlers[i](val)
+  let queue
+  let isResolved = false
+  let isRejected = false
+  let resultValue = null
+
+  function then(onResolve, onReject) {
+    const nextThenable = BasicThenable()
+    function complete() {
+      const cb = isResolved ? onResolve : onReject
+      if (cb) {
+        try {
+          const result = cb(resultValue)
+          if (result && result.then) {
+            result.then(nextThenable.resolve, nextThenable.reject)
+          } else {
+            nextThenable.resolve(result)
+          }
+        } catch(err) {
+          nextThenable.reject(err)
         }
-        handlers = null
+      } else {
+        nextThenable[isResolved ? 'resolve' : 'reject'](resultValue)
       }
     }
+    if (isResolved || isRejected) {
+      complete()
+    } else {
+      (queue || (queue = [])).push(complete)
+    }
+    return nextThenable
+  }
+
+  function resolve(val) {
+    isResolved = true
+    resultValue = val
+    flushQueue()
+  }
+
+  function reject(val) {
+    isRejected = true
+    resultValue = val
+    flushQueue()
+  }
+
+  function flushQueue() {
+    if (queue) {
+      queue.forEach(fn => fn())
+      queue = null
+    }
+  }
+
+  return {
+    then,
+    resolve,
+    reject
   }
 }
+
 
 /**
  * Determine whether a given object is a React element descriptor object, i.e. the
