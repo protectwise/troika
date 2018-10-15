@@ -17,7 +17,9 @@
     "esdoc-jsx-plugin": "^1.0.0",
     "esdoc-standard-plugin": "^1.0.0",
     "jest": "^23.6.0",
+    "jsdom-worker": "^0.1.0",
     "lerna": "^3.4.3",
+    "node-fetch": "^2.2.0",
     "rollup": "^0.66.6",
     "rollup-plugin-buble": "^0.19.4",
     "rollup-plugin-commonjs": "^9.2.0",
@@ -54,6 +56,14 @@
       {
         "name": "esdoc-jsx-plugin"
       }
+    ]
+  },
+  "jest": {
+    "collectCoverage": true,
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/dist/",
+      "WorkerModules"
     ]
   },
   "publishConfig": {
