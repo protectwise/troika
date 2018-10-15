@@ -1,4 +1,4 @@
-import { BasicThenable } from './utils'
+import BasicThenable from './BasicThenable'
 
 let _workerModuleId = 0
 let _messageId = 0

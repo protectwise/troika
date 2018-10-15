@@ -1,9 +1,7 @@
 import { DataTexture, LinearFilter, LuminanceFormat } from 'three'
 import createFontProcessor from './FontProcessor'
 import opentypeFactory from '../libs/opentype.factory.js'
-import { defineWorkerModule, utils } from 'troika-core'
-
-const { assign, BasicThenable } = utils
+import { BasicThenable, defineWorkerModule, utils } from 'troika-core'
 
 const CONFIG = {
   defaultFontURL: 'https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff', //Roboto Regular
@@ -28,7 +26,7 @@ export function configureTextBuilder(config) {
   if (hasRequested) {
     console.warn('configureTextBuilder called after first font request; will be ignored.')
   } else {
-    assign(CONFIG, config)
+    utils.assign(CONFIG, config)
   }
 }
 

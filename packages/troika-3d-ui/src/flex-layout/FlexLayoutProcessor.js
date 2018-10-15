@@ -1,8 +1,6 @@
-import { defineWorkerModule, utils } from 'troika-core'
+import { BasicThenable, defineWorkerModule } from 'troika-core'
 import { fontProcessorWorkerModule } from 'troika-3d-text'
 import yogaFactory from '../../libs/yoga.factory.js'
-
-const { BasicThenable } = utils
 
 
 /**
