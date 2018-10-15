@@ -70,7 +70,7 @@ describe('calling the module function', () => {
     })
   })
 
-  test('invokes init\'s returned function and resolves the thenable with its return value', () => {
+  test('invokes a function returned by the init function and resolves the thenable with its return value', () => {
     const moduleFn = defineWorkerModule({
       init: function() {
         return function() {
@@ -82,6 +82,23 @@ describe('calling the module function', () => {
     return moduleFn().then((result) => {
       expect(_testDataBucket.initReturnFnWasCalled).toBe(true)
       expect(result).toEqual('this is the return value')
+    })
+  })
+
+  test('waits for a thenable returned by the init function', () => {
+    const moduleFn = defineWorkerModule({
+      init: function() {
+        return function() {
+          return new Promise(resolve => {
+            setTimeout(() => {
+              resolve('promise resolution value')
+            }, 50)
+          })
+        }
+      }
+    })
+    return moduleFn().then((result) => {
+      expect(result).toEqual('promise resolution value')
     })
   })
 
