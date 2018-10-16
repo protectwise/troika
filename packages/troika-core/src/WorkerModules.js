@@ -1,4 +1,4 @@
-import BasicThenable from './BasicThenable'
+import Thenable from './Thenable'
 
 let _workerModuleId = 0
 let _messageId = 0
@@ -228,7 +228,7 @@ function getWorker() {
 
 // Issue a call to the worker with a callback to handle the response
 function callWorker(action, data) {
-  const thenable = BasicThenable()
+  const thenable = Thenable()
   const messageId = ++_messageId
   openRequests[messageId] = response => {
     if (response.success) {

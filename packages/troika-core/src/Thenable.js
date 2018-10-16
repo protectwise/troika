@@ -1,13 +1,17 @@
 /**
- * Super lightweight thenable implementation, for handling async with Promise-like
- * ergonomics without relying on a complete Promise implementation or polyfill, and
- * entirely self-contained within a single function with no external dependencies
- * so it can be easily shipped across to a WorkerModule.
+ * Lightweight thenable implementation that is entirely self-contained within a single
+ * function with no external dependencies so it can be easily shipped across to a WorkerModule.
  *
  * This implementation conforms fully to the Promises/A+ spec so it can safely interoperate
- * with other thenable/Promise implementations. https://github.com/promises-aplus/promises-spec
+ * with other thenable implementations. https://github.com/promises-aplus/promises-spec
+ *
+ * *However*, it is _not_ a full implementation of JavaScript Promises, e.g. it does not
+ * have the same constructor signature and does not expose a `catch` method or the static
+ * `resolve`/`reject`/`all`/`race` initializer methods. If you need to hand a Thenable
+ * instance off to consuming code that may expect a true Promise, you'll want to wrap it
+ * in a native-or-polyfilled Promise first.
  */
-export default function BasicThenable() {
+export function BespokeThenable() {
   let state = 0 // 0=pending, 1=fulfilled, -1=rejected
   let queue = []
   let value
@@ -15,7 +19,7 @@ export default function BasicThenable() {
   let completeCalled = 0
 
   function then(onResolve, onReject) {
-    const nextThenable = BasicThenable()
+    const nextThenable = BespokeThenable()
 
     function handleNext() {
       const cb = state > 0 ? onResolve : onReject
@@ -88,8 +92,7 @@ export default function BasicThenable() {
 
   function scheduleQueueFlush() {
     if (!scheduled) {
-      //setTimeout(flushQueue, 0)
-      process.nextTick(flushQueue)
+      setTimeout(flushQueue, 0) //TODO setImmediate or postMessage approach if available?
       scheduled = 1
     }
   }
@@ -126,3 +129,33 @@ export default function BasicThenable() {
   }
   return thenableObj
 }
+
+
+/**
+ * Thenable implementation that uses a native Promise under the covers. This implementation
+ * is preferred if Promise is available, for better performance and dev tools integration.
+ * @constructor
+ */
+export function NativePromiseThenable() {
+  let resolve, reject
+  const promise = new Promise((res, rej) => {
+    resolve = res
+    reject = rej
+  })
+  return {
+    then: promise.then.bind(promise),
+    resolve,
+    reject
+  }
+}
+
+
+/**
+ * Choose the best Thenable implementation and export it as the default.
+ */
+export default (
+  typeof Promise === 'function' && Promise.toString().indexOf("[native code]") !== -1
+    ? NativePromiseThenable
+    : BespokeThenable
+)
+

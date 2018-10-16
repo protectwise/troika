@@ -1,4 +1,4 @@
-import { BasicThenable, defineWorkerModule } from 'troika-core'
+import { Thenable, defineWorkerModule } from 'troika-core'
 import { fontProcessorWorkerModule } from 'troika-3d-text'
 import yogaFactory from '../../libs/yoga.factory.js'
 
@@ -250,13 +250,13 @@ const flexLayoutProcessorWorkerModule = defineWorkerModule({
     yogaFactory,
     fontProcessorWorkerModule,
     createFlexLayoutProcessor,
-    BasicThenable
+    Thenable
   ],
-  init(yogaFactory, fontProcessor, create, BasicThenable) {
+  init(yogaFactory, fontProcessor, create, Thenable) {
     const Yoga = yogaFactory()
     const process = create(Yoga, fontProcessor.loadFont, fontProcessor.measure)
     return function(styleTree) {
-      const thenable = new BasicThenable()
+      const thenable = new Thenable()
       process(styleTree, thenable.resolve)
       return thenable
     }
