@@ -1,0 +1,16 @@
+{
+  "name": "troika-worker-utils",
+  "version": "0.11.4",
+  "description": "Utilities for executing code in Web Workers",
+  "author": "Jason Johnston <jason.johnston@protectwise.com>",
+  "homepage": "",
+  "license": "MIT",
+  "main": "dist/troika-worker-utils.umd.js",
+  "browser": "dist/troika-worker-utils.umd.js",
+  "jsnext:main": "dist/troika-worker-utils.esm.js",
+  "module": "dist/troika-worker-utils.esm.js",
+  "module:es2015": "src/index.js",
+  "publishConfig": {
+    "registry": "https://internal-npm/content/repositories/npm/"
+  }
+}

@@ -24,6 +24,7 @@ if (!LERNA_PACKAGE_NAME || !LERNA_ROOT_PATH) {
 // TODO build this dynamically from filesystem?
 const SIBLING_PACKAGES = [
   'troika-animation',
+  'troika-worker-utils',
   'troika-core',
   'troika-2d',
   'troika-3d',

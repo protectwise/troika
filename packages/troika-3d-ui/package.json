@@ -16,7 +16,8 @@
   "dependencies": {
     "troika-3d": "^0.11.4",
     "troika-3d-text": "^0.11.4",
-    "troika-core": "^0.11.4"
+    "troika-core": "^0.11.4",
+    "troika-worker-utils": "^0.11.4"
   },
   "devDependencies": {
     "yoga-layout": "^1.9.3"

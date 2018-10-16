@@ -1,7 +1,8 @@
 import { DataTexture, LinearFilter, LuminanceFormat } from 'three'
 import createFontProcessor from './FontProcessor'
 import opentypeFactory from '../libs/opentype.factory.js'
-import { Thenable, defineWorkerModule, utils } from 'troika-core'
+import { utils } from 'troika-core'
+import { defineWorkerModule, ThenableWorkerModule } from 'troika-worker-utils'
 
 const CONFIG = {
   defaultFontURL: 'https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff', //Roboto Regular
@@ -142,7 +143,7 @@ export const fontProcessorWorkerModule = defineWorkerModule({
 })
 
 export const processInWorker = defineWorkerModule({
-  dependencies: [fontProcessorWorkerModule, Thenable],
+  dependencies: [fontProcessorWorkerModule, ThenableWorkerModule],
   init(fontProcessor, Thenable) {
     return function(args) {
       const thenable = new Thenable()

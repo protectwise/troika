@@ -13,5 +13,3 @@ export {default as ReactCanvasBase} from './react/CanvasBase.jsx'
 // Other
 import * as utils from './utils.js'
 export {utils}
-export {default as Thenable} from './Thenable.js'
-export {defineWorkerModule} from './WorkerModules.js'
