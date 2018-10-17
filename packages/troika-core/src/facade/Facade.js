@@ -196,11 +196,11 @@ Facade.defineEventProperty = function(facadeClass, propName, eventType) {
       const oldHandler = this[privateProp]
       if ((handler || null) !== (oldHandler || null)) {
         // Remove old listener
-        if (oldHandler) {
+        if (typeof oldHandler === 'function') {
           this.removeEventListener(eventType, oldHandler)
         }
         // Add new listener
-        if (handler) {
+        if (typeof handler === 'function') {
           this.addEventListener(eventType, handler)
         }
         this[privateProp] = handler
