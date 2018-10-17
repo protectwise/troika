@@ -105,7 +105,9 @@ describe('calling the module function', () => {
   test('throws if the init function throws', () => {
     const moduleFn = defineWorkerModule({
       init: function() {
-        throw new Error('Expected logged error, please ignore')
+        const err = new Error('blerp')
+        err.noLog = true
+        throw err
       }
     })
     return expect(moduleFn()).rejects.toThrow()

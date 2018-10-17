@@ -119,7 +119,9 @@ function getWorker() {
           }
           callback(value)
         } catch(err) {
-          console.error(err)
+          if (!(err && err.noLog)) {
+            console.error(err)
+          }
           callback(err)
         }
       }
