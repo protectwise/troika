@@ -1,6 +1,6 @@
 import buble from 'rollup-plugin-buble'
 import closureCompiler from '@ampproject/rollup-plugin-closure-compiler'
-
+import fs from 'fs'
 
 
 /*
@@ -20,17 +20,10 @@ if (!LERNA_PACKAGE_NAME || !LERNA_ROOT_PATH) {
 
 
 
-// Names of all the packages to build
-// TODO build this dynamically from filesystem?
-const SIBLING_PACKAGES = [
-  'troika-animation',
-  'troika-worker-utils',
-  'troika-core',
-  'troika-2d',
-  'troika-3d',
-  'troika-3d-text',
-  'troika-3d-ui',
-]
+// Names of all the packages
+// These will be treated as externals when referenced as cross-package dependencies
+const SIBLING_PACKAGES = fs.readdirSync(`${LERNA_ROOT_PATH}/packages`)
+
 
 // Mapping of external package names to their globals for UMD build
 const EXTERNAL_GLOBALS = SIBLING_PACKAGES.reduce((out, sib) => {
