@@ -65,7 +65,7 @@
     "coveragePathIgnorePatterns": [
       "/node_modules/",
       "/dist/",
-      "WorkerModules"
+      "troika-worker-utils"
     ]
   },
   "publishConfig": {

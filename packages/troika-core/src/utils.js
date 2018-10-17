@@ -1,6 +1,16 @@
+///// Miscellaneous Utility Functions /////
 
 
-export const assign = Object.assign || function assign(/*target, ...sources*/) {
+/**
+ * Pseudo-polyfilled shortcut for `Object.assign`. Copies own properties from
+ * second-and-after arguments onto the first object, overwriting any that already
+ * exist, and returns the first argument.
+ * @return {object}
+ */
+export const assign = Object.assign || _assign
+
+// Non-native impl; exported for access by tests
+export function _assign(/*target, ...sources*/) {
   let target = arguments[0]
   for (let i = 1, len = arguments.length; i < len; i++) {
     let source = arguments[i]
@@ -15,6 +25,12 @@ export const assign = Object.assign || function assign(/*target, ...sources*/) {
   return target
 }
 
+
+/**
+ * Like {@link assign}, but will ony copy properties that do _not_ already
+ * exist on the target object.
+ * @return {object}
+ */
 export function assignIf(/*target, ...sources*/) {
   let target = arguments[0]
   for (let i = 1, len = arguments.length; i < len; i++) {
@@ -30,6 +46,17 @@ export function assignIf(/*target, ...sources*/) {
   return target
 }
 
+
+/**
+ * Iterate over an object's own (non-prototype-inherited) properties
+ * @param {object} object - The object to iterate over
+ * @param {function} fn - A function that will be invoked for each iterated property. It
+ *        will be passed three arguments:
+ *        - value (the property value)
+ *        - key (the property name)
+ *        - object (the object being iterated over)
+ * @param {*} [scope] - An optional object to be used as `this` when calling the `fn`
+ */
 export function forOwn(object, fn, scope) {
   for (let prop in object) {
     if (object.hasOwnProperty(prop)) {
@@ -38,35 +65,6 @@ export function forOwn(object, fn, scope) {
   }
 }
 
-/*
-export function isObjectEmpty(object) {
-  for (let prop in object) {
-    if (!object.hasOwnProperty || object.hasOwnProperty(prop)) {
-      return false
-    }
-  }
-  return true
-}
-*/
-
-export function arraysAreEqual(arr1, arr2) {
-  if (arr1 !== arr2) {
-    if ((arr1 && arr1.length) !== (arr2 && arr2.length)) {
-      return false
-    }
-    for (let i = arr1.length; i--;) {
-      if (arr1[i] !== arr2[i]) {
-        return false
-      }
-    }
-  }
-  return true
-}
-
-export function removeFromArray(arr, val) {
-  let idx = arr.indexOf(val)
-  if (idx > -1) arr.splice(idx, 1)
-}
 
 /**
  * Utility for the "extend-as" pattern used in several places to decorate facade
@@ -87,7 +85,6 @@ export function createClassExtender(name, doExtend) {
     }
     return extended
   }
-
 }
 
 

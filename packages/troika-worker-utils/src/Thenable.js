@@ -118,7 +118,9 @@ export function BespokeThenable() {
     }
   }
 
-  function recursiveError() {throw new TypeError('t.resolve(t)')}
+  function recursiveError() {
+    throw new TypeError('Chaining cycle detected')
+  }
 
   const isFn = v => typeof v === 'function'
 
