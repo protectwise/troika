@@ -37,6 +37,16 @@ const EXTERNAL_GLOBALS = SIBLING_PACKAGES.reduce((out, sib) => {
 })
 
 
+const onwarn = (warning, warn) => {
+  // Quiet the 'Use of eval is strongly discouraged' warnings from Yoga lib
+  // These are from the emscripten runtime so we can't do anything about them until Yoga
+  // uses a newer versionof emscripten (https://github.com/kripken/emscripten/issues/5753)
+  if (warning.code === 'EVAL' && /yoga\.factory\.js/.test(warning.id)) {
+    return
+  }
+  warn(warning)
+}
+
 
 export default [
   // ES module file
@@ -49,7 +59,8 @@ export default [
     external: Object.keys(EXTERNAL_GLOBALS),
     plugins: [
       buble()
-    ]
+    ],
+    onwarn
   },
   // UMD file
   {
@@ -63,7 +74,8 @@ export default [
     external: Object.keys(EXTERNAL_GLOBALS),
     plugins: [
       buble()
-    ]
+    ],
+    onwarn
   },
   // UMD file, minified
   {
@@ -78,6 +90,7 @@ export default [
     plugins: [
       buble(),
       closureCompiler()
-    ]
+    ],
+    onwarn
   }
 ]

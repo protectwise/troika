@@ -55,5 +55,15 @@ export default {
       //open: true,
       contentBase: ''
     })
-  ]
+  ],
+
+  onwarn(warning, warn) {
+    // Quiet the 'Use of eval is strongly discouraged' warnings from Yoga lib
+    // These are from the emscripten runtime so we can't do anything about them until Yoga
+    // uses a newer versionof emscripten (https://github.com/kripken/emscripten/issues/5753)
+    if (warning.code === 'EVAL' && /yoga\.factory\.js/.test(warning.id)) {
+      return
+    }
+    warn(warning)
+  }
 }
