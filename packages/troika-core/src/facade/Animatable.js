@@ -167,54 +167,57 @@ export const extendAsAnimatable = createClassExtender('animatable', function(Bas
                 }
               }
             }
-            // Sort the keyframes by time
-            keyframes.sort(compareByTime)
-            if (keyframes[0].time > 0) {
-              keyframes.unshift(assignIf({time: 0}, keyframes[0]))
-            }
 
-            // Build a MultiTween with tweens for each keyframe+property
-            let keyframePropTweens = []
-            for (let j = 1, len = keyframes.length; j < len; j++) {
-              let keyframe = keyframes[j]
-              let props = keyframe.props
-              for (let prop in props) {
-                if (props.hasOwnProperty(prop)) {
-                  let prevKeyframe = null
-                  for (let k = j; k--;) {
-                    if (prop in keyframes[k].props) {
-                      prevKeyframe = keyframes[k]
-                      break
+            if (keyframes.length) {
+              // Sort the keyframes by time
+              keyframes.sort(compareByTime)
+              if (keyframes[0].time > 0) {
+                keyframes.unshift(assignIf({time: 0}, keyframes[0]))
+              }
+
+              // Build a MultiTween with tweens for each keyframe+property
+              let keyframePropTweens = []
+              for (let j = 1, len = keyframes.length; j < len; j++) {
+                let keyframe = keyframes[j]
+                let props = keyframe.props
+                for (let prop in props) {
+                  if (props.hasOwnProperty(prop)) {
+                    let prevKeyframe = null
+                    for (let k = j; k--;) {
+                      if (prop in keyframes[k].props) {
+                        prevKeyframe = keyframes[k]
+                        break
+                      }
                     }
-                  }
-                  if (prevKeyframe) {
-                    let propTween = new Tween(
-                      this[prop + '➤anim:actuallySet'].bind(this), //callback
-                      prevKeyframe.props[prop], //fromValue
-                      props[prop], //toValue
-                      (keyframe.time - prevKeyframe.time) * duration, //duration
-                      prevKeyframe.time * duration, //delay
-                      'linear', //easing
-                      1, //iterations
-                      'forward', //direction
-                      animDesc.interpolate && animDesc.interpolate[prop] || 'number'
-                    )
-                    propTween.$$property = prop
-                    keyframePropTweens.push(propTween)
+                    if (prevKeyframe) {
+                      let propTween = new Tween(
+                        this[prop + '➤anim:actuallySet'].bind(this), //callback
+                        prevKeyframe.props[prop], //fromValue
+                        props[prop], //toValue
+                        (keyframe.time - prevKeyframe.time) * duration, //duration
+                        prevKeyframe.time * duration, //delay
+                        'linear', //easing
+                        1, //iterations
+                        'forward', //direction
+                        animDesc.interpolate && animDesc.interpolate[prop] || 'number'
+                      )
+                      propTween.$$property = prop
+                      keyframePropTweens.push(propTween)
+                    }
                   }
                 }
               }
-            }
-            let tween = newAnimTweens[animId] = new MultiTween(keyframePropTweens, duration, delay, easing, iterations, direction)
-            runner.start(tween)
+              let tween = newAnimTweens[animId] = new MultiTween(keyframePropTweens, duration, delay, easing, iterations, direction)
+              runner.start(tween)
 
-            // The tween runner won't do anything until next tick, so immediately sync to the first frame's
-            // properties if the animation has no delay to avoid a flash of bad initial state
-            if (delay === 0) {
-              let firstKeyframeProps = keyframes[0].props
-              for (let prop in firstKeyframeProps) {
-                if (firstKeyframeProps.hasOwnProperty(prop)) {
-                  this[prop + '➤anim:actuallySet'](firstKeyframeProps[prop])
+              // The tween runner won't do anything until next tick, so immediately sync to the first frame's
+              // properties if the animation has no delay to avoid a flash of bad initial state
+              if (delay === 0) {
+                let firstKeyframeProps = keyframes[0].props
+                for (let prop in firstKeyframeProps) {
+                  if (firstKeyframeProps.hasOwnProperty(prop)) {
+                    this[prop + '➤anim:actuallySet'](firstKeyframeProps[prop])
+                  }
                 }
               }
             }
