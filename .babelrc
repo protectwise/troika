@@ -8,7 +8,8 @@
           "targets": {
             "node": "current"
           }
-        }]
+        }],
+        "react"
       ]
     }
   }

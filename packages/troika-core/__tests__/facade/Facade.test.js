@@ -184,7 +184,7 @@ describe('destructor', () => {
 
 test('Facade.isSpecialDescriptorProperty', () => {
   expect(Facade.isSpecialDescriptorProperty('key')).toBe(true)
-  expect(Facade.isSpecialDescriptorProperty('class')).toBe(true)
+  expect(Facade.isSpecialDescriptorProperty('class')).toBe(false)
   expect(Facade.isSpecialDescriptorProperty('facade')).toBe(true)
   expect(Facade.isSpecialDescriptorProperty('transition')).toBe(true)
   expect(Facade.isSpecialDescriptorProperty('animation')).toBe(true)
