@@ -4,7 +4,6 @@ import {isReactElement} from '../utils'
 import { extendAsPointerStatesAware } from './PointerStates'
 
 const TEMP_ARRAY = [null]
-let warnedAboutClassToFacade = false
 
 /**
  * Base facade class for objects that have `children`. Manages creating and destroying child
@@ -73,13 +72,6 @@ export default class ParentFacade extends Facade {
 
         // Some basic validation in dev mode
         if (process.env.NODE_ENV !== 'production') {
-          if (!facadeClass && childDesc.class) {
-            if (!warnedAboutClassToFacade) {
-              console.warn('The "class" property is deprecated in favor of "facade".')
-              warnedAboutClassToFacade = true
-            }
-            facadeClass = childDesc.class
-          }
           if (typeof facadeClass !== 'function') {
             throw new Error('All scene objects must have a "facade" property pointing to a class/constructor')
           }
@@ -145,7 +137,7 @@ export default class ParentFacade extends Facade {
 
   getChildByKey(key) {
     let dict = this._childrenDict
-    return dict && dict[key]
+    return dict && dict[key] || null
   }
 
   /**
@@ -179,13 +171,6 @@ export default class ParentFacade extends Facade {
     for (let i = 0, len = keys.length; i < len; i++) {
       fn.call(thisArg, dict[keys[i]], keys[i])
     }
-  }
-
-  /**
-   * TODO remove now that traverse() is ordered
-   */
-  traverseOrdered(fn, thisArg) {
-    this.traverse(fn, thisArg)
   }
 
   destructor() {

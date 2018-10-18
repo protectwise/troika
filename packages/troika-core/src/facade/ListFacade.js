@@ -2,7 +2,6 @@ import Facade from './Facade'
 import { extendAsAnimatable } from './Animatable'
 import { extendAsPointerStatesAware } from './PointerStates'
 
-let warnedAboutClassToFacade = false
 
 /**
  * ListFacade is an optimized way to define a large number of scene objects based on an array of data.
@@ -57,15 +56,7 @@ export default class List extends Facade {
         throw new Error('ListFacade template must define a "key" function.')
       }
       if (!template || typeof template.facade !== 'function') {
-        if (template && typeof template.class === 'function') {
-          if (!warnedAboutClassToFacade) {
-            console.warn('The "class" property is deprecated in favor of "facade".')
-            warnedAboutClassToFacade = true
-          }
-          template.facade = template.class
-        } else {
-          throw new Error('ListFacade template must define a "facade".')
-        }
+        throw new Error('ListFacade template must define a "facade".')
       }
     }
 
