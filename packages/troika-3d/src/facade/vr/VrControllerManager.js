@@ -24,14 +24,13 @@ export class VrControllerManager extends Group3DFacade {
   constructor(parent) {
     super(parent)
     this.addEventListener('beforerender', this._onBeforeRender.bind(this))
-    this._isInRenderFrame = false
     this.children = []
   }
 
   shouldUpdateChildren() {
-    // Only allow child controllers to be updated during render frames (onBeforeRender), since
-    // that's when the VR display and gamepad objects will be queryable and current.
-    return this._isInRenderFrame
+    // Never update child controllers during the normal afterUpdate; they will instead be updated during
+    // onBeforeRender since that's when the VR display and gamepad objects will be queryable and current.
+    return false
   }
 
   _onBeforeRender(renderer, scene, camera) {
@@ -71,9 +70,8 @@ export class VrControllerManager extends Group3DFacade {
       })
     }
 
-    this._isInRenderFrame = true
-    this.afterUpdate()
-    this._isInRenderFrame = false
+    // Update the child controllers
+    this.updateChildren(children)
   }
 }
 
