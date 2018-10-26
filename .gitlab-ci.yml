@@ -36,3 +36,14 @@ deploy:
     - npm run test
     - npx lerna publish from-git --yes
 
+# job for deploying examples to Gitlab Pages -- must be named "pages"
+pages:
+  stage: deploy
+  only:
+    - master
+  script:
+    - npm install
+    - npm run build-examples
+  artifacts:
+    paths:
+      - packages/troika-examples

@@ -10,7 +10,8 @@
     "registry": "https://internal-npm/content/repositories/npm/"
   },
   "scripts": {
-    "serve": "rollup -w -c rollup.config.examples.js"
+    "build": "rollup -c rollup.config.examples.js",
+    "serve": "START_SERVER=true rollup -w -c rollup.config.examples.js"
   },
   "dependencies": {
     "adaptive-bezier-curve": "^1.0.3",

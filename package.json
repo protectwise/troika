@@ -40,7 +40,9 @@
     "build-opentype": "npm run bootstrap && lerna exec --scope=troika-3d-text -- npm run build-opentype",
     "build-yoga": "npm run bootstrap && lerna exec --scope=troika-3d-ui -- npm run build-yoga",
     "test": "jest",
-    "examples": "lerna exec --scope=troika-examples -- npm run serve",
+    "build-examples": "lerna exec --scope=troika-examples -- npm run build",
+    "serve-examples": "lerna exec --scope=troika-examples -- npm run serve",
+    "examples": "npm run serve-examples",
     "docs": "lerna exec -- esdoc",
     "clean": "lerna exec -- rm -rf dist",
     "lint": "lerna exec -- standard src/**/*.js src/**/*.jsx"

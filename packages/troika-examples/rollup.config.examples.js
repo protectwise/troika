@@ -8,7 +8,7 @@ import importJson from 'rollup-plugin-json'
 import serve from 'rollup-plugin-serve'
 
 
-const { LERNA_PACKAGE_NAME, LERNA_ROOT_PATH } = process.env
+const { LERNA_PACKAGE_NAME, LERNA_ROOT_PATH, START_SERVER } = process.env
 if (!LERNA_PACKAGE_NAME || !LERNA_ROOT_PATH) {
   throw new Error("The examples build must be run by Lerna; please use `npm run examples` from the repository root.")
 }
@@ -51,10 +51,10 @@ export default {
         }
       }
     }),
-    serve({
+    START_SERVER ? serve({
       //open: true,
       contentBase: ''
-    })
+    }) : null
   ],
 
   onwarn(warning, warn) {
