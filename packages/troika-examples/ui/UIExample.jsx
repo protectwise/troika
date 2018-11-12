@@ -81,13 +81,13 @@ class UIExample extends React.Component {
           camera={ {
             y: vr ? 0.25 : 0,
             lookAt: vr ? null : {x: 0, y: 0, z:-1},
-            // animation: vr ? null : {
-            //   from: {x: -0.1},
-            //   to: {x: 0.1},
-            //   duration: 5000,
-            //   direction: 'alternate',
-            //   iterations: Infinity
-            // }
+            animation: vr ? null : {
+              from: {x: -0.1},
+              to: {x: 0.1},
+              duration: 5000,
+              direction: 'alternate',
+              iterations: Infinity
+            }
           } }
           lights={[
             {type: 'point', x: 1},
@@ -96,8 +96,8 @@ class UIExample extends React.Component {
           objects={
             <Group3DFacade
               key="root"
-              z={vr ? -1.2 : -0.8}
-              scale={0.5 / 1024}
+              z={-0.8}
+              scale={(vr ? 1 : 0.5) / 1024}
             >
               <Block
                 key='leftPane'
