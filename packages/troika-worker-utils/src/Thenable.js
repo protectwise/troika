@@ -5,11 +5,16 @@
  * This implementation conforms fully to the Promises/A+ spec so it can safely interoperate
  * with other thenable implementations. https://github.com/promises-aplus/promises-spec
  *
- * *However*, it is _not_ a full implementation of JavaScript Promises, e.g. it does not
+ * *However*, it is _not_ a full implementation of ES2015 Promises, e.g. it does not
  * have the same constructor signature and does not expose a `catch` method or the static
  * `resolve`/`reject`/`all`/`race` initializer methods. If you need to hand a Thenable
  * instance off to consuming code that may expect a true Promise, you'll want to wrap it
  * in a native-or-polyfilled Promise first.
+ *
+ * (Why yet another Promises/A+ implementation? Great question. We needed a polyfill-like
+ * thing that was (a) wrapped in a single function for easy serialization across to a Worker,
+ * and (b) was as small as possible -- at ~900B minified (~500B gzipped) this is the smallest
+ * implementation I've found. And also, exercises like this are challenging and fun.)
  */
 export function BespokeThenable() {
   let state = 0 // 0=pending, 1=fulfilled, -1=rejected
@@ -101,7 +106,11 @@ export function BespokeThenable() {
     const q = queue
     scheduled = 0
     queue = []
-    q.forEach(fn => fn())
+    q.forEach(callIt)
+  }
+
+  function callIt(fn) {
+    fn()
   }
 
   function getThenableThen(val) {
@@ -156,8 +165,6 @@ export function NativePromiseThenable() {
  * Choose the best Thenable implementation and export it as the default.
  */
 export default (
-  typeof Promise === 'function' && Promise.toString().indexOf("[native code]") !== -1
-    ? NativePromiseThenable
-    : BespokeThenable
+  typeof Promise === 'function' ? NativePromiseThenable : BespokeThenable
 )
 
