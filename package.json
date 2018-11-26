@@ -44,7 +44,7 @@
     "build-examples": "lerna exec --scope=troika-examples -- npm run build",
     "serve-examples": "lerna exec --scope=troika-examples -- npm run serve",
     "examples": "npm run serve-examples",
-    "docs": "lerna exec -- esdoc",
+    "serve-docs": "cd website && npm start",
     "clean": "lerna exec -- rm -rf dist",
     "lint": "lerna exec -- standard src/**/*.js src/**/*.jsx"
   },

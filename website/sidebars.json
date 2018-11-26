@@ -1,0 +1,43 @@
+{
+  "docs": {
+    "Getting Started": [
+      "overview",
+      "setup"
+    ],
+    "Core Concepts": [
+      "facade-basics",
+      "scene-descriptors",
+      "animations-and-transitions",
+      "interactivity-and-events"
+    ],
+    "3D": [
+      "3d-overview",
+      "3d-scenes",
+      "3d-objects",
+      "3d-interactivity",
+      {
+        "type": "subcategory",
+        "label": "Text and UI",
+        "ids": [
+          "3d-html-overlays",
+          "3d-text",
+          "3d-user-interfaces"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Optimization",
+        "ids": [
+          "3d-auto-optimizations",
+          "3d-instancing",
+          "3d-optimization-techniques"
+        ]
+      }
+    ],
+    "2D": [
+      "2d-overview",
+      "2d-interactivity",
+      "2d-html-overlays"
+    ]
+  }
+}
