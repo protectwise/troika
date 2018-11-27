@@ -60,7 +60,7 @@ class SyntheticEvent {
       let touches = isTouchEndOrCancel(nativeEvent) ? nativeEvent.changedTouches : nativeEvent.touches
       if (touches.length === 1) {
         touchDragPropsToNormalize.forEach(prop => {
-          e[prop] = touches[0][prop]
+          this[prop] = touches[0][prop]
         })
       }
     }
