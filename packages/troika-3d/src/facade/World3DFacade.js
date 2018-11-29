@@ -126,12 +126,20 @@ class World3DFacade extends WorldBaseFacade {
 
     let onStatsUpdate = this.onStatsUpdate
     if (onStatsUpdate) {
-      let info = renderer.info.render
-      onStatsUpdate({
-        'WebGL Draw Calls': info.calls,
-        'WebGL Vertices': info.vertices,
-        'WebGL Triangles': info.faces
-      })
+      const {memory, render} = renderer.info
+      const stats = {
+        'WebGL Draw Calls': render.calls,
+        'WebGL Geometries': memory.geometries,
+        'WebGL Textures': memory.textures,
+        'WebGL Triangles': render.triangles
+      }
+      if (render.points) {
+        stats['WebGL Points'] = render.points
+      }
+      if (render.lines) {
+        stats['WebGL Lines'] = render.lines
+      }
+      onStatsUpdate(stats)
     }
   }
 
