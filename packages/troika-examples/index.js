@@ -12,6 +12,7 @@ import DragDrop from './dragdrop/DragDropExample'
 import LevelOfDetail from './lod/LevelOfDetailExample'
 import CurveAnim from './curve-anim/CurveAnimExample'
 import Canvas2DExample from './canvas2d/Canvas2DExample'
+import EasingsExample from './easings/EasingsExample'
 import InstanceableExample from './instanceable/InstanceableExample'
 import InceptionExample from './inception/InceptionExample'
 
@@ -28,6 +29,7 @@ const EXAMPLES = [
   {id: 'lod', name: 'Level of Detail', component: LevelOfDetail},
   {id: 'curveAnim', name: 'Curve Animation', component: CurveAnim, disableVR:true},
   {id: 'twoDee', name: 'Canvas2D', component: Canvas2DExample, disableVR:true},
+  {id: 'easings', name: 'Animation Easings', component: EasingsExample, disableVR:true},
   {id: 'instanceable', name: 'Instanceable Objects', component: InstanceableExample},
   {id: 'inception', name: 'Inception', component: InceptionExample}
 ]
