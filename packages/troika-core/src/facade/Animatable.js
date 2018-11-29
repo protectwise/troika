@@ -208,7 +208,9 @@ export const extendAsAnimatable = createClassExtender('animatable', function(Bas
                 }
               }
               let tween = newAnimTweens[animId] = new MultiTween(keyframePropTweens, duration, delay, easing, iterations, direction)
-              runner.start(tween)
+              if (!animDesc.paused) {
+                runner.start(tween)
+              }
 
               // The tween runner won't do anything until next tick, so immediately sync to the first frame's
               // properties if the animation has no delay to avoid a flash of bad initial state
