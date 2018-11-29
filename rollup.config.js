@@ -30,7 +30,6 @@ const EXTERNAL_GLOBALS = SIBLING_PACKAGES.reduce((out, sib) => {
   out[sib] = sib.replace(/-/g, '_')
   return out
 },{
-  easingjs: 'easing',
   react: 'React',
   three: 'THREE',
   'prop-types': 'PropTypes'

@@ -1,4 +1,4 @@
-import easings from 'easingjs'
+import * as Easings from './Easings'
 import * as Interpolators from './Interpolators'
 
 const linear = v => v
@@ -35,7 +35,7 @@ class Tween {
     this.toValue = toValue
     this.duration = duration
     this.delay = delay
-    this.easing = typeof easing === 'string' ? (easings[easing] || linear) : easing
+    this.easing = typeof easing === 'string' ? (Easings[easing] || linear) : easing
     this.iterations = iterations
     this.direction = direction
     this.interpolate = typeof interpolate === 'function' ? interpolate : Interpolators[interpolate] || Interpolators.number

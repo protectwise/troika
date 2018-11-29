@@ -126,9 +126,9 @@ describe('easing', () => {
     tween.gotoElapsedTime(500)
     expect(callback).toHaveBeenLastCalledWith(0.96875)
 
-    tween = new Tween(callback, 0, 1, 1000, 0, 'bounce')
+    tween = new Tween(callback, 0, 1, 1000, 0, 'easeInOutBounce')
     tween.gotoElapsedTime(500)
-    expect(callback).toHaveBeenLastCalledWith(0.765625)
+    expect(callback).toHaveBeenLastCalledWith(0.5)
   })
 
   test('custom easing function', () => {

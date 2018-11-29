@@ -12,8 +12,5 @@
   "module:es2015": "src/index.js",
   "publishConfig": {
     "registry": "https://internal-npm/content/repositories/npm/"
-  },
-  "dependencies": {
-    "easingjs": "^1.0.1"
   }
 }
