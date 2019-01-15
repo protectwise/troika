@@ -6,6 +6,7 @@ before_script:
   - npm config set unsafe-perm true
   - npm config set loglevel warn --global
   - npm config set registry $NPM_REGISTRY_READ_URL
+  - echo "npm registry `npm config get registry`"
   - echo "branch ${CI_BUILD_REF_NAME}"
   - echo "commit ${CI_BUILD_REF}"
   - export SHORT_REF=`echo ${CI_BUILD_REF} | cut -b 1-7`
@@ -34,6 +35,7 @@ deploy:
     - npm install
     - npm run build
     - npm run test
+    - echo "publishing to registry $NPM_REGISTRY_PUBLISH_URL"
     - npx lerna publish from-git --registry $NPM_REGISTRY_PUBLISH_URL --yes
 
 # job for deploying examples to Gitlab Pages -- must be named "pages"
