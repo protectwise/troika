@@ -6,9 +6,6 @@
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "homepage": "",
   "license": "MIT",
-  "publishConfig": {
-    "registry": "https://internal-npm/content/repositories/npm/"
-  },
   "scripts": {
     "build": "rollup -c rollup.config.examples.js",
     "serve": "START_SERVER=true rollup -w -c rollup.config.examples.js"

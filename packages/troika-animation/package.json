@@ -9,8 +9,5 @@
   "browser": "dist/troika-animation.umd.js",
   "jsnext:main": "dist/troika-animation.esm.js",
   "module": "dist/troika-animation.esm.js",
-  "module:es2015": "src/index.js",
-  "publishConfig": {
-    "registry": "https://internal-npm/content/repositories/npm/"
-  }
+  "module:es2015": "src/index.js"
 }

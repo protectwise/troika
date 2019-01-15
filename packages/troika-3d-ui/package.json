@@ -10,9 +10,6 @@
   "jsnext:main": "dist/troika-3d-ui.esm.js",
   "module": "dist/troika-3d-ui.esm.js",
   "module:es2015": "src/index.js",
-  "publishConfig": {
-    "registry": "https://internal-npm/content/repositories/npm/"
-  },
   "dependencies": {
     "troika-3d": "^0.11.5",
     "troika-3d-text": "^0.11.5",

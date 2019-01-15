@@ -9,8 +9,5 @@
   "browser": "dist/troika-worker-utils.umd.js",
   "jsnext:main": "dist/troika-worker-utils.esm.js",
   "module": "dist/troika-worker-utils.esm.js",
-  "module:es2015": "src/index.js",
-  "publishConfig": {
-    "registry": "https://internal-npm/content/repositories/npm/"
-  }
+  "module:es2015": "src/index.js"
 }
