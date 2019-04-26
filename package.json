@@ -9,28 +9,28 @@
     "npm": "=5.8.0"
   },
   "devDependencies": {
-    "@ampproject/rollup-plugin-closure-compiler": "^0.7.3",
-    "babel-cli": "^6.26.0",
-    "babel-jest": "^23.6.0",
-    "babel-preset-env": "^1.7.0",
-    "babel-preset-react": "^6.24.1",
-    "buble": "^0.19.4",
+    "@ampproject/rollup-plugin-closure-compiler": "^0.9.0",
+    "@babel/core": "^7.4.3",
+    "@babel/preset-env": "^7.4.3",
+    "@babel/preset-react": "^7.0.0",
+    "babel-jest": "^24.7.1",
+    "buble": "0.19.4",
     "esdoc": "^1.1.0",
     "esdoc-jsx-plugin": "^1.0.0",
     "esdoc-standard-plugin": "^1.0.0",
-    "jest": "^23.6.0",
+    "jest": "^24.7.1",
     "jsdom-worker": "^0.1.0",
-    "lerna": "^3.4.3",
+    "lerna": "^3.13.4",
     "node-fetch": "^2.2.0",
     "promises-aplus-tests": "^2.1.2",
-    "rollup": "^0.66.6",
-    "rollup-plugin-buble": "^0.19.4",
-    "rollup-plugin-commonjs": "^9.2.0",
-    "rollup-plugin-json": "^3.1.0",
-    "rollup-plugin-node-resolve": "^3.4.0",
-    "rollup-plugin-replace": "^2.1.0",
-    "rollup-plugin-serve": "^0.6.0",
-    "rollup-plugin-string": "^2.0.2",
+    "rollup": "^1.10.1",
+    "rollup-plugin-buble": "0.19.4",
+    "rollup-plugin-commonjs": "^9.3.4",
+    "rollup-plugin-json": "^4.0.0",
+    "rollup-plugin-node-resolve": "^4.2.3",
+    "rollup-plugin-replace": "^2.2.0",
+    "rollup-plugin-serve": "^1.0.1",
+    "rollup-plugin-string": "^3.0.0",
     "rollup-watch": "^4.3.1",
     "standard": "^12.0.1"
   },
@@ -61,14 +61,6 @@
       {
         "name": "esdoc-jsx-plugin"
       }
-    ]
-  },
-  "jest": {
-    "collectCoverage": true,
-    "coveragePathIgnorePatterns": [
-      "/node_modules/",
-      "/dist/",
-      "troika-worker-utils"
     ]
   }
 }

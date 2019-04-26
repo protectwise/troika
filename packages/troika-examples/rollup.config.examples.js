@@ -3,7 +3,7 @@ import buble from 'rollup-plugin-buble'
 import nodeResolve from 'rollup-plugin-node-resolve'
 import commonjs from 'rollup-plugin-commonjs'
 import replace from 'rollup-plugin-replace'
-import importStrings from 'rollup-plugin-string'
+import {string as importStrings} from 'rollup-plugin-string'
 import importJson from 'rollup-plugin-json'
 import serve from 'rollup-plugin-serve'
 
