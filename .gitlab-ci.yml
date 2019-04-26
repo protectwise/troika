@@ -26,6 +26,7 @@ test:
     - npm install
     - npm run build
     - npm run test
+    - git status #trying to see why lerna publish fails clean working tree check
 
 deploy:
   stage: deploy
