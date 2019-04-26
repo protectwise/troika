@@ -61,7 +61,7 @@ export default function createFontProcessor(opentype, config) {
           } else {
             callback(font)
           }
-        })
+        }, {lowMemory: true})
       } catch(err) {
         console.error(`Failure loading font ${url}${url === defaultFontUrl ? '' : '; trying fallback'}`, err)
         if (url !== defaultFontUrl) {

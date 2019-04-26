@@ -3245,11 +3245,7 @@ var opentype = (function (exports) {
 	    return this.names[gid];
 	};
 
-	/**
-	 * @alias opentype.addGlyphNames
-	 * @param {opentype.Font}
-	 */
-	function addGlyphNames(font) {
+	function addGlyphNamesAll(font) {
 	    let glyph;
 	    const glyphIndexMap = font.tables.cmap.glyphIndexMap;
 	    const charCodes = Object.keys(glyphIndexMap);
@@ -3272,6 +3268,38 @@ var opentype = (function (exports) {
 	        } else if (font.glyphNames.names) {
 	            glyph.name = font.glyphNames.glyphIndexToName(i);
 	        }
+	    }
+	}
+
+	function addGlyphNamesToUnicodeMap(font) {
+	    font._IndexToUnicodeMap = {};
+
+	    const glyphIndexMap = font.tables.cmap.glyphIndexMap;
+	    const charCodes = Object.keys(glyphIndexMap);
+
+	    for (let i = 0; i < charCodes.length; i += 1) {
+	        const c = charCodes[i];
+	        let glyphIndex = glyphIndexMap[c];
+	        if (font._IndexToUnicodeMap[glyphIndex] === undefined) {
+	            font._IndexToUnicodeMap[glyphIndex] = {
+	                unicodes: [parseInt(c)]
+	            };
+	        } else {
+	            font._IndexToUnicodeMap[glyphIndex].unicodes.push(parseInt(c));
+	        }
+	    }
+	}
+
+	/**
+	 * @alias opentype.addGlyphNames
+	 * @param {opentype.Font}
+	 * @param {Object}
+	 */
+	function addGlyphNames(font, opt) {
+	    if (opt.lowMemory) {
+	        addGlyphNamesToUnicodeMap(font);
+	    } else {
+	        addGlyphNamesAll(font);
 	    }
 	}
 
@@ -3432,7 +3460,7 @@ var opentype = (function (exports) {
 	        xScale = yScale = 1;
 	    } else {
 	        commands = this.path.commands;
-	        const scale = 1 / this.path.unitsPerEm * fontSize;
+	        const scale = 1 / (this.path.unitsPerEm || 1000) * fontSize;
 	        if (xScale === undefined) xScale = scale;
 	        if (yScale === undefined) yScale = scale;
 	    }
@@ -3676,7 +3704,9 @@ var opentype = (function (exports) {
 	    this.glyphs = {};
 	    if (Array.isArray(glyphs)) {
 	        for (let i = 0; i < glyphs.length; i++) {
-	            this.glyphs[i] = glyphs[i];
+	            const glyph = glyphs[i];
+	            glyph.path.unitsPerEm = font.unitsPerEm;
+	            this.glyphs[i] = glyph;
 	        }
 	    }
 
@@ -3688,8 +3718,37 @@ var opentype = (function (exports) {
 	 * @return {opentype.Glyph}
 	 */
 	GlyphSet.prototype.get = function(index) {
-	    if (typeof this.glyphs[index] === 'function') {
-	        this.glyphs[index] = this.glyphs[index]();
+	    // this.glyphs[index] is 'undefined' when low memory mode is on. glyph is pushed on request only.
+	    if (this.glyphs[index] === undefined) {
+	        this.font._push(index);
+	        if (typeof this.glyphs[index] === 'function') {
+	            this.glyphs[index] = this.glyphs[index]();
+	        }
+
+	        let glyph = this.glyphs[index];
+	        let unicodeObj = this.font._IndexToUnicodeMap[index];
+
+	        if (unicodeObj) {
+	            for (let j = 0; j < unicodeObj.unicodes.length; j++)
+	                glyph.addUnicode(unicodeObj.unicodes[j]);
+	        }
+
+	        if (this.font.cffEncoding) {
+	            if (this.font.isCIDFont) {
+	                glyph.name = 'gid' + index;
+	            } else {
+	                glyph.name = this.font.cffEncoding.charset[index];
+	            }
+	        } else if (this.font.glyphNames.names) {
+	            glyph.name = this.font.glyphNames.glyphIndexToName(index);
+	        }
+
+	        this.glyphs[index].advanceWidth = this.font._hmtxTableData[index].advanceWidth;
+	        this.glyphs[index].leftSideBearing = this.font._hmtxTableData[index].leftSideBearing;
+	    } else {
+	        if (typeof this.glyphs[index] === 'function') {
+	            this.glyphs[index] = this.glyphs[index]();
+	        }
 	    }
 
 	    return this.glyphs[index];
@@ -3841,6 +3900,43 @@ var opentype = (function (exports) {
 	    }
 
 	    return {objects: objects, startOffset: start, endOffset: endOffset};
+	}
+
+	function parseCFFIndexLowMemory(data, start) {
+	    const offsets = [];
+	    const count = parse.getCard16(data, start);
+	    let objectOffset;
+	    let endOffset;
+	    if (count !== 0) {
+	        const offsetSize = parse.getByte(data, start + 2);
+	        objectOffset = start + ((count + 1) * offsetSize) + 2;
+	        let pos = start + 3;
+	        for (let i = 0; i < count + 1; i += 1) {
+	            offsets.push(parse.getOffset(data, pos, offsetSize));
+	            pos += offsetSize;
+	        }
+
+	        // The total size of the index array is 4 header bytes + the value of the last offset.
+	        endOffset = objectOffset + offsets[count];
+	    } else {
+	        endOffset = start + 2;
+	    }
+
+	    return {offsets: offsets, startOffset: start, endOffset: endOffset};
+	}
+	function getCffIndexObject(i, offsets, data, start, conversionFn) {
+	    const count = parse.getCard16(data, start);
+	    let objectOffset = 0;
+	    if (count !== 0) {
+	        const offsetSize = parse.getByte(data, start + 2);
+	        objectOffset = start + ((count + 1) * offsetSize) + 2;
+	    }
+
+	    let value = parse.getBytes(data, objectOffset + offsets[i], objectOffset + offsets[i + 1]);
+	    if (conversionFn) {
+	        value = conversionFn(value);
+	    }
+	    return value;
 	}
 
 	// Parse a `CFF` DICT real value.
@@ -4672,7 +4768,7 @@ var opentype = (function (exports) {
 	}
 
 	// Parse the `CFF` table, which contains the glyph outlines in PostScript format.
-	function parseCFFTable(data, start, font) {
+	function parseCFFTable(data, start, font, opt) {
 	    font.tables.cff = {};
 	    const header = parseCFFHeader(data, start);
 	    const nameIndex = parseCFFIndex(data, header.endOffset, parse.bytesToString);
@@ -4729,8 +4825,14 @@ var opentype = (function (exports) {
 	    }
 
 	    // Offsets in the top dict are relative to the beginning of the CFF data, so add the CFF start offset.
-	    const charStringsIndex = parseCFFIndex(data, start + topDict.charStrings);
-	    font.nGlyphs = charStringsIndex.objects.length;
+	    let charStringsIndex;
+	    if (opt.lowMemory) {
+	        charStringsIndex = parseCFFIndexLowMemory(data, start + topDict.charStrings);
+	        font.nGlyphs = charStringsIndex.offsets.length;
+	    } else {
+	        charStringsIndex = parseCFFIndex(data, start + topDict.charStrings);
+	        font.nGlyphs = charStringsIndex.objects.length;
+	    }
 
 	    const charset = parseCFFCharset(data, start + topDict.charset, font.nGlyphs, stringIndex.objects);
 	    if (topDict.encoding === 0) {
@@ -4747,9 +4849,16 @@ var opentype = (function (exports) {
 	    font.encoding = font.encoding || font.cffEncoding;
 
 	    font.glyphs = new glyphset.GlyphSet(font);
-	    for (let i = 0; i < font.nGlyphs; i += 1) {
-	        const charString = charStringsIndex.objects[i];
-	        font.glyphs.push(i, glyphset.cffGlyphLoader(font, i, parseCFFCharstring, charString));
+	    if (opt.lowMemory) {
+	        font._push = function(i) {
+	            const charString = getCffIndexObject(i, charStringsIndex.offsets, data, start + topDict.charStrings);
+	            font.glyphs.push(i, glyphset.cffGlyphLoader(font, i, parseCFFCharstring, charString));
+	        };
+	    } else {
+	        for (let i = 0; i < font.nGlyphs; i += 1) {
+	            const charString = charStringsIndex.objects[i];
+	            font.glyphs.push(i, glyphset.cffGlyphLoader(font, i, parseCFFCharstring, charString));
+	        }
 	    }
 	}
 
@@ -5137,9 +5246,7 @@ var opentype = (function (exports) {
 
 	// The `hmtx` table contains the horizontal metrics for all glyphs.
 
-	// Parse the `hmtx` table, which contains the horizontal metrics for all glyphs.
-	// This function augments the glyph array, adding the advanceWidth and leftSideBearing to each glyph.
-	function parseHmtxTable(data, start, numMetrics, numGlyphs, glyphs) {
+	function parseHmtxTableAll(data, start, numMetrics, numGlyphs, glyphs) {
 	    let advanceWidth;
 	    let leftSideBearing;
 	    const p = new parse.Parser(data, start);
@@ -5154,6 +5261,35 @@ var opentype = (function (exports) {
 	        glyph.advanceWidth = advanceWidth;
 	        glyph.leftSideBearing = leftSideBearing;
 	    }
+	}
+
+	function parseHmtxTableOnLowMemory(font, data, start, numMetrics, numGlyphs) {
+	    font._hmtxTableData = {};
+
+	    let advanceWidth;
+	    let leftSideBearing;
+	    const p = new parse.Parser(data, start);
+	    for (let i = 0; i < numGlyphs; i += 1) {
+	        // If the font is monospaced, only one entry is needed. This last entry applies to all subsequent glyphs.
+	        if (i < numMetrics) {
+	            advanceWidth = p.parseUShort();
+	            leftSideBearing = p.parseShort();
+	        }
+
+	        font._hmtxTableData[i] = {
+	            advanceWidth: advanceWidth,
+	            leftSideBearing: leftSideBearing
+	        };
+	    }
+	}
+
+	// Parse the `hmtx` table, which contains the horizontal metrics for all glyphs.
+	// This function augments the glyph array, adding the advanceWidth and leftSideBearing to each glyph.
+	function parseHmtxTable(font, data, start, numMetrics, numGlyphs, glyphs, opt) {
+	    if (opt.lowMemory)
+	        parseHmtxTableOnLowMemory(font, data, start, numMetrics, numGlyphs);
+	    else
+	        parseHmtxTableAll(data, start, numMetrics, numGlyphs, glyphs);
 	}
 
 	function makeHmtxTable(glyphs) {
@@ -7770,10 +7906,1570 @@ var opentype = (function (exports) {
 
 	function HintingTrueType(){throw new Error("Hinting disabled")}
 
-	// The Font object
+	/**
+	 * Converts a string into a list of tokens.
+	 */
 
-	// This code is based on Array.from implementation for strings in https://github.com/mathiasbynens/Array.from
-	const arrayFromString = Array.from || (s => s.match(/[\uD800-\uDBFF][\uDC00-\uDFFF]?|[^\uD800-\uDFFF]|./g) || []);
+	/**
+	 * Create a new token
+	 * @param {string} char a single char
+	 */
+	function Token(char) {
+	    this.char = char;
+	    this.state = {};
+	    this.activeState = null;
+	}
+
+	/**
+	 * Create a new context range
+	 * @param {number} startIndex range start index
+	 * @param {number} endOffset range end index offset
+	 * @param {string} contextName owner context name
+	 */
+	function ContextRange(startIndex, endOffset, contextName) {
+	    this.contextName = contextName;
+	    this.startIndex = startIndex;
+	    this.endOffset = endOffset;
+	}
+
+	/**
+	 * Check context start and end
+	 * @param {string} contextName a unique context name
+	 * @param {function} checkStart a predicate function the indicates a context's start
+	 * @param {function} checkEnd a predicate function the indicates a context's end
+	 */
+	function ContextChecker(contextName, checkStart, checkEnd) {
+	    this.contextName = contextName;
+	    this.openRange = null;
+	    this.ranges = [];
+	    this.checkStart = checkStart;
+	    this.checkEnd = checkEnd;
+	}
+
+	/**
+	 * @typedef ContextParams
+	 * @type Object
+	 * @property {array} context context items
+	 * @property {number} currentIndex current item index
+	 */
+
+	/**
+	 * Create a context params
+	 * @param {array} context a list of items
+	 * @param {number} currentIndex current item index
+	 */
+	function ContextParams(context, currentIndex) {
+	    this.context = context;
+	    this.index = currentIndex;
+	    this.length = context.length;
+	    this.current = context[currentIndex];
+	    this.backtrack = context.slice(0, currentIndex);
+	    this.lookahead = context.slice(currentIndex + 1);
+	}
+
+	/**
+	 * Create an event instance
+	 * @param {string} eventId event unique id
+	 */
+	function Event(eventId) {
+	    this.eventId = eventId;
+	    this.subscribers = [];
+	}
+
+	/**
+	 * Initialize a core events and auto subscribe required event handlers
+	 * @param {any} events an object that enlists core events handlers
+	 */
+	function initializeCoreEvents(events) {
+	    const coreEvents = [
+	        'start', 'end', 'next', 'newToken', 'contextStart',
+	        'contextEnd', 'insertToken', 'removeToken', 'removeRange',
+	        'replaceToken', 'replaceRange', 'composeRUD', 'updateContextsRanges'
+	    ];
+
+	    coreEvents.forEach(eventId => {
+	        Object.defineProperty(this.events, eventId, {
+	            value: new Event(eventId)
+	        });
+	    });
+
+	    if (!!events) {
+	        coreEvents.forEach(eventId => {
+	            const event = events[eventId];
+	            if (typeof event === 'function') {
+	                this.events[eventId].subscribe(event);
+	            }
+	        });
+	    }
+	    const requiresContextUpdate = [
+	        'insertToken', 'removeToken', 'removeRange',
+	        'replaceToken', 'replaceRange', 'composeRUD'
+	    ];
+	    requiresContextUpdate.forEach(eventId => {
+	        this.events[eventId].subscribe(
+	            this.updateContextsRanges
+	        );
+	    });
+	}
+
+	/**
+	 * Converts a string into a list of tokens
+	 * @param {any} events tokenizer core events
+	 */
+	function Tokenizer(events) {
+	    this.tokens = [];
+	    this.registeredContexts = {};
+	    this.contextCheckers = [];
+	    this.events = {};
+	    this.registeredModifiers = [];
+
+	    initializeCoreEvents.call(this, events);
+	}
+
+	/**
+	 * Sets the state of a token, usually called by a state modifier.
+	 * @param {string} key state item key
+	 * @param {any} value state item value
+	 */
+	Token.prototype.setState = function(key, value) {
+	    this.state[key] = value;
+	    this.activeState = { key, value: this.state[key] };
+	    return this.activeState;
+	};
+
+	Token.prototype.getState = function (stateId) {
+	    return this.state[stateId] || null;
+	};
+
+	/**
+	 * Checks if an index exists in the tokens list.
+	 * @param {number} index token index
+	 */
+	Tokenizer.prototype.inboundIndex = function(index) {
+	    return index >= 0 && index < this.tokens.length;
+	};
+
+	/**
+	 * Compose and apply a list of operations (replace, update, delete)
+	 * @param {array} RUDs replace, update and delete operations
+	 * TODO: Perf. Optimization (lengthBefore === lengthAfter ? dispatch once)
+	 */
+	Tokenizer.prototype.composeRUD = function (RUDs) {
+	    const silent = true;
+	    const state = RUDs.map(RUD => (
+	        this[RUD[0]].apply(this, RUD.slice(1).concat(silent))
+	    ));
+	    const hasFAILObject = obj => (
+	        typeof obj === 'object' &&
+	        obj.hasOwnProperty('FAIL')
+	    );
+	    if (state.every(hasFAILObject)) {
+	        return {
+	            FAIL: `composeRUD: one or more operations hasn't completed successfully`,
+	            report: state.filter(hasFAILObject)
+	        };
+	    }
+	    this.dispatch('composeRUD', [state.filter(op => !hasFAILObject(op))]);
+	};
+
+	/**
+	 * Replace a range of tokens with a list of tokens
+	 * @param {number} startIndex range start index
+	 * @param {number} offset range offset
+	 * @param {token} tokens a list of tokens to replace
+	 * @param {boolean} silent dispatch events and update context ranges
+	 */
+	Tokenizer.prototype.replaceRange = function (startIndex, offset, tokens, silent) {
+	    offset = offset !== null ? offset : this.tokens.length;
+	    const isTokenType = tokens.every(token => token instanceof Token);
+	    if (!isNaN(startIndex) && this.inboundIndex(startIndex) && isTokenType) {
+	        const replaced = this.tokens.splice.apply(
+	            this.tokens, [startIndex, offset].concat(tokens)
+	        );
+	        if (!silent) this.dispatch('replaceToken', [startIndex, offset, tokens]);
+	        return [replaced, tokens];
+	    } else {
+	        return { FAIL: 'replaceRange: invalid tokens or startIndex.' };
+	    }
+	};
+
+	/**
+	 * Replace a token with another token
+	 * @param {number} index token index
+	 * @param {token} token a token to replace
+	 * @param {boolean} silent dispatch events and update context ranges
+	 */
+	Tokenizer.prototype.replaceToken = function (index, token, silent) {
+	    if (!isNaN(index) && this.inboundIndex(index) && token instanceof Token) {
+	        const replaced = this.tokens.splice(index, 1, token);
+	        if (!silent) this.dispatch('replaceToken', [index, token]);
+	        return [replaced[0], token];
+	    } else {
+	        return { FAIL: 'replaceToken: invalid token or index.' };
+	    }
+	};
+
+	/**
+	 * Removes a range of tokens
+	 * @param {number} startIndex range start index
+	 * @param {number} offset range offset
+	 * @param {boolean} silent dispatch events and update context ranges
+	 */
+	Tokenizer.prototype.removeRange = function(startIndex, offset, silent) {
+	    offset = !isNaN(offset) ? offset : this.tokens.length;
+	    const tokens = this.tokens.splice(startIndex, offset);
+	    if (!silent) this.dispatch('removeRange', [tokens, startIndex, offset]);
+	    return tokens;
+	};
+
+	/**
+	 * Remove a token at a certain index
+	 * @param {number} index token index
+	 * @param {boolean} silent dispatch events and update context ranges
+	 */
+	Tokenizer.prototype.removeToken = function(index, silent) {
+	    if (!isNaN(index) && this.inboundIndex(index)) {
+	        const token = this.tokens.splice(index, 1);
+	        if (!silent) this.dispatch('removeToken', [token, index]);
+	        return token;
+	    } else {
+	        return { FAIL: 'removeToken: invalid token index.' };
+	    }
+	};
+
+	/**
+	 * Insert a list of tokens at a certain index
+	 * @param {array} tokens a list of tokens to insert
+	 * @param {number} index insert the list of tokens at index
+	 * @param {boolean} silent dispatch events and update context ranges
+	 */
+	Tokenizer.prototype.insertToken = function (tokens, index, silent) {
+	    const tokenType = tokens.every(
+	        token => token instanceof Token
+	    );
+	    if (tokenType) {
+	        this.tokens.splice.apply(
+	            this.tokens, [index, 0].concat(tokens)
+	        );
+	        if (!silent) this.dispatch('insertToken', [tokens, index]);
+	        return tokens;
+	    } else {
+	        return { FAIL: 'insertToken: invalid token(s).' };
+	    }
+	};
+
+	/**
+	 * A state modifier that is called on 'newToken' event
+	 * @param {string} modifierId state modifier id
+	 * @param {function} condition a predicate function that returns true or false
+	 * @param {function} modifier a function to update token state
+	 */
+	Tokenizer.prototype.registerModifier = function(modifierId, condition, modifier) {
+	    this.events.newToken.subscribe(function(token, contextParams) {
+	        const conditionParams = [token, contextParams];
+	        const canApplyModifier = (
+	            condition === null ||
+	            condition.apply(this, conditionParams) === true
+	        );
+	        const modifierParams = [token, contextParams];
+	        if (canApplyModifier) {
+	            let newStateValue = modifier.apply(this, modifierParams);
+	            token.setState(modifierId, newStateValue);
+	        }
+	    });
+	    this.registeredModifiers.push(modifierId);
+	};
+
+	/**
+	 * Subscribe a handler to an event
+	 * @param {function} eventHandler an event handler function
+	 */
+	Event.prototype.subscribe = function (eventHandler) {
+	    if (typeof eventHandler === 'function') {
+	        return ((this.subscribers.push(eventHandler)) - 1);
+	    } else {
+	        return { FAIL: `invalid '${this.eventId}' event handler`};
+	    }
+	};
+
+	/**
+	 * Unsubscribe an event handler
+	 * @param {string} subsId subscription id
+	 */
+	Event.prototype.unsubscribe = function (subsId) {
+	    this.subscribers.splice(subsId, 1);
+	};
+
+	/**
+	 * Sets context params current value index
+	 * @param {number} index context params current value index
+	 */
+	ContextParams.prototype.setCurrentIndex = function(index) {
+	    this.index = index;
+	    this.current = this.context[index];
+	    this.backtrack = this.context.slice(0, index);
+	    this.lookahead = this.context.slice(index + 1);
+	};
+
+	/**
+	 * Get an item at an offset from the current value
+	 * example (current value is 3):
+	 *  1    2   [3]   4    5   |   items values
+	 * -2   -1    0    1    2   |   offset values
+	 * @param {number} offset an offset from current value index
+	 */
+	ContextParams.prototype.get = function (offset) {
+	    switch (true) {
+	        case (offset === 0):
+	            return this.current;
+	        case (offset < 0 && Math.abs(offset) <= this.backtrack.length):
+	            return this.backtrack.slice(offset)[0];
+	        case (offset > 0 && offset <= this.lookahead.length):
+	            return this.lookahead[offset - 1];
+	        default:
+	            return null;
+	    }
+	};
+
+	/**
+	 * Converts a context range into a string value
+	 * @param {contextRange} range a context range
+	 */
+	Tokenizer.prototype.rangeToText = function (range) {
+	    if (range instanceof ContextRange) {
+	        return (
+	            this.getRangeTokens(range)
+	                .map(token => token.char).join('')
+	        );
+	    }
+	};
+
+	/**
+	 * Converts all tokens into a string
+	 */
+	Tokenizer.prototype.getText = function () {
+	    return this.tokens.map(token => token.char).join('');
+	};
+
+	/**
+	 * Get a context by name
+	 * @param {string} contextName context name to get
+	 */
+	Tokenizer.prototype.getContext = function (contextName) {
+	    let context = this.registeredContexts[contextName];
+	    return !!context ? context : null;
+	};
+
+	/**
+	 * Subscribes a new event handler to an event
+	 * @param {string} eventName event name to subscribe to
+	 * @param {function} eventHandler a function to be invoked on event
+	 */
+	Tokenizer.prototype.on = function(eventName, eventHandler) {
+	    const event = this.events[eventName];
+	    if (!!event) {
+	        return event.subscribe(eventHandler);
+	    } else {
+	        return null;
+	    }
+	};
+
+	/**
+	 * Dispatches an event
+	 * @param {string} eventName event name
+	 * @param {any} args event handler arguments
+	 */
+	Tokenizer.prototype.dispatch = function(eventName, args) {
+	    const event = this.events[eventName];
+	    if (event instanceof Event) {
+	        event.subscribers.forEach(subscriber => {
+	            subscriber.apply(this, args || []);
+	        });
+	    }
+	};
+
+	/**
+	 * Register a new context checker
+	 * @param {string} contextName a unique context name
+	 * @param {function} contextStartCheck a predicate function that returns true on context start
+	 * @param {function} contextEndCheck  a predicate function that returns true on context end
+	 * TODO: call tokenize on registration to update context ranges with the new context.
+	 */
+	Tokenizer.prototype.registerContextChecker = function(contextName, contextStartCheck, contextEndCheck) {
+	    if (!!this.getContext(contextName)) return {
+	        FAIL:
+	        `context name '${contextName}' is already registered.`
+	    };
+	    if (typeof contextStartCheck !== 'function') return {
+	        FAIL:
+	        `missing context start check.`
+	    };
+	    if (typeof contextEndCheck !== 'function') return {
+	        FAIL:
+	        `missing context end check.`
+	    };
+	    const contextCheckers = new ContextChecker(
+	        contextName, contextStartCheck, contextEndCheck
+	    );
+	    this.registeredContexts[contextName] = contextCheckers;
+	    this.contextCheckers.push(contextCheckers);
+	    return contextCheckers;
+	};
+
+	/**
+	 * Gets a context range tokens
+	 * @param {contextRange} range a context range
+	 */
+	Tokenizer.prototype.getRangeTokens = function(range) {
+	    const endIndex = range.startIndex + range.endOffset;
+	    return [].concat(
+	        this.tokens
+	            .slice(range.startIndex, endIndex)
+	    );
+	};
+
+	/**
+	 * Gets the ranges of a context
+	 * @param {string} contextName context name
+	 */
+	Tokenizer.prototype.getContextRanges = function(contextName) {
+	    const context = this.getContext(contextName);
+	    if (!!context) {
+	        return context.ranges;
+	    } else {
+	        return { FAIL: `context checker '${contextName}' is not registered.` };
+	    }
+	};
+
+	/**
+	 * Resets context ranges to run context update
+	 */
+	Tokenizer.prototype.resetContextsRanges = function () {
+	    const registeredContexts = this.registeredContexts;
+	    for (const contextName in registeredContexts) {
+	        if (registeredContexts.hasOwnProperty(contextName)) {
+	            const context = registeredContexts[contextName];
+	            context.ranges = [];
+	        }
+	    }
+	};
+
+	/**
+	 * Updates context ranges
+	 */
+	Tokenizer.prototype.updateContextsRanges = function () {
+	    this.resetContextsRanges();
+	    const chars = this.tokens.map(token => token.char);
+	    for (let i = 0; i < chars.length; i++) {
+	        const contextParams = new ContextParams(chars, i);
+	        this.runContextCheck(contextParams);
+	    }
+	    this.dispatch('updateContextsRanges', [this.registeredContexts]);
+	};
+
+	/**
+	 * Sets the end offset of an open range
+	 * @param {number} offset range end offset
+	 * @param {string} contextName context name
+	 */
+	Tokenizer.prototype.setEndOffset = function (offset, contextName) {
+	    const startIndex = this.getContext(contextName).openRange.startIndex;
+	    let range = new ContextRange(startIndex, offset, contextName);
+	    const ranges = this.getContext(contextName).ranges;
+	    range.rangeId = `${contextName}.${ranges.length}`;
+	    ranges.push(range);
+	    this.getContext(contextName).openRange = null;
+	    return range;
+	};
+
+	/**
+	 * Runs a context check on the current context
+	 * @param {contextParams} contextParams current context params
+	 */
+	Tokenizer.prototype.runContextCheck = function(contextParams) {
+	    const index = contextParams.index;
+	    this.contextCheckers.forEach(contextChecker => {
+	        let contextName = contextChecker.contextName;
+	        let openRange = this.getContext(contextName).openRange;
+	        if (!openRange && contextChecker.checkStart(contextParams)) {
+	            openRange = new ContextRange(index, null, contextName);
+	            this.getContext(contextName).openRange = openRange;
+	            this.dispatch('contextStart', [contextName, index]);
+	        }
+	        if (!!openRange && contextChecker.checkEnd(contextParams)) {
+	            const offset = (index - openRange.startIndex) + 1;
+	            const range = this.setEndOffset(offset, contextName);
+	            this.dispatch('contextEnd', [contextName, range]);
+	        }
+	    });
+	};
+
+	/**
+	 * Converts a text into a list of tokens
+	 * @param {string} text a text to tokenize
+	 */
+	Tokenizer.prototype.tokenize = function (text) {
+	    this.tokens = [];
+	    this.resetContextsRanges();
+	    let chars = Array.from(text);
+	    this.dispatch('start');
+	    for (let i = 0; i < chars.length; i++) {
+	        const char = chars[i];
+	        const contextParams = new ContextParams(chars, i);
+	        this.dispatch('next', [contextParams]);
+	        this.runContextCheck(contextParams);
+	        let token = new Token(char);
+	        this.tokens.push(token);
+	        this.dispatch('newToken', [token, contextParams]);
+	    }
+	    this.dispatch('end', [this.tokens]);
+	    return this.tokens;
+	};
+
+	// ╭─┄┄┄────────────────────────┄─────────────────────────────────────────────╮
+	// ┊ Character Class Assertions ┊ Checks if a char belongs to a certain class ┊
+	// ╰─╾──────────────────────────┄─────────────────────────────────────────────╯
+	// jscs:disable maximumLineLength
+	/**
+	 * Check if a char is Arabic
+	 * @param {string} c a single char
+	 */
+	function isArabicChar(c) {
+	    return /[\u0600-\u065F\u066A-\u06D2\u06FA-\u06FF]/.test(c);
+	}
+
+	/**
+	 * Check if a char is an isolated arabic char
+	 * @param {string} c a single char
+	 */
+	function isIsolatedArabicChar(char) {
+	    return /[\u0630\u0690\u0621\u0631\u0661\u0671\u0622\u0632\u0672\u0692\u06C2\u0623\u0673\u0693\u06C3\u0624\u0694\u06C4\u0625\u0675\u0695\u06C5\u06E5\u0676\u0696\u06C6\u0627\u0677\u0697\u06C7\u0648\u0688\u0698\u06C8\u0689\u0699\u06C9\u068A\u06CA\u066B\u068B\u06CB\u068C\u068D\u06CD\u06FD\u068E\u06EE\u06FE\u062F\u068F\u06CF\u06EF]/.test(char);
+	}
+
+	/**
+	 * Check if a char is an Arabic Tashkeel char
+	 * @param {string} c a single char
+	 */
+	function isTashkeelArabicChar(char) {
+	    return /[\u0600-\u0605\u060C-\u060E\u0610-\u061B\u061E\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED]/.test(char);
+	}
+
+	/**
+	 * Check if a char is Latin
+	 * @param {string} c a single char
+	 */
+	function isLatinChar(c) {
+	    return /[A-z]/.test(c);
+	}
+
+	/**
+	 * Check if a char is whitespace char
+	 * @param {string} c a single char
+	 */
+	function isWhiteSpace(c) {
+	    return /\s/.test(c);
+	}
+
+	/**
+	 * Query a feature by some of it's properties to lookup a glyph substitution.
+	 */
+
+	/**
+	 * Create feature query instance
+	 * @param {Font} font opentype font instance
+	 */
+	function FeatureQuery(font) {
+	    this.font = font;
+	    this.features = {};
+	}
+
+	/**
+	 * @typedef SubstitutionAction
+	 * @type Object
+	 * @property {number} id substitution type
+	 * @property {string} tag feature tag
+	 * @property {any} substitution substitution value(s)
+	 */
+
+	/**
+	 * Create a substitution action instance
+	 * @param {SubstitutionAction} action
+	 */
+	function SubstitutionAction(action) {
+	    this.id = action.id;
+	    this.tag = action.tag;
+	    this.substitution = action.substitution;
+	}
+
+	/**
+	 * Lookup a coverage table
+	 * @param {number} glyphIndex glyph index
+	 * @param {CoverageTable} coverage coverage table
+	 */
+	function lookupCoverage(glyphIndex, coverage) {
+	    if (!glyphIndex) return -1;
+	    switch (coverage.format) {
+	        case 1:
+	            return coverage.glyphs.indexOf(glyphIndex);
+
+	        case 2:
+	            let ranges = coverage.ranges;
+	            for (let i = 0; i < ranges.length; i++) {
+	                const range = ranges[i];
+	                if (glyphIndex >= range.start && glyphIndex <= range.end) {
+	                    let offset = glyphIndex - range.start;
+	                    return range.index + offset;
+	                }
+	            }
+	            break;
+	        default:
+	            return -1; // not found
+	    }
+	    return -1;
+	}
+
+	/**
+	 * Handle a single substitution - format 2
+	 * @param {ContextParams} contextParams context params to lookup
+	 */
+	function singleSubstitutionFormat2(glyphIndex, subtable) {
+	    let substituteIndex = lookupCoverage(glyphIndex, subtable.coverage);
+	    if (substituteIndex === -1) return null;
+	    return subtable.substitute[substituteIndex];
+	}
+
+	/**
+	 * Lookup a list of coverage tables
+	 * @param {any} coverageList a list of coverage tables
+	 * @param {ContextParams} contextParams context params to lookup
+	 */
+	function lookupCoverageList(coverageList, contextParams) {
+	    let lookupList = [];
+	    for (let i = 0; i < coverageList.length; i++) {
+	        const coverage = coverageList[i];
+	        let glyphIndex = contextParams.current;
+	        glyphIndex = Array.isArray(glyphIndex) ? glyphIndex[0] : glyphIndex;
+	        const lookupIndex = lookupCoverage(glyphIndex, coverage);
+	        if (lookupIndex !== -1) {
+	            lookupList.push(lookupIndex);
+	        }
+	    }
+	    if (lookupList.length !== coverageList.length) return -1;
+	    return lookupList;
+	}
+
+	/**
+	 * Handle chaining context substitution - format 3
+	 * @param {ContextParams} contextParams context params to lookup
+	 */
+	function chainingSubstitutionFormat3(contextParams, subtable) {
+	    const lookupsCount = (
+	        subtable.inputCoverage.length +
+	        subtable.lookaheadCoverage.length +
+	        subtable.backtrackCoverage.length
+	    );
+	    if (contextParams.context.length < lookupsCount) return [];
+	    // INPUT LOOKUP //
+	    let inputLookups = lookupCoverageList(
+	        subtable.inputCoverage, contextParams
+	    );
+	    if (inputLookups === -1) return [];
+	    // LOOKAHEAD LOOKUP //
+	    const lookaheadOffset = subtable.inputCoverage.length - 1;
+	    if (contextParams.lookahead.length < subtable.lookaheadCoverage.length) return [];
+	    let lookaheadContext = contextParams.lookahead.slice(lookaheadOffset);
+	    while (lookaheadContext.length && isTashkeelArabicChar(lookaheadContext[0].char)) {
+	        lookaheadContext.shift();
+	    }
+	    const lookaheadParams = new ContextParams(lookaheadContext, 0);
+	    let lookaheadLookups = lookupCoverageList(
+	        subtable.lookaheadCoverage, lookaheadParams
+	    );
+	    // BACKTRACK LOOKUP //
+	    let backtrackContext = [].concat(contextParams.backtrack);
+	    backtrackContext.reverse();
+	    while (backtrackContext.length && isTashkeelArabicChar(backtrackContext[0].char)) {
+	        backtrackContext.shift();
+	    }
+	    if (backtrackContext.length < subtable.backtrackCoverage.length) return [];
+	    const backtrackParams = new ContextParams(backtrackContext, 0);
+	    let backtrackLookups = lookupCoverageList(
+	        subtable.backtrackCoverage, backtrackParams
+	    );
+	    const contextRulesMatch = (
+	        inputLookups.length === subtable.inputCoverage.length &&
+	        lookaheadLookups.length === subtable.lookaheadCoverage.length &&
+	        backtrackLookups.length === subtable.backtrackCoverage.length
+	    );
+	    let substitutions = [];
+	    if (contextRulesMatch) {
+	        for (let i = 0; i < subtable.lookupRecords.length; i++) {
+	            const lookupRecord = subtable.lookupRecords[i];
+	            const lookupListIndex = lookupRecord.lookupListIndex;
+	            const lookupTable = this.getLookupByIndex(lookupListIndex);
+	            for (let s = 0; s < lookupTable.subtables.length; s++) {
+	                const subtable = lookupTable.subtables[s];
+	                const lookup = this.getLookupMethod(lookupTable, subtable);
+	                const substitutionType = this.getSubstitutionType(lookupTable, subtable);
+	                if (substitutionType === '12') {
+	                    for (let n = 0; n < inputLookups.length; n++) {
+	                        const glyphIndex = contextParams.get(n);
+	                        const substitution = lookup(glyphIndex);
+	                        if (substitution) substitutions.push(substitution);
+	                    }
+	                }
+	            }
+	        }
+	    }
+	    return substitutions;
+	}
+
+	/**
+	 * Handle ligature substitution - format 1
+	 * @param {ContextParams} contextParams context params to lookup
+	 */
+	function ligatureSubstitutionFormat1(contextParams, subtable) {
+	    // COVERAGE LOOKUP //
+	    let glyphIndex = contextParams.current;
+	    let ligSetIndex = lookupCoverage(glyphIndex, subtable.coverage);
+	    if (ligSetIndex === -1) return null;
+	    // COMPONENTS LOOKUP
+	    // (!) note, components are ordered in the written direction.
+	    let ligature;
+	    let ligatureSet = subtable.ligatureSets[ligSetIndex];
+	    for (let s = 0; s < ligatureSet.length; s++) {
+	        ligature = ligatureSet[s];
+	        for (let l = 0; l < ligature.components.length; l++) {
+	            const lookaheadItem = contextParams.lookahead[l];
+	            const component = ligature.components[l];
+	            if (lookaheadItem !== component) break;
+	            if (l === ligature.components.length - 1) return ligature;
+	        }
+	    }
+	    return null;
+	}
+
+	/**
+	 * Handle decomposition substitution - format 1
+	 * @param {number} glyphIndex glyph index
+	 * @param {any} subtable subtable
+	 */
+	function decompositionSubstitutionFormat1(glyphIndex, subtable) {
+	    let substituteIndex = lookupCoverage(glyphIndex, subtable.coverage);
+	    if (substituteIndex === -1) return null;
+	    return subtable.sequences[substituteIndex];
+	}
+
+	/**
+	 * Get default script features indexes
+	 */
+	FeatureQuery.prototype.getDefaultScriptFeaturesIndexes = function () {
+	    const scripts = this.font.tables.gsub.scripts;
+	    for (let s = 0; s < scripts.length; s++) {
+	        const script = scripts[s];
+	        if (script.tag === 'DFLT') return (
+	            script.script.defaultLangSys.featureIndexes
+	        );
+	    }
+	    return [];
+	};
+
+	/**
+	 * Get feature indexes of a specific script
+	 * @param {string} scriptTag script tag
+	 */
+	FeatureQuery.prototype.getScriptFeaturesIndexes = function(scriptTag) {
+	    const tables = this.font.tables;
+	    if (!tables.gsub) return [];
+	    if (!scriptTag) return this.getDefaultScriptFeaturesIndexes();
+	    const scripts = this.font.tables.gsub.scripts;
+	    for (let i = 0; i < scripts.length; i++) {
+	        const script = scripts[i];
+	        if (script.tag === scriptTag && script.script.defaultLangSys) {
+	            return script.script.defaultLangSys.featureIndexes;
+	        } else {
+	            let langSysRecords = script.langSysRecords;
+	            if (!!langSysRecords) {
+	                for (let j = 0; j < langSysRecords.length; j++) {
+	                    const langSysRecord = langSysRecords[j];
+	                    if (langSysRecord.tag === scriptTag) {
+	                        let langSys = langSysRecord.langSys;
+	                        return langSys.featureIndexes;
+	                    }
+	                }
+	            }
+	        }
+	    }
+	    return this.getDefaultScriptFeaturesIndexes();
+	};
+
+	/**
+	 * Map a feature tag to a gsub feature
+	 * @param {any} features gsub features
+	 * @param {string} scriptTag script tag
+	 */
+	FeatureQuery.prototype.mapTagsToFeatures = function (features, scriptTag) {
+	    let tags = {};
+	    for (let i = 0; i < features.length; i++) {
+	        const tag = features[i].tag;
+	        const feature = features[i].feature;
+	        tags[tag] = feature;
+	    }
+	    this.features[scriptTag].tags = tags;
+	};
+
+	/**
+	 * Get features of a specific script
+	 * @param {string} scriptTag script tag
+	 */
+	FeatureQuery.prototype.getScriptFeatures = function (scriptTag) {
+	    let features = this.features[scriptTag];
+	    if (this.features.hasOwnProperty(scriptTag)) return features;
+	    const featuresIndexes = this.getScriptFeaturesIndexes(scriptTag);
+	    if (!featuresIndexes) return null;
+	    const gsub = this.font.tables.gsub;
+	    features = featuresIndexes.map(index => gsub.features[index]);
+	    this.features[scriptTag] = features;
+	    this.mapTagsToFeatures(features, scriptTag);
+	    return features;
+	};
+
+	/**
+	 * Get substitution type
+	 * @param {any} lookupTable lookup table
+	 * @param {any} subtable subtable
+	 */
+	FeatureQuery.prototype.getSubstitutionType = function(lookupTable, subtable) {
+	    const lookupType = lookupTable.lookupType.toString();
+	    const substFormat = subtable.substFormat.toString();
+	    return lookupType + substFormat;
+	};
+
+	/**
+	 * Get lookup method
+	 * @param {any} lookupTable lookup table
+	 * @param {any} subtable subtable
+	 */
+	FeatureQuery.prototype.getLookupMethod = function(lookupTable, subtable) {
+	    let substitutionType = this.getSubstitutionType(lookupTable, subtable);
+	    switch (substitutionType) {
+	        case '12':
+	            return glyphIndex => singleSubstitutionFormat2.apply(
+	                this, [glyphIndex, subtable]
+	            );
+	        case '63':
+	            return contextParams => chainingSubstitutionFormat3.apply(
+	                this, [contextParams, subtable]
+	            );
+	        case '41':
+	            return contextParams => ligatureSubstitutionFormat1.apply(
+	                this, [contextParams, subtable]
+	            );
+	        case '21':
+	            return glyphIndex => decompositionSubstitutionFormat1.apply(
+	                this, [glyphIndex, subtable]
+	            );
+	        default:
+	            throw new Error(
+	                `lookupType: ${lookupTable.lookupType} - ` +
+	                `substFormat: ${subtable.substFormat} ` +
+	                `is not yet supported`
+	            );
+	    }
+	};
+
+	/**
+	 * [ LOOKUP TYPES ]
+	 * -------------------------------
+	 * Single                        1;
+	 * Multiple                      2;
+	 * Alternate                     3;
+	 * Ligature                      4;
+	 * Context                       5;
+	 * ChainingContext               6;
+	 * ExtensionSubstitution         7;
+	 * ReverseChainingContext        8;
+	 * -------------------------------
+	 *
+	 */
+
+	/**
+	 * @typedef FQuery
+	 * @type Object
+	 * @param {string} tag feature tag
+	 * @param {string} script feature script
+	 * @param {ContextParams} contextParams context params
+	 */
+
+	/**
+	 * Lookup a feature using a query parameters
+	 * @param {FQuery} query feature query
+	 */
+	FeatureQuery.prototype.lookupFeature = function (query) {
+	    let contextParams = query.contextParams;
+	    let currentIndex = contextParams.index;
+	    const feature = this.getFeature({
+	        tag: query.tag, script: query.script
+	    });
+	    if (!feature) return new Error(
+	        `font '${this.font.names.fullName.en}' ` +
+	        `doesn't support feature '${query.tag}' ` +
+	        `for script '${query.script}'.`
+	    );
+	    const lookups = this.getFeatureLookups(feature);
+	    const substitutions = [].concat(contextParams.context);
+	    for (let l = 0; l < lookups.length; l++) {
+	        const lookupTable = lookups[l];
+	        const subtables = this.getLookupSubtables(lookupTable);
+	        for (let s = 0; s < subtables.length; s++) {
+	            const subtable = subtables[s];
+	            const substType = this.getSubstitutionType(lookupTable, subtable);
+	            const lookup = this.getLookupMethod(lookupTable, subtable);
+	            let substitution;
+	            switch (substType) {
+	                case '12':
+	                    substitution = lookup(contextParams.current);
+	                    if (substitution) {
+	                        substitutions.splice(currentIndex, 1, new SubstitutionAction({
+	                            id: 12, tag: query.tag, substitution
+	                        }));
+	                    }
+	                    break;
+	                case '63':
+	                    substitution = lookup(contextParams);
+	                    if (Array.isArray(substitution) && substitution.length) {
+	                        substitutions.splice(currentIndex, 1, new SubstitutionAction({
+	                            id: 63, tag: query.tag, substitution
+	                        }));
+	                    }
+	                    break;
+	                case '41':
+	                    substitution = lookup(contextParams);
+	                    if (substitution) {
+	                        substitutions.splice(currentIndex, 1, new SubstitutionAction({
+	                            id: 41, tag: query.tag, substitution
+	                        }));
+	                    }
+	                    break;
+	                case '21':
+	                    substitution = lookup(contextParams.current);
+	                    if (substitution) {
+	                        substitutions.splice(currentIndex, 1, new SubstitutionAction({
+	                            id: 21, tag: query.tag, substitution
+	                        }));
+	                    }
+	                    break;
+	            }
+	            contextParams = new ContextParams(substitutions, currentIndex);
+	            if (Array.isArray(substitution) && !substitution.length) continue;
+	            substitution = null;
+	        }
+	    }
+	    return substitutions.length ? substitutions : null;
+	};
+
+	/**
+	 * Checks if a font supports a specific features
+	 * @param {FQuery} query feature query object
+	 */
+	FeatureQuery.prototype.supports = function (query) {
+	    if (!query.script) return false;
+	    this.getScriptFeatures(query.script);
+	    const supportedScript = this.features.hasOwnProperty(query.script);
+	    if (!query.tag) return supportedScript;
+	    const supportedFeature = (
+	        this.features[query.script].some(feature => feature.tag === query.tag)
+	    );
+	    return supportedScript && supportedFeature;
+	};
+
+	/**
+	 * Get lookup table subtables
+	 * @param {any} lookupTable lookup table
+	 */
+	FeatureQuery.prototype.getLookupSubtables = function (lookupTable) {
+	    return lookupTable.subtables || null;
+	};
+
+	/**
+	 * Get lookup table by index
+	 * @param {number} index lookup table index
+	 */
+	FeatureQuery.prototype.getLookupByIndex = function (index) {
+	    const lookups = this.font.tables.gsub.lookups;
+	    return lookups[index] || null;
+	};
+
+	/**
+	 * Get lookup tables for a feature
+	 * @param {string} feature
+	 */
+	FeatureQuery.prototype.getFeatureLookups = function (feature) {
+	    // TODO: memoize
+	    return feature.lookupListIndexes.map(this.getLookupByIndex.bind(this));
+	};
+
+	/**
+	 * Query a feature by it's properties
+	 * @param {any} query an object that describes the properties of a query
+	 */
+	FeatureQuery.prototype.getFeature = function getFeature(query) {
+	    if (!this.font) return { FAIL: `No font was found`};
+	    if (!this.features.hasOwnProperty(query.script)) {
+	        this.getScriptFeatures(query.script);
+	    }
+	    const scriptFeatures = this.features[query.script];
+	    if (!scriptFeatures) return (
+	        { FAIL: `No feature for script ${query.script}`}
+	    );
+	    if (!scriptFeatures.tags[query.tag]) return null;
+	    return this.features[query.script].tags[query.tag];
+	};
+
+	/**
+	 * Arabic word context checkers
+	 */
+
+	function arabicWordStartCheck(contextParams) {
+	    const char = contextParams.current;
+	    const prevChar = contextParams.get(-1);
+	    return (
+	        // ? arabic first char
+	        (prevChar === null && isArabicChar(char)) ||
+	        // ? arabic char preceded with a non arabic char
+	        (!isArabicChar(prevChar) && isArabicChar(char))
+	    );
+	}
+
+	function arabicWordEndCheck(contextParams) {
+	    const nextChar = contextParams.get(1);
+	    return (
+	        // ? last arabic char
+	        (nextChar === null) ||
+	        // ? next char is not arabic
+	        (!isArabicChar(nextChar))
+	    );
+	}
+
+	var arabicWordCheck = {
+	    startCheck: arabicWordStartCheck,
+	    endCheck: arabicWordEndCheck
+	};
+
+	/**
+	 * Arabic sentence context checkers
+	 */
+
+	function arabicSentenceStartCheck(contextParams) {
+	    const char = contextParams.current;
+	    const prevChar = contextParams.get(-1);
+	    return (
+	        // ? an arabic char preceded with a non arabic char
+	        (isArabicChar(char) || isTashkeelArabicChar(char)) &&
+	        !isArabicChar(prevChar)
+	    );
+	}
+
+	function arabicSentenceEndCheck(contextParams) {
+	    const nextChar = contextParams.get(1);
+	    switch (true) {
+	        case nextChar === null:
+	            return true;
+	        case (!isArabicChar(nextChar) && !isTashkeelArabicChar(nextChar)):
+	            const nextIsWhitespace = isWhiteSpace(nextChar);
+	            if (!nextIsWhitespace) return true;
+	            if (nextIsWhitespace) {
+	                let arabicCharAhead = false;
+	                arabicCharAhead = (
+	                    contextParams.lookahead.some(
+	                        c => isArabicChar(c) || isTashkeelArabicChar(c)
+	                    )
+	                );
+	                if (!arabicCharAhead) return true;
+	            }
+	            break;
+	        default:
+	            return false;
+	    }
+	}
+
+	var arabicSentenceCheck = {
+	    startCheck: arabicSentenceStartCheck,
+	    endCheck: arabicSentenceEndCheck
+	};
+
+	/**
+	 * Apply single substitution format 2
+	 * @param {Array} substitutions substitutions
+	 * @param {any} tokens a list of tokens
+	 * @param {number} index token index
+	 */
+	function singleSubstitutionFormat2$1(action, tokens, index) {
+	    tokens[index].setState(action.tag, action.substitution);
+	}
+
+	/**
+	 * Apply chaining context substitution format 3
+	 * @param {Array} substitutions substitutions
+	 * @param {any} tokens a list of tokens
+	 * @param {number} index token index
+	 */
+	function chainingSubstitutionFormat3$1(action, tokens, index) {
+	    action.substitution.forEach((subst, offset) => {
+	        const token = tokens[index + offset];
+	        token.setState(action.tag, subst);
+	    });
+	}
+
+	/**
+	 * Apply ligature substitution format 1
+	 * @param {Array} substitutions substitutions
+	 * @param {any} tokens a list of tokens
+	 * @param {number} index token index
+	 */
+	function ligatureSubstitutionFormat1$1(action, tokens, index) {
+	    let token = tokens[index];
+	    token.setState(action.tag, action.substitution.ligGlyph);
+	    const compsCount = action.substitution.components.length;
+	    for (let i = 0; i < compsCount; i++) {
+	        token = tokens[index + i + 1];
+	        token.setState('deleted', true);
+	    }
+	}
+
+	/**
+	 * Supported substitutions
+	 */
+	const SUBSTITUTIONS = {
+	    12: singleSubstitutionFormat2$1,
+	    63: chainingSubstitutionFormat3$1,
+	    41: ligatureSubstitutionFormat1$1
+	};
+
+	/**
+	 * Apply substitutions to a list of tokens
+	 * @param {Array} substitutions substitutions
+	 * @param {any} tokens a list of tokens
+	 * @param {number} index token index
+	 */
+	function applySubstitution(action, tokens, index) {
+	    if (action instanceof SubstitutionAction) {
+	        SUBSTITUTIONS[action.id](action, tokens, index);
+	    }
+	}
+
+	/**
+	 * Apply Arabic presentation forms to a range of tokens
+	 */
+
+	/**
+	 * Check if a char can be connected to it's preceding char
+	 * @param {ContextParams} charContextParams context params of a char
+	 */
+	function willConnectPrev(charContextParams) {
+	    let backtrack = [].concat(charContextParams.backtrack);
+	    for (let i = backtrack.length - 1; i >= 0; i--) {
+	        const prevChar = backtrack[i];
+	        const isolated = isIsolatedArabicChar(prevChar);
+	        const tashkeel = isTashkeelArabicChar(prevChar);
+	        if (!isolated && !tashkeel) return true;
+	        if (isolated) return false;
+	    }
+	    return false;
+	}
+
+	/**
+	 * Check if a char can be connected to it's proceeding char
+	 * @param {ContextParams} charContextParams context params of a char
+	 */
+	function willConnectNext(charContextParams) {
+	    if (isIsolatedArabicChar(charContextParams.current)) return false;
+	    for (let i = 0; i < charContextParams.lookahead.length; i++) {
+	        const nextChar = charContextParams.lookahead[i];
+	        const tashkeel = isTashkeelArabicChar(nextChar);
+	        if (!tashkeel) return true;
+	    }
+	    return false;
+	}
+
+	/**
+	 * Apply arabic presentation forms to a list of tokens
+	 * @param {ContextRange} range a range of tokens
+	 */
+	function arabicPresentationForms(range) {
+	    const script = 'arab';
+	    const tags = this.featuresTags[script];
+	    const tokens = this.tokenizer.getRangeTokens(range);
+	    if (tokens.length === 1) return;
+	    let contextParams = new ContextParams(
+	        tokens.map(token => token.getState('glyphIndex')
+	    ), 0);
+	    const charContextParams = new ContextParams(
+	        tokens.map(token => token.char
+	    ), 0);
+	    tokens.forEach((token, index) => {
+	        if (isTashkeelArabicChar(token.char)) return;
+	        contextParams.setCurrentIndex(index);
+	        charContextParams.setCurrentIndex(index);
+	        let CONNECT = 0; // 2 bits 00 (10: can connect next) (01: can connect prev)
+	        if (willConnectPrev(charContextParams)) CONNECT |= 1;
+	        if (willConnectNext(charContextParams)) CONNECT |= 2;
+	        let tag;
+	        switch (CONNECT) {
+	            case 1: (tag = 'fina'); break;
+	            case 2: (tag = 'init'); break;
+	            case 3: (tag = 'medi'); break;
+	        }
+	        if (tags.indexOf(tag) === -1) return;
+	        let substitutions = this.query.lookupFeature({
+	            tag, script, contextParams
+	        });
+	        if (substitutions instanceof Error) return console.info(substitutions.message);
+	        substitutions.forEach((action, index) => {
+	            if (action instanceof SubstitutionAction) {
+	                applySubstitution(action, tokens, index);
+	                contextParams.context[index] = action.substitution;
+	            }
+	        });
+	    });
+	}
+
+	/**
+	 * Apply Arabic required ligatures feature to a range of tokens
+	 */
+
+	/**
+	 * Update context params
+	 * @param {any} tokens a list of tokens
+	 * @param {number} index current item index
+	 */
+	function getContextParams(tokens, index) {
+	    const context = tokens.map(token => token.activeState.value);
+	    return new ContextParams(context, index || 0);
+	}
+
+	/**
+	 * Apply Arabic required ligatures to a context range
+	 * @param {ContextRange} range a range of tokens
+	 */
+	function arabicRequiredLigatures(range) {
+	    const script = 'arab';
+	    let tokens = this.tokenizer.getRangeTokens(range);
+	    let contextParams = getContextParams(tokens);
+	    contextParams.context.forEach((glyphIndex, index) => {
+	        contextParams.setCurrentIndex(index);
+	        let substitutions = this.query.lookupFeature({
+	            tag: 'rlig', script, contextParams
+	        });
+	        if (substitutions.length) {
+	            substitutions.forEach(
+	                action => applySubstitution(action, tokens, index)
+	            );
+	            contextParams = getContextParams(tokens);
+	        }
+	    });
+	}
+
+	/**
+	 * Latin word context checkers
+	 */
+
+	function latinWordStartCheck(contextParams) {
+	    const char = contextParams.current;
+	    const prevChar = contextParams.get(-1);
+	    return (
+	        // ? latin first char
+	        (prevChar === null && isLatinChar(char)) ||
+	        // ? latin char preceded with a non latin char
+	        (!isLatinChar(prevChar) && isLatinChar(char))
+	    );
+	}
+
+	function latinWordEndCheck(contextParams) {
+	    const nextChar = contextParams.get(1);
+	    return (
+	        // ? last latin char
+	        (nextChar === null) ||
+	        // ? next char is not latin
+	        (!isLatinChar(nextChar))
+	    );
+	}
+
+	var latinWordCheck = {
+	    startCheck: latinWordStartCheck,
+	    endCheck: latinWordEndCheck
+	};
+
+	/**
+	 * Apply Latin ligature feature to a range of tokens
+	 */
+
+	/**
+	 * Update context params
+	 * @param {any} tokens a list of tokens
+	 * @param {number} index current item index
+	 */
+	function getContextParams$1(tokens, index) {
+	    const context = tokens.map(token => token.activeState.value);
+	    return new ContextParams(context, index || 0);
+	}
+
+	/**
+	 * Apply Arabic required ligatures to a context range
+	 * @param {ContextRange} range a range of tokens
+	 */
+	function latinLigature(range) {
+	    const script = 'latn';
+	    let tokens = this.tokenizer.getRangeTokens(range);
+	    let contextParams = getContextParams$1(tokens);
+	    contextParams.context.forEach((glyphIndex, index) => {
+	        contextParams.setCurrentIndex(index);
+	        let substitutions = this.query.lookupFeature({
+	            tag: 'liga', script, contextParams
+	        });
+	        if (substitutions.length) {
+	            substitutions.forEach(
+	                action => applySubstitution(action, tokens, index)
+	            );
+	            contextParams = getContextParams$1(tokens);
+	        }
+	    });
+	}
+
+	/**
+	 * Infer bidirectional properties for a given text and apply
+	 * the corresponding layout rules.
+	 */
+
+	/**
+	 * Create Bidi. features
+	 * @param {string} baseDir text base direction. value either 'ltr' or 'rtl'
+	 */
+	function Bidi(baseDir) {
+	    this.baseDir = baseDir || 'ltr';
+	    this.tokenizer = new Tokenizer();
+	    this.featuresTags = {};
+	}
+
+	/**
+	 * Sets Bidi text
+	 * @param {string} text a text input
+	 */
+	Bidi.prototype.setText = function (text) {
+	    this.text = text;
+	};
+
+	/**
+	 * Store essential context checks:
+	 * arabic word check for applying gsub features
+	 * arabic sentence check for adjusting arabic layout
+	 */
+	Bidi.prototype.contextChecks = ({
+	    latinWordCheck,
+	    arabicWordCheck,
+	    arabicSentenceCheck
+	});
+
+	/**
+	 * Register arabic word check
+	 */
+	function registerContextChecker(checkId) {
+	    const check = this.contextChecks[`${checkId}Check`];
+	    return this.tokenizer.registerContextChecker(
+	        checkId, check.startCheck, check.endCheck
+	    );
+	}
+
+	/**
+	 * Perform pre tokenization procedure then
+	 * tokenize text input
+	 */
+	function tokenizeText() {
+	    registerContextChecker.call(this, 'latinWord');
+	    registerContextChecker.call(this, 'arabicWord');
+	    registerContextChecker.call(this, 'arabicSentence');
+	    return this.tokenizer.tokenize(this.text);
+	}
+
+	/**
+	 * Reverse arabic sentence layout
+	 * TODO: check base dir before applying adjustments - priority low
+	 */
+	function reverseArabicSentences() {
+	    const ranges = this.tokenizer.getContextRanges('arabicSentence');
+	    ranges.forEach(range => {
+	        let rangeTokens = this.tokenizer.getRangeTokens(range);
+	        this.tokenizer.replaceRange(
+	            range.startIndex,
+	            range.endOffset,
+	            rangeTokens.reverse()
+	        );
+	    });
+	}
+
+	/**
+	 * Register supported features tags
+	 * @param {script} script script tag
+	 * @param {Array} tags features tags list
+	 */
+	Bidi.prototype.registerFeatures = function (script, tags) {
+	    const supportedTags = tags.filter(
+	        tag => this.query.supports({script, tag})
+	    );
+	    if (!this.featuresTags.hasOwnProperty(script)) {
+	        this.featuresTags[script] = supportedTags;
+	    } else {
+	        this.featuresTags[script] =
+	        this.featuresTags[script].concat(supportedTags);
+	    }
+	};
+
+	/**
+	 * Apply GSUB features
+	 * @param {Array} tagsList a list of features tags
+	 * @param {string} script a script tag
+	 * @param {Font} font opentype font instance
+	 */
+	Bidi.prototype.applyFeatures = function (font, features) {
+	    if (!font) throw new Error(
+	        'No valid font was provided to apply features'
+	    );
+	    if (!this.query) this.query = new FeatureQuery(font);
+	    for (let f = 0; f < features.length; f++) {
+	        const feature = features[f];
+	        if (!this.query.supports({script: feature.script})) continue;
+	        this.registerFeatures(feature.script, feature.tags);
+	    }
+	};
+
+	/**
+	 * Register a state modifier
+	 * @param {string} modifierId state modifier id
+	 * @param {function} condition a predicate function that returns true or false
+	 * @param {function} modifier a modifier function to set token state
+	 */
+	Bidi.prototype.registerModifier = function (modifierId, condition, modifier) {
+	    this.tokenizer.registerModifier(modifierId, condition, modifier);
+	};
+
+	/**
+	 * Check if 'glyphIndex' is registered
+	 */
+	function checkGlyphIndexStatus() {
+	    if (this.tokenizer.registeredModifiers.indexOf('glyphIndex') === -1) {
+	        throw new Error(
+	            'glyphIndex modifier is required to apply ' +
+	            'arabic presentation features.'
+	        );
+	    }
+	}
+
+	/**
+	 * Apply arabic presentation forms features
+	 */
+	function applyArabicPresentationForms() {
+	    const script = 'arab';
+	    if (!this.featuresTags.hasOwnProperty(script)) return;
+	    checkGlyphIndexStatus.call(this);
+	    const ranges = this.tokenizer.getContextRanges('arabicWord');
+	    ranges.forEach(range => {
+	        arabicPresentationForms.call(this, range);
+	    });
+	}
+
+	/**
+	 * Apply required arabic ligatures
+	 */
+	function applyArabicRequireLigatures() {
+	    const script = 'arab';
+	    if (!this.featuresTags.hasOwnProperty(script)) return;
+	    const tags = this.featuresTags[script];
+	    if (tags.indexOf('rlig') === -1) return;
+	    checkGlyphIndexStatus.call(this);
+	    const ranges = this.tokenizer.getContextRanges('arabicWord');
+	    ranges.forEach(range => {
+	        arabicRequiredLigatures.call(this, range);
+	    });
+	}
+
+	/**
+	 * Apply required arabic ligatures
+	 */
+	function applyLatinLigatures() {
+	    const script = 'latn';
+	    if (!this.featuresTags.hasOwnProperty(script)) return;
+	    const tags = this.featuresTags[script];
+	    if (tags.indexOf('liga') === -1) return;
+	    checkGlyphIndexStatus.call(this);
+	    const ranges = this.tokenizer.getContextRanges('latinWord');
+	    ranges.forEach(range => {
+	        latinLigature.call(this, range);
+	    });
+	}
+
+	/**
+	 * Check if a context is registered
+	 * @param {string} contextId context id
+	 */
+	Bidi.prototype.checkContextReady = function (contextId) {
+	    return !!this.tokenizer.getContext(contextId);
+	};
+
+	/**
+	 * Apply features to registered contexts
+	 */
+	Bidi.prototype.applyFeaturesToContexts = function () {
+	    if (this.checkContextReady('arabicWord')) {
+	        applyArabicPresentationForms.call(this);
+	        applyArabicRequireLigatures.call(this);
+	    }
+	    if (this.checkContextReady('latinWord')) {
+	        applyLatinLigatures.call(this);
+	    }
+	    if (this.checkContextReady('arabicSentence')) {
+	        reverseArabicSentences.call(this);
+	    }
+	};
+
+	/**
+	 * process text input
+	 * @param {string} text an input text
+	 */
+	Bidi.prototype.processText = function(text) {
+	    if (!this.text || this.text !== text) {
+	        this.setText(text);
+	        tokenizeText.call(this);
+	        this.applyFeaturesToContexts();
+	    }
+	};
+
+	/**
+	 * Process a string of text to identify and adjust
+	 * bidirectional text entities.
+	 * @param {string} text input text
+	 */
+	Bidi.prototype.getBidiText = function (text) {
+	    this.processText(text);
+	    return this.tokenizer.getText();
+	};
+
+	/**
+	 * Get the current state index of each token
+	 * @param {text} text an input text
+	 */
+	Bidi.prototype.getTextGlyphs = function (text) {
+	    this.processText(text);
+	    let indexes = [];
+	    for (let i = 0; i < this.tokenizer.tokens.length; i++) {
+	        const token = this.tokenizer.tokens[i];
+	        if (token.state.deleted) continue;
+	        const index = token.activeState.value;
+	        indexes.push(Array.isArray(index) ? index[0] : index);
+	    }
+	    return indexes;
+	};
+
+	// The Font object
 
 	/**
 	 * @typedef FontOptions
@@ -7859,6 +9555,10 @@ var opentype = (function (exports) {
 	    this.substitution = new Substitution(this);
 	    this.tables = this.tables || {};
 
+	    // needed for low memory mode only.
+	    this._push = null;
+	    this._hmtxTableData = {};
+
 	    Object.defineProperty(this, 'hinting', {
 	        get: function() {
 	            if (this._hinting) return this._hinting;
@@ -7908,6 +9608,24 @@ var opentype = (function (exports) {
 	};
 
 	/**
+	 * Update features
+	 * @param {any} options features options
+	 */
+	Font.prototype.updateFeatures = function (options) {
+	    // TODO: update all features options not only 'latn'.
+	    return this.defaultRenderOptions.features.map(feature => {
+	        if (feature.script === 'latn') {
+	            return {
+	                script: 'latn',
+	                tags: feature.tags.filter(tag => options[tag])
+	            };
+	        } else {
+	            return feature;
+	        }
+	    });
+	};
+
+	/**
 	 * Convert the given text to a list of Glyph objects.
 	 * Note that there is no strict one-to-one mapping between characters and
 	 * glyphs, so the list of returned glyphs can be larger or smaller than the
@@ -7917,36 +9635,23 @@ var opentype = (function (exports) {
 	 * @return {opentype.Glyph[]}
 	 */
 	Font.prototype.stringToGlyphs = function(s, options) {
-	    options = options || this.defaultRenderOptions;
-	    // Get glyph indexes
-	    const chars = arrayFromString(s);
-	    const indexes = [];
-	    for (let i = 0; i < chars.length; i += 1) {
-	        const c = chars[i];
-	        indexes.push(this.charToGlyphIndex(c));
-	    }
-	    let length = indexes.length;
 
-	    // Apply substitutions on glyph indexes
-	    if (options.features) {
-	        const script = options.script || this.substitution.getDefaultScriptName();
-	        let manyToOne = [];
-	        if (options.features.liga) manyToOne = manyToOne.concat(this.substitution.getFeature('liga', script, options.language));
-	        if (options.features.rlig) manyToOne = manyToOne.concat(this.substitution.getFeature('rlig', script, options.language));
-	        for (let i = 0; i < length; i += 1) {
-	            for (let j = 0; j < manyToOne.length; j++) {
-	                const ligature = manyToOne[j];
-	                const components = ligature.sub;
-	                const compCount = components.length;
-	                let k = 0;
-	                while (k < compCount && components[k] === indexes[i + k]) k++;
-	                if (k === compCount) {
-	                    indexes.splice(i, compCount, ligature.by);
-	                    length = length - compCount + 1;
-	                }
-	            }
-	        }
-	    }
+	    const bidi = new Bidi();
+
+	    // Create and register 'glyphIndex' state modifier
+	    const charToGlyphIndexMod = token => this.charToGlyphIndex(token.char);
+	    bidi.registerModifier('glyphIndex', null, charToGlyphIndexMod);
+
+	    // roll-back to default features
+	    let features = options ?
+	    this.updateFeatures(options.features) :
+	    this.defaultRenderOptions.features;
+
+	    bidi.applyFeatures(this, features);
+
+	    const indexes = bidi.getTextGlyphs(s);
+
+	    let length = indexes.length;
 
 	    // convert glyph indexes to glyph objects
 	    const glyphs = new Array(length);
@@ -8027,10 +9732,14 @@ var opentype = (function (exports) {
 	 */
 	Font.prototype.defaultRenderOptions = {
 	    kerning: true,
-	    features: {
-	        liga: true,
-	        rlig: true
-	    }
+	    features: [
+	        /**
+	         * these 4 features are required to render Arabic text properly
+	         * and shouldn't be turned off when rendering arabic text.
+	         */
+	        { script: 'arab', tags: ['init', 'medi', 'fina', 'rlig'] },
+	        { script: 'latn', tags: ['liga', 'rlig'] }
+	    ]
 	};
 
 	/**
@@ -8762,8 +10471,7 @@ var opentype = (function (exports) {
 	    return getPath(glyph.points);
 	}
 
-	// Parse all the glyphs according to the offsets from the `loca` table.
-	function parseGlyfTable(data, start, loca, font) {
+	function parseGlyfTableAll(data, start, loca, font) {
 	    const glyphs = new glyphset.GlyphSet(font);
 
 	    // The last element of the loca table is invalid.
@@ -8780,7 +10488,31 @@ var opentype = (function (exports) {
 	    return glyphs;
 	}
 
-	var glyf = { getPath, parse: parseGlyfTable };
+	function parseGlyfTableOnLowMemory(data, start, loca, font) {
+	    const glyphs = new glyphset.GlyphSet(font);
+
+	    font._push = function(i) {
+	        const offset = loca[i];
+	        const nextOffset = loca[i + 1];
+	        if (offset !== nextOffset) {
+	            glyphs.push(i, glyphset.ttfGlyphLoader(font, i, parseGlyph, data, start + offset, buildPath));
+	        } else {
+	            glyphs.push(i, glyphset.glyphLoader(font, i));
+	        }
+	    };
+
+	    return glyphs;
+	}
+
+	// Parse all the glyphs according to the offsets from the `loca` table.
+	function parseGlyfTable(data, start, loca, font, opt) {
+	    if (opt.lowMemory)
+	        return parseGlyfTableOnLowMemory(data, start, loca, font);
+	    else
+	        return parseGlyfTableAll(data, start, loca, font);
+	}
+
+	var glyf = { getPath, parse: parseGlyfTable};
 
 	// The `GPOS` table contains kerning pairs, among other things.
 
@@ -9132,9 +10864,12 @@ var opentype = (function (exports) {
 	 * Parse the OpenType file data (as an ArrayBuffer) and return a Font object.
 	 * Throws an error if the font could not be parsed.
 	 * @param  {ArrayBuffer}
+	 * @param  {Object} opt - options for parsing
 	 * @return {opentype.Font}
 	 */
-	function parseBuffer(buffer) {
+	function parseBuffer(buffer, opt) {
+	    opt = (opt === undefined || opt === null) ?  {} : opt;
+
 	    let indexToLocFormat;
 	    let ltagTable;
 
@@ -9282,17 +11017,17 @@ var opentype = (function (exports) {
 	        const locaTable = uncompressTable(data, locaTableEntry);
 	        const locaOffsets = loca.parse(locaTable.data, locaTable.offset, font.numGlyphs, shortVersion);
 	        const glyfTable = uncompressTable(data, glyfTableEntry);
-	        font.glyphs = glyf.parse(glyfTable.data, glyfTable.offset, locaOffsets, font);
+	        font.glyphs = glyf.parse(glyfTable.data, glyfTable.offset, locaOffsets, font, opt);
 	    } else if (cffTableEntry) {
 	        const cffTable = uncompressTable(data, cffTableEntry);
-	        cff.parse(cffTable.data, cffTable.offset, font);
+	        cff.parse(cffTable.data, cffTable.offset, font, opt);
 	    } else {
 	        throw new Error('Font doesn\'t contain TrueType or CFF outlines.');
 	    }
 
 	    const hmtxTable = uncompressTable(data, hmtxTableEntry);
-	    hmtx.parse(hmtxTable.data, hmtxTable.offset, font.numberOfHMetrics, font.numGlyphs, font.glyphs);
-	    addGlyphNames(font);
+	    hmtx.parse(font, hmtxTable.data, hmtxTable.offset, font.numberOfHMetrics, font.numGlyphs, font.glyphs, opt);
+	    addGlyphNames(font, opt);
 
 	    if (kernTableEntry) {
 	        const kernTable = uncompressTable(data, kernTableEntry);
@@ -9336,7 +11071,7 @@ var opentype = (function (exports) {
 	 * @param  {string} url - The URL of the font to load.
 	 * @param  {Function} callback - The callback.
 	 */
-	function load(url, callback) {
+	function load(url, callback, opt) {
 	    const isNode$$1 = typeof window === 'undefined';
 	    const loadFn = isNode$$1 ? loadFromFile : loadFromUrl;
 	    loadFn(url, function(err, arrayBuffer) {
@@ -9345,7 +11080,7 @@ var opentype = (function (exports) {
 	        }
 	        let font;
 	        try {
-	            font = parseBuffer(arrayBuffer);
+	            font = parseBuffer(arrayBuffer, opt);
 	        } catch (e) {
 	            return callback(e, null);
 	        }
@@ -9358,12 +11093,13 @@ var opentype = (function (exports) {
 	 * When done, returns the font object or throws an error.
 	 * @alias opentype.loadSync
 	 * @param  {string} url - The URL of the font to load.
+	 * @param  {Object} opt - opt.lowMemory
 	 * @return {opentype.Font}
 	 */
-	function loadSync(url) {
+	function loadSync(url, opt) {
 	    const fs = {};
 	    const buffer = fs.readFileSync(url);
-	    return parseBuffer(nodeBufferToArrayBuffer(buffer));
+	    return parseBuffer(nodeBufferToArrayBuffer(buffer), opt);
 	}
 
 	exports.Font = Font;
