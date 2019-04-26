@@ -26,6 +26,7 @@ test:
     - npm install
     - npm run build
     - npm run test
+    - git checkout -- package-lock.json
     - git status
 
 deploy:
@@ -36,6 +37,7 @@ deploy:
     - npm install
     - npm run build
     - npm run test
+    - git checkout -- package-lock.json
     - git status
     - echo "publishing to registry $NPM_REGISTRY_PUBLISH_URL"
     - npx lerna publish from-git --registry $NPM_REGISTRY_PUBLISH_URL --yes
