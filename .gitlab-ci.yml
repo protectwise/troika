@@ -1,4 +1,4 @@
-image: node:8.9
+image: node:8.16
 
 before_script:
   - node --version
@@ -26,7 +26,7 @@ test:
     - npm install
     - npm run build
     - npm run test
-    - git status #trying to see why lerna publish fails clean working tree check
+    - git status
 
 deploy:
   stage: deploy
@@ -36,6 +36,7 @@ deploy:
     - npm install
     - npm run build
     - npm run test
+    - git status
     - echo "publishing to registry $NPM_REGISTRY_PUBLISH_URL"
     - npx lerna publish from-git --registry $NPM_REGISTRY_PUBLISH_URL --yes
 
