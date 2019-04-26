@@ -1,5 +1,5 @@
 import { WorldBaseFacade, utils } from 'troika-core'
-import {WebGLRenderer, Raycaster, Color, Vector3} from 'three'
+import {WebGLRenderer, Raycaster, Color, Vector2, Vector3} from 'three'
 import Scene3DFacade from './Scene3DFacade'
 import {PerspectiveCamera3DFacade} from './Camera3DFacade'
 import {BoundingSphereOctree} from '../BoundingSphereOctree'
@@ -7,7 +7,8 @@ import {extendAsVrCamera} from './vr/VrCamera'
 import {VrControllerManager} from './vr/VrControllerManager'
 
 const { assign, assignIf } = utils
-const posVec = new Vector3()
+const tmpVec2 = new Vector2()
+const tmpVec3 = new Vector3()
 const raycaster = new Raycaster()
 const emptyArray = []
 
@@ -92,8 +93,8 @@ class World3DFacade extends WorldBaseFacade {
     } else {
       pixelRatio = this.pixelRatio || window.devicePixelRatio || 1
     }
-    let lastSize = renderer.getSize()
-    if (lastSize.width !== width || lastSize.height !== height || renderer.getPixelRatio() !== pixelRatio) {
+    renderer.getSize(tmpVec2)
+    if (tmpVec2.width !== width || tmpVec2.height !== height || renderer.getPixelRatio() !== pixelRatio) {
       renderer.setDrawingBufferSize(width, height, pixelRatio)
     }
 
@@ -185,21 +186,21 @@ class World3DFacade extends WorldBaseFacade {
   }
 
   projectWorldPosition(x, y, z) {
-    posVec.set(x, y, z)
+    tmpVec3.set(x, y, z)
     let camera = this.getChildByKey('camera')
     camera.updateMatrices()
     camera = camera.threeObject
 
     // Make position relative to camera
-    posVec.applyMatrix4(camera.matrixWorldInverse)
+    tmpVec3.applyMatrix4(camera.matrixWorldInverse)
 
     // Get relative distance to the point, negative if it's behind the camera
-    let signedDistance = posVec.length() * (posVec.z > 0 ? -1 : 1)
+    let signedDistance = tmpVec3.length() * (tmpVec3.z > 0 ? -1 : 1)
 
     // Project x/y to screen coords
-    posVec.applyMatrix4(camera.projectionMatrix)
-    let screenX = (posVec.x + 1) * this.width / 2
-    let screenY = (1 - posVec.y) * this.height / 2
+    tmpVec3.applyMatrix4(camera.projectionMatrix)
+    let screenX = (tmpVec3.x + 1) * this.width / 2
+    let screenY = (1 - tmpVec3.y) * this.height / 2
 
     return new Vector3(screenX, screenY, signedDistance)
   }
