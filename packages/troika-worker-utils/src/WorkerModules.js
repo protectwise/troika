@@ -45,7 +45,7 @@ export function defineWorkerModule(options) {
     // Wrap raw functions as worker modules with no dependencies
     if (typeof dep === 'function' && !dep.workerModuleData) {
       dep = defineWorkerModule({
-        init: new Function(`return function(){return (${dep.toString()})}`)()
+        init: new Function(`return function(){return (${stringifyFunction(dep)})}`)()
       })
     }
     // Grab postable data for worker modules
@@ -74,10 +74,23 @@ export function defineWorkerModule(options) {
     isWorkerModule: true,
     id,
     dependencies,
-    init: init.toString(),
-    getTransferables: getTransferables && getTransferables.toString()
+    init: stringifyFunction(init),
+    getTransferables: getTransferables && stringifyFunction(getTransferables)
   }
   return moduleFunc
+}
+
+/**
+ * Stringifies a function into a form that can be deserialized in the worker
+ * @param fn
+ */
+function stringifyFunction(fn) {
+  let str = fn.toString()
+  // If it was defined in object method/property format, it needs to be modified
+  if (!/^function/.test(str) && /^\w+\s*\(/.test(str)) {
+    str = 'function ' + str
+  }
+  return str
 }
 
 
