@@ -8,6 +8,7 @@ const CONFIG = {
   defaultFontURL: 'https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff', //Roboto Regular
   sdfGlyphSize: 64
 }
+const linkEl = document.createElement('a') //for resolving relative URLs to absolute
 let hasRequested = false
 
 /**
@@ -67,10 +68,10 @@ const atlases = Object.create(null)
  * @param callback
  */
 export function getTextRenderInfo(args, callback) {
-  // Apply default font here to avoid a 'null' atlas
-  if (!args.font) {
-    args.font = CONFIG.defaultFontURL
-  }
+  // Apply default font here to avoid a 'null' atlas, and convert relative
+  // URLs to absolute so they can be resolved in the worker
+  linkEl.href = args.font || CONFIG.defaultFontURL
+  args.font = linkEl.href
 
   // Init the atlas for this font if needed
   const sdfGlyphSize = CONFIG.sdfGlyphSize
