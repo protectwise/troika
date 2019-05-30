@@ -95,6 +95,7 @@ export default class Curve extends Object3DFacade {
       depthTest: false,
       side: DoubleSide
     }))
+    this.strokeMesh.frustumCulled = this.fillMesh.frustumCulled = false
 
     // Add both meshes to the Group
     this.threeObject.add(this.strokeMesh, this.fillMesh)

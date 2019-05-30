@@ -34,6 +34,7 @@ class CurveAnimExample extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
+      cameraType: 'Orthographic',
       valueCount: 100,
       values: null,
       strokeWidth: 3,
@@ -102,13 +103,33 @@ class CurveAnimExample extends React.Component {
           stats={ this.props.stats }
           width={width}
           height={height}
-          camera={{
+          camera={state.cameraType === 'Orthographic' ? {
             facade: OrthographicCamera3DFacade,
             z: 1,
             top: height / 2,
             bottom: -height / 2,
             left: 0,
             right: width
+          } : {
+            z: 1500,
+            far: 10000,
+            lookAt: {x: width / 2, y: 0, z: 0},
+            animation: [
+              {
+                from: {x: 0},
+                to: {x: width},
+                iterations: Infinity,
+                direction: 'alternate',
+                duration: 5000
+              },
+              {
+                from: {y: height / 2},
+                to: {y: -height / 2},
+                iterations: Infinity,
+                direction: 'alternate',
+                duration: 4000
+              },
+            ]
           }}
           objects={{
             key: 'curve',
@@ -150,6 +171,18 @@ class CurveAnimExample extends React.Component {
         </div>
 
         <div className="example_controls">
+          <div>
+            <select name="cameraType" onChange={this._onDropdownChange}>
+              {['Orthographic', 'Perspective'].map(name =>
+                <option
+                  value={name}
+                  selected={name === this.state.cameraType}
+                >
+                  Camera: {name}
+                </option>
+              )}
+            </select>
+          </div>
           <div>
             <select name="randomStrategy" onChange={this._onDropdownChange}>
               {RAND_STRATEGIES.map(name =>
