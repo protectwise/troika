@@ -68,10 +68,15 @@ const atlases = Object.create(null)
  * @param callback
  */
 export function getTextRenderInfo(args, callback) {
+  args = utils.assign({}, args)
+
   // Apply default font here to avoid a 'null' atlas, and convert relative
   // URLs to absolute so they can be resolved in the worker
   linkEl.href = args.font || CONFIG.defaultFontURL
   args.font = linkEl.href
+
+  // Normalize text to a string
+  args.text = '' + args.text
 
   // Init the atlas for this font if needed
   const sdfGlyphSize = CONFIG.sdfGlyphSize

@@ -37,7 +37,6 @@ class Text3DFacade extends Object3DFacade {
     geometry.computeBoundingSphere = noop //we'll handle bounding sphere updates ourselves
 
     const mesh = new Mesh(geometry, defaultMaterial.clone())
-    mesh.renderOrder = Number.MAX_SAFE_INTEGER
 
     super(parent, mesh)
     
@@ -67,6 +66,9 @@ class Text3DFacade extends Object3DFacade {
           overflowWrap: this.overflowWrap,
           anchor: this.anchor
         }, textRenderInfo => {
+          // Bail if destroyed before processing returned
+          if (this.isDestroying) { return }
+
           // Save result for later use in onBeforeRender
           this._textRenderInfo = textRenderInfo
 
