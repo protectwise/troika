@@ -17,10 +17,12 @@ const MATERIAL_TYPES_TO_SHADERS = {
   MeshToonMaterial: 'phong',
   MeshStandardMaterial: 'physical',
   MeshPhysicalMaterial: 'physical',
+  MeshMatcapMaterial: 'matcap',
   LineBasicMaterial: 'basic',
   LineDashedMaterial: 'dashed',
   PointsMaterial: 'points',
-  ShadowMaterial: 'shadow'
+  ShadowMaterial: 'shadow',
+  SpriteMaterial: 'sprite'
 }
 
 
