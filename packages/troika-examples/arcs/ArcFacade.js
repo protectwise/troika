@@ -1,5 +1,5 @@
-import {Mesh, ShaderMaterial, BoxBufferGeometry, Color, Sphere, Vector3} from 'three'
-import {Object3DFacade} from 'troika-3d'
+import {Mesh, ShaderMaterial, MeshStandardMaterial, BoxBufferGeometry, Color, Sphere, Vector3} from 'three'
+import {Object3DFacade, createDerivedMaterial} from 'troika-3d'
 import arcVertexShader from './arcVertexShader.glsl'
 import arcFragmentShader from './arcFragmentShader.glsl'
 
@@ -8,19 +8,66 @@ const highlightColor = new Color(0xffffff)
 
 const baseGeometry = new BoxBufferGeometry(1, 1, 1, 16, 1, 1)
 
-const baseMaterial = new ShaderMaterial({
+const customShaderMaterial = new ShaderMaterial({
   uniforms: {
-    color: { type: 'c', value: baseColor },
-    opacity: { type: 'f', value: 1 },
-    startAngle: { type: 'f', value: 0 },
-    endAngle: { type: 'f', value: Math.PI / 2 },
-    startRadius: { type: 'f', value: 10 },
-    endRadius: { type: 'f', value: Math.PI / 20 }
+    color: { value: baseColor },
+    opacity: { value: 1 },
+    startAngle: { value: 0 },
+    endAngle: { value: Math.PI / 2 },
+    startRadius: { value: 1 },
+    endRadius: { value: 2 }
   },
   vertexShader: arcVertexShader,
   fragmentShader: arcFragmentShader,
   transparent: true
 })
+
+
+const derivedMaterial = createDerivedMaterial(
+  new MeshStandardMaterial({
+    transparent: true
+  }),
+  // baseMaterial1,
+  {
+    uniforms: {
+      startAngle: { value: 0 },
+      endAngle: { value: Math.PI / 2 },
+      startRadius: { value: 1 },
+      endRadius: { value: 2 }
+    },
+    vertexDefs: `
+      uniform float startAngle;
+      uniform float endAngle;
+      uniform float startRadius;
+      uniform float endRadius;
+    `,
+    vertexTransform: `
+      // Translate the position x and y, which are in the range [-0.5, 0.5], to angle and radius
+      float angle = endAngle + ((position.x + 0.5) * (startAngle - endAngle));
+      float radius = startRadius + ((position.y + 0.5) * (endRadius - startRadius));
+    
+      // Translate the angle and radius to a new x and y. Yay high school trig!
+      position = vec3(
+        cos(angle) * radius,
+        sin(angle) * radius,
+        position.z
+      );
+      
+      // Rotate the normal by the same angle so lighting is correct
+      float normalRotZ = angle - ${Math.PI / 2};
+      normal = normalize(vec3(
+        vec4(normal, 1.0) * mat4( cos(normalRotZ), -sin(normalRotZ), 0, 0, sin(normalRotZ), cos(normalRotZ), 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 )
+      ));
+    `,
+    fragmentDefs: `
+      uniform float startAngle;
+    `,
+    fragmentColorTransform: `
+      gl_FragColor.x *= startAngle;
+    `
+  }
+)
+
 
 const infiniteSphere = new Sphere(new Vector3(), Infinity)
 
@@ -29,19 +76,32 @@ export default class Arc extends Object3DFacade {
   constructor(parent) {
     let mesh = new Mesh(
       baseGeometry,
-      baseMaterial.clone()
+      customShaderMaterial.clone()
     )
     super(parent, mesh)
   }
 
+  set useDerivedMaterial(useDerived) {
+    if (useDerived !== this._useDerived) {
+      this._useDerived = useDerived
+      this.threeObject.material = (useDerived ? derivedMaterial : customShaderMaterial).clone()
+    }
+  }
+
   afterUpdate() {
-    let uniforms = this.threeObject.material.uniforms
+    const material = this.threeObject.material
+    let uniforms = material.uniforms
     uniforms.startAngle.value = this.startAngle
     uniforms.endAngle.value = this.endAngle
     uniforms.startRadius.value = this.startRadius
     uniforms.endRadius.value = this.endRadius
-    uniforms.opacity.value = this.opacity
-    uniforms.color.value = this.highlight ? highlightColor : baseColor
+    if (this._useDerived) {
+      material.opacity = this.opacity
+      material.color = this.highlight ? highlightColor : baseColor
+    } else {
+      uniforms.opacity.value = this.opacity
+      uniforms.color.value = this.highlight ? highlightColor : baseColor
+    }
     super.afterUpdate()
   }
 

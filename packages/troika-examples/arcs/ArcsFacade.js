@@ -20,14 +20,14 @@ export default class ArcsFacade extends Group3DFacade {
  
   afterUpdate() {
     this.children = [
-      this._quadrantCfg('ne1', 0, 100),
-      this._quadrantCfg('nw1', Math.PI / 2, 100),
-      this._quadrantCfg('sw1', Math.PI, 100),
-      this._quadrantCfg('se1', Math.PI * 3 / 2, 100),
-      this._quadrantCfg('ne2', 0, 150),
-      this._quadrantCfg('nw2', Math.PI / 2, 150),
-      this._quadrantCfg('sw2', Math.PI, 150),
-      this._quadrantCfg('se2', Math.PI * 3 / 2, 150)
+      this._quadrantCfg('ne1', 0, 1),
+      this._quadrantCfg('nw1', Math.PI / 2, 1),
+      this._quadrantCfg('sw1', Math.PI, 1),
+      this._quadrantCfg('se1', Math.PI * 3 / 2, 1),
+      this._quadrantCfg('ne2', 0, 1.5),
+      this._quadrantCfg('nw2', Math.PI / 2, 1.5),
+      this._quadrantCfg('sw2', Math.PI, 1.5),
+      this._quadrantCfg('se2', Math.PI * 3 / 2, 1.5)
     ]
     super.afterUpdate()
   }
@@ -56,16 +56,17 @@ export default class ArcsFacade extends Group3DFacade {
         startRadius: baseRadius,
         scaleZ: this.arcDepth || 0.0001,
         highlight: d => d.id === this.highlightedArc,
+        useDerivedMaterial: () => this.useDerivedMaterial,
         onMouseOver: () => this._onArcMouseOver,
         onMouseOut: () => this._onArcMouseOut,
         animation: (d, i) => (d.isNew ? {
           from: {
             opacity: 0,
-            endRadius: baseRadius + 1
+            endRadius: baseRadius + .01
           },
           to: {
             opacity: 1,
-            endRadius: baseRadius + 30
+            endRadius: baseRadius + .3
           },
           duration: TRANS.duration,
           easing: TRANS.easing,
@@ -75,12 +76,12 @@ export default class ArcsFacade extends Group3DFacade {
           from: {
             opacity: 1,
             z: 0,
-            endRadius: baseRadius + 30
+            endRadius: baseRadius + .3
           },
           to: {
             opacity: 0,
-            z: this.angled ? -100 : 0,
-            endRadius: baseRadius + (this.angled ? 30 : 1)
+            z: this.angled ? -1 : 0,
+            endRadius: baseRadius + (this.angled ? .3 : .01)
           },
           duration: 500,
           easing: TRANS.easing
