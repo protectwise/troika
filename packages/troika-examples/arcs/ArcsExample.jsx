@@ -19,7 +19,7 @@ class ArcsExample extends React.Component {
       deep: true,
       angled: true,
       rotate: false,
-      useDerivedMaterial: false,
+      derivedLevel: 0,
       data: refreshArcsData(null)
     }
 
@@ -27,7 +27,7 @@ class ArcsExample extends React.Component {
     this._toggleDepth = this._toggleDepth.bind(this)
     this._toggleRotate = this._toggleRotate.bind(this)
     this._toggleAngled = this._toggleAngled.bind(this)
-    this._toggleDerived = this._toggleDerived.bind(this)
+    this._setDerived = this._setDerived.bind(this)
   }
 
   _updateData() {
@@ -46,8 +46,8 @@ class ArcsExample extends React.Component {
     this.setState({angled: !this.state.angled})
   }
 
-  _toggleDerived() {
-    this.setState({useDerivedMaterial: !this.state.useDerivedMaterial})
+  _setDerived(e) {
+    this.setState({derivedLevel: +e.target.value})
   }
 
   render() {
@@ -89,7 +89,7 @@ class ArcsExample extends React.Component {
             key: 'arcs',
             facade: ArcsFacade,
             angled: state.angled,
-            useDerivedMaterial: state.useDerivedMaterial,
+            derivedLevel: state.derivedLevel,
             arcDepth: state.deep ? .2 : 0.0001,
             data: state.data,
             rotateX: state.angled ? -Math.PI / 4 : 0,
@@ -105,10 +105,14 @@ class ArcsExample extends React.Component {
 
         <div className="example_controls">
           <button onClick={ this._updateData }>Randomize Data</button>
-          <button onClick={ this._toggleAngled }><input type="checkbox" checked={state.angled} /> Angled</button>
-          <button onClick={ this._toggleDepth }><input type="checkbox" checked={state.deep} /> Deep</button>
-          <button onClick={ this._toggleRotate }><input type="checkbox" checked={state.rotate} /> Rotate</button>
-          <button onClick={ this._toggleDerived }>Shader: {state.useDerivedMaterial ? 'Derived' : 'From Scratch'}</button>
+          <label><input type="checkbox" checked={state.angled} onChange={ this._toggleAngled } /> Angled</label>
+          <label><input type="checkbox" checked={state.deep} onChange={ this._toggleDepth } /> Deep</label>
+          <label><input type="checkbox" checked={state.rotate} onChange={ this._toggleRotate } /> Rotate</label>
+          <select onChange={ this._setDerived }>
+            <option value={0}>Shader: Fully Custom</option>
+            <option value={1}>Shader: Derived</option>
+            <option value={2}>Shader: Double-Derived</option>
+          </select>
         </div>
 
         <div className="example_desc">

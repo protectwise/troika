@@ -4,7 +4,7 @@ import { UniformsUtils } from 'three'
 const { assign } = utils
 
 let idCtr = 0
-
+const CACHE = new WeakMap() //threejs requires WeakMap internally so should be safe to assume support
 
 
 /**
@@ -38,8 +38,22 @@ let idCtr = 0
  * @return {THREE.Material}
  */
 export function createDerivedMaterial(baseMaterial, options) {
+  // First check the cache to see if we've already derived from this baseMaterial using
+  // this unique set of options, and if so just return a clone instead of a new subclass
+  // which is faster and allows their shader program to be shared when rendering.
+  const optionsHash = getOptionsHash(options)
+  let cached = CACHE.get(baseMaterial)
+  if (!cached) {
+    cached = Object.create(null)
+    CACHE.set(baseMaterial, cached)
+  }
+  if (cached[optionsHash]) {
+    return cached[optionsHash].clone()
+  }
+
   const id = ++idCtr
-  const derivedMaterialDepth = (baseMaterial.derivedMaterialDepth || 0) + 1
+  const privateDerivedShadersProp = `_derivedShaders${id}`
+  const privateBeforeCompileProp = `_onBeforeCompile${id}`
 
   // Private onBeforeCompile handler that injects the modified shaders and uniforms when
   // the renderer switches to this material's program
@@ -47,9 +61,9 @@ export function createDerivedMaterial(baseMaterial, options) {
     baseMaterial.onBeforeCompile.call(this, shaderInfo)
 
     // Upgrade the shaders, caching the result
-    const {vertex, fragment} = this[`derivedShaders${id}`] || (this[`derivedShaders${id}`] = {vertex: {}, fragment: {}})
+    const {vertex, fragment} = this[privateDerivedShadersProp] || (this[privateDerivedShadersProp] = {vertex: {}, fragment: {}})
     if (vertex.source !== shaderInfo.vertexShader || fragment.source !== shaderInfo.fragmentShader) {
-      const upgraded = upgradeShaders(shaderInfo, options)
+      const upgraded = upgradeShaders(shaderInfo, options, id)
       vertex.source = shaderInfo.vertexShader
       vertex.result = upgraded.vertexShader
       fragment.source = shaderInfo.fragmentShader
@@ -62,36 +76,32 @@ export function createDerivedMaterial(baseMaterial, options) {
     assign(shaderInfo.uniforms, this.uniforms)
 
     // Users can still add their own handlers on top of ours
-    if (this._userOnBeforeCompile) {
-      this._userOnBeforeCompile(shaderInfo)
+    if (this[privateBeforeCompileProp]) {
+      this[privateBeforeCompileProp](shaderInfo)
     }
   }
 
   function DerivedMaterial() {
     baseMaterial.constructor.apply(this, arguments)
   }
-  DerivedMaterial.prototype = assign(
-    Object.create(baseMaterial, {
-      isDerivedMaterial: {value: true},
-      derivedMaterialDepth: {value: derivedMaterialDepth},
+  DerivedMaterial.prototype = Object.create(baseMaterial, {
+    constructor: {value: DerivedMaterial},
+    isDerivedMaterial: {value: true},
+    baseMaterial: {value: baseMaterial},
 
-      onBeforeCompile: {
-        get() {
-          return onBeforeCompile
-        },
-        set(fn) {
-          this._userOnBeforeCompile = fn
-        }
+    onBeforeCompile: {
+      get() {
+        return onBeforeCompile
+      },
+      set(fn) {
+        this[privateBeforeCompileProp] = fn
       }
-    }),
-    {
-      constructor: DerivedMaterial,
+    },
 
-      baseMaterial: baseMaterial,
-
-      copy(source) {
-        this.baseMaterial.copy.call(this, source)
-        if (!this.baseMaterial.isShaderMaterial) {
+    copy: {
+      value: function (source) {
+        baseMaterial.copy.call(this, source)
+        if (!baseMaterial.isShaderMaterial && !baseMaterial.isDerivedMaterial) {
           this.extensions = source.extensions
           this.defines = assign({}, source.defines)
           this.uniforms = UniformsUtils.clone(source.uniforms)
@@ -99,23 +109,23 @@ export function createDerivedMaterial(baseMaterial, options) {
         return this
       }
     }
-  )
+  })
 
   const material = new DerivedMaterial()
   material.copy(baseMaterial)
 
   // Merge uniforms, defines, and extensions
   material.uniforms = assign(UniformsUtils.clone(baseMaterial.uniforms || {}), options.uniforms)
-  material.defines = assign({
-    'TROIKA_DERIVED_MATERIAL': derivedMaterialDepth //something to force a program change from the base material
-  }, baseMaterial.defines, options.defines)
+  material.defines = assign({}, baseMaterial.defines, options.defines)
+  material.defines.TROIKA_DERIVED_MATERIAL = id //force a program change from the base material
   material.extensions = assign({}, baseMaterial.extensions, options.extensions)
 
+  cached[optionsHash] = material
   return material
 }
 
 
-function upgradeShaders({vertexShader, fragmentShader}, options) {
+function upgradeShaders({vertexShader, fragmentShader}, options, id) {
   let {
     vertexDefs,
     vertexMainIntro,
@@ -134,18 +144,18 @@ function upgradeShaders({vertexShader, fragmentShader}, options) {
     if (vertexTransform) {
       vertexShader = expandShaderIncludes(vertexShader)
       vertexDefs = `${vertexDefs || ''}
-void troikaVertexTransform(inout vec3 position, inout vec3 normal, inout vec2 uv) {
+void troikaVertexTransform${id}(inout vec3 position, inout vec3 normal, inout vec2 uv) {
   ${vertexTransform}
 }
 `
       vertexShader = vertexShader.replace(/\b(position|normal|uv)\b/g, (match, match1, index, fullStr) => {
-        return /\battribute\s+vec3\s+$/.test(fullStr.substr(0, index)) ? match1 : 'troika_' + match1
+        return /\battribute\s+vec3\s+$/.test(fullStr.substr(0, index)) ? match1 : `troika_${match1}_${id}`
       })
       vertexMainIntro = `
-vec3 troika_position = vec3(position);
-vec3 troika_normal = vec3(normal);
-vec2 troika_uv = vec2(uv);
-troikaVertexTransform(troika_position, troika_normal, troika_uv);
+vec3 troika_position_${id} = vec3(position);
+vec3 troika_normal_${id} = vec3(normal);
+vec2 troika_uv_${id} = vec2(uv);
+troikaVertexTransform${id}(troika_position_${id}, troika_normal_${id}, troika_uv_${id});
 ${vertexMainIntro || ''}
 `
     }
@@ -160,12 +170,12 @@ ${vertexMainIntro || ''}
     fragmentShader = expandShaderIncludes(fragmentShader)
     fragmentShader = fragmentShader.replace(voidMainRE, `
 ${fragmentDefs || ''}
-void troika_orig_main() {
+void troikaOrigMain${id}() {
 ${fragmentMainIntro || ''}
 `)
     fragmentShader += `
 void main() {
-  troika_orig_main();
+  troikaOrigMain${id}();
   ${fragmentColorTransform || ''}
 }`
   }
@@ -174,4 +184,12 @@ void main() {
     vertexShader,
     fragmentShader
   }
+}
+
+
+function getOptionsHash(options) {
+  return JSON.stringify(options, optionsJsonReplacer)
+}
+function optionsJsonReplacer(key, value) {
+  return key === 'uniforms' ? undefined : value
 }

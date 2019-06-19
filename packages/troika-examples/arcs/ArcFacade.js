@@ -1,4 +1,4 @@
-import {Mesh, ShaderMaterial, MeshStandardMaterial, BoxBufferGeometry, Color, Sphere, Vector3} from 'three'
+import {Mesh, ShaderMaterial, MeshStandardMaterial, BoxBufferGeometry, Color, Sphere, Vector3, DoubleSide} from 'three'
 import {Object3DFacade, createDerivedMaterial} from 'troika-3d'
 import arcVertexShader from './arcVertexShader.glsl'
 import arcFragmentShader from './arcFragmentShader.glsl'
@@ -54,19 +54,39 @@ const derivedMaterial = createDerivedMaterial(
       );
       
       // Rotate the normal by the same angle so lighting is correct
-      float normalRotZ = angle - ${Math.PI / 2};
+      float normalRotZ = angle - PI2;
       normal = normalize(vec3(
         vec4(normal, 1.0) * mat4( cos(normalRotZ), -sin(normalRotZ), 0, 0, sin(normalRotZ), cos(normalRotZ), 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 )
       ));
-    `,
-    fragmentDefs: `
-      uniform float startAngle;
-    `,
-    fragmentColorTransform: `
-      gl_FragColor.x *= startAngle;
     `
   }
 )
+
+const doubleDerivedMaterial = createDerivedMaterial(derivedMaterial, {
+  vertexDefs: `
+    varying vec2 vXY;
+  `,
+  vertexTransform: `
+    vXY = vec2(position);
+  `,
+  fragmentDefs: `
+    varying vec2 vXY;
+  `,
+  fragmentColorTransform: `
+    gl_FragColor.x *= 6.0 * (vXY.x + .5);
+    gl_FragColor.y *= 2.0 * (vXY.y + .5);
+    // if (length(vXY) < 0.2) {
+    //   discard;
+    // }
+  `
+})
+doubleDerivedMaterial.side = DoubleSide
+
+const materialLevels = [
+  customShaderMaterial,
+  derivedMaterial,
+  doubleDerivedMaterial
+]
 
 
 const infiniteSphere = new Sphere(new Vector3(), Infinity)
@@ -74,17 +94,15 @@ const infiniteSphere = new Sphere(new Vector3(), Infinity)
 
 export default class Arc extends Object3DFacade {
   constructor(parent) {
-    let mesh = new Mesh(
-      baseGeometry,
-      customShaderMaterial.clone()
-    )
+    let mesh = new Mesh(baseGeometry, null)
     super(parent, mesh)
+    this.derivedLevel = 0
   }
 
-  set useDerivedMaterial(useDerived) {
-    if (useDerived !== this._useDerived) {
-      this._useDerived = useDerived
-      this.threeObject.material = (useDerived ? derivedMaterial : customShaderMaterial).clone()
+  set derivedLevel(derivedLevel) {
+    if (derivedLevel !== this._derivedLevel) {
+      this._derivedLevel = derivedLevel
+      this.threeObject.material = (materialLevels[derivedLevel]).clone()
     }
   }
 
@@ -95,7 +113,7 @@ export default class Arc extends Object3DFacade {
     uniforms.endAngle.value = this.endAngle
     uniforms.startRadius.value = this.startRadius
     uniforms.endRadius.value = this.endRadius
-    if (this._useDerived) {
+    if (this._derivedLevel > 0) {
       material.opacity = this.opacity
       material.color = this.highlight ? highlightColor : baseColor
     } else {
