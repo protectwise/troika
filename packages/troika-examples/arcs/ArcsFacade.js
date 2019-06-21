@@ -57,6 +57,7 @@ export default class ArcsFacade extends Group3DFacade {
         scaleZ: this.arcDepth || 0.0001,
         highlight: d => d.id === this.highlightedArc,
         derivedLevel: () => this.derivedLevel,
+        wireframe: () => this.wireframe,
         onMouseOver: () => this._onArcMouseOver,
         onMouseOut: () => this._onArcMouseOut,
         animation: (d, i) => (d.isNew ? {

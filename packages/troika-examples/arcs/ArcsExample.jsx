@@ -24,9 +24,7 @@ class ArcsExample extends React.Component {
     }
 
     this._updateData = this._updateData.bind(this)
-    this._toggleDepth = this._toggleDepth.bind(this)
-    this._toggleRotate = this._toggleRotate.bind(this)
-    this._toggleAngled = this._toggleAngled.bind(this)
+    this._toggleCheckbox = this._toggleCheckbox.bind(this)
     this._setDerived = this._setDerived.bind(this)
   }
 
@@ -34,16 +32,9 @@ class ArcsExample extends React.Component {
     this.setState({data: refreshArcsData(this.state.data)})
   }
 
-  _toggleDepth() {
-    this.setState({deep: !this.state.deep})
-  }
-
-  _toggleRotate() {
-    this.setState({rotate: !this.state.rotate})
-  }
-
-  _toggleAngled() {
-    this.setState({angled: !this.state.angled})
+  _toggleCheckbox(e) {
+    const name = e.target.name
+    this.setState({[name]: !this.state[name]})
   }
 
   _setDerived(e) {
@@ -90,6 +81,7 @@ class ArcsExample extends React.Component {
             facade: ArcsFacade,
             angled: state.angled,
             derivedLevel: state.derivedLevel,
+            wireframe: state.wireframe,
             arcDepth: state.deep ? .2 : 0.0001,
             data: state.data,
             rotateX: state.angled ? -Math.PI / 4 : 0,
@@ -105,9 +97,10 @@ class ArcsExample extends React.Component {
 
         <div className="example_controls">
           <button onClick={ this._updateData }>Randomize Data</button>
-          <label><input type="checkbox" checked={state.angled} onChange={ this._toggleAngled } /> Angled</label>
-          <label><input type="checkbox" checked={state.deep} onChange={ this._toggleDepth } /> Deep</label>
-          <label><input type="checkbox" checked={state.rotate} onChange={ this._toggleRotate } /> Rotate</label>
+          <label><input type="checkbox" name="angled" checked={state.angled} onChange={ this._toggleCheckbox } /> Angled</label>
+          <label><input type="checkbox" name="deep" checked={state.deep} onChange={ this._toggleCheckbox } /> Deep</label>
+          <label><input type="checkbox" name="rotate" checked={state.rotate} onChange={ this._toggleCheckbox } /> Rotate</label>
+          <label><input type="checkbox" name="wireframe" checked={state.wireframe} onChange={ this._toggleCheckbox } /> Wireframe</label>
           <select onChange={ this._setDerived }>
             <option value={0}>Shader: Fully Custom</option>
             <option value={1}>Shader: Derived</option>

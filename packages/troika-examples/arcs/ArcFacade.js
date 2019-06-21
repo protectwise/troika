@@ -6,7 +6,7 @@ import arcFragmentShader from './arcFragmentShader.glsl'
 const baseColor = new Color(0x3ba7db)
 const highlightColor = new Color(0xffffff)
 
-const baseGeometry = new BoxBufferGeometry(1, 1, 1, 16, 1, 1)
+const baseGeometry = new BoxBufferGeometry(1, 1, 1, 8, 1, 1)
 
 const customShaderMaterial = new ShaderMaterial({
   uniforms: {
@@ -75,9 +75,9 @@ const doubleDerivedMaterial = createDerivedMaterial(derivedMaterial, {
   fragmentColorTransform: `
     gl_FragColor.x *= 6.0 * (vXY.x + .5);
     gl_FragColor.y *= 2.0 * (vXY.y + .5);
-    // if (length(vXY) < 0.2) {
-    //   discard;
-    // }
+    if (length(vXY) < 0.2) {
+      discard;
+    }
   `
 })
 doubleDerivedMaterial.side = DoubleSide
@@ -108,6 +108,7 @@ export default class Arc extends Object3DFacade {
 
   afterUpdate() {
     const material = this.threeObject.material
+    material.wireframe = !!this.wireframe
     let uniforms = material.uniforms
     uniforms.startAngle.value = this.startAngle
     uniforms.endAngle.value = this.endAngle
