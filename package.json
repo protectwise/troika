@@ -20,7 +20,7 @@
     "esdoc-standard-plugin": "^1.0.0",
     "jest": "^24.7.1",
     "jsdom-worker": "^0.1.0",
-    "lerna": "^3.13.4",
+    "lerna": "^3.15.0",
     "node-fetch": "^2.2.0",
     "promises-aplus-tests": "^2.1.2",
     "rollup": "^1.10.1",
