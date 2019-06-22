@@ -362,7 +362,7 @@ var Yoga = (function () {
     }, YGEnums);
   };
 
-  var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+  var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
   function commonjsRequire () {
   	throw new Error('Dynamic requires are not currently supported by rollup-plugin-commonjs');
@@ -472,7 +472,9 @@ var Yoga = (function () {
           console.warn(x);
         };
       } else {
-  if (!Module["print"]) Module["print"] = function (x) {};
+        var TRY_USE_DUMP = false;if (!Module["print"]) Module["print"] = TRY_USE_DUMP && typeof dump !== "undefined" ? function (x) {
+          dump(x);
+        } : function (x) {};
       }if (ENVIRONMENT_IS_WORKER) {
         Module["load"] = importScripts;
       }if (typeof Module["setWindowTitle"] === "undefined") {
