@@ -16,7 +16,7 @@
     "troika-core": "^0.12.1",
     "troika-worker-utils": "^0.12.1"
   },
-  "devDependencies": {
+  "*temp-disabled-for-CI*-devDependencies": {
     "yoga-layout": "^1.9.3"
   },
   "scripts": {
