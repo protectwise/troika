@@ -25,6 +25,8 @@ etc...
 
 The `troika-3d` package will automatically pull in `three` ([Three.js](https://threejs.org)) as a dependency, at the latest specific version that has been tested to work with Troika. It is recommended that you do _not_ directly declare `three` in your project's NPM dependencies, as version mismatches can cause Three.js to be included twice and/or cause compatibility issues due to Troika and your own code using parts from different versions.
 
+> TODO: this is very likely a backwards pattern, and should be changed to `three` being declared as a _peer dependency_ and requiring projects using it to declare it as their own dependency.
+
 #### React
 
 Assuming you want to use the React component wrapper, you'll also need to add `react` and `react-dom` to your project's dependencies if not already there:
@@ -67,4 +69,13 @@ var Object3DFacade = troika_3d.Object3DFacade;
 //...
 </script>
 
+```
+
+## Source Code Checkout
+
+Clone from the GitHub repository:
+
+```
+git clone https://github.com/protectwise/troika.git
+cd troika
 ```

@@ -2,7 +2,8 @@
   "docs": {
     "Getting Started": [
       "overview",
-      "setup"
+      "setup",
+      "examples"
     ],
     "Core Concepts": [
       "facade-basics",
