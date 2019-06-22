@@ -29,6 +29,7 @@ export default class ArcsFacade extends Group3DFacade {
       this._quadrantCfg('sw2', Math.PI, 1.5),
       this._quadrantCfg('se2', Math.PI * 3 / 2, 1.5)
     ]
+    this.rotateX = this.angled ? -Math.PI / 4 : 0
     super.afterUpdate()
   }
 
@@ -56,7 +57,7 @@ export default class ArcsFacade extends Group3DFacade {
         startRadius: baseRadius,
         scaleZ: this.arcDepth || 0.0001,
         highlight: d => d.id === this.highlightedArc,
-        derivedLevel: () => this.derivedLevel,
+        derivedLevel: () => this.derivedLevel || 0,
         wireframe: () => this.wireframe,
         onMouseOver: () => this._onArcMouseOver,
         onMouseOut: () => this._onArcMouseOut,

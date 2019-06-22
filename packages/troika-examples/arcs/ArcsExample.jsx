@@ -84,7 +84,6 @@ class ArcsExample extends React.Component {
             wireframe: state.wireframe,
             arcDepth: state.deep ? .2 : 0.0001,
             data: state.data,
-            rotateX: state.angled ? -Math.PI / 4 : 0,
             transition: {rotateX: true},
             animation: state.rotate ? {
               from: {rotateZ: 0},

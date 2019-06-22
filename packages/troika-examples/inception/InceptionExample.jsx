@@ -59,8 +59,7 @@ const subWorldConfigs = [
     backgroundColor: '#333',
     camera: {
       x: 0,
-      y: -400,
-      z: 400,
+      z: 6,
       lookAt: {x: 0, y: 0, z: 0}
     },
     objects: [
@@ -80,7 +79,7 @@ const subWorldConfigs = [
           }
         },
         angled: true,
-        arcDepth: 20
+        arcDepth: 0.2
       }
     ]
   }
