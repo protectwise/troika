@@ -4,7 +4,11 @@
   "private": true,
   "description": "Troika Examples",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
-  "homepage": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/protectwise/troika.git",
+    "directory": "packages/troika-examples"
+  },
   "license": "MIT",
   "scripts": {
     "build": "rollup -c rollup.config.examples.js",

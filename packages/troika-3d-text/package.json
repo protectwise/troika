@@ -3,7 +3,11 @@
   "version": "0.13.0",
   "description": "Troika 3D Text",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
-  "homepage": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/protectwise/troika.git",
+    "directory": "packages/troika-3d-text"
+  },
   "license": "MIT",
   "main": "dist/troika-3d-text.umd.js",
   "browser": "dist/troika-3d-text.umd.js",

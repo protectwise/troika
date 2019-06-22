@@ -3,7 +3,11 @@
   "version": "0.13.0",
   "description": "Troika Core",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
-  "homepage": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/protectwise/troika.git",
+    "directory": "packages/troika-core"
+  },
   "license": "MIT",
   "main": "dist/troika-core.umd.js",
   "browser": "dist/troika-core.umd.js",
