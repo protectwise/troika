@@ -1,4 +1,4 @@
-# Troika
+# Troika 
 
 Troika is a JavaScript framework that simplifies the creation of interactive graphics in the browser, with a focus on 3D/WebGL, and optimized toward data visualization and user interface development.
 
@@ -19,3 +19,8 @@ Troika was developed starting in 2016 by the [ProtectWise](https://protectwise.c
 Our initial public release can be considered mature/stable enough to use in production code. However you will find that documentation is sorely lacking; we will be actively improving that in the short term.
 
 Until better user-centered documentation is available, a good place to start is the [examples](./packages/troika-examples) and the inline code documentation for the [core facade classes](./packages/troika-core/src/facade/).
+
+
+----
+
+[![Build Status](https://travis-ci.org/protectwise/troika.svg?branch=master)](https://travis-ci.org/protectwise/troika)
