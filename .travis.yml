@@ -1,4 +1,5 @@
 language: node_js
+dist: trusty # For yoga's GCC reqs: https://docs.travis-ci.com/user/languages/javascript-with-nodejs#nodejs-v4-or-iojs-v3-compiler-requirements
 node_js:
   - "10"
 install:
