@@ -40,7 +40,6 @@ describe('decodeFloatFromFourInts', () => {
   test('Reads from an Array', () => {
     const decoded = decodeFloatFromFourInts(testInts, 0)
     expect(typeof decoded).toBe('number')
-    console.log(decoded)
     expect(decoded <= 1 && decoded >= 0).toBe(true)
   })
 
@@ -70,9 +69,6 @@ describe('encoding + decoding', () => {
     for (let i = 0; i < values.length; i++) {
       encodeFloatToFourInts(values[i], typedArray, 0)
       const decoded = decodeFloatFromFourInts(typedArray, 0)
-      if (decoded === values[i]) {
-        console.log('exact: ' + values[i])
-      }
       expect(decoded).toBeCloseTo(values[i], 9)
     }
   })
