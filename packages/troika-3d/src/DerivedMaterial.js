@@ -121,7 +121,7 @@ export function createDerivedMaterial(baseMaterial, options) {
   material.extensions = assign({}, baseMaterial.extensions, options.extensions)
 
   cached[optionsHash] = material
-  return material
+  return material.clone() //return a clone so changes made to it don't affect the cached object
 }
 
 

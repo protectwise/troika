@@ -33,7 +33,7 @@ class Text3DFacade extends Object3DFacade {
     geometry.boundingSphere.version = 0
     geometry.computeBoundingSphere = noop //we'll handle bounding sphere updates ourselves
 
-    const mesh = new Mesh(geometry, defaultMaterial.clone())
+    const mesh = new Mesh(geometry, defaultMaterial)
 
     super(parent, mesh)
     
