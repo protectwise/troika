@@ -33,6 +33,13 @@
           "3d-instancing",
           "3d-optimization-techniques"
         ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Advanced",
+        "ids": [
+          "3d-shader-utils"
+        ]
       }
     ],
     "2D": [
