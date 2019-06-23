@@ -57,7 +57,7 @@ The responsibilities of the wrapper layer have been kept as narrow as possible, 
 
 ## Browser support
 
-Generally Troika should be able to run in the same browsers as the underlying graphics APIs (WebGL etc.) do.
+Troika should be able to run in the same browsers as Three.js does. See the [Three.js browser support](https://threejs.org/docs/#manual/en/introduction/Browser-support) docs for more details.
 
 Its source files are ES2015 modules, and can be used un-transpiled in modern browsers supporting `<script type="module">`, though you'll probably still want to combine/tree-shake them with a module-aware build pipeline like [Webpack](https://webpack.js.org/) or [Rollup](https://rollupjs.org/). For older browsers, ES5-transpiled files are provided.
 
