@@ -24,5 +24,6 @@ If you don't want it to push to GitHub yet, use:
 At this point Travis CI will build and test the new tagged version, but it is _not_ currently set up to publish the results to the NPM registry; for the time being that will be a manual process. To do that:
  
  - Make sure the tagged commit is checked out, with no extra files hanging around
+ - Run: `npm build`
  - Make sure you're logged in to an NPM account with permissions to publish to the various troika packages (`npm login`)
  - Run: `lerna publish from-git`
