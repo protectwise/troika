@@ -18,6 +18,6 @@
     "troika-core": "^0.13.1"
   },
   "peerDependencies": {
-    "three": "0.103.x - 0.105.x"
+    "three": "0.103.x - 0.106.x"
   }
 }
