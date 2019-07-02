@@ -34,7 +34,7 @@ export function getShadersForMaterial(material) {
 
 // Copied from threejs WebGLProgram so we can pre-expand the shader includes
 export function expandShaderIncludes( source ) {
-  const pattern = /^[ \t]*#include +<([\w\d.]+)>/gm
+  const pattern = /^[ \t]*#include +<([\w\d./]+)>/gm
   function replace(match, include) {
     let chunk = ShaderChunk[include]
     return chunk ? expandShaderIncludes(chunk) : match
