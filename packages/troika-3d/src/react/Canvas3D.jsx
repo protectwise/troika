@@ -1,43 +1,45 @@
-import { ReactCanvasBase, utils } from 'troika-core'
+import React from 'react'
 import T from 'prop-types'
+import { ReactCanvasBase, utils } from 'troika-core'
 import World3DFacade from '../facade/World3DFacade'
-import { vrAwareContextTypes } from './VrAware.jsx'
+
 
 class Canvas3D extends ReactCanvasBase {
-  initWorld(canvas) {
-    let world = new World3DFacade(canvas)
-    world.renderHtmlItems = this.renderHtmlItems
-    return world
-  }
-
-  updateWorld(world) {
-    let {props, context} = this
-    world.width = props.width
-    world.height = props.height
-    world.pixelRatio = props.pixelRatio
-    world.antialias = props.antialias
-    world.rendererClass = props.rendererClass
-    world.backgroundColor = props.backgroundColor
-    world.shadows = props.shadows
-    world.camera = props.camera
-    world.lights = props.lights
-    world.objects = props.objects
-    world.fog = props.fog
-    world.onBackgroundClick = props.onBackgroundClick
-    world.continuousRender = props.continuousRender
-    world.onStatsUpdate = props.stats ? this.updateStats : null
-    world.vrDisplay = (context && context.vrDisplay) || null
-    world.afterUpdate()
-  }
-
-  _bindCanvasRef(canvas) {
-    super._bindCanvasRef(canvas)
-
-    // Pass the canvas up to a VrAware ancestor
-    const registerVrCanvas = this.context && this.context.registerVrCanvas
-    if (registerVrCanvas) {
-      registerVrCanvas(canvas)
+  constructor(props) {
+    super(props)
+    this._onCanvasRef = canvas => {
+      let fn = this.context.onCanvasRef
+      if (fn) fn(canvas)
+      fn = this.props.onCanvasRef
+      if (fn) fn(canvas)
     }
+  }
+
+  render() {
+    const {props, context} = this
+    return React.createElement(
+      ReactCanvasBase,
+      utils.assign({}, props, {
+        onCanvasRef: this._onCanvasRef,
+        worldClass: props.worldClass || context.worldClass || World3DFacade,
+        worldProps: utils.assign(
+          {
+            antialias: props.antialias,
+            rendererClass: props.rendererClass,
+            backgroundColor: props.backgroundColor,
+            shadows: props.shadows,
+            camera: props.camera,
+            lights: props.lights,
+            objects: props.objects,
+            fog: props.fog,
+            onBackgroundClick: props.onBackgroundClick
+          },
+          context.worldProps,
+          props.worldProps
+        )
+      }),
+      props.children
+    )
   }
 }
 
@@ -56,6 +58,14 @@ Canvas3D.propTypes = utils.assignIf(
   ReactCanvasBase.commonPropTypes
 )
 
-Canvas3D.contextTypes = utils.assign({}, vrAwareContextTypes)
+/**
+ * Ancestors React components may provide these context values to override
+ * how the world is created, e.g. switching to a WebXR-aware world impl
+ */
+Canvas3D.contextType = React.createContext({
+  worldClass: World3DFacade,
+  worldProps: {},
+  onCanvasRef: null
+})
 
 export default Canvas3D

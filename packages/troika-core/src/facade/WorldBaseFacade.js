@@ -140,13 +140,13 @@ class WorldBaseFacade extends ParentFacade {
   // Schedule a render pass on the next frame
   _queueRender() {
     if (!this._nextFrameTimer) {
-      this._nextFrameTimer = this._requestRenderFrame(this._nextFrameHandler || (this._nextFrameHandler = () => {
+      this._nextFrameTimer = this._requestRenderFrame(this._nextFrameHandler || (this._nextFrameHandler = (...args) => {
         let {onStatsUpdate, onBeforeRender, onAfterRender} = this
         let start = onStatsUpdate && Date.now()
 
         if (onBeforeRender) onBeforeRender(this)
 
-        this.doRender()
+        this.doRender(...args)
 
         if (onStatsUpdate) {
           let now = Date.now()
@@ -400,7 +400,7 @@ class WorldBaseFacade extends ParentFacade {
 
   _togglePointerListeners(on) {
     let canvas = this._element
-    if (canvas) {
+    if (canvas && on !== this._pointerListenersAttached) {
       let method = (on ? 'add' : 'remove') + 'EventListener'
       domPointerMotionEventTypes.forEach(type => {
         canvas[method](type, this._onPointerMotionEvent, false)
@@ -408,6 +408,7 @@ class WorldBaseFacade extends ParentFacade {
       domPointerActionEventTypes.forEach(type => {
         canvas[method](type, this._onPointerActionEvent, false)
       })
+      this._pointerListenersAttached = on
     }
   }
 

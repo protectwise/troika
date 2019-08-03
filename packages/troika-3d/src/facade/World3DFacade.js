@@ -3,14 +3,11 @@ import {WebGLRenderer, Raycaster, Color, Vector2, Vector3} from 'three'
 import Scene3DFacade from './Scene3DFacade'
 import {PerspectiveCamera3DFacade} from './Camera3DFacade'
 import {BoundingSphereOctree} from '../BoundingSphereOctree'
-import {extendAsVrCamera} from './vr/VrCamera'
-import {VrControllerManager} from './vr/VrControllerManager'
 
 const { assign, assignIf } = utils
 const tmpVec2 = new Vector2()
 const tmpVec3 = new Vector3()
 const raycaster = new Raycaster()
-const emptyArray = []
 
 
 class World3DFacade extends WorldBaseFacade {
@@ -18,11 +15,10 @@ class World3DFacade extends WorldBaseFacade {
     super(canvas)
     this._object3DFacadesById = Object.create(null)
     this._onBgClick = this._onBgClick.bind(this)
-    this._hadVrDisplay = false
   }
 
   afterUpdate() {
-    let {camera, width, height, antialias, backgroundColor} = this
+    let {width, height, antialias, backgroundColor} = this
 
     // Set up renderer
     let renderer = this._threeRenderer
@@ -43,15 +39,36 @@ class World3DFacade extends WorldBaseFacade {
       this._bgColor = backgroundColor
     }
 
-    // Set up camera
-    camera.key = 'camera'
-    camera.facade = camera.facade || PerspectiveCamera3DFacade
-    if (typeof camera.aspect !== 'number') {
-      camera.aspect = width / height
-    }
+    this.children = [
+      this._getCameraDef(),
+      this._getSceneDef()
+    ]
 
-    // Set up scene
-    const scene = {
+    // Update render canvas size
+    this._updateDrawingBufferSize(width, height, this.pixelRatio || window.devicePixelRatio || 1)
+
+    super.afterUpdate()
+  }
+
+  /**
+   * Build a normalized definition for the camera facade
+   * @protected
+   */
+  _getCameraDef() {
+    const {camera} = this
+    return assign({}, camera, {
+      key: 'camera',
+      facade: camera.facade || PerspectiveCamera3DFacade,
+      aspect: typeof camera.aspect === 'number' ? camera.aspect : this.width / this.height
+    })
+  }
+
+  /**
+   * Build a normalized definition for the scene facade
+   * @protected
+   */
+  _getSceneDef() {
+    return {
       key: 'scene',
       facade: Scene3DFacade,
       lights: this.lights,
@@ -59,46 +76,18 @@ class World3DFacade extends WorldBaseFacade {
       fog: this.fog,
       onClick: this.onBackgroundClick ? this._onBgClick : null
     }
+  }
 
-    const vrDisplay = this._isInVR() ? this.vrDisplay : null
-    if (vrDisplay) {
-      // Wrap configured camera with VR camera decorator
-      camera = assignIf({
-        facade: extendAsVrCamera(camera.facade),
-        vrDisplay
-      }, camera)
-
-      // Add VR controllers manager to scene
-      scene.objects = emptyArray.concat(scene.objects, {
-        key: 'vrcontrollers',
-        facade: VrControllerManager,
-        vrDisplay: vrDisplay
-      })
-    }
-    if (!!vrDisplay !== this._hadVrDisplay) {
-      this._togglePointerListeners(!vrDisplay)
-      this._hadVrDisplay = !!vrDisplay
-    }
-
-    this.children = [camera, scene]
-
-    // Update render canvas size
-    let pixelRatio
-    if (vrDisplay) {
-      const leftEye = vrDisplay.getEyeParameters('left')
-      const rightEye = vrDisplay.getEyeParameters('right')
-      width = Math.max(leftEye.renderWidth, rightEye.renderWidth) * 2
-      height = Math.max(leftEye.renderHeight, rightEye.renderHeight)
-      pixelRatio = 1
-    } else {
-      pixelRatio = this.pixelRatio || window.devicePixelRatio || 1
-    }
+  /**
+   * Update the renderer's drawing buffer size
+   * @protected
+   */
+  _updateDrawingBufferSize(width, height, pixelRatio) {
+    const renderer = this._threeRenderer
     renderer.getSize(tmpVec2)
     if (tmpVec2.width !== width || tmpVec2.height !== height || renderer.getPixelRatio() !== pixelRatio) {
       renderer.setDrawingBufferSize(width, height, pixelRatio)
     }
-
-    super.afterUpdate()
   }
 
   doRender() {
@@ -120,11 +109,6 @@ class World3DFacade extends WorldBaseFacade {
     // Invoke any onAfterRender listeners
     registry.forEachListenerOfType('afterrender', invokeHandler, this)
 
-    // Submit VR frame
-    if (this._isInVR()) {
-      this.vrDisplay.submitFrame()
-    }
-
     let onStatsUpdate = this.onStatsUpdate
     if (onStatsUpdate) {
       const {memory, render} = renderer.info
@@ -144,45 +128,12 @@ class World3DFacade extends WorldBaseFacade {
     }
   }
 
-  _isInVR() {
-    return !!(this.vrDisplay && this.vrDisplay.isPresenting)
-  }
-
-  _isContinuousRender() {
-    return this.continuousRender || this._isInVR()
-  }
-
-  /**
-   * @override to use an active WebVR device's scheduler when appropriate
-   */
-  _requestRenderFrame(callback) {
-    return (this._isInVR() ? this.vrDisplay : window).requestAnimationFrame(callback)
-  }
-
-  /**
-   * @override to use an active WebVR device's scheduler when appropriate
-   */
-  _cancelAnimationFrame(frameId) {
-    return (this._isInVR() ? this.vrDisplay : window).cancelAnimationFrame(frameId)
-  }
-
   /**
    * Implementation of abstract
    */
   getFacadeUserSpaceXYZ(facade) {
     let matrixEls = facade.threeObject.matrixWorld.elements
     return this.projectWorldPosition(matrixEls[12], matrixEls[13], matrixEls[14])
-  }
-
-  _doRenderHtmlItems() {
-    if (this._isInVR()) {
-      // Html overlays are useless in VR, so don't render them
-      if (this.renderHtmlItems) {
-        this.renderHtmlItems(emptyArray)
-      }
-    } else {
-      super._doRenderHtmlItems()
-    }
   }
 
   projectWorldPosition(x, y, z) {

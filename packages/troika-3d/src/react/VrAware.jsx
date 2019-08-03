@@ -1,17 +1,13 @@
 import React from 'react'
 import T from 'prop-types'
 import { utils } from 'troika-core'
+import ReactCanvas3D from './Canvas3D.jsx'
 import VrButton from './VrButton.jsx'
+import WorldVrFacade from '../facade/vr/WorldVrFacade.js'
 
 
 function getVrDisplays() {
   return navigator.getVRDisplays ? navigator.getVRDisplays() : Promise.resolve([])
-}
-
-
-export const vrAwareContextTypes = {
-  registerVrCanvas: T.func,
-  vrDisplay: T.object
 }
 
 export const vrAwarePropTypes = {
@@ -52,13 +48,6 @@ export function makeVrAware(ReactClass, options) {
       vrEvents.forEach(name => {
         window.removeEventListener(name, checkVrDisplays, false)
       })
-    }
-
-    getChildContext() {
-      return {
-        vrDisplay: this.state.vrDisplay,
-        registerVrCanvas: this._registerVrCanvas
-      }
     }
 
     _registerVrCanvas(canvas) {
@@ -117,26 +106,35 @@ export function makeVrAware(ReactClass, options) {
     render() {
       const {props, state} = this
       const {vrDisplay, vrAvailable} = state
+
       const VrButtonImpl = options.buttonRenderer
-      return React.createElement(
-        ReactClass,
-        utils.assign({
-          vrAvailable,
-          vrDisplay,
-          vrButton: <VrButtonImpl
-            vrAvailable={vrAvailable}
-            vrDisplay={vrDisplay}
-            onClick={this._onVrButtonClick}
-          />
-        }, props),
-        props.children
+      const vrButton = <VrButtonImpl
+        vrAvailable={vrAvailable}
+        vrDisplay={vrDisplay}
+        onClick={this._onVrButtonClick}
+      />
+
+      const contextValue = {
+        worldClass: WorldVrFacade,
+        worldProps: { vrDisplay },
+        onCanvasRef: this._registerVrCanvas
+      }
+
+      return React.createElement(ReactCanvas3D.contextType.Provider, {value: contextValue},
+        React.createElement(
+          ReactClass,
+          utils.assign({}, props, {
+            vrAvailable,
+            vrDisplay,
+            vrButton
+          }),
+          props.children
+        )
       )
     }
   }
 
   VrAware.displayName = `VrAware(${ReactClass.displayName || ReactClass.name || '?'})`
-
-  VrAware.childContextTypes = vrAwareContextTypes
 
   return VrAware
 }

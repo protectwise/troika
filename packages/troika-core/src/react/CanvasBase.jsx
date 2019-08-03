@@ -20,27 +20,33 @@ class CanvasBase extends React.Component {
   }
 
   componentDidUpdate() {
-    if (this._world) {
-      this._updateWorld(this._world)
-    }
+    this.updateWorld()
   }
 
-  /**
-   * @template
-   */
-  initWorld(canvas) {}
+  initWorld(canvas) {
+    const world = new this.props.worldClass(canvas)
+    world.renderHtmlItems = this.renderHtmlItems
+    return world
+  }
 
-  /**
-   * @template
-   */
-  updateWorld(world) {}
+  updateWorld() {
+    const world = this._world
+    if (world) {
+      const {props} = this
+      let useStats = props.stats
+      let start = useStats && Date.now()
 
-  _updateWorld(world) {
-    let useStats = this.props.stats
-    let start = useStats && Date.now()
-    this.updateWorld(world)
-    if (useStats) {
-      this.updateStats({'Last World Update (ms)': Date.now() - start})
+      world.width = props.width
+      world.height = props.height
+      world.pixelRatio = props.pixelRatio
+      world.continuousRender = props.continuousRender
+      world.onStatsUpdate = useStats ? this.updateStats : null
+      assign(world, props.worldProps)
+      world.afterUpdate()
+
+      if (useStats) {
+        this.updateStats({'Last World Update (ms)': Date.now() - start})
+      }
     }
   }
 
@@ -80,8 +86,8 @@ class CanvasBase extends React.Component {
   _bindCanvasRef(canvas) {
     if (canvas) {
       try {
-        let world = (this._world = this.initWorld(canvas))
-        this._updateWorld(world)
+        this._world = this.initWorld(canvas)
+        this.updateWorld()
       } catch (e) {
         console.warn(`Troika.${this.constructor.displayName}: world init failed, using fallback content.`, e)
         this._failedWorldInit = true
@@ -91,6 +97,10 @@ class CanvasBase extends React.Component {
     } else {
       this.destroyWorld()
     }
+
+    // Call external ref callback
+    const cb = this.props.onCanvasRef
+    if (cb) cb(canvas)
   }
 
   _bindStatsRef(ref) {
@@ -133,8 +143,11 @@ CanvasBase.commonPropTypes = {
   width: T.number.isRequired,
   height: T.number.isRequired,
   pixelRatio: T.number,
+  worldClass: T.func,
+  worldProps: T.object,
   className: T.string,
   continuousRender: T.bool,
+  onCanvasRef: T.func,
   stats: T.bool,
   cursor: T.string
 }
