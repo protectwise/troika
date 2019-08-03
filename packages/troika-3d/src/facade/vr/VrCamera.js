@@ -33,10 +33,10 @@ export const extendAsVrCamera = utils.createClassExtender('vrCamera', function(B
 
       // Make it behave like an ArrayCamera with left/right eye cameras
       const leftCam = new PerspectiveCamera()
-      leftCam.bounds = new Vector4(0, 0, 0.5, 1)
+      leftCam.viewport = new Vector4()
 
       const rightCam = new PerspectiveCamera()
-      rightCam.bounds = new Vector4(0.5, 0, 0.5, 1)
+      rightCam.viewport = new Vector4()
 
       const mainCam = this.threeObject
       mainCam.isArrayCamera = true
@@ -82,20 +82,17 @@ export const extendAsVrCamera = utils.createClassExtender('vrCamera', function(B
 
           // Sync eye cameras; note the eye matrices include the pose transform so we do this prior to
           // applying the pose transform to the main camera.
-          const syncEye = function(eyeCam, eyeViewMatrix, eyeProjMatrix, eyeBounds) {
+          const {renderWidth, renderHeight} = vrDisplay.getEyeParameters('left') //meh feels like fragile assumption but can't get actual px viewports for both eyes
+          const syncEye = function(eyeCam, eyeViewMatrix, eyeProjMatrix) {
+            eyeCam.viewport.set(eyeCam === rightCam ? renderWidth : 0, 0, renderWidth, renderHeight)
             eyeCam.near = mainCam.near
             eyeCam.far = mainCam.far
             eyeCam.matrixWorldInverse.multiplyMatrices(tempMat4.fromArray(eyeViewMatrix), mainCam.matrixWorldInverse)
             eyeCam.matrixWorld.getInverse(eyeCam.matrixWorldInverse)
             eyeCam.projectionMatrix.fromArray(eyeProjMatrix)
-            if (eyeBounds && eyeBounds.length === 4) {
-              eyeCam.bounds.fromArray(eyeBounds)
-            }
           }
-          const layers = vrDisplay.getLayers()
-          const layer = layers && layers[0]
-          syncEye(leftCam, frameData.leftViewMatrix, frameData.leftProjectionMatrix, layer && layer.leftBounds)
-          syncEye(rightCam, frameData.rightViewMatrix, frameData.rightProjectionMatrix, layer && layer.rightBounds)
+          syncEye(leftCam, frameData.leftViewMatrix, frameData.leftProjectionMatrix)
+          syncEye(rightCam, frameData.rightViewMatrix, frameData.rightProjectionMatrix)
 
           // The eye cameras now match the pose, but we also need to make the main camera match
           // an overall pose/projection for use in frustum culling etc.
