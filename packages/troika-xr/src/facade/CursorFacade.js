@@ -1,5 +1,5 @@
 import { Mesh, MeshBasicMaterial, SphereBufferGeometry } from 'three'
-import Object3DFacade from '../Object3DFacade'
+import {Object3DFacade} from 'troika-3d'
 
 const cursorGeom = new SphereBufferGeometry()
 const cursorMtl = new MeshBasicMaterial({color: 0xffffff})

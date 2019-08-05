@@ -1,5 +1,4 @@
-import Group3DFacade from '../Group3DFacade'
-import Scene3DFacade from '../Scene3DFacade'
+import {Group3DFacade, Scene3DFacade} from 'troika-3d'
 import { Matrix4, Vector3 } from 'three'
 
 const raycastFrequency = 16

@@ -1,4 +1,4 @@
-import World3DFacade from '../World3DFacade'
+import {World3DFacade} from 'troika-3d'
 import {extendAsVrCamera} from './VrCamera'
 import {VrControllerManager} from './VrControllerManager'
 

@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { makeVrAware } from 'troika-3d'
+import { makeVrAware } from 'troika-xr'
 import CityGrid from './citygrid/CityGrid'
 import ShaderAnim from './shader-anim/ShaderAnim'
 import ArcsExample from './arcs/ArcsExample'

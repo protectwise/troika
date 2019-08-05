@@ -27,6 +27,7 @@
     "troika-3d-text": "^0.13.1",
     "troika-3d-ui": "^0.13.1",
     "troika-animation": "^0.13.1",
-    "troika-core": "^0.13.1"
+    "troika-core": "^0.13.1",
+    "troika-xr": "^0.13.1"
   }
 }

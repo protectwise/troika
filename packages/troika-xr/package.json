@@ -1,0 +1,21 @@
+{
+  "name": "troika-xr",
+  "version": "0.13.1",
+  "description": "Troika XR",
+  "author": "Jason Johnston <jason.johnston@protectwise.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/protectwise/troika.git",
+    "directory": "packages/troika-xr"
+  },
+  "license": "MIT",
+  "main": "dist/troika-xr.umd.js",
+  "browser": "dist/troika-xr.umd.js",
+  "jsnext:main": "dist/troika-xr.esm.js",
+  "module": "dist/troika-xr.esm.js",
+  "module:es2015": "src/index.js",
+  "dependencies": {
+    "troika-core": "^0.13.1",
+    "troika-3d": "^0.13.1"
+  }
+}

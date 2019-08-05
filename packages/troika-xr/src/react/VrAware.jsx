@@ -1,9 +1,9 @@
 import React from 'react'
 import T from 'prop-types'
-import { utils } from 'troika-core'
-import ReactCanvas3D from './Canvas3D.jsx'
+import {utils} from 'troika-core'
+import {Canvas3D} from 'troika-3d'
 import VrButton from './VrButton.jsx'
-import WorldVrFacade from '../facade/vr/WorldVrFacade.js'
+import WorldVrFacade from '../facade/WorldVrFacade.js'
 
 
 function getVrDisplays() {
@@ -120,7 +120,7 @@ export function makeVrAware(ReactClass, options) {
         onCanvasRef: this._registerVrCanvas
       }
 
-      return React.createElement(ReactCanvas3D.contextType.Provider, {value: contextValue},
+      return React.createElement(Canvas3D.contextType.Provider, {value: contextValue},
         React.createElement(
           ReactClass,
           utils.assign({}, props, {

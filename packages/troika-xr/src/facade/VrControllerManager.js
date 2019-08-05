@@ -1,8 +1,7 @@
-import Group3DFacade from '../Group3DFacade'
+import {Group3DFacade} from 'troika-3d'
 import TrackedVrController from './TrackedVrControllerFacade'
 import GazeVrController from './GazeVrControllerFacade'
 
-const gamepadCheckFrequency = 1000
 
 /**
  * Single parent facade that manages the creation and updating of one or more `VrControllerFacade`

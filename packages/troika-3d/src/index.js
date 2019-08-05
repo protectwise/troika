@@ -15,9 +15,6 @@ export {default as Instanceable3DFacade} from './facade/instancing/Instanceable3
 // React entry point
 export {default as Canvas3D} from './react/Canvas3D.jsx'
 
-// WebVR
-export {makeVrAware} from './react/VrAware.jsx'
-
 // Other
 import * as shaderUtils from './shaderUtils.js'
 export {shaderUtils}

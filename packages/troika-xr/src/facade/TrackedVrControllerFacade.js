@@ -1,5 +1,5 @@
 import {ConeBufferGeometry, CylinderBufferGeometry, Mesh, MeshStandardMaterial, Ray} from 'three'
-import Object3DFacade from '../Object3DFacade'
+import {Object3DFacade} from 'troika-3d'
 import VrController from './VrControllerFacade'
 import CursorFacade from './CursorFacade'
 
