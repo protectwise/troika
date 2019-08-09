@@ -1,10 +1,19 @@
-import {ConeBufferGeometry, CylinderBufferGeometry, Mesh, MeshStandardMaterial, Ray} from 'three'
-import {Object3DFacade} from 'troika-3d'
+import {Ray} from 'three'
 import VrController from './VrControllerFacade'
 import CursorFacade from './CursorFacade'
+import OculusTouchModelFacade from './controllers/OculusTouchModelFacade.js'
+import BasicModelFacade from './controllers/BasicModelFacade.js'
+import LaserPointerModel from './controllers/LaserPointerModel.js'
 
 
 const CLICK_MAX_DUR = 300
+
+// Mapping of gamepad ids to controller model facades
+const CONTROLLER_MODELS = {
+  'Oculus Touch (Left)': OculusTouchModelFacade,
+  'Oculus Touch (Right)': OculusTouchModelFacade
+}
+
 
 
 /**
@@ -25,7 +34,7 @@ export default class TrackedVrController extends VrController {
     this.children = [
       this.modelChildDef = {
         key: 'model',
-        facade: BasicHandModel
+        facade: null //chosen in afterUpdate
       },
       this.laserChildDef = {
         key: 'laser',
@@ -80,6 +89,9 @@ export default class TrackedVrController extends VrController {
     const threeObj = this.threeObject
     let ray
     if (gamepad && gamepad.pose) {
+      this.modelChildDef.facade = CONTROLLER_MODELS[gamepad.id] || BasicModelFacade
+      this.modelChildDef.hand = gamepad.hand || 'right'
+
       // Orientation
       threeObj.quaternion.fromArray(gamepad.pose.orientation)
 
@@ -147,36 +159,3 @@ export default class TrackedVrController extends VrController {
   }
 }
 
-
-
-class BasicHandModel extends Object3DFacade {
-  constructor(parent) {
-    const mesh = new Mesh(BasicHandModel.geometry, BasicHandModel.material)
-    super(parent, mesh)
-  }
-}
-BasicHandModel.geometry = new ConeBufferGeometry(0.05, 0.2, 16).rotateX(Math.PI / -2)
-BasicHandModel.material = new MeshStandardMaterial({
-  transparent: true,
-  opacity: 0.8,
-  color: 0x006699,
-  emissive: 0x006699
-})
-
-
-class LaserPointerModel extends Object3DFacade {
-  constructor(parent) {
-    const mesh = new Mesh(LaserPointerModel.geometry, LaserPointerModel.material)
-    super(parent, mesh)
-  }
-  set length(val) {
-    this.scaleZ = val || 1e10
-  }
-}
-LaserPointerModel.geometry = new CylinderBufferGeometry(0.001, 0.001, 1).translate(0, 0.5, 0).rotateX(Math.PI / -2)
-LaserPointerModel.material = new MeshStandardMaterial({
-  transparent: true,
-  opacity: 0.2,
-  color: 0x006699,
-  emissive: 0x006699
-})
