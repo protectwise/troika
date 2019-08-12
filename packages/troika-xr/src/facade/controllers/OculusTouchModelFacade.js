@@ -38,28 +38,10 @@ class OculusTouchModelFacade extends Object3DFacade {
     if (hand !== 'left' && hand !== 'right') hand = 'left'
     if (hand !== this._hand) {
       this._hand = hand
+      this.removeObjects()
       new GLTFLoader().load(
         getUrl(hand),
-        gltf => {
-          const root = gltf.scene
-
-          // Position/rotation adjustments to match actual controllers
-          // TODO fine-tune these
-          root.position.set(hand === 'left' ? -0.01 : 0.01, 0.04,-0.04)
-          root.rotation.x = 0.7
-
-          this.threeObject.add(root)
-
-          // Find all the individual meshes
-          this.meshes = Object.create(null)
-          root.traverse(obj => {
-            if (obj.isMesh) {
-              obj.material = obj.material.clone() //workaround for some meshes sharing a material instance
-              this.meshes[obj.name] = obj
-            }
-          })
-          this.afterUpdate()
-        },
+        this.addObjects.bind(this),
         null,
         err => {
           console.error('Failed loading controller model', err)
@@ -69,6 +51,46 @@ class OculusTouchModelFacade extends Object3DFacade {
 
     this.updateMaterials()
     super.afterUpdate()
+  }
+
+  addObjects(gltf) {
+    const root = this.rootObj = gltf.scene
+
+    // Position/rotation adjustments to match actual controllers
+    // TODO fine-tune these
+    root.position.set(this.hand === 'left' ? -0.01 : 0.01, 0.04,-0.04)
+    root.rotation.x = 0.7
+
+    this.threeObject.add(root)
+
+    // Find all the individual meshes
+    this.meshes = Object.create(null)
+    root.traverse(obj => {
+      if (obj.isMesh) {
+        obj.material = obj.material.clone() //workaround for some meshes sharing a material instance
+        this.meshes[obj.name] = obj
+      }
+    })
+    this.afterUpdate()
+  }
+
+  removeObjects() {
+    const {rootObj, meshes} = this
+    if (rootObj) {
+      this.threeObject.remove(rootObj)
+      this.rootObj = null
+    }
+    if (meshes) {
+      for (let name in meshes) {
+        const {geometry, material} = meshes[name]
+        geometry.dispose()
+        if (material.texture) {
+          material.texture.dispose()
+        }
+        material.dispose()
+      }
+      this.meshes = null
+    }
   }
 
   updateMaterials() {
@@ -85,17 +107,7 @@ class OculusTouchModelFacade extends Object3DFacade {
   }
 
   destructor () {
-    const {meshes} = this
-    if (meshes) {
-      for (let name in meshes) {
-        const {geometry, material} = meshes[name]
-        geometry.dispose()
-        if (material.texture) {
-          material.texture.dispose()
-        }
-        material.dispose()
-      }
-    }
+    this.removeObjects()
     super.destructor()
   }
 }
