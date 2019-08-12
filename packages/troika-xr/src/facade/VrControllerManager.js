@@ -51,10 +51,10 @@ export class VrControllerManager extends Group3DFacade {
           // that it is not accurate in some browsers, but we should verify that's still true.
           if (gamepad && gamepad.displayId === vrDisplay.displayId && gamepad.pose && gamepad.pose.orientation) {
             children.push({
-              key: `tracked${i}`,
+              key: `tracked${gamepad.id == null ? i : gamepad.id}`,
               facade: TrackedVrController,
               gamepad,
-              isPointing: !children.length
+              isPointing: !children.length //TODO switch pointing to gamepad with latest button/axis movement
             })
           }
         }
