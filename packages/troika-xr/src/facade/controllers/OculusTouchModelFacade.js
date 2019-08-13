@@ -54,24 +54,26 @@ class OculusTouchModelFacade extends Object3DFacade {
   }
 
   addObjects(gltf) {
-    const root = this.rootObj = gltf.scene
+    if (this.threeObject) {
+      const root = this.rootObj = gltf.scene
 
-    // Position/rotation adjustments to match actual controllers
-    // TODO fine-tune these
-    root.position.set(this.hand === 'left' ? -0.01 : 0.01, 0.04,-0.04)
-    root.rotation.x = 0.7
+      // Position/rotation adjustments to match actual controllers
+      // TODO fine-tune these
+      root.position.set(this.hand === 'left' ? -0.01 : 0.01, 0.04,-0.04)
+      root.rotation.x = 0.7
 
-    this.threeObject.add(root)
+      this.threeObject.add(root)
 
-    // Find all the individual meshes
-    this.meshes = Object.create(null)
-    root.traverse(obj => {
-      if (obj.isMesh) {
-        obj.material = obj.material.clone() //workaround for some meshes sharing a material instance
-        this.meshes[obj.name] = obj
-      }
-    })
-    this.afterUpdate()
+      // Find all the individual meshes
+      this.meshes = Object.create(null)
+      root.traverse(obj => {
+        if (obj.isMesh) {
+          obj.material = obj.material.clone() //workaround for some meshes sharing a material instance
+          this.meshes[obj.name] = obj
+        }
+      })
+      this.afterUpdate()
+    }
   }
 
   removeObjects() {
