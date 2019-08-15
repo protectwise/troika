@@ -7,7 +7,7 @@ import ArcsExample from './arcs/ArcsExample'
 import GlobeExample from './globe/GlobeExample'
 import HtmlOverlays from './html-overlays/HtmlOverlaysExample'
 import TextExample from './text/TextExample'
-import UIExample from './ui/UIExample'
+import UIExample from './ui2/UIExample'
 import DragDrop from './dragdrop/DragDropExample'
 import LevelOfDetail from './lod/LevelOfDetailExample'
 import CurveAnim from './curve-anim/CurveAnimExample'
@@ -27,7 +27,7 @@ const EXAMPLES = [
   {id: 'ui', name: 'User Interface', component: UIExample},
   {id: 'dragdrop', name: 'Drag and Drop', component: DragDrop},
   {id: 'lod', name: 'Level of Detail', component: LevelOfDetail},
-  {id: 'curveAnim', name: 'Curve Animation', component: CurveAnim, disableVR:true},
+  {id: 'curveAnim', name: 'Line Graph', component: CurveAnim, disableVR:true},
   {id: 'twoDee', name: 'Canvas2D', component: Canvas2DExample, disableVR:true},
   {id: 'easings', name: 'Animation Easings', component: EasingsExample, disableVR:true},
   {id: 'instanceable', name: 'Instanceable Objects', component: InstanceableExample},
