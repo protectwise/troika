@@ -5,39 +5,33 @@ import {
   PlaneBufferGeometry,
   MeshBasicMaterial,
   DoubleSide,
-  InstancedBufferGeometry,
-  InstancedBufferAttribute,
-  Sphere,
   Vector3,
   Matrix4
 } from 'three'
 import {getTextRenderInfo} from './TextBuilder'
 import {createTextDerivedMaterial} from './TextDerivedMaterial'
+import {GlyphsGeometry} from './GlyphsGeometry'
+
 const {assign} = utils
 const glyphRectGeometry = new PlaneBufferGeometry(1, 1).translate(0.5, 0.5, 0)
 const defaultMaterial = new MeshBasicMaterial({color: 0xffffff, side: DoubleSide, transparent: true})
 const raycastMesh = new Mesh(glyphRectGeometry.clone(), defaultMaterial)
 const propsRequiringRecalc = ['text', 'font', 'fontSize', 'letterSpacing', 'lineHeight', 'whiteSpace', 'overflowWrap', 'maxWidth', 'textAlign', 'anchor']
-const noop = () => {}
 const noclip = Object.freeze([0, 0, 0, 0])
 const tempVec3 = new Vector3()
 const tempMat4 = new Matrix4()
 
 class Text3DFacade extends Object3DFacade {
   constructor(parent) {
-    const geometry = new InstancedBufferGeometry().copy(glyphRectGeometry)
-    geometry.maxInstancedCount = 0
-    geometry.addAttribute('aTroikaGlyphBounds', new InstancedBufferAttribute(new Float32Array(0), 4))
-    geometry.addAttribute('aTroikaGlyphIndex', new InstancedBufferAttribute(new Float32Array(0), 1))
-    geometry.boundingSphere = new Sphere()
+
+    const geometry = new GlyphsGeometry()
     geometry.boundingSphere.version = 0
-    geometry.computeBoundingSphere = noop //we'll handle bounding sphere updates ourselves
 
     const mesh = new Mesh(geometry, defaultMaterial)
 
     super(parent, mesh)
     
-    this._textGeometry = geometry
+    this._glyphsGeometry = geometry
   }
 
   afterUpdate() {
@@ -69,23 +63,10 @@ class Text3DFacade extends Object3DFacade {
           // Save result for later use in onBeforeRender
           this._textRenderInfo = textRenderInfo
 
-          // Populate geometry attributes
-          const geometry = this._textGeometry
-          const {aTroikaGlyphBounds, aTroikaGlyphIndex} = geometry.attributes
-          updateBufferAttrArray(aTroikaGlyphBounds, textRenderInfo.glyphBounds)
-          updateBufferAttrArray(aTroikaGlyphIndex, textRenderInfo.glyphIndices)
-          geometry.maxInstancedCount = textRenderInfo.glyphIndices.length
-
-          // Update geometry's bounding sphere for raycasting/frustum culling
-          const totalBounds = textRenderInfo.totalBounds
-          const sphere = geometry.boundingSphere
-          sphere.center.set(
-            (totalBounds[0] + totalBounds[2]) / 2,
-            (totalBounds[1] + totalBounds[3]) / 2,
-            0
-          )
-          sphere.radius = sphere.center.distanceTo(tempVec3.set(totalBounds[0], totalBounds[1], 0))
-          sphere.version++
+          // Update the geometry attributes
+          const geometry = this._glyphsGeometry
+          geometry.updateGlyphs(textRenderInfo.glyphBounds, textRenderInfo.glyphIndices, textRenderInfo.totalBounds)
+          geometry.boundingSphere.version++
 
           this._hasActiveTextRequest = false
           this.afterUpdate()
@@ -149,7 +130,7 @@ class Text3DFacade extends Object3DFacade {
    * text rendering metrics.
    */
   _getGeometryBoundingSphere() {
-    const sphere = this._textGeometry.boundingSphere
+    const sphere = this._glyphsGeometry.boundingSphere
     return sphere.radius ? sphere : null
   }
 
@@ -180,7 +161,7 @@ class Text3DFacade extends Object3DFacade {
     if (textMaterial) {
       textMaterial.dispose()
     }
-    this._textGeometry.dispose()
+    this._glyphsGeometry.dispose()
     super.destructor()
   }
 }
@@ -197,15 +178,6 @@ assign(Text3DFacade.prototype, {
   material: defaultMaterial
 })
 
-
-function updateBufferAttrArray(attr, newArray) {
-  if (attr.array.length === newArray.length) {
-    attr.array.set(newArray)
-  } else {
-    attr.setArray(newArray)
-  }
-  attr.needsUpdate = true
-}
 
 
 
