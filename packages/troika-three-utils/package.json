@@ -1,0 +1,17 @@
+{
+  "name": "troika-three-utils",
+  "version": "0.14.1",
+  "description": "Various utilities related to Three.js",
+  "author": "Jason Johnston <jason.johnston@protectwise.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/protectwise/troika.git",
+    "directory": "packages/troika-three-utils"
+  },
+  "license": "MIT",
+  "main": "dist/troika-three-utils.umd.js",
+  "browser": "dist/troika-three-utils.umd.js",
+  "jsnext:main": "dist/troika-three-utils.esm.js",
+  "module": "dist/troika-three-utils.esm.js",
+  "module:es2015": "src/index.js"
+}

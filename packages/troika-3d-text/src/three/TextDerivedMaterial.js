@@ -1,4 +1,4 @@
-import { createDerivedMaterial } from 'troika-3d'
+import { createDerivedMaterial } from 'troika-three-utils'
 import { Vector4 } from 'three'
 
 const VERTEX_DEFS = `

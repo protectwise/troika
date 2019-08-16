@@ -15,7 +15,8 @@
   "module": "dist/troika-3d.esm.js",
   "module:es2015": "src/index.js",
   "dependencies": {
-    "troika-core": "^0.14.0"
+    "troika-core": "^0.14.0",
+    "troika-three-utils": "^0.14.1"
   },
   "peerDependencies": {
     "three": "0.103.x - 0.106.x"

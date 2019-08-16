@@ -23,7 +23,7 @@ import {
  * TODO:
  *   - Use a float texture if the extension is available so we can skip the encoding process
  */
-export default class ShaderFloatArray {
+export class ShaderFloatArray {
   constructor(name) {
     this.name = name
     this.textureUniform = `dataTex_${name}`

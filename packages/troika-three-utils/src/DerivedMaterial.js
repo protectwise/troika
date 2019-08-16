@@ -1,7 +1,24 @@
-import { utils } from 'troika-core'
-import { voidMainRE, expandShaderIncludes } from './shaderUtils'
+import { voidMainRegExp } from './voidMainRegExp.js'
+import { expandShaderIncludes } from './expandShaderIncludes.js'
 import { UniformsUtils } from 'three'
-const { assign } = utils
+
+
+// Local assign polyfill to avoid importing troika-core
+const assign = Object.assign || function(/*target, ...sources*/) {
+  let target = arguments[0]
+  for (let i = 1, len = arguments.length; i < len; i++) {
+    let source = arguments[i]
+    if (source) {
+      for (let prop in source) {
+        if (source.hasOwnProperty(prop)) {
+          target[prop] = source[prop]
+        }
+      }
+    }
+  }
+  return target
+}
+
 
 let idCtr = 0
 const CACHE = new WeakMap() //threejs requires WeakMap internally so should be safe to assume support
@@ -161,14 +178,14 @@ ${vertexMainIntro || ''}
     }
 
     vertexShader = vertexShader.replace(
-      voidMainRE,
+      voidMainRegExp,
       `${vertexDefs || ''}\n\n$&\n\n${vertexMainIntro || ''}`)
   }
 
   // Modify fragment shader
   if (fragmentDefs || fragmentMainIntro || fragmentColorTransform) {
     fragmentShader = expandShaderIncludes(fragmentShader)
-    fragmentShader = fragmentShader.replace(voidMainRE, `
+    fragmentShader = fragmentShader.replace(voidMainRegExp, `
 ${fragmentDefs || ''}
 void troikaOrigMain${id}() {
 ${fragmentMainIntro || ''}

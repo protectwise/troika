@@ -2,7 +2,7 @@ import { utils } from 'troika-core'
 import { InstancedBufferAttribute, InstancedBufferGeometry } from 'three'
 import Group3DFacade from '../Group3DFacade'
 import { upgradeShaders } from './InstancingShaderUpgrades'
-import { getShadersForMaterial, getUniformsTypes, expandShaderIncludes } from '../../shaderUtils'
+import { getShadersForMaterial, getShaderUniformTypes, expandShaderIncludes } from 'troika-three-utils'
 
 const { assign, assignIf } = utils
 
@@ -230,8 +230,8 @@ class InstancingManager extends Group3DFacade {
       if (instanceUniforms && instanceUniforms.length) {
         let {vertexShader, fragmentShader} = getShadersForMaterial(material)
         let allTypes = assign(
-          getUniformsTypes(expandShaderIncludes(vertexShader)),
-          getUniformsTypes(expandShaderIncludes(fragmentShader))
+          getShaderUniformTypes(expandShaderIncludes(vertexShader)),
+          getShaderUniformTypes(expandShaderIncludes(fragmentShader))
         ) //TODO handle type mismatches?
         for (let i = instanceUniforms.length; i--;) {
           let uniform = instanceUniforms[i]

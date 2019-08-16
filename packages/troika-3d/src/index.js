@@ -15,10 +15,6 @@ export {default as Instanceable3DFacade} from './facade/instancing/Instanceable3
 // React entry point
 export {default as Canvas3D} from './react/Canvas3D.jsx'
 
-// Other
-import * as shaderUtils from './shaderUtils.js'
-export {shaderUtils}
-export {createDerivedMaterial} from './DerivedMaterial.js'
-
-// Convenience shortcuts for some common troika-core exports
+// Convenience shortcuts for some common submodule exports
 export {Facade, ListFacade, ParentFacade} from 'troika-core'
+export {createDerivedMaterial} from 'troika-three-utils'

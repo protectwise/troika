@@ -16,7 +16,7 @@
   "module:es2015": "src/index.js",
   "dependencies": {
     "troika-3d": "^0.14.0",
-    "troika-core": "^0.14.0",
+    "troika-three-utils": "^0.14.1",
     "troika-worker-utils": "^0.14.0"
   },
   "devDependencies": {

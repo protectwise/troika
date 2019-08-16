@@ -1,4 +1,4 @@
-import {expandShaderIncludes, getUniformsTypes, voidMainRE} from '../../shaderUtils'
+import {expandShaderIncludes, getShaderUniformTypes, voidMainRegExp} from 'troika-three-utils'
 
 const inverseFunction = `
 #if __VERSION__ < 300
@@ -73,8 +73,8 @@ export function upgradeShaders(vertexShader, fragmentShader, instanceUniforms=[]
   let usesNormalMatrix = normalMatrixRefRE.test(vertexShader)
 
   // Find what uniforms are declared in which shader and their types
-  let vertexUniforms = getUniformsTypes(vertexShader)
-  let fragmentUniforms = getUniformsTypes(fragmentShader)
+  let vertexUniforms = getShaderUniformTypes(vertexShader)
+  let fragmentUniforms = getShaderUniformTypes(fragmentShader)
 
   let vertexDeclarations = [modelMatrixRowAttrs]
   let vertexAssignments = []
@@ -119,7 +119,7 @@ export function upgradeShaders(vertexShader, fragmentShader, instanceUniforms=[]
   })
 
   // Inject vertex shader declarations and assignments
-  vertexShader = vertexShader.replace(voidMainRE, `
+  vertexShader = vertexShader.replace(voidMainRegExp, `
 ${ vertexDeclarations.join('\n') }
 $&
 ${ vertexAssignments.join('\n') }
@@ -127,7 +127,7 @@ ${ vertexAssignments.join('\n') }
 
   // Inject fragment shader declarations
   if (fragmentDeclarations.length) {
-    fragmentShader = fragmentShader.replace(voidMainRE, `
+    fragmentShader = fragmentShader.replace(voidMainRegExp, `
 ${ fragmentDeclarations.join('\n') }
 $&
     `)
