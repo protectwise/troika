@@ -36,20 +36,8 @@ export default {
       //sourceMap: false,  // Default: true
     }),
     nodeResolve({
-      // The default resolution ends up favoring the pkg.browser field, which for the Troika
-      // packages is the UMD build which for some reason the commonjs plugin can't seem to
-      // handle. So we override the packageFilter option (https://github.com/browserify/resolve#resolveid-opts-cb)
-      // to favor our custom "module:es2015" field which points to the source.
-      customResolveOptions: {
-        packageFilter(pkg, pkgPath) {
-          pkg.main = pkg['module:es2015'] ||
-            pkg.module ||
-            pkg['jsnext:main'] ||
-            (typeof pkg.browser === 'string' && pkg.browser) ||
-            pkg.main
-          return pkg
-        }
-      }
+      // Favor our custom "module:es2015" field which points to the ES6 source files
+      mainFields: ['module:es2015', 'module', 'jsnext:main', 'browser', 'main'],
     }),
     START_SERVER ? serve({
       //open: true,
