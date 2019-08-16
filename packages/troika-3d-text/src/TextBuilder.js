@@ -153,7 +153,7 @@ export const fontProcessorWorkerModule = defineWorkerModule({
   init(config, sdfDistancePercent, opentypeFactory, createFontProcessor) {
     const opentype = opentypeFactory()
     return createFontProcessor(opentype, {
-      defaultFontUrl: config.defaultFontUrl,
+      defaultFontUrl: config.defaultFontURL,
       sdfTextureSize: config.sdfGlyphSize,
       sdfDistancePercent
     })
