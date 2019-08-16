@@ -1,5 +1,5 @@
 import { Object3DFacade } from 'troika-3d'
-import { TextMesh } from './TextMesh'
+import { TextMesh } from '../three/TextMesh.js'
 
 
 // Properties that will simply be forwarded to the TextMesh:

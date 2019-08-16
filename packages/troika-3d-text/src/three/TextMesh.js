@@ -7,7 +7,7 @@ import {
 } from 'three'
 import { GlyphsGeometry } from './GlyphsGeometry.js'
 import { createTextDerivedMaterial } from './TextDerivedMaterial.js'
-import { getTextRenderInfo } from './TextBuilder.js'
+import { getTextRenderInfo } from '../TextBuilder.js'
 
 
 

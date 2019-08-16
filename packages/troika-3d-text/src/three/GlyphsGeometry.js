@@ -3,7 +3,6 @@ import {
   InstancedBufferGeometry,
   InstancedBufferAttribute,
   Sphere,
-  Box3,
   Vector3
 } from 'three'
 

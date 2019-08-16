@@ -1,7 +1,6 @@
 import { DataTexture, LinearFilter, LuminanceFormat } from 'three'
-import createFontProcessor from './FontProcessor'
+import createFontProcessor from './FontProcessor.js'
 import opentypeFactory from '../libs/opentype.factory.js'
-import { utils } from 'troika-core'
 import { defineWorkerModule, ThenableWorkerModule } from 'troika-worker-utils'
 
 const CONFIG = {
@@ -28,7 +27,7 @@ export function configureTextBuilder(config) {
   if (hasRequested) {
     console.warn('configureTextBuilder called after first font request; will be ignored.')
   } else {
-    utils.assign(CONFIG, config)
+    assign(CONFIG, config)
   }
 }
 
@@ -68,7 +67,7 @@ const atlases = Object.create(null)
  * @param callback
  */
 export function getTextRenderInfo(args, callback) {
-  args = utils.assign({}, args)
+  args = assign({}, args)
 
   // Apply default font here to avoid a 'null' atlas, and convert relative
   // URLs to absolute so they can be resolved in the worker
@@ -133,18 +132,31 @@ export function getTextRenderInfo(args, callback) {
   })
 }
 
+// Local assign impl so we don't have to import troika-core
+function assign(toObj, fromObj) {
+  for (let key in fromObj) {
+    if (fromObj.hasOwnProperty(key)) {
+      toObj[key] = fromObj[key]
+    }
+  }
+  return toObj
+}
+
 
 export const fontProcessorWorkerModule = defineWorkerModule({
   dependencies: [
-    CONFIG.defaultFontURL,
-    CONFIG.sdfGlyphSize,
+    CONFIG,
     SDF_DISTANCE_PERCENT,
     opentypeFactory,
     createFontProcessor
   ],
-  init(defaultFontUrl, sdfTextureSize, sdfDistancePercent, opentypeFactory, createFontProcessor) {
+  init(config, sdfDistancePercent, opentypeFactory, createFontProcessor) {
     const opentype = opentypeFactory()
-    return createFontProcessor(opentype, {defaultFontUrl, sdfTextureSize, sdfDistancePercent})
+    return createFontProcessor(opentype, {
+      defaultFontUrl: config.defaultFontUrl,
+      sdfTextureSize: config.sdfGlyphSize,
+      sdfDistancePercent
+    })
   }
 })
 
