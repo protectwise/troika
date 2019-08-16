@@ -48,49 +48,69 @@ const onwarn = (warning, warn) => {
 }
 
 
-export default [
-  // ES module file
-  {
-    input: 'src/index.js',
-    output: {
-      format: 'esm',
-      file: `dist/${LERNA_PACKAGE_NAME}.esm.js`
-    },
-    external: Object.keys(EXTERNAL_GLOBALS),
-    plugins: [
-      buble()
-    ],
-    onwarn
-  },
-  // UMD file
-  {
-    input: 'src/index.js',
-    output: {
-      format: 'umd',
-      file: `dist/${LERNA_PACKAGE_NAME}.umd.js`,
-      name: EXTERNAL_GLOBALS[LERNA_PACKAGE_NAME],
-      globals: EXTERNAL_GLOBALS
-    },
-    external: Object.keys(EXTERNAL_GLOBALS),
-    plugins: [
-      buble()
-    ],
-    onwarn
-  },
-  // UMD file, minified
-  {
-    input: 'src/index.js',
-    output: {
-      format: 'umd',
-      file: `dist/${LERNA_PACKAGE_NAME}.umd.min.js`,
-      name: EXTERNAL_GLOBALS[LERNA_PACKAGE_NAME],
-      globals: EXTERNAL_GLOBALS
-    },
-    external: Object.keys(EXTERNAL_GLOBALS),
-    plugins: [
-      buble(),
-      closureCompiler()
-    ],
-    onwarn
+// Allow an individual package to define custom entry point(s) and output, via a
+// json file in its root. If not present, uses a default.
+let entries
+const entriesPath = `${LERNA_ROOT_PATH}/packages/${LERNA_PACKAGE_NAME}/rollup.build-entries.js`
+if (fs.existsSync(entriesPath)) {
+  entries = require(entriesPath)
+} else {
+  entries = {
+    'src/index.js': LERNA_PACKAGE_NAME
   }
-]
+}
+
+
+const builds = []
+for (let entry of Object.keys(entries)) {
+  const outFilePrefix = entries[entry]
+  builds.push(
+    // ES module file
+    {
+      input: entry,
+      output: {
+        format: 'esm',
+        file: `dist/${outFilePrefix}.esm.js`
+      },
+      external: Object.keys(EXTERNAL_GLOBALS),
+      plugins: [
+        buble()
+      ],
+      onwarn
+    },
+    // UMD file
+    {
+      input: entry,
+      output: {
+        format: 'umd',
+        file: `dist/${outFilePrefix}.umd.js`,
+        name: EXTERNAL_GLOBALS[LERNA_PACKAGE_NAME],
+        globals: EXTERNAL_GLOBALS
+      },
+      external: Object.keys(EXTERNAL_GLOBALS),
+      plugins: [
+        buble()
+      ],
+      onwarn
+    },
+    // UMD file, minified
+    {
+      input: entry,
+      output: {
+        format: 'umd',
+        file: `dist/${outFilePrefix}.umd.min.js`,
+        name: EXTERNAL_GLOBALS[LERNA_PACKAGE_NAME],
+        globals: EXTERNAL_GLOBALS
+      },
+      external: Object.keys(EXTERNAL_GLOBALS),
+      plugins: [
+        buble(),
+        closureCompiler()
+      ],
+      onwarn
+    }
+  )
+}
+
+
+export default builds
