@@ -1,6 +1,6 @@
 import { DataTexture, LinearFilter, LuminanceFormat } from 'three'
 import createFontProcessor from './FontProcessor.js'
-import opentypeFactory from '../libs/opentype.factory.js'
+import opentypeFactory from './TyprAdapter.js'
 import { defineWorkerModule, ThenableWorkerModule } from 'troika-worker-utils'
 
 const CONFIG = {

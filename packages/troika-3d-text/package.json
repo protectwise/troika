@@ -20,9 +20,11 @@
     "troika-worker-utils": "^0.15.0"
   },
   "devDependencies": {
+    "node-fetch": "^2.6.0",
     "opentype.js": "^1.0.1"
   },
   "scripts": {
-    "build-opentype": "rollup -c rollup.config.build-opentype.js"
+    "build-opentype": "rollup -c rollup.config.build-opentype.js",
+    "build-typr": "node build-typr.js"
   }
 }

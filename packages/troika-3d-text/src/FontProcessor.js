@@ -54,20 +54,23 @@ export default function createFontProcessor(opentype, config) {
    */
   function doLoadFont(url, callback) {
     function tryLoad() {
-      try {
-        opentype.load(url, (err, font) => {
-          if (err) {
-            throw err
-          } else {
-            callback(font)
-          }
-        }, {lowMemory: true})
-      } catch(err) {
+      const onError = err => {
         console.error(`Failure loading font ${url}${url === defaultFontUrl ? '' : '; trying fallback'}`, err)
         if (url !== defaultFontUrl) {
           url = defaultFontUrl
           tryLoad()
         }
+      }
+      try {
+        opentype.load(url, (err, font) => {
+          if (err) {
+            onError(new Error(err))
+          } else {
+            callback(font)
+          }
+        }, {lowMemory: true})
+      } catch(err) {
+        onError(err)
       }
     }
     tryLoad()
@@ -385,9 +388,8 @@ export default function createFontProcessor(opentype, config) {
     const textureData = new Uint8Array(square(sdfTextureSize))
 
     // Determine mapping between glyph grid coords and sdf grid coords
-    const glyphMetrics = glyphObj.getMetrics()
-    const glyphW = glyphMetrics.xMax - glyphMetrics.xMin
-    const glyphH = glyphMetrics.yMax - glyphMetrics.yMin
+    const glyphW = glyphObj.xMax - glyphObj.xMin
+    const glyphH = glyphObj.yMax - glyphObj.yMin
 
     // Choose a maximum distance radius in font units, based on the glyph's max dimensions
     const fontUnitsMaxDist = Math.max(glyphW, glyphH) * sdfDistancePercent
@@ -396,10 +398,10 @@ export default function createFontProcessor(opentype, config) {
     const fontUnitsPerXTexel = (glyphW + fontUnitsMaxDist * 2) / sdfTextureSize
     const fontUnitsPerYTexel = (glyphH + fontUnitsMaxDist * 2) / sdfTextureSize
 
-    const textureMinFontX = glyphMetrics.xMin - fontUnitsMaxDist - fontUnitsPerXTexel
-    const textureMinFontY = glyphMetrics.yMin - fontUnitsMaxDist - fontUnitsPerYTexel
-    const textureMaxFontX = glyphMetrics.xMax + fontUnitsMaxDist + fontUnitsPerXTexel
-    const textureMaxFontY = glyphMetrics.yMax + fontUnitsMaxDist + fontUnitsPerYTexel
+    const textureMinFontX = glyphObj.xMin - fontUnitsMaxDist - fontUnitsPerXTexel
+    const textureMinFontY = glyphObj.yMin - fontUnitsMaxDist - fontUnitsPerYTexel
+    const textureMaxFontX = glyphObj.xMax + fontUnitsMaxDist + fontUnitsPerXTexel
+    const textureMaxFontY = glyphObj.yMax + fontUnitsMaxDist + fontUnitsPerYTexel
 
     function textureXToFontX(x) {
       return textureMinFontX + (textureMaxFontX - textureMinFontX) * x / sdfTextureSize
@@ -412,7 +414,7 @@ export default function createFontProcessor(opentype, config) {
     const commands = glyphObj.path.commands
     if (commands && commands.length) { //whitespace chars will have no commands, so we can skip all this
       // Decompose all paths into straight line segments and add them to a quadtree
-      const lineSegmentsIndex = new GlyphSegmentsQuadtree(glyphMetrics)
+      const lineSegmentsIndex = new GlyphSegmentsQuadtree(glyphObj)
       let firstX, firstY, prevX, prevY
       commands.forEach(cmd => {
         switch (cmd.type) {
@@ -543,9 +545,9 @@ export default function createFontProcessor(opentype, config) {
    * Basic quadtree impl for performing fast spatial searches of a glyph's line segments
    */
   class GlyphSegmentsQuadtree {
-    constructor(glyphMetrics) {
+    constructor(glyphObj) {
       // Pick a good initial power-of-two bounding box that will hold all possible segments
-      const {xMin, yMin, xMax, yMax} = glyphMetrics
+      const {xMin, yMin, xMax, yMax} = glyphObj
       const dx = xMax - xMin
       const dy = yMax - yMin
       const cx = Math.round(xMin + dx / 2)
