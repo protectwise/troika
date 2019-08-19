@@ -1,17 +1,29 @@
 /**
  * An adapter that allows Typr.js to be used as if it were (a subset of) the OpenType.js API.
+ * Also adds support for WOFF files (not WOFF2).
  */
 
 import typrFactory from '../libs/typr.factory.js'
+import woff2otfFactory from '../libs/woff2otf.factory.js'
 import {defineWorkerModule} from 'troika-worker-utils'
 
-function createTyprAdapter(Typr) {
+function createTyprAdapter(Typr, woff2otf) {
   const cmdArgs = {
     M: ['x', 'y'],
     L: ['x', 'y'],
     Q: ['x1', 'y1', 'x', 'y'],
     C: ['x1', 'y1', 'x2', 'y2', 'x', 'y'],
     Z: []
+  }
+
+  function parse(buffer) {
+    // Look to see if we have a WOFF file and convert it if so:
+    const peek = new Uint8Array(buffer, 0, 4)
+    const tag = Typr._bin.readASCII(peek, 0, 4)
+    if (tag === 'wOFF') {
+      buffer = woff2otf(buffer)
+    }
+    return wrapAsOpenTypeFont(Typr.parse(buffer))
   }
 
   function wrapAsOpenTypeFont([typrFont]) {
@@ -140,10 +152,11 @@ function createTyprAdapter(Typr) {
       request.open('get', url, true)
       request.responseType = 'arraybuffer'
       request.onload = function () {
-        if (request.response) {
+        const buffer = request.response
+        if (buffer) {
           let font
           try {
-            font = wrapAsOpenTypeFont(Typr.parse(request.response))
+            font = parse(buffer)
           } catch (e) {
             return callback(e, null);
           }
@@ -162,10 +175,11 @@ function createTyprAdapter(Typr) {
 
 
 const workerModule = defineWorkerModule({
-  dependencies: [typrFactory, createTyprAdapter],
-  init(typrFactory, createTyprAdapter) {
+  dependencies: [typrFactory, woff2otfFactory, createTyprAdapter],
+  init(typrFactory, woff2otfFactory, createTyprAdapter) {
     const Typr = typrFactory()
-    return createTyprAdapter.bind(null, Typr)
+    const woff2otf = woff2otfFactory()
+    return createTyprAdapter.bind(null, Typr, woff2otf)
   }
 })
 

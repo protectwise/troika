@@ -1,5 +1,5 @@
 
-// Custom bundle of Typr.js (https://github.com/photopea/Typr.js) for use in Troika text rendering. 
+// Custom bundle of Typr.js (https://github.com/photopea/Typr.js) for use in troika-3d-text. 
 // Original MIT license applies: https://github.com/photopea/Typr.js/blob/gh-pages/LICENSE
 
 export default function() {

@@ -15,14 +15,14 @@ async function fetchText(url) {
   }
 }
 
-async function run() {
+async function buildTypr() {
   const typr = await fetchText('https://raw.githubusercontent.com/photopea/Typr.js/gh-pages/src/Typr.js')
   const typrU = await fetchText('https://raw.githubusercontent.com/photopea/Typr.js/gh-pages/src/Typr.U.js')
   // const typr = fs.readFileSync('libs/typr/src/Typr.js')
   // const typrU = fs.readFileSync('libs/typr/src/Typr.U.js')
 
   const output = `
-// Custom bundle of Typr.js (https://github.com/photopea/Typr.js) for use in Troika text rendering. 
+// Custom bundle of Typr.js (https://github.com/photopea/Typr.js) for use in troika-3d-text. 
 // Original MIT license applies: https://github.com/photopea/Typr.js/blob/gh-pages/LICENSE
 
 export default function() {
@@ -45,4 +45,41 @@ return Typr
   fs.writeFileSync('libs/typr.factory.js', output)
 }
 
-run()
+
+async function buildWoff2otf() {
+  const tinyInflate = await fetchText('https://raw.githubusercontent.com/foliojs/tiny-inflate/master/index.js')
+  const woff2otf = fs.readFileSync('src/woff2otf.js')
+
+  const output = `
+// Custom bundle of woff2otf (https://github.com/arty-name/woff2otf) with tiny-inflate 
+// (https://github.com/foliojs/tiny-inflate) for use in troika-3d-text. 
+// Original licenses apply: 
+// - tiny-inflate: https://github.com/foliojs/tiny-inflate/blob/master/LICENSE (MIT)
+// - woff2otf.js: https://github.com/arty-name/woff2otf/blob/master/woff2otf.js (Apache2)
+
+export default function() {
+
+// Begin tinyInflate
+const tinyInflate = (function() {
+  const module = {}
+  ${tinyInflate}
+  return module.exports
+})()
+// End tinyInflate
+
+// Begin woff2otf.js
+${woff2otf}
+// End woff2otf.js
+
+return function(buffer) {
+  return convert_streams(buffer, tinyInflate)
+}
+
+}
+`
+
+  fs.writeFileSync('libs/woff2otf.factory.js', output)
+}
+
+buildTypr()
+buildWoff2otf()
