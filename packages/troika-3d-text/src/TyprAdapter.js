@@ -46,6 +46,8 @@ function createTyprAdapter(Typr, woff2otf) {
 
         const glyphIndices = Typr.U.stringToGlyphs(typrFont, text)
         glyphIndices.forEach(glyphIndex => {
+          if (glyphIndex === -1) return //Typr leaves -1s in the array after ligature substitution
+
           let otGlyph = glyphMap[glyphIndex]
           if (!otGlyph) {
             // !!! NOTE: Typr doesn't expose a public accessor for the glyph data, so this just

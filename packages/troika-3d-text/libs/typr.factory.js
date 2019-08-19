@@ -2135,7 +2135,7 @@ Typr.U._getWPfeature = function(str, ci) {  // get Word Position feature
 	return feat;
 }
 Typr.U._applySubs = function(gls, ci, tab, llist) {
-	var rlim = Math.min(3, gls.length-ci-1);
+	var rlim = gls.length-ci-1;
 	//if(ci==0) console.log("++++ ", tab.ltype);
 	for(var j=0; j<tab.tabs.length; j++)
 	{
