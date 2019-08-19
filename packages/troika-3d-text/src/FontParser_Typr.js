@@ -7,65 +7,38 @@ import typrFactory from '../libs/typr.factory.js'
 import woff2otfFactory from '../libs/woff2otf.factory.js'
 import {defineWorkerModule} from 'troika-worker-utils'
 
-function createTyprAdapter(Typr, woff2otf) {
-  const cmdArgs = {
-    M: ['x', 'y'],
-    L: ['x', 'y'],
-    Q: ['x1', 'y1', 'x', 'y'],
-    C: ['x1', 'y1', 'x2', 'y2', 'x', 'y'],
-    Z: []
+function parserFactory(Typr, woff2otf) {
+  const cmdArgLengths = {
+    M: 2,
+    L: 2,
+    Q: 4,
+    C: 6,
+    Z: 0
   }
 
-  function parse(buffer) {
-    // Look to see if we have a WOFF file and convert it if so:
-    const peek = new Uint8Array(buffer, 0, 4)
-    const tag = Typr._bin.readASCII(peek, 0, 4)
-    if (tag === 'wOFF') {
-      buffer = woff2otf(buffer)
-    }
-    return wrapAsOpenTypeFont(Typr.parse(buffer))
-  }
-
-  function wrapAsOpenTypeFont([typrFont]) {
+  function wrapFontObj([typrFont]) {
     const glyphMap = Object.create(null)
 
-    const otFont = {
-      get glyphs() {
-        // impl if we need it
-      },
+    const fontObj = {
       unitsPerEm: typrFont.head.unitsPerEm,
       ascender: typrFont.hhea.ascender,
       descender: typrFont.hhea.descender,
-      forEachGlyph(text, x, y, fontSize, options, callback) {
-        // NOTE: `options` other than letterSpacing and tracking will be ignored
-        // as Typr does not allow control over things like ligatures and kerning.
-
-        x = x || 0
-        y = y || 0
-        const fontScale = 1 / otFont.unitsPerEm * fontSize
+      forEachGlyph(text, fontSize, letterSpacing, callback) {
+        let glyphX = 0
+        const fontScale = 1 / fontObj.unitsPerEm * fontSize
 
         const glyphIndices = Typr.U.stringToGlyphs(typrFont, text)
         glyphIndices.forEach(glyphIndex => {
           if (glyphIndex === -1) return //Typr leaves -1s in the array after ligature substitution
 
-          let otGlyph = glyphMap[glyphIndex]
-          if (!otGlyph) {
+          let glyphObj = glyphMap[glyphIndex]
+          if (!glyphObj) {
             // !!! NOTE: Typr doesn't expose a public accessor for the glyph data, so this just
             // copies how it parses that data in Typr.U._drawGlyf -- this may be fragile.
-            let typrGlyph = Typr.glyf._parseGlyf(typrFont, glyphIndex) || {xMin: 0, xMax: 0, yMin: 0, yMax: 0}
-
+            const typrGlyph = Typr.glyf._parseGlyf(typrFont, glyphIndex) || {xMin: 0, xMax: 0, yMin: 0, yMax: 0}
             const {cmds, crds} = Typr.U.glyphToPath(typrFont, glyphIndex)
-            let crdIndex = 0
-            const commands = cmds.map(type => {
-              const out = {type}
-              cmdArgs[type].forEach(argName => {
-                out[argName] = crds[crdIndex++]
-              })
-              return out
-            })
 
-            otGlyph = glyphMap[glyphIndex] = {
-              font: otFont,
+            glyphObj = glyphMap[glyphIndex] = {
               index: glyphIndex,
               unicode: getUnicodeForGlyph(typrFont, glyphIndex),
               advanceWidth: typrFont.hmtx.aWidth[glyphIndex],
@@ -73,28 +46,37 @@ function createTyprAdapter(Typr, woff2otf) {
               yMin: typrGlyph.yMin,
               xMax: typrGlyph.xMax,
               yMax: typrGlyph.yMax,
-              path: {
-                commands
+              pathCommandCount: cmds.length,
+              forEachPathCommand(callback) {
+                let argsIndex = 0
+                const argsArray = []
+                for (let i = 0, len = cmds.length; i < len; i++) {
+                  const numArgs = cmdArgLengths[cmds[i]]
+                  argsArray.length = 1 + numArgs
+                  argsArray[0] = cmds[i]
+                  for (let j = 1; j <= numArgs; j++) {
+                    argsArray[j] = crds[argsIndex++]
+                  }
+                  callback.apply(null, argsArray)
+                }
               }
             }
           }
 
-          callback.call(otFont, otGlyph, x, y, fontSize, options)
+          callback.call(null, glyphObj, glyphX)
 
-          if (otGlyph.advanceWidth) {
-            x += otGlyph.advanceWidth * fontScale
+          if (glyphObj.advanceWidth) {
+            glyphX += glyphObj.advanceWidth * fontScale
           }
-          if (options.letterSpacing) {
-            x += options.letterSpacing * fontSize
-          } else if (options.tracking) {
-            x += (options.tracking / 1000) * fontSize
+          if (letterSpacing) {
+            glyphX += letterSpacing * fontSize
           }
         })
-        return x
+        return glyphX
       }
     }
 
-    return otFont
+    return fontObj
   }
 
 
@@ -147,41 +129,24 @@ function createTyprAdapter(Typr, woff2otf) {
   }
 
 
-  // This object should behave like the 'opentype' global
-  return {
-    load (url, callback, opt) {
-      const request = new XMLHttpRequest()
-      request.open('get', url, true)
-      request.responseType = 'arraybuffer'
-      request.onload = function () {
-        const buffer = request.response
-        if (buffer) {
-          let font
-          try {
-            font = parse(buffer)
-          } catch (e) {
-            return callback(e, null);
-          }
-          return callback(null, font);
-        } else {
-          return callback('Font could not be loaded: ' + request.statusText);
-        }
-      }
-      request.onerror = function () {
-        callback('Font could not be loaded');
-      }
-      request.send();
+  return function parse(buffer) {
+    // Look to see if we have a WOFF file and convert it if so:
+    const peek = new Uint8Array(buffer, 0, 4)
+    const tag = Typr._bin.readASCII(peek, 0, 4)
+    if (tag === 'wOFF') {
+      buffer = woff2otf(buffer)
     }
+    return wrapFontObj(Typr.parse(buffer))
   }
 }
 
 
 const workerModule = defineWorkerModule({
-  dependencies: [typrFactory, woff2otfFactory, createTyprAdapter],
-  init(typrFactory, woff2otfFactory, createTyprAdapter) {
+  dependencies: [typrFactory, woff2otfFactory, parserFactory],
+  init(typrFactory, woff2otfFactory, parserFactory) {
     const Typr = typrFactory()
     const woff2otf = woff2otfFactory()
-    return createTyprAdapter.bind(null, Typr, woff2otf)
+    return parserFactory(Typr, woff2otf)
   }
 })
 

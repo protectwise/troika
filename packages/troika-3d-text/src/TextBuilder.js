@@ -1,7 +1,11 @@
 import { DataTexture, LinearFilter, LuminanceFormat } from 'three'
-import createFontProcessor from './FontProcessor.js'
-import opentypeFactory from './TyprAdapter.js'
 import { defineWorkerModule, ThenableWorkerModule } from 'troika-worker-utils'
+import createFontProcessor from './FontProcessor.js'
+
+// Choose parser impl:
+import fontParser from './FontParser_Typr.js'
+//import fontParser from './FontParser_OpenType.js'
+
 
 const CONFIG = {
   defaultFontURL: 'https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff', //Roboto Regular
@@ -147,12 +151,11 @@ export const fontProcessorWorkerModule = defineWorkerModule({
   dependencies: [
     CONFIG,
     SDF_DISTANCE_PERCENT,
-    opentypeFactory,
+    fontParser,
     createFontProcessor
   ],
-  init(config, sdfDistancePercent, opentypeFactory, createFontProcessor) {
-    const opentype = opentypeFactory()
-    return createFontProcessor(opentype, {
+  init(config, sdfDistancePercent, fontParser, createFontProcessor) {
+    return createFontProcessor(fontParser, {
       defaultFontUrl: config.defaultFontURL,
       sdfTextureSize: config.sdfGlyphSize,
       sdfDistancePercent

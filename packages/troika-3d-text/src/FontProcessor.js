@@ -3,13 +3,39 @@
  *
  * It is important that this function has no external dependencies, so that it can be easily injected
  * into the source for a Worker without requiring a build step or complex dependency loading. Its sole
- * dependency, the `opentype` implementation object, must be passed in at initialization.
+ * dependency, a `fontParser` implementation function, must be passed in at initialization.
  *
- * @param {Object} opentype
+ * @param {function} fontParser - a function that accepts an ArrayBuffer of the font data and returns
+ * a standardized structure giving access to the font and its glyphs:
+ *   {
+ *     unitsPerEm: number,
+ *     ascender: number,
+ *     descender: number,
+ *     forEachGlyph(string, fontSize, letterSpacing, callback) {
+ *       //invokes callback for each glyph to render, passing it an object:
+ *       callback({
+ *         index: number,
+ *         unicode: number,
+ *         advanceWidth: number,
+ *         xMin: number,
+ *         yMin: number,
+ *         xMax: number,
+ *         yMax: number,
+ *         pathCommandCount: number,
+ *         forEachPathCommand(callback) {
+ *           //invokes callback for each path command, with args:
+ *           callback(
+ *             type: 'M|L|C|Q|Z',
+ *             ...args //0 to 6 args depending on the type
+ *           )
+ *         }
+ *       })
+ *     }
+ *   }
  * @param {Object} config
  * @return {Object}
  */
-export default function createFontProcessor(opentype, config) {
+export default function createFontProcessor(fontParser, config) {
 
   const {
     defaultFontUrl,
@@ -24,11 +50,11 @@ export default function createFontProcessor(opentype, config) {
    *
    * {
    *   fontUrl: {
-   *     fontObj: {}, //opentype Font
+   *     fontObj: {}, //result of the fontParser
    *     glyphs: {
    *       [glyphIndex]: {
    *         atlasIndex: 0,
-   *         glyphObj: {}, //opentype Glyph
+   *         glyphObj: {}, //glyph object from the fontParser
    *         renderingBounds: [x0, y0, x1, y1]
    *       },
    *       ...
@@ -62,13 +88,19 @@ export default function createFontProcessor(opentype, config) {
         }
       }
       try {
-        opentype.load(url, (err, font) => {
-          if (err) {
-            onError(new Error(err))
-          } else {
-            callback(font)
+        const request = new XMLHttpRequest()
+        request.open('get', url, true)
+        request.responseType = 'arraybuffer'
+        request.onload = function () {
+          try {
+            const fontObj = fontParser(request.response)
+            callback(fontObj)
+          } catch (e) {
+            onError(e)
           }
-        }, {lowMemory: true})
+        }
+        request.onerror = onError
+        request.send()
       } catch(err) {
         onError(err)
       }
@@ -162,11 +194,6 @@ export default function createFontProcessor(opentype, config) {
       // Determine line height and leading adjustments
       lineHeight = lineHeight * fontSize
       const halfLeading = (lineHeight - (fontObj.ascender - fontObj.descender) * fontSizeMult) / 2
-      const otOpts = {
-        kerning: true,
-        features: {liga: true, rlig: true},
-        letterSpacing
-      }
 
       // Split by hard line breaks
       const lineBlocks = text.split(/\r?\n/).map(text => {
@@ -175,7 +202,7 @@ export default function createFontProcessor(opentype, config) {
         // Distribute glyphs into lines based on wrapping
         let currentLine = []
         const lines = [currentLine]
-        fontObj.forEachGlyph(text, 0, 0, fontSize, otOpts, (glyphObj, glyphX) => {
+        fontObj.forEachGlyph(text, fontSize, letterSpacing, (glyphObj, glyphX) => {
           const charCode = glyphObj.unicode
           const char = typeof charCode === 'number' && String.fromCharCode(charCode)
           const glyphWidth = glyphObj.advanceWidth * fontSizeMult
@@ -379,7 +406,7 @@ export default function createFontProcessor(opentype, config) {
 
   /**
    * Generate an SDF texture segment for a single glyph.
-   * @param {opentype.Glyph} glyphObj
+   * @param {object} glyphObj
    * @return {{textureData: Uint8Array, renderingBounds: *[]}}
    */
   function generateGlyphSDF(glyphObj) {
@@ -411,20 +438,19 @@ export default function createFontProcessor(opentype, config) {
       return textureMinFontY + (textureMaxFontY - textureMinFontY) * y / sdfTextureSize
     }
 
-    const commands = glyphObj.path.commands
-    if (commands && commands.length) { //whitespace chars will have no commands, so we can skip all this
+    if (glyphObj.pathCommandCount) { //whitespace chars will have no commands, so we can skip all this
       // Decompose all paths into straight line segments and add them to a quadtree
       const lineSegmentsIndex = new GlyphSegmentsQuadtree(glyphObj)
       let firstX, firstY, prevX, prevY
-      commands.forEach(cmd => {
-        switch (cmd.type) {
+      glyphObj.forEachPathCommand((type, x0, y0, x1, y1, x2, y2) => {
+        switch (type) {
           case 'M':
-            prevX = firstX = cmd.x
-            prevY = firstY = cmd.y
+            prevX = firstX = x0
+            prevY = firstY = y0
             break
           case 'L':
-            if (cmd.x !== prevX || cmd.y !== prevY) { //yup, some fonts have zero-length line commands
-              lineSegmentsIndex.addLineSegment(prevX, prevY, (prevX = cmd.x), (prevY = cmd.y))
+            if (x0 !== prevX || y0 !== prevY) { //yup, some fonts have zero-length line commands
+              lineSegmentsIndex.addLineSegment(prevX, prevY, (prevX = x0), (prevY = y0))
             }
             break
           case 'Q': {
@@ -432,15 +458,15 @@ export default function createFontProcessor(opentype, config) {
             for (let i = 1; i < CURVE_POINTS; i++) {
               let nextPoint = pointOnQuadraticBezier(
                 prevX, prevY,
-                cmd.x1, cmd.y1,
-                cmd.x, cmd.y,
+                x0, y0,
+                x1, y1,
                 i / (CURVE_POINTS - 1)
               )
               lineSegmentsIndex.addLineSegment(prevPoint.x, prevPoint.y, nextPoint.x, nextPoint.y)
               prevPoint = nextPoint
             }
-            prevX = cmd.x
-            prevY = cmd.y
+            prevX = x1
+            prevY = y1
             break
           }
           case 'C': {
@@ -448,16 +474,16 @@ export default function createFontProcessor(opentype, config) {
             for (let i = 1; i < CURVE_POINTS; i++) {
               let nextPoint = pointOnCubicBezier(
                 prevX, prevY,
-                cmd.x1, cmd.y1,
-                cmd.x2, cmd.y2,
-                cmd.x, cmd.y,
+                x0, y0,
+                x1, y1,
+                x2, y2,
               i / (CURVE_POINTS - 1)
               )
               lineSegmentsIndex.addLineSegment(prevPoint.x, prevPoint.y, nextPoint.x, nextPoint.y)
               prevPoint = nextPoint
             }
-            prevX = cmd.x
-            prevY = cmd.y
+            prevX = x2
+            prevY = y2
             break
           }
           case 'Z':
