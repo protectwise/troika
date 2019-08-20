@@ -18,7 +18,7 @@ class World3DFacade extends WorldBaseFacade {
   }
 
   afterUpdate() {
-    let {width, height, antialias, backgroundColor} = this
+    let {width, height, antialias, backgroundColor, contextAttributes, _element:canvas} = this
 
     // Set up renderer
     let renderer = this._threeRenderer
@@ -27,11 +27,19 @@ class World3DFacade extends WorldBaseFacade {
       if (renderer) {
         renderer.dispose()
       }
-      renderer = this._threeRenderer = new RendererClass(assign({
-        canvas: this._element,
+      // Init the context manually so we can prefer webgl2
+      contextAttributes = assign({
         alpha: true,
-        antialias: antialias
-      }))
+        antialias
+      }, contextAttributes)
+      const context = canvas.getContext('webgl2', contextAttributes) || undefined
+      if (!context) {
+        console.info('webgl2 init failed, trying webgl')
+      }
+      renderer = this._threeRenderer = new RendererClass(assign({
+        canvas,
+        context
+      }, contextAttributes))
     }
     renderer.shadowMap.enabled = !!this.shadows
     if (backgroundColor !== this._bgColor) {
