@@ -1,5 +1,6 @@
 import { DataTexture, LinearFilter, LuminanceFormat } from 'three'
 import { defineWorkerModule, ThenableWorkerModule } from 'troika-worker-utils'
+import createSDFGenerator from './SDFGenerator.js'
 import createFontProcessor from './FontProcessor.js'
 
 // Choose parser impl:
@@ -152,13 +153,16 @@ export const fontProcessorWorkerModule = defineWorkerModule({
     CONFIG,
     SDF_DISTANCE_PERCENT,
     fontParser,
+    createSDFGenerator,
     createFontProcessor
   ],
-  init(config, sdfDistancePercent, fontParser, createFontProcessor) {
-    return createFontProcessor(fontParser, {
-      defaultFontUrl: config.defaultFontURL,
+  init(config, sdfDistancePercent, fontParser, createSDFGenerator, createFontProcessor) {
+    const sdfGenerator = createSDFGenerator({
       sdfTextureSize: config.sdfGlyphSize,
       sdfDistancePercent
+    })
+    return createFontProcessor(fontParser, sdfGenerator, {
+      defaultFontUrl: config.defaultFontURL
     })
   }
 })
