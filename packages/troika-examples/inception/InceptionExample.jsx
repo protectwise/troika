@@ -35,54 +35,101 @@ class WorldTexturedBox extends Object3DFacade {
 WorldTexturedBox = makeWorldTextureProvider(WorldTexturedBox)
 
 
-
-const subWorldConfigs = [
-  {
-    label: '2D',
-    facade: World2DFacade,
-    width: 1024,
-    height: 1024,
-    backgroundColor: '#333',
-    objects: [
-      {
-        key: 'scene',
-        facade: TwoDeeScene
-      }
-    ]
-  },
-  {
-    label: '3D',
-    facade: World3DFacade,
-    antialias: true,
-    width: 1024,
-    height: 1024,
-    backgroundColor: '#333',
-    camera: {
-      x: 0,
-      z: 6,
-      lookAt: {x: 0, y: 0, z: 0}
-    },
-    objects: [
-      {
-        key: 'scene',
-        facade: class extends ArcsFacade {
-          constructor(parent) {
-            super(parent)
-            this.data = refreshArcsData(null)
-            this._timer = setInterval(() => {
-              this.data = refreshArcsData(this.data)
-            }, 3000)
-          }
-          destructor() {
-            clearInterval(this._timer)
-            super.destructor()
-          }
-        },
-        angled: true,
-        arcDepth: 0.2
-      }
-    ]
+class AutoUpdatingArcsFacade extends ArcsFacade {
+  constructor(parent) {
+    super(parent)
+    this.data = refreshArcsData(null)
+    this._timer = setInterval(() => {
+      this.data = refreshArcsData(this.data)
+    }, 3000)
   }
+  destructor() {
+    clearInterval(this._timer)
+    super.destructor()
+  }
+}
+
+const subWorldConfig2D = {
+  label: '2D',
+  facade: World2DFacade,
+  width: 1024,
+  height: 1024,
+  backgroundColor: '#333',
+  objects: [
+    {
+      key: 'scene',
+      facade: TwoDeeScene
+    }
+  ]
+}
+const subWorldConfig3D = {
+  label: '3D',
+  facade: World3DFacade,
+  antialias: true,
+  width: 1024,
+  height: 1024,
+  backgroundColor: '#333',
+  camera: {
+    x: 0,
+    z: 6,
+    lookAt: {x: 0, y: 0, z: 0}
+  },
+  objects: [
+    {
+      key: 'scene',
+      facade: AutoUpdatingArcsFacade,
+      angled: true,
+      arcDepth: 0.2
+    }
+  ]
+}
+const subWorldRecursive = {
+  label: 'Recursive',
+  facade: World3DFacade,
+  antialias: true,
+  width: 1024,
+  height: 1024,
+  backgroundColor: '#333',
+  camera: {
+    x: 0,
+    z: 4,
+    lookAt: {x: 0, y: 0, z: 0}
+  },
+  lights: [
+    { type: 'ambient', color: 0xffffff },
+    { type: 'directional', color: 0xffffff, x: 1, y: 1, z: 1 }
+  ],
+  objects: [
+    {
+      key: '2d',
+      facade: WorldTexturedSphere,
+      x: -1,
+      textureWorld: subWorldConfig2D,
+      animation: {
+        from: {rotateY: 0},
+        to: {rotateY: Math.PI * 2},
+        duration: 20000,
+        iterations: Infinity
+      }
+    },
+    {
+      key: '3d',
+      facade: WorldTexturedBox,
+      x: 1,
+      textureWorld: subWorldConfig2D,
+      animation: {
+        from: {rotateY: 0},
+        to: {rotateY: Math.PI * 2},
+        duration: 20000,
+        iterations: Infinity
+      }
+    }
+  ]
+}
+const subWorldConfigs = [
+  subWorldConfig2D,
+  subWorldConfig3D,
+  subWorldRecursive
 ]
 
 
