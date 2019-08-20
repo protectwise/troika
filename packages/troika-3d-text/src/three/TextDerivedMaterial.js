@@ -63,7 +63,7 @@ ${''/*
   readability and edge crispness at all sizes and screen resolutions. Interestingly, this also means that 
   below a minimum size we're effectively displaying the SDF texture unmodified.
 */}
-#ifdef GL_OES_standard_derivatives
+#if defined(GL_OES_standard_derivatives) || __VERSION__ >= 300
   float troikaAntiAliasDist = min(
     0.5,
     0.5 * min(

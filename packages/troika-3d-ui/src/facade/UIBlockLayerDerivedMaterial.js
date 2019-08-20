@@ -81,7 +81,7 @@ float troikaGetAlphaMultiplier() {
     dOuter = min(dOuter, dClip);
   }
 
-  #ifdef GL_OES_standard_derivatives
+  #if defined(GL_OES_standard_derivatives) || __VERSION__ >= 300
     #ifdef TROIKA_UI_BORDER
       if (dOuter == dInner) {return 0.0;}
       float aa = max(fwidth(pos.x), fwidth(pos.y)) * 0.5;
