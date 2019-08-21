@@ -16,6 +16,9 @@ import EasingsExample from './easings/EasingsExample'
 import InstanceableExample from './instanceable/InstanceableExample'
 import InceptionExample from './inception/InceptionExample'
 
+import 'react-dat-gui/build/react-dat-gui.css'
+import './index.css'
+
 
 const EXAMPLES = [
   {id: 'citygrid', name: 'City', component: CityGrid},

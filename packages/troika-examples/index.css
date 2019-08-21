@@ -47,10 +47,12 @@ a {
   overflow: hidden;
 }
 
-.example_controls {
+.example_controls, .react-dat-gui {
   position: absolute;
   top: 0;
   left: 0;
+}
+.example_controls {
   padding: 10px;
   z-index: 10;
   display: flex;

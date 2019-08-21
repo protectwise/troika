@@ -5,6 +5,7 @@ import commonjs from 'rollup-plugin-commonjs'
 import replace from 'rollup-plugin-replace'
 import {string as importStrings} from 'rollup-plugin-string'
 import importJson from 'rollup-plugin-json'
+import css from 'rollup-plugin-postcss'
 import serve from 'rollup-plugin-serve'
 
 
@@ -23,6 +24,9 @@ export default {
   },
 
   plugins: [
+    css({
+      //output: 'dist/examples-bundle.css'
+    }),
     importStrings({
       include: '**/*.glsl',
     }),
@@ -33,7 +37,19 @@ export default {
     buble(),
     commonjs({
       extensions: [ '.js', '.jsx' ],  // Default: [ '.js' ]
-      //sourceMap: false,  // Default: true
+      namedExports: {
+        // Help it resolve the exports from react-dat-gui
+        'react-dat-gui': [
+          'DatBoolean',
+          'DatButton',
+          'DatColor',
+          'DatFolder',
+          'DatNumber',
+          'DatPresets',
+          'DatSelect',
+          'DatString'
+        ]
+      }
     }),
     nodeResolve({
       // Favor our custom "module:es2015" field which points to the ES6 source files

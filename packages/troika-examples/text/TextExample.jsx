@@ -3,6 +3,7 @@ import T from 'prop-types'
 import {Canvas3D} from 'troika-3d'
 import {Text3DFacade} from 'troika-3d-text'
 import {MeshStandardMaterial} from 'three'
+import DatGui, {DatBoolean, DatSelect, DatNumber} from 'react-dat-gui'
 
 
 const FONTS = {
@@ -62,12 +63,17 @@ class TextExample extends React.Component {
       animTextColor: true,
       animTilt: true,
       animRotate: false,
-      useCustomMaterial: false,
+      useCustomMaterial: true,
       debugSDF: false
     }
-  }
 
-  componentWillMount() {
+    this._onConfigUpdate = (newState) => {
+      if (newState.text === 'Gettysburg' && newState.text !== this.state.text) {
+        newState.textScale = 0.5
+        newState.maxWidth = 2.5
+      }
+      this.setState(newState)
+    }
   }
 
   render() {
@@ -167,12 +173,8 @@ class TextExample extends React.Component {
           ] }
         />
 
-        <div className="example_controls">
-          { this.renderSelect('text', 'Choose Text', Object.keys(TEXTS), val => {
-            if (val === 'Gettysburg') {
-              this.setState({textScale: 0.5, maxWidth: 2.5})
-            }
-          }) }
+        <DatGui data={state} onUpdate={this._onConfigUpdate}>
+          <DatSelect path='text' options={Object.keys(TEXTS)} />
           { state.text === CUSTOM_LBL ? (
             <textarea
               style={{position:'absolute', left:'100%', width:300, height: 120}}
@@ -183,71 +185,30 @@ class TextExample extends React.Component {
               }}
             />
           ) : null }
-          { this.renderSelect('font', 'Choose Font', Object.keys(FONTS).sort()) }
-          { this.renderSelect('textAlign', 'Choose Alignment', ['left', 'right', 'center', 'justify']) }
 
-          { this.renderToggle('animTextColor', 'Cycle Colors')}
-          { this.renderToggle('animTilt', 'Tilt')}
-          { this.renderToggle('animRotate', 'Rotate')}
-          { this.renderToggle('useCustomMaterial', 'Custom Material')}
-          { this.renderToggle('debugSDF', 'Show SDF Textures')}
+          <DatSelect path='font' options={Object.keys(FONTS).sort()} />
+          <DatSelect path='textAlign' options={['left', 'right', 'center', 'justify']} />
 
-          { this.renderRange('textScale', 'Scale', 0.1, 10, 0.1) }
-          { this.renderRange('maxWidth', 'Max Width', 1, 5, 0.01) }
-          { this.renderRange('lineHeight', 'Line Height', 1, 2, 0.01) }
-          { this.renderRange('letterSpacing', 'Letter Spacing', -0.1, 0.5, 0.01) }
+          <DatBoolean path="animTextColor" label="Cycle Colors" />
+          <DatBoolean path="animTilt" label="Tilt" />
+          <DatBoolean path="animRotate" label="Rotate" />
+          <DatBoolean path="useCustomMaterial" label="Custom Material" />
+          <DatBoolean path="debugSDF" label="Show SDF" />
 
-        </div>
+          <DatNumber path="textScale" label="scale" min={0.1} max={10} step={0.1} />
+          <DatNumber path="maxWidth" min={1} max={5} step={0.01} />
+          <DatNumber path="lineHeight" min={1} max={2} step={0.01} />
+          <DatNumber path="letterSpacing" min={-0.1} max={0.5} step={0.01} />
+        </DatGui>
+
 
         <div className="example_desc">
-          <p>This demonstrates Text3DFacade and its high quality text rendering engine, which uses Signed Distance Field ("SDF") texture atlases for crisp glyph vector edges at any scale.</p>
-          <p>Behind the scenes it uses <a href="https://opentype.js.org/">opentype.js</a> to parse fonts, and thus has full support for font features such as kerning and ligatures. It generates SDF textures for each glyph as it is used, assembles a single geometry for all the glyphs, seamlessly upgrades any Material's shaders to support the SDFs with high quality antialiasing, and renders the whole thing in a single draw call.</p>
-          <p>Most of the font parsing and SDF generation is done in a web worker so frames won't be dropped during processing.</p>
+          <p>This demonstrates Troika's high quality text rendering, which uses Signed Distance Field ("SDF") texture atlases for crisp glyph vector edges at any scale. It can be used via <a href="https://github.com/protectwise/troika/blob/master/packages/troika-3d-text/src/facade/Text3DFacade.js">Text3DFacade</a> or outside the Troika framework as a standalone Three.js <a href="https://github.com/protectwise/troika/blob/master/packages/troika-3d-text/src/three/TextMesh.js">TextMesh</a>.</p>
+          <p>Behind the scenes it uses <a href="https://github.com/photopea/Typr.js">Typr.js</a> to parse fonts, giving it support for font features such as kerning and ligatures. It generates SDF textures for each glyph on the fly as needed, assembles a single geometry for all the glyphs, seamlessly upgrades any Material's shaders to support the SDFs with high quality antialiasing, and renders the whole thing in a single draw call. Font parsing and SDF generation is done in a web worker so frames won't be dropped during processing.</p>
         </div>
       </div>
     )
   }
-
-  renderToggle(stateName, label) {
-    return <label style={{display:'block', marginTop: 10}}>
-      <input
-        type="checkbox"
-        checked={!!this.state[stateName]}
-        onChange={e => {
-          this.setState({[stateName]: !this.state[stateName]})
-        }}
-      /> {label}
-    </label>
-  }
-
-  renderSelect(stateName, label, options, callback) {
-    return <select
-      style={{marginTop: 10}}
-      onChange={e => {
-        const val = e.target.value
-        this.setState({[stateName]: val}, callback && (() => callback(val)))
-      }}
-    >
-      <optgroup label={label}>
-        {options.map(v =>
-          <option key={v} value={v} selected={v === this.state[stateName]}>{v}</option>
-        )}
-      </optgroup>
-    </select>
-  }
-
-  renderRange(stateName, label, min, max, step) {
-    return [
-      <div key="label" style={{marginTop: 10}}>{label}: {this.state[stateName]}</div>,
-      <input key="input" type="range" min={min} max={max} step={step} value={this.state[stateName]} onChange={e => {
-        this.setState({[stateName]: +e.target.value})
-      }} />
-    ]
-  }
-}
-
-function sample(arr) {
-  return arr[Math.floor(Math.random() * arr.length)]
 }
 
 
