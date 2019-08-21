@@ -135,6 +135,8 @@ function parserFactory(Typr, woff2otf) {
     const tag = Typr._bin.readASCII(peek, 0, 4)
     if (tag === 'wOFF') {
       buffer = woff2otf(buffer)
+    } else if (tag === 'wOF2') {
+      throw new Error('woff2 fonts not supported')
     }
     return wrapFontObj(Typr.parse(buffer))
   }
