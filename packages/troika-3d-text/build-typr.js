@@ -19,9 +19,6 @@ async function buildTypr() {
   const typr = await fetchText('https://raw.githubusercontent.com/photopea/Typr.js/gh-pages/src/Typr.js')
   let typrU = await fetchText('https://raw.githubusercontent.com/photopea/Typr.js/gh-pages/src/Typr.U.js')
 
-  // Fix ligatures of with >4 chars - see https://github.com/photopea/Typr.js/pull/30
-  typrU = typrU.replace('var rlim = Math.min(3, gls.length-ci-1);', 'var rlim = gls.length-ci-1;')
-
   const output = `
 // Custom bundle of Typr.js (https://github.com/photopea/Typr.js) for use in troika-3d-text. 
 // Original MIT license applies: https://github.com/photopea/Typr.js/blob/gh-pages/LICENSE

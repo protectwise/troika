@@ -2661,6 +2661,7 @@ Typr.U._drawCFF = function(cmds, state, font, pdct, p)
 	//console.log(cmds);
 	state.x=x; state.y=y; state.nStems=nStems; state.haveWidth=haveWidth; state.width=width; state.open=open;
 }
+
 // End Typr.U.js
 
 return Typr
