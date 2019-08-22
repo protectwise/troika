@@ -20,7 +20,11 @@
     "troika-core": "^0.15.0",
     "troika-worker-utils": "^0.15.0"
   },
+  "devDependencies": {
+    "yoga-layout-prebuilt": "1.9.3",
+    "terser": "^4.2.0"
+  },
   "scripts": {
-    "build-yoga": "npm install --ignore-scripts --no-save yoga-layout@1.9.3 && rollup -c rollup.config.build-yoga.js"
+    "build-yoga": "rollup -c rollup.config.build-yoga.js"
   }
 }

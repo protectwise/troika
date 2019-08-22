@@ -4,6 +4,12 @@
 
 import nodeResolve from 'rollup-plugin-node-resolve'
 import commonjs from 'rollup-plugin-commonjs'
+import {minify} from 'terser'
+
+const {LERNA_ROOT_PATH} = process.env
+if (!LERNA_ROOT_PATH) {
+  throw new Error("Please execute `npm run build-yoga` from the repository root.")
+}
 
 
 const OUTPUT_TEMPLATE = `
@@ -21,10 +27,33 @@ const [banner, footer] = OUTPUT_TEMPLATE.split('$$CONTENT$$')
 
 
 export default {
-  input: './node_modules/yoga-layout/dist/entry-browser.js',
+  input: LERNA_ROOT_PATH + '/node_modules/yoga-layout-prebuilt/yoga-layout/dist/entry-browser.js',
   plugins: [
     nodeResolve(),
-    commonjs()
+    {
+      name: 'custom',
+      transform(source, id) {
+
+        // Special handling for nbind.js:
+        if (/node_modules\/.*\/nbind\.js$/.test(id)) { //only match the real nbind.js not the importer created by nodeResolve
+          // Fix undeclared var error:
+          source = source.replace('_a = _typeModule(_typeModule),', 'var _a = _typeModule(_typeModule);')
+
+          // Pre-compress and stringify nbind contents so downstream build tools don't mangle the asm
+          source = minify(source, {
+            compress: true,
+            mangle: true,
+            ecma: 5
+          }).code
+          source = `const $module={exports:{}};
+            (new Function('module', \`${source.replace(/\\/g, '\\\\')}\`))($module);
+            export default $module.exports;`
+        }
+
+        return source
+      }
+    },
+    commonjs(),
   ],
   output: {
     format: 'iife',
