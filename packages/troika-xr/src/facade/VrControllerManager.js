@@ -54,7 +54,7 @@ export class VrControllerManager extends Group3DFacade {
               key: `tracked${gamepad.id == null ? i : gamepad.id}`,
               facade: TrackedVrController,
               gamepad,
-              isPointing: !children.length //TODO switch pointing to gamepad with latest button/axis movement
+              isPointing: this._pointingControllerId === gamepad.id
             })
           }
         }
@@ -71,6 +71,14 @@ export class VrControllerManager extends Group3DFacade {
 
     // Update the child controllers
     this.updateChildren(children)
+  }
+
+  onNotifyWorld (source, message, data) {
+    if (message === 'vrControllerStartPointing') {
+      this._pointingControllerId = source.gamepad.id
+    } else {
+      super.onNotifyWorld(source, message, data)
+    }
   }
 }
 

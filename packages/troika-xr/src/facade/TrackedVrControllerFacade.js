@@ -62,7 +62,7 @@ export default class TrackedVrController extends VrController {
    * @override
    */
   onPointerRayIntersectionChange(intersectionInfo) {
-    const {gamepad, cursorChildDef} = this
+    const {gamepad, cursorChildDef, laserChildDef} = this
     const {event, localPoint, hapticPulse} = intersectionInfo
 
     // Update cursor and laser
@@ -84,31 +84,34 @@ export default class TrackedVrController extends VrController {
     }
 
     // Update laser length
-    this.laserChildDef.length = localPoint ? localPoint.length() : null
+    laserChildDef.visible = true
+    laserChildDef.length = localPoint ? localPoint.length() : null
 
     super.onPointerRayIntersectionChange(intersectionInfo)
   }
 
   afterUpdate() {
-    this.laserChildDef.visible = !!this.isPointing
+    const {gamepad, isPointing, threeObject} = this
+
+    if (!isPointing) {
+      this.laserChildDef.visible = this.cursorChildDef.visible = false
+    }
 
     // Update current matrices from GameController pose
-    const gamepad = this.gamepad
-    const threeObj = this.threeObject
     let ray
     if (gamepad && gamepad.pose) {
       this.modelChildDef.facade = CONTROLLER_MODELS[gamepad.id] || BasicModelFacade
       this.modelChildDef.hand = gamepad.hand || 'right'
 
       // Orientation
-      threeObj.quaternion.fromArray(gamepad.pose.orientation)
+      threeObject.quaternion.fromArray(gamepad.pose.orientation)
 
       // Position
       if (gamepad.pose.position) {
-        threeObj.position.fromArray(gamepad.pose.position)
+        threeObject.position.fromArray(gamepad.pose.position)
       } else {
         // TODO arm model?
-        threeObj.position.set(0.2, -0.5, -0.25)
+        threeObject.position.set(0.2, -0.5, -0.25)
       }
 
       // Sync matrices to new pose components
@@ -116,13 +119,13 @@ export default class TrackedVrController extends VrController {
       this.updateMatrices()
     }
 
-    if (this.isPointing) {
-      // Handle button presses - TODO figure out how to expose button presses when no pointing ray
-      const buttons = gamepad.buttons
-      const pressedTimes = this._buttonPresses
-      const now = Date.now()
-      for (let i = 0; i < buttons.length; i++) {
-        if (buttons[i].pressed !== !!pressedTimes[i]) {
+    // Handle button presses - TODO figure out how to expose button presses when no pointing ray
+    const buttons = gamepad.buttons
+    const pressedTimes = this._buttonPresses
+    const now = Date.now()
+    for (let i = 0; i < buttons.length; i++) {
+      if (buttons[i].pressed !== !!pressedTimes[i]) {
+        if (isPointing) {
           if (!ray) ray = this.getPointerRay()
           if (ray) {
             this.notifyWorld('rayPointerAction', {
@@ -139,17 +142,21 @@ export default class TrackedVrController extends VrController {
             }
           }
           pressedTimes[i] = buttons[i].pressed ? now : null
+        } else {
+          this.notifyWorld('vrControllerStartPointing')
         }
       }
       pressedTimes.length = buttons.length
+    }
 
-      // Handle axis inputs
-      // For now, only handle 2 axes, assume they're in x-y order, and map to wheel events.
-      // TODO investigate better mapping
-      const axes = gamepad.axes
-      const deltaX = (axes[0] || 0) * 10
-      const deltaY = (axes[1] || 0) * 10
-      if (deltaX || deltaY) {
+    // Handle axis inputs
+    // For now, only handle 2 axes, assume they're in x-y order, and map to wheel events.
+    // TODO investigate better mapping
+    const axes = gamepad.axes
+    const deltaX = (axes[0] || 0) * 10
+    const deltaY = (axes[1] || 0) * 10
+    if (deltaX || deltaY) {
+      if (isPointing) {
         if (!ray) ray = this.getPointerRay()
         if (ray) {
           this.notifyWorld('rayPointerAction', {
@@ -160,6 +167,8 @@ export default class TrackedVrController extends VrController {
             deltaMode: 0 //pixel mode
           })
         }
+      } else {
+        this.notifyWorld('vrControllerStartPointing')
       }
     }
 
