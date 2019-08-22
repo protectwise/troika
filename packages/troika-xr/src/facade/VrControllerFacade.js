@@ -3,7 +3,7 @@ import { Matrix4, Vector3 } from 'three'
 
 const raycastFrequency = 16
 const tempMat4 = new Matrix4()
-
+const mouseEvents = ['mousemove', 'mouseover', 'click']
 
 
 /**
@@ -15,9 +15,12 @@ export default class VrController extends Group3DFacade {
     super(parent)
 
     // Listen to mousemove events at the scene level, so we can respond to intersection changes
+    const onMouseEvent = this._onSceneMouseEvent = this._onSceneMouseEvent.bind(this)
     const scene = this._findScene()
     if (scene) {
-      scene.addEventListener('mousemove', (this._onSceneMouseMove = this._onSceneMouseMove.bind(this)))
+      mouseEvents.forEach(type => {
+        scene.addEventListener(type, onMouseEvent)
+      })
     }
   }
 
@@ -67,13 +70,13 @@ export default class VrController extends Group3DFacade {
    * Subclasses may implement this to update their visual representation or otherwise respond to raycast
    * changes, e.g. updating a cursor position or a laser pointer length, or to start/end a fuse timer.
    *
-   * @param {Object<{event:SyntheticEvent,localPoint:Vector3|null}>} intersectionInfo
+   * @param {Object<{event:SyntheticEvent,localPoint:Vector3|null,hapticPulse:Object<{value:number,duration:number}>}>} intersectionInfo
    */
   onPointerRayIntersectionChange(intersectionInfo) {
     // abstract
   }
 
-  _onSceneMouseMove(e) {
+  _onSceneMouseEvent(e) {
     if (e.nativeEvent.raySource === this) {
       // Find point of intersection in local coordinates
       let localPoint = null
@@ -81,9 +84,13 @@ export default class VrController extends Group3DFacade {
       if (worldPoint) {
         localPoint = worldPoint.clone().applyMatrix4(tempMat4.getInverse(this.threeObject.matrixWorld))
       }
+      const isScene = e.target === e.currentTarget
       this.onPointerRayIntersectionChange({
         event: e,
-        localPoint
+        localPoint,
+        hapticPulse: (e.type === 'mouseover' && !isScene) ? {value: 0.3, duration: 10}
+          : e.type === 'click' ? {value: 1, duration: 20}
+          : null
       })
     }
   }
@@ -91,7 +98,9 @@ export default class VrController extends Group3DFacade {
   destructor() {
     const scene = this._findScene()
     if (scene) {
-      scene.removeEventListener('mousemove', this._onSceneMouseMove)
+      mouseEvents.forEach(type => {
+        scene.removeEventListener(type, this._onSceneMouseEvent)
+      })
     }
     super.destructor()
   }

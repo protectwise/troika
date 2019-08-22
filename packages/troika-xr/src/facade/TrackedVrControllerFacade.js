@@ -62,17 +62,25 @@ export default class TrackedVrController extends VrController {
    * @override
    */
   onPointerRayIntersectionChange(intersectionInfo) {
-    const {event, localPoint} = intersectionInfo
+    const {gamepad, cursorChildDef} = this
+    const {event, localPoint, hapticPulse} = intersectionInfo
 
     // Update cursor and laser
-    const cursor = this.cursorChildDef
     if (localPoint) {
-      cursor.x = localPoint.x
-      cursor.y = localPoint.y
-      cursor.z = localPoint.z
-      cursor.visible = true
+      cursorChildDef.x = localPoint.x
+      cursorChildDef.y = localPoint.y
+      cursorChildDef.z = localPoint.z
+      cursorChildDef.visible = true
     } else {
-      cursor.visible = false
+      cursorChildDef.visible = false
+    }
+
+    // Haptics
+    if (hapticPulse) {
+      const actuator = gamepad.hapticActuators && gamepad.hapticActuators[0]
+      if (actuator) {
+        actuator.pulse(hapticPulse.value || 1, hapticPulse.duration || 100)
+      }
     }
 
     // Update laser length
