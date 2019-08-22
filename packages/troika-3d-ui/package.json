@@ -1,6 +1,6 @@
 {
   "name": "troika-3d-ui",
-  "version": "0.15.0",
+  "version": "0.15.1",
   "description": "Troika 3D User Interface Toolkit",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "repository": {
@@ -15,14 +15,14 @@
   "module": "dist/troika-3d-ui.esm.js",
   "module:es2015": "src/index.js",
   "dependencies": {
-    "troika-3d": "^0.15.0",
-    "troika-3d-text": "^0.15.0",
+    "troika-3d": "^0.15.1",
+    "troika-3d-text": "^0.15.1",
     "troika-core": "^0.15.0",
     "troika-worker-utils": "^0.15.0"
   },
   "devDependencies": {
-    "yoga-layout-prebuilt": "1.9.3",
-    "terser": "^4.2.0"
+    "terser": "^4.2.0",
+    "yoga-layout-prebuilt": "1.9.3"
   },
   "scripts": {
     "build-yoga": "rollup -c rollup.config.build-yoga.js"
