@@ -43,7 +43,7 @@ class UITextNode3DFacade extends Text3DFacade {
     const flexStyles = this._flexStyles
     for (let i = 0, len = flexLayoutTextProps.length; i < len; i++) {
       const prop = flexLayoutTextProps[i]
-      const val = getInheritable(this, prop)
+      const val = prop === 'text' ? this.text : getInheritable(this, prop)
       if (val !== flexStyles[prop]) {
         flexStyles[prop] = this[prop]
         this.needsFlexLayout = true
