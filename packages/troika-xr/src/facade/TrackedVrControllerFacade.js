@@ -167,7 +167,7 @@ export default class TrackedVrController extends VrController {
             deltaMode: 0 //pixel mode
           })
         }
-      } else {
+      } else if (Math.hypot(deltaX, deltaY) > 0.1) {
         this.notifyWorld('vrControllerStartPointing')
       }
     }
