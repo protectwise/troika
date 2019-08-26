@@ -12,6 +12,12 @@ It provides:
 
 Developing interactive 3D and 2D graphics should be as straighforward as developing HTML+CSS+JavaScript interfaces. Troika aims to make that a reality.
 
+[![3D Bar Chart Example](./docs/images/city-thumbnail.png)](https://troika-examples.netlify.com/#citygrid)&nbsp;
+[![Arcs Example](./docs/images/arcs-thumbnail.png)](https://troika-examples.netlify.com/#arcs)&nbsp;
+[![3D Text Rendering](./docs/images/text-thumbnail.png)](https://troika-examples.netlify.com/#text)&nbsp;
+[![GPU Instancing](./docs/images/instancing-thumbnail.png)](https://troika-examples.netlify.com/#instanceable)
+
+
 ## Project Status
 
 Troika was developed starting in 2016 by the [ProtectWise](https://protectwise.com) front end engineering team as an internal tool to enable rapid development of interactive 3D and 2D data visualizations in the ProtectWise Visualizer. As it matured and became an essential part of our toolkit, we realized it could be useful to the broader web developer community and decided to release it as an open source project.
