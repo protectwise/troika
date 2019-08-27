@@ -9,7 +9,7 @@ The `packages/troika-examples` directory contains several example scenes. These 
 
 ## Viewing the examples
 
-The examples are not yet published to a public website yet; we hope to get that working soon. In the meantime...
+The examples from the latest master branch are published automatically at [https://troika-examples.netlify.com].
 
 
 ## Running the examples
@@ -28,5 +28,5 @@ Then run the examples:
 npm run examples
 ```
 
-This will build the examples into a bundle and serve up the result at [http://localhost:10001]. Point your browser there and you'll see the examples in action.
+This will build the examples into a bundle and serve up the result at [http://localhost:10001]. Point your browser there and you'll see the examples in action. It will also watch the files for changes so you can fiddle with things and reload the browser to see them in action.
 
