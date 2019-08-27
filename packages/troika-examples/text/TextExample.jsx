@@ -12,8 +12,8 @@ const FONTS = {
   //too thin: 'Alex Brush': 'https://fonts.gstatic.com/s/alexbrush/v8/SZc83FzrJKuqFbwMKk6EhUXz6w.woff',
   'Comfortaa': 'https://fonts.gstatic.com/s/comfortaa/v12/1Ptsg8LJRfWJmhDAuUs4TYFs.woff',
   'Cookie': 'https://fonts.gstatic.com/s/cookie/v8/syky-y18lb0tSbf9kgqU.woff',
-  //throws: 'Cutive Mono': 'https://fonts.gstatic.com/s/cutivemono/v6/m8JWjfRfY7WVjVi2E-K9H6RCTmg.woff',
-  //throws: 'Gabriela': 'https://fonts.gstatic.com/s/gabriela/v6/qkBWXvsO6sreR8E-b8m5xL0.woff',
+  'Cutive Mono': 'https://fonts.gstatic.com/s/cutivemono/v6/m8JWjfRfY7WVjVi2E-K9H6RCTmg.woff',
+  'Gabriela': 'https://fonts.gstatic.com/s/gabriela/v6/qkBWXvsO6sreR8E-b8m5xL0.woff',
   'Philosopher': 'https://fonts.gstatic.com/s/philosopher/v9/vEFV2_5QCwIS4_Dhez5jcWBuT0s.woff',
   'Quicksand': 'https://fonts.gstatic.com/s/quicksand/v7/6xKtdSZaM9iE8KbpRA_hK1QL.woff',
   'Trirong': 'https://fonts.gstatic.com/s/trirong/v3/7r3GqXNgp8wxdOdOn4so3g.woff',
@@ -60,6 +60,7 @@ class TextExample extends React.Component {
       maxWidth: 2, //2m
       textAlign: 'justify',
       color: 0xffffff,
+      fog: false,
       animTextColor: true,
       animTilt: true,
       animRotate: false,
@@ -112,6 +113,10 @@ class TextExample extends React.Component {
               }
             }
           ] : null }
+          fog={state.fog ? {
+            color: 0x222222,
+            density: 0.75
+          } : null}
           objects={ [
             {
               key: 'text',
@@ -193,6 +198,7 @@ class TextExample extends React.Component {
           <DatBoolean path="animTilt" label="Tilt" />
           <DatBoolean path="animRotate" label="Rotate" />
           <DatBoolean path="useCustomMaterial" label="Custom Material" />
+          <DatBoolean path="fog" label="Fog" />
           <DatBoolean path="debugSDF" label="Show SDF" />
 
           <DatNumber path="textScale" label="scale" min={0.1} max={10} step={0.1} />
