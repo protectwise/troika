@@ -63,6 +63,13 @@ textMesh.color = 0x9966FF
 textMesh.sync()
 ```
 
+When you're done with the `TextMesh` instance, be sure to call `dispose` on it to prevent a memory leak:
+
+```js
+myScene.remove(textMesh)
+textMesh.dispose()
+```
+
 ### Using in other frameworks
 
 Some examples of using the standalone TextMesh within other frameworks:
