@@ -246,8 +246,8 @@ class TextMesh extends Mesh {
       derivedMaterial = this._derivedMaterial = createTextDerivedMaterial(baseMaterial)
       // dispose the derived material when its base material is disposed:
       baseMaterial.addEventListener('dispose', function onDispose() {
-        derivedMaterial.dispose()
         baseMaterial.removeEventListener('dispose', onDispose)
+        derivedMaterial.dispose()
       })
     }
     return derivedMaterial
