@@ -291,7 +291,10 @@ World3DFacade.prototype._notifyWorldHandlers = assign(
   Object.create(WorldBaseFacade.prototype._notifyWorldHandlers),
   {
     getCameraPosition(source, data) {
-      data.callback(this.getChildByKey('camera').threeObject.position)
+      // We decompose from the world matrix here to handle pose transforms on top of the configured position
+      const camMatrix = this.getChildByKey('camera').threeObject.matrixWorld.elements
+      const position = new Vector3(camMatrix[12], camMatrix[13], camMatrix[14])
+      data.callback(position)
     },
     getCameraFacade(source, data) {
       data.callback(this.getChildByKey('camera'))
