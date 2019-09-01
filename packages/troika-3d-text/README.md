@@ -6,6 +6,13 @@ Rather than relying on pre-generated SDF textures, this parses font files (.ttf,
 
 Once the SDFs are generated, it assembles a geometry that positions all the glyphs, and _patches_ any Three.js Material with the proper shader code for rendering the SDFs. This means you can still benefit from all the features of Three.js's built-in materials like lighting, physically-based rendering, shadows, and fog.
 
+## Screenshots
+
+![./screenshot1.png]
+ 
+![./screenshot2.png]
+ 
+![./screenshot3.png]
 
 ## Usage
 
@@ -147,7 +154,7 @@ The horizontal alignment of each line of text within the overall text bounding b
 
 Default: `'left'`
 
-#### whiteSpace
+#### `whiteSpace`
 
 Defines whether text should wrap when a line reaches the `maxWidth`. Can be either `'normal'`, to allow wrapping according to the `overflowWrap` property, or `'nowrap'` to prevent wrapping. 
 
