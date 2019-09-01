@@ -223,13 +223,13 @@ class TextMesh extends Mesh {
   }
 
   /**
-   * Shortcut to dispose the geometry and derived material
+   * Shortcut to dispose the geometry specific to this instance.
+   * Note: we don't also dispose the derived material here because if anything else is
+   * sharing the same base material it will result in a pause next frame as the program
+   * is recompiled. Instead users can dispose the base material manually, like normal,
+   * and we'll also dispose the derived material at that time.
    */
   dispose() {
-    const textMaterial = this._derivedMaterial
-    if (textMaterial) {
-      textMaterial.dispose()
-    }
     this.geometry.dispose()
   }
 
@@ -244,6 +244,11 @@ class TextMesh extends Mesh {
         derivedMaterial.dispose()
       }
       derivedMaterial = this._derivedMaterial = createTextDerivedMaterial(baseMaterial)
+      // dispose the derived material when its base material is disposed:
+      baseMaterial.addEventListener('dispose', function onDispose() {
+        derivedMaterial.dispose()
+        baseMaterial.removeEventListener('dispose', onDispose)
+      })
     }
     return derivedMaterial
   }
