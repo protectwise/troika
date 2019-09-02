@@ -41,11 +41,7 @@ geometry with vertices, for much smaller attribute arraybuffers according to thi
   - glyph indices: N * 1
   = 39N
 
-A downside of this is that the UVs end up being 0-1 within each glyph rather than across
-the entire text block; we may be able to work around that with an option to instance the
-`uv` attribute. (TODO)
-
-Another downside of course is the rare-but-possible lack of the instanced arrays extension,
+A downside of this is the rare-but-possible lack of the instanced arrays extension,
 which we could potentially work around with a fallback non-instanced implementation.
 
 */

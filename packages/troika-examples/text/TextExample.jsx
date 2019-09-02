@@ -2,7 +2,7 @@ import React from 'react'
 import T from 'prop-types'
 import {Canvas3D} from 'troika-3d'
 import {Text3DFacade} from 'troika-3d-text'
-import {MeshStandardMaterial} from 'three'
+import {MeshBasicMaterial, MeshStandardMaterial, TextureLoader} from 'three'
 import DatGui, {DatBoolean, DatSelect, DatNumber} from 'react-dat-gui'
 
 
@@ -44,8 +44,13 @@ November 19, 1863`,
   [CUSTOM_LBL]: 'Edit me!'
 }
 
-const customMaterial = new MeshStandardMaterial({})
-
+const TEXTURE = new TextureLoader().load('shader-anim/lava.jpg')
+const MATERIALS = {
+  'MeshBasicMaterial': new MeshBasicMaterial(),
+  'MeshBasicMaterial+Texture': new MeshBasicMaterial({map: TEXTURE}),
+  'MeshStandardMaterial': new MeshStandardMaterial(),
+  'MeshStandardMaterial+Texture': new MeshStandardMaterial({map: TEXTURE})
+}
 
 class TextExample extends React.Component {
   constructor(props) {
@@ -64,7 +69,8 @@ class TextExample extends React.Component {
       animTextColor: true,
       animTilt: true,
       animRotate: false,
-      useCustomMaterial: true,
+      material: 'MeshStandardMaterial',
+      useTexture: false,
       debugSDF: false
     }
 
@@ -80,6 +86,10 @@ class TextExample extends React.Component {
   render() {
     let state = this.state
     let {width, height} = this.props
+
+    let material = state.material
+    if (state.useTexture) material += '+Texture'
+    material = MATERIALS[material]
 
     return (
       <div>
@@ -98,7 +108,7 @@ class TextExample extends React.Component {
             z: 2,
             lookAt: {x: 0, y: 0, z: 0}
           } }
-          lights={ state.useCustomMaterial ? [
+          lights={ state.material === 'MeshStandardMaterial' ? [
             {type: 'ambient', color: 0x666666},
             {
               type: 'point',
@@ -130,7 +140,7 @@ class TextExample extends React.Component {
               letterSpacing: state.letterSpacing,
               anchor: [0.5, 0.5],
               debugSDF: state.debugSDF,
-              material: state.useCustomMaterial ? customMaterial : null,
+              material: material,
               color: 0xffffff,
               scaleX: state.textScale || 1,
               scaleY: state.textScale || 1,
@@ -193,11 +203,12 @@ class TextExample extends React.Component {
 
           <DatSelect path='font' options={Object.keys(FONTS).sort()} />
           <DatSelect path='textAlign' options={['left', 'right', 'center', 'justify']} />
+          <DatSelect path="material" options={['MeshBasicMaterial', 'MeshStandardMaterial']} />
+          <DatBoolean path="useTexture" label="Texture" />
 
           <DatBoolean path="animTextColor" label="Cycle Colors" />
           <DatBoolean path="animTilt" label="Tilt" />
           <DatBoolean path="animRotate" label="Rotate" />
-          <DatBoolean path="useCustomMaterial" label="Custom Material" />
           <DatBoolean path="fog" label="Fog" />
           <DatBoolean path="debugSDF" label="Show SDF" />
 

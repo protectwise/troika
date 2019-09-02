@@ -13,6 +13,8 @@ Once the SDFs are generated, it assembles a geometry that positions all the glyp
 ![Zoomed-in](./screenshot2.png)
 
 ![Font with ligatures](./screenshot3.png)
+
+![Text with a texture](./screenshot4.png)
  
 
 ## Usage
