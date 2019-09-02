@@ -17,9 +17,9 @@ vTroikaGlyphUV = vec2(
 );
 
 position = vec3(
-  position.x == 1.0 ? aTroikaGlyphBounds.z : aTroikaGlyphBounds.x,
-  position.y == 1.0 ? aTroikaGlyphBounds.w : aTroikaGlyphBounds.y,
-  0.0
+  mix(aTroikaGlyphBounds.x, aTroikaGlyphBounds.z, position.x),
+  mix(aTroikaGlyphBounds.y, aTroikaGlyphBounds.w, position.y),
+  position.z
 );
 vTroikaLocalPos = vec3(position);
 
