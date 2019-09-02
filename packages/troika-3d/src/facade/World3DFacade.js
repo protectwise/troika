@@ -106,8 +106,8 @@ class World3DFacade extends WorldBaseFacade {
 
     // Invoke any onBeforeRender listeners
     let registry = this.eventRegistry
-    function invokeHandler(handler) {
-      handler(renderer, scene, camera)
+    function invokeHandler(handler, facadeId) {
+      handler.call(this._object3DFacadesById[facadeId], renderer, scene, camera)
     }
     registry.forEachListenerOfType('beforerender', invokeHandler, this)
 
