@@ -1,6 +1,6 @@
 import React from 'react'
 import T from 'prop-types'
-import {Canvas3D} from 'troika-3d'
+import { Canvas3D, createDerivedMaterial } from 'troika-3d'
 import {Text3DFacade} from 'troika-3d-text'
 import {MeshBasicMaterial, MeshStandardMaterial, TextureLoader} from 'three'
 import DatGui, {DatBoolean, DatSelect, DatNumber} from 'react-dat-gui'
@@ -47,10 +47,24 @@ November 19, 1863`,
 const TEXTURE = new TextureLoader().load('shader-anim/lava.jpg')
 const MATERIALS = {
   'MeshBasicMaterial': new MeshBasicMaterial(),
-  'MeshBasicMaterial+Texture': new MeshBasicMaterial({map: TEXTURE}),
   'MeshStandardMaterial': new MeshStandardMaterial(),
-  'MeshStandardMaterial+Texture': new MeshStandardMaterial({map: TEXTURE})
+  'Custom Vertex Shader': createDerivedMaterial(new MeshStandardMaterial(), {
+    uniforms: {
+      currentTime: {value: 0}
+    },
+    vertexDefs: `
+      uniform float currentTime;
+    `,
+    vertexTransform: `
+      position.z += sin(uv.x * PI * 4.0 - mod(currentTime / 300.0, PI2)) * -0.1;
+    `
+  })
 }
+const MATERIAL_OPTS = Object.keys(MATERIALS)
+Object.keys(MATERIALS).forEach(name => {
+  MATERIALS[name + '+Texture'] = MATERIALS[name].clone()
+  MATERIALS[name + '+Texture'].map = TEXTURE
+})
 
 class TextExample extends React.Component {
   constructor(props) {
@@ -108,7 +122,7 @@ class TextExample extends React.Component {
             z: 2,
             lookAt: {x: 0, y: 0, z: 0}
           } }
-          lights={ state.material === 'MeshStandardMaterial' ? [
+          lights={ state.material !== 'MeshBasicMaterial' ? [
             {type: 'ambient', color: 0x666666},
             {
               type: 'point',
@@ -151,6 +165,12 @@ class TextExample extends React.Component {
                 scaleX: true,
                 scaleY: true,
                 scaleZ: true
+              },
+              onBeforeRender() {
+                const curTimeUniform = this.threeObject.material.uniforms.currentTime
+                if (curTimeUniform) {
+                  curTimeUniform.value = Date.now() & 0xffffff
+                }
               },
               // onMouseOver() {
               //   console.log('mouseover')
@@ -203,7 +223,7 @@ class TextExample extends React.Component {
 
           <DatSelect path='font' options={Object.keys(FONTS).sort()} />
           <DatSelect path='textAlign' options={['left', 'right', 'center', 'justify']} />
-          <DatSelect path="material" options={['MeshBasicMaterial', 'MeshStandardMaterial']} />
+          <DatSelect path="material" options={MATERIAL_OPTS} />
           <DatBoolean path="useTexture" label="Texture" />
 
           <DatBoolean path="animTextColor" label="Cycle Colors" />
