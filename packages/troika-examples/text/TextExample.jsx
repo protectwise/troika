@@ -56,7 +56,11 @@ const MATERIALS = {
       uniform float currentTime;
     `,
     vertexTransform: `
-      position.z += sin(uv.x * PI * 4.0 - mod(currentTime / 300.0, PI2)) * -0.1;
+      float waveAmplitude = 0.1;
+      float waveX = uv.x * PI * 4.0 - mod(currentTime / 300.0, PI2);
+      float waveZ = sin(waveX) * waveAmplitude;
+      normal.xyz = normalize(vec3(-cos(waveX) * waveAmplitude, 0.0, 1.0));
+      position.z += waveZ;
     `
   })
 }
