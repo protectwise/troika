@@ -6,6 +6,10 @@ Rather than relying on pre-generated SDF textures, this parses font files (.ttf,
 
 Once the SDFs are generated, it assembles a geometry that positions all the glyphs, and _patches_ any Three.js Material with the proper shader code for rendering the SDFs. This means you can still benefit from all the features of Three.js's built-in materials like lighting, physically-based rendering, shadows, and fog.
 
+## Demo
+
+Here's [an online demo](https://troika-examples.netlify.com/#text).
+
 ## Screenshots
 
 ![Text Rendering](./screenshot1.png)
