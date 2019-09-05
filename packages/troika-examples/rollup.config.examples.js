@@ -38,16 +38,16 @@ export default {
     commonjs({
       extensions: [ '.js', '.jsx' ],  // Default: [ '.js' ]
       namedExports: {
-        // Help it resolve the exports from react-dat-gui
-        'react-dat-gui': [
-          'DatBoolean',
-          'DatButton',
-          'DatColor',
-          'DatFolder',
-          'DatNumber',
-          'DatPresets',
-          'DatSelect',
-          'DatString'
+        // Help it resolve the exports from react
+        'react': [
+          'Component',
+          'cloneElement'
+        ],
+        'react-color/lib/components/common': [
+          'EditableInput',
+          'ColorWrap',
+          'Saturation',
+          'Hue'
         ]
       }
     }),

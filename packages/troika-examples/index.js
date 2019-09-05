@@ -16,7 +16,7 @@ import EasingsExample from './easings/EasingsExample'
 import InstanceableExample from './instanceable/InstanceableExample'
 import InceptionExample from './inception/InceptionExample'
 
-import 'react-dat-gui/build/react-dat-gui.css'
+import 'react-dat-gui/dist/index.css'
 import './index.css'
 
 
