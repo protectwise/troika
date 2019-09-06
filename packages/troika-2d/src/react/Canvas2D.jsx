@@ -9,7 +9,7 @@ class Canvas2D extends React.Component {
     return React.createElement(
       ReactCanvasBase,
       utils.assign({}, props, {
-        worldClass: props.worldClass || World2DFacade,
+        worldFacade: props.worldFacade || World2DFacade,
         worldProps: utils.assign({}, {
           backgroundColor: props.backgroundColor,
           onBackgroundClick: props.onBackgroundClick,

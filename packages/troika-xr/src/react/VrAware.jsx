@@ -18,10 +18,28 @@ export const vrAwarePropTypes = {
 
 const vrEvents = ['vrdisplayconnect', 'vrdisplaydisconnect', 'vrdisplaypresentchange']
 
+const vrCanvasStyles = {
+  both: {
+    position: 'absolute',
+    height: '100%',
+    width: 'auto', //adjusts per aspect ratio to match full height
+    left: '50%',
+    transform: 'translate(-50%)'
+  }
+}
+vrCanvasStyles.left = utils.assign({}, vrCanvasStyles.both, {
+  transform: 'translate(-25%)',
+  clipPath: `inset(0 50% 0 0)`
+})
+vrCanvasStyles.right = utils.assign({}, vrCanvasStyles.both, {
+  transform: 'translate(-75%)',
+  clipPath: `inset(0 0 0 50%)`
+})
 
 export function makeVrAware(ReactClass, options) {
   options = utils.assign({
-    buttonRenderer: VrButton
+    buttonRenderer: VrButton,
+    screenViewEye: 'left' //or 'right' or 'both'
   }, options)
 
   class VrAware extends React.Component {
@@ -115,9 +133,10 @@ export function makeVrAware(ReactClass, options) {
       />
 
       const contextValue = {
-        worldClass: WorldVrFacade,
+        worldFacade: WorldVrFacade,
         worldProps: { vrDisplay },
-        onCanvasRef: this._registerVrCanvas
+        onCanvasRef: this._registerVrCanvas,
+        canvasStyle: vrDisplay ? vrCanvasStyles[options.screenViewEye] : null
       }
 
       return React.createElement(Canvas3D.contextType.Provider, {value: contextValue},

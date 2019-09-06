@@ -5,7 +5,7 @@ import Stats from './Stats.jsx'
 import {assign} from '../utils'
 
 
-const canvasStyle = {width: '100%', height: '100%'}
+const defaultCanvasStyle = {width: '100%', height: '100%'}
 
 
 class CanvasBase extends React.Component {
@@ -24,7 +24,7 @@ class CanvasBase extends React.Component {
   }
 
   initWorld(canvas) {
-    const world = new this.props.worldClass(canvas)
+    const world = new this.props.worldFacade(canvas)
     world.renderHtmlItems = this.renderHtmlItems
     return world
   }
@@ -125,7 +125,7 @@ class CanvasBase extends React.Component {
           <canvas
             className="troika_canvas"
             ref={this._bindCanvasRef}
-            style={canvasStyle}
+            style={props.canvasStyle || defaultCanvasStyle}
           />
         )}
 
@@ -143,8 +143,9 @@ CanvasBase.commonPropTypes = {
   width: T.number.isRequired,
   height: T.number.isRequired,
   pixelRatio: T.number,
-  worldClass: T.func,
+  worldFacade: T.func,
   worldProps: T.object,
+  canvasStyle: T.object,
   className: T.string,
   continuousRender: T.bool,
   onCanvasRef: T.func,

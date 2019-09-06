@@ -3,7 +3,7 @@ import T from 'prop-types'
 import {utils} from 'troika-core'
 import {Canvas3D} from 'troika-3d'
 import XrLauncher from './XrLauncher.jsx'
-import WorldXrFacade from 'src/troika/packages/troika-xr/src/facade/webxr-wip/WorldXrFacade.js'
+import WorldXrFacade from '../facade/WorldXrFacade.js'
 
 
 const SESSION_MODES = ['inline', 'immersive-vr'] //TODO add others as they are added to the specs
@@ -175,7 +175,7 @@ export function makeXrAware(ReactClass, options) {
       />
 
       const contextValue = {
-        worldClass: WorldXrFacade,
+        worldFacade: WorldXrFacade,
         worldProps: { xrSession, xrSessionMode }
       }
 

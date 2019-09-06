@@ -21,7 +21,8 @@ class Canvas3D extends ReactCanvasBase {
       ReactCanvasBase,
       utils.assign({}, props, {
         onCanvasRef: this._onCanvasRef,
-        worldClass: props.worldClass || context.worldClass || World3DFacade,
+        canvasStyle: props.canvasStyle || context.canvasStyle,
+        worldFacade: props.worldFacade || context.worldFacade || World3DFacade,
         worldProps: utils.assign(
           {
             antialias: props.antialias,
@@ -63,9 +64,10 @@ Canvas3D.propTypes = utils.assignIf(
  * how the world is created, e.g. switching to a WebXR-aware world impl
  */
 Canvas3D.contextType = React.createContext({
-  worldClass: World3DFacade,
+  worldFacade: World3DFacade,
   worldProps: {},
-  onCanvasRef: null
+  onCanvasRef: null,
+  canvasStyle: null
 })
 
 export default Canvas3D
