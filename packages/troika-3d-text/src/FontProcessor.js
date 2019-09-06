@@ -85,11 +85,16 @@ export default function createFontProcessor(fontParser, sdfGenerator, config) {
         request.open('get', url, true)
         request.responseType = 'arraybuffer'
         request.onload = function () {
-          try {
-            const fontObj = fontParser(request.response)
-            callback(fontObj)
-          } catch (e) {
-            onError(e)
+          if (request.status >= 400) {
+            onError(new Error(request.statusText))
+          }
+          else if (request.status > 0) {
+            try {
+              const fontObj = fontParser(request.response)
+              callback(fontObj)
+            } catch (e) {
+              onError(e)
+            }
           }
         }
         request.onerror = onError
