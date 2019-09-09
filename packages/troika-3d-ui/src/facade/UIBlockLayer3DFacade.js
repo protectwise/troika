@@ -69,17 +69,14 @@ class UIBlockLayer3DFacade extends Object3DFacade {
       }
       upgradedMaterial = this._upgradedMaterial = createUIBlockLayerDerivedMaterial(baseMaterial, this.isBorder)
       upgradedMaterial.color = this._colorObj
+
+      // dispose the derived material when its base material is disposed:
+      baseMaterial.addEventListener('dispose', function onDispose() {
+        baseMaterial.removeEventListener('dispose', onDispose)
+        upgradedMaterial.dispose()
+      })
     }
     return upgradedMaterial
-  }
-
-
-  destructor() {
-    const material = this._upgradedMaterial
-    if (material) {
-      material.dispose()
-    }
-    super.destructor()
   }
 }
 
