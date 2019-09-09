@@ -100,6 +100,7 @@ export function createDerivedMaterial(baseMaterial, options) {
 
   function DerivedMaterial() {
     baseMaterial.constructor.apply(this, arguments)
+    this._listeners = undefined //don't inherit EventDispatcher listeners
   }
   DerivedMaterial.prototype = Object.create(baseMaterial, {
     constructor: {value: DerivedMaterial},
