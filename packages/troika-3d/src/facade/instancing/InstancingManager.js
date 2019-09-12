@@ -1,5 +1,5 @@
 import { utils } from 'troika-core'
-import { InstancedBufferAttribute, InstancedBufferGeometry } from 'three'
+import { InstancedBufferAttribute, InstancedBufferGeometry, RGBADepthPacking, ShaderMaterial, ShaderLib, Vector3 } from 'three'
 import Group3DFacade from '../Group3DFacade'
 import { upgradeShaders } from './InstancingShaderUpgrades'
 import { getShadersForMaterial, getShaderUniformTypes, expandShaderIncludes } from 'troika-three-utils'
@@ -276,14 +276,22 @@ class InstancingManager extends Group3DFacade {
     }
 
     // Create a new mesh object to hold it all
-    let batchObject = Object.create(instancedObject)
+    let batchObject = Object.create(instancedObject, {
+      // lazy getters for shadow materials
+      customDepthMaterial: {
+        get() { return getBatchDepthMaterial() }
+      },
+      // customDistanceMaterial: {
+      //   get() { return getBatchDistanceMaterial() }
+      // }
+    })
     batchObject.$troikaBatchBaseObj = instancedObject
     batchObject.$troikaInstancingManager = this
     batchObject.visible = true
     batchObject.frustumCulled = false
     batchObject.geometry = batchGeometry
     batchObject.material = batchMaterial
-    batchObject.renderOrder = instancedObject.renderOrder
+    // NOTE other props are inherited so don't need to copy them
     return batchObject
   }
   
@@ -426,6 +434,35 @@ function setAttributeValue(attr, offset, value) {
     attr.setXYZW(offset, value.x, value.y, value.z, value.w)
   }
 }
+
+
+let getBatchDepthMaterial = function() {
+  // We have to use a ShaderMaterial here instead of just deriving from MeshDepthMaterial,
+  // due to a quirk in WebGLRenderer where it doesn't set the viewMatrix uniform
+  // for MeshDepthMaterial, which is needed by the instancing upgrades.
+  const shaderInfo = assign({}, ShaderLib.depth)
+  shaderInfo.vertexShader = upgradeShaders(shaderInfo.vertexShader, '', []).vertexShader
+  const material = new ShaderMaterial(shaderInfo)
+  material.isMeshDepthMaterial = true
+  material.depthPacking = RGBADepthPacking
+  getBatchDepthMaterial = () => material
+  return material
+}
+
+/* Not working yet...
+let getBatchDistanceMaterial = function() {
+  // We have to use a ShaderMaterial here instead of just deriving from MeshDistanceMaterial,
+  // due to a quirk in WebGLRenderer where it doesn't set the viewMatrix uniform
+  // for MeshDistanceMaterial, which is needed by the instancing upgrades.
+  const shaderInfo = assign({}, ShaderLib.distanceRGBA)
+  shaderInfo.vertexShader = upgradeShaders(shaderInfo.vertexShader, '', []).vertexShader
+  const material = new ShaderMaterial(shaderInfo)
+  material.isMeshDistanceMaterial = true
+  material.referencePosition = new Vector3() //mutated during shadowmap setup
+  getBatchDistanceMaterial = () => material
+  return material
+}
+*/
 
 
 
