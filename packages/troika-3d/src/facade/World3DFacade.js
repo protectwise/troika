@@ -41,7 +41,13 @@ class World3DFacade extends WorldBaseFacade {
         context
       }, contextAttributes))
     }
-    renderer.shadowMap.enabled = !!this.shadows
+
+    const shadows = this.shadows
+    renderer.shadowMap.enabled = !!shadows
+    if (shadows && typeof shadows === 'object') {
+      assign(renderer.shadowMap, shadows)
+    }
+
     if (backgroundColor !== this._bgColor) {
       this._threeRenderer.setClearColor(new Color(backgroundColor || 0), backgroundColor != null ? 1 : 0)
       this._bgColor = backgroundColor

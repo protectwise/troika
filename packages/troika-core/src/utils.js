@@ -46,6 +46,26 @@ export function assignIf(/*target, ...sources*/) {
   return target
 }
 
+/**
+ * Like {@link assign}, but for any property where the source and target are both
+ * sub-objects, does a deep recursive copy.
+ * @param {object} target
+ * @param {object} source
+ */
+export function assignDeep(target, source) {
+  if (source) {
+    for (let prop in source) {
+      if (source.hasOwnProperty(prop)) {
+        if (target[prop] && typeof target[prop] === 'object' && typeof source[prop] === 'object') {
+          assignDeep(target[prop], source[prop])
+        } else {
+          target[prop] = source[prop]
+        }
+      }
+    }
+  }
+}
+
 
 /**
  * Iterate over an object's own (non-prototype-inherited) properties
