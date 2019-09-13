@@ -1,5 +1,13 @@
 import { utils } from 'troika-core'
-import { InstancedBufferAttribute, InstancedBufferGeometry, RGBADepthPacking, ShaderMaterial, ShaderLib, Vector3 } from 'three'
+import {
+  InstancedBufferAttribute,
+  InstancedBufferGeometry,
+  Matrix4,
+  RGBADepthPacking,
+  ShaderMaterial,
+  ShaderLib,
+  Vector3
+} from 'three'
 import Group3DFacade from '../Group3DFacade'
 import { upgradeShaders } from './InstancingShaderUpgrades'
 import { getShadersForMaterial, getShaderUniformTypes, expandShaderIncludes } from 'troika-three-utils'
@@ -276,14 +284,30 @@ class InstancingManager extends Group3DFacade {
     }
 
     // Create a new mesh object to hold it all
+    let shadowMaterial = null
     let batchObject = Object.create(instancedObject, {
-      // lazy getters for shadow materials
+      // Lazy getters for shadow materials:
       customDepthMaterial: {
-        get() { return getBatchDepthMaterial() }
+        get() { return shadowMaterial = getBatchDepthMaterial() }
       },
-      // customDistanceMaterial: {
-      //   get() { return getBatchDistanceMaterial() }
-      // }
+      customDistanceMaterial: {
+        get() { return shadowMaterial = getBatchDistanceMaterial() }
+      },
+      // Hack to update viewMatrix for each face of the distance cube - see explanation
+      // in getBatchDistanceMaterial() comments below. Would be cleaner to use an onBeforeRender
+      // hook but that isn't called during shadowmap rendering.
+      modelViewMatrix: {
+        value: function() {
+          const modelViewMatrix = new Matrix4()
+          modelViewMatrix.multiplyMatrices = function(viewMatrix, matrixWorld) {
+            Matrix4.prototype.multiplyMatrices.call(this, viewMatrix, matrixWorld)
+            if (shadowMaterial && shadowMaterial._updateViewMatrix) {
+              shadowMaterial._updateViewMatrix(viewMatrix)
+            }
+          }
+          return modelViewMatrix
+        }()
+      }
     })
     batchObject.$troikaBatchBaseObj = instancedObject
     batchObject.$troikaInstancingManager = this
@@ -449,20 +473,29 @@ let getBatchDepthMaterial = function() {
   return material
 }
 
-/* Not working yet...
 let getBatchDistanceMaterial = function() {
   // We have to use a ShaderMaterial here instead of just deriving from MeshDistanceMaterial,
   // due to a quirk in WebGLRenderer where it doesn't set the viewMatrix uniform
   // for MeshDistanceMaterial, which is needed by the instancing upgrades.
+  // Additionally, the way WebGLShadowMap rotates a single camera 6 times per object prevents
+  // WebGLRenderer.setProgram() from updating the viewMatrix uniform for directions 2-6. To
+  // get around this we define a ShaderMaterial uniform for it and monkeypatch in way to
+  // intercept view changes and manually update the uniform to match (see modelViewMatrix
+  // override above when constructing the batchObject).
   const shaderInfo = assign({}, ShaderLib.distanceRGBA)
+  const viewMatrix = new Matrix4()
   shaderInfo.vertexShader = upgradeShaders(shaderInfo.vertexShader, '', []).vertexShader
+  shaderInfo.uniforms = assign({viewMatrix: {value: viewMatrix}}, shaderInfo.uniforms)
   const material = new ShaderMaterial(shaderInfo)
   material.isMeshDistanceMaterial = true
   material.referencePosition = new Vector3() //mutated during shadowmap setup
+  material._updateViewMatrix = source => {
+    viewMatrix.copy(source)
+    material.uniformsNeedUpdate = true //undocumented flag for ShaderMaterial
+  }
   getBatchDistanceMaterial = () => material
   return material
 }
-*/
 
 
 
