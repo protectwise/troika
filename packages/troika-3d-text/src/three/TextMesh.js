@@ -3,7 +3,10 @@ import {
   Matrix4,
   Mesh,
   MeshBasicMaterial,
-  PlaneBufferGeometry
+  MeshDepthMaterial,
+  MeshDistanceMaterial,
+  PlaneBufferGeometry,
+  RGBADepthPacking
 } from 'three'
 import { GlyphsGeometry } from './GlyphsGeometry.js'
 import { createTextDerivedMaterial } from './TextDerivedMaterial.js'
@@ -25,6 +28,21 @@ const raycastMesh = new Mesh(
   new PlaneBufferGeometry(1, 1).translate(0.5, 0.5, 0),
   defaultMaterial
 )
+
+// Lazy getters for shadow materials:
+// NOTE these don't work if the TextMesh's base `material` has custom vertex shader transformations
+let getDepthMaterial = () => {
+  const material = createTextDerivedMaterial(new MeshDepthMaterial({
+    depthPacking: RGBADepthPacking
+  }))
+  getDepthMaterial = () => material //cache
+  return material
+}
+let getDistanceMaterial = () => {
+  const material = createTextDerivedMaterial(new MeshDistanceMaterial())
+  getDistanceMaterial = () => material //cache
+  return material
+}
 
 
 
@@ -256,8 +274,32 @@ class TextMesh extends Mesh {
     this._baseMaterial = baseMaterial
   }
 
+  // Create and update material for shadows upon request:
+  get customDepthMaterial() {
+    return this._updateLayoutUniforms(getDepthMaterial())
+  }
+  get customDistanceMaterial() {
+    return this._updateLayoutUniforms(getDistanceMaterial())
+  }
+
   _prepareMaterial() {
     const material = this._derivedMaterial
+    this._updateLayoutUniforms(material)
+
+    // presentation uniforms:
+    const uniforms = material.uniforms
+    uniforms.uTroikaSDFDebug.value = !!this.debugSDF
+    material.polygonOffset = !!this.depthOffset
+    material.polygonOffsetFactor = material.polygonOffsetUnits = this.depthOffset || 0
+
+    // shortcut for setting material color via facade prop:
+    const color = this.color
+    if (color != null && material.color && material.color.isColor && color !== material._troikaColor) {
+      material.color.set(material._troikaColor = color)
+    }
+  }
+
+  _updateLayoutUniforms(material) {
     const textInfo = this._textRenderInfo
     const uniforms = material.uniforms
     if (textInfo) {
@@ -267,20 +309,10 @@ class TextMesh extends Mesh {
       uniforms.uTroikaGlyphVSize.value = sdfTexture.image.width / sdfTexture.image.height
       uniforms.uTroikaTotalBounds.value.fromArray(textInfo.totalBounds)
     }
-    uniforms.uTroikaSDFDebug.value = !!this.debugSDF
-
     let clipRect = this.clipRect
     if (!(clipRect && Array.isArray(clipRect) && clipRect.length === 4)) { clipRect = noclip }
     uniforms.uTroikaClipRect.value.fromArray(clipRect)
-
-    material.polygonOffset = !!this.depthOffset
-    material.polygonOffsetFactor = material.polygonOffsetUnits = this.depthOffset || 0
-
-    // shortcut for setting material color via facade prop:
-    const color = this.color
-    if (color != null && material.color && material.color.isColor && color !== material._troikaColor) {
-      material.color.set(material._troikaColor = color)
-    }
+    return material
   }
 
   /**

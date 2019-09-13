@@ -1,8 +1,14 @@
 import React from 'react'
 import T from 'prop-types'
-import { Canvas3D, createDerivedMaterial } from 'troika-3d'
+import { Canvas3D, createDerivedMaterial, Object3DFacade } from 'troika-3d'
 import {Text3DFacade} from 'troika-3d-text'
-import {MeshBasicMaterial, MeshStandardMaterial, TextureLoader} from 'three'
+import {
+  MeshBasicMaterial,
+  MeshStandardMaterial,
+  TextureLoader,
+  PlaneBufferGeometry,
+  Mesh
+} from 'three'
 import DatGui, {DatBoolean, DatSelect, DatNumber} from 'react-dat-gui'
 
 
@@ -89,6 +95,7 @@ class TextExample extends React.Component {
       animRotate: false,
       material: 'MeshStandardMaterial',
       useTexture: false,
+      shadows: false,
       debugSDF: false
     }
 
@@ -113,6 +120,7 @@ class TextExample extends React.Component {
       <div>
         <Canvas3D
           antialias
+          shadows={ state.shadows }
           stats={ this.props.stats }
           width={ width }
           height={ height }
@@ -120,20 +128,26 @@ class TextExample extends React.Component {
             fov: 75,
             aspect: width / height,
             near: 0.1,
-            far: 20000,
+            far: 100,
             x: 0,
             y: 0,
-            z: 2,
-            lookAt: {x: 0, y: 0, z: 0}
+            z: 2
           } }
           lights={ state.material !== 'MeshBasicMaterial' ? [
             {type: 'ambient', color: 0x666666},
             {
               type: 'point',
-              z: 4,
+              z: 2,
+              y: 1,
+              x: 0,
+              castShadow: state.shadows,
+              shadow: {
+                mapSize: {width: 1024, height: 1024},
+                // camera: {far: 100, near: 0.1, left: -10, right: 10, top: 10, bottom: -10}
+              },
               animation: {
-                from: {x: 5},
-                to: {x: -5},
+                from: {x: 1},
+                to: {x: -1},
                 iterations: Infinity,
                 direction: 'alternate',
                 easing: 'easeInOutSine',
@@ -149,6 +163,7 @@ class TextExample extends React.Component {
             {
               key: 'text',
               facade: Text3DFacade,
+              castShadow: state.shadows,
               text: TEXTS[state.text],
               font: FONTS[state.font],
               fontSize: state.fontSize,
@@ -208,7 +223,15 @@ class TextExample extends React.Component {
                   iterations: Infinity
                 } : null
               ]
-            }
+            },
+            state.shadows ? {
+              key: 'plane',
+              facade: ShadowSurface,
+              receiveShadow: true,
+              scale: 3,
+              rotateX: Math.PI / -6,
+              z: -1
+            } : null
           ] }
         />
 
@@ -234,6 +257,7 @@ class TextExample extends React.Component {
           <DatBoolean path="animTilt" label="Tilt" />
           <DatBoolean path="animRotate" label="Rotate" />
           <DatBoolean path="fog" label="Fog" />
+          <DatBoolean path="shadows" label="Shadows" />
           <DatBoolean path="debugSDF" label="Show SDF" />
 
           <DatNumber path="textScale" label="scale" min={0.1} max={10} step={0.1} />
@@ -249,6 +273,16 @@ class TextExample extends React.Component {
         </div>
       </div>
     )
+  }
+}
+
+
+class ShadowSurface extends Object3DFacade {
+  constructor(parent) {
+    super(parent, new Mesh(
+      new PlaneBufferGeometry(),
+      new MeshStandardMaterial({color: 0x333333, roughness: 0.8})
+    ))
   }
 }
 
