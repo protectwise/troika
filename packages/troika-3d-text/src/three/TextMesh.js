@@ -29,22 +29,6 @@ const raycastMesh = new Mesh(
   defaultMaterial
 )
 
-// Lazy getters for shadow materials:
-// NOTE these don't work if the TextMesh's base `material` has custom vertex shader transformations
-let getDepthMaterial = () => {
-  const material = createTextDerivedMaterial(new MeshDepthMaterial({
-    depthPacking: RGBADepthPacking
-  }))
-  getDepthMaterial = () => material //cache
-  return material
-}
-let getDistanceMaterial = () => {
-  const material = createTextDerivedMaterial(new MeshDistanceMaterial())
-  getDistanceMaterial = () => material //cache
-  return material
-}
-
-
 
 
 /**
@@ -276,10 +260,10 @@ class TextMesh extends Mesh {
 
   // Create and update material for shadows upon request:
   get customDepthMaterial() {
-    return this._updateLayoutUniforms(getDepthMaterial())
+    return this._updateLayoutUniforms(this.material.getDepthMaterial())
   }
   get customDistanceMaterial() {
-    return this._updateLayoutUniforms(getDistanceMaterial())
+    return this._updateLayoutUniforms(this.material.getDistanceMaterial())
   }
 
   _prepareMaterial() {

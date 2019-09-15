@@ -57,6 +57,10 @@ troikaApplyClipping();
 
 float troikaSDFValue = texture2D(uTroikaSDFTexture, vTroikaGlyphUV).r;
 
+#if defined(IS_DEPTH_MATERIAL) || defined(IS_DISTANCE_MATERIAL)
+if (troikaSDFValue < 0.5) discard;
+#else
+
 ${''/*
   When the standard derivatives extension is available, we choose an antialiasing alpha threshold based
   on the potential change in the SDF's alpha from this fragment to its neighbor. This strategy maximizes 
@@ -89,6 +93,8 @@ if (textAlphaMult == 0.0) {
 } else {
   gl_FragColor.a *= textAlphaMult;
 }
+
+#endif
 `
 
 const FRAGMENT_TRANSFORM_DEPTH = `
