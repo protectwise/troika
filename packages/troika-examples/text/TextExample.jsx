@@ -55,15 +55,10 @@ const MATERIALS = {
   'MeshBasicMaterial': new MeshBasicMaterial(),
   'MeshStandardMaterial': new MeshStandardMaterial(),
   'Custom Vertex Shader': createDerivedMaterial(new MeshStandardMaterial(), {
-    uniforms: {
-      currentTime: {value: 0}
-    },
-    vertexDefs: `
-      uniform float currentTime;
-    `,
+    timeUniform: 'elapsed',
     vertexTransform: `
       float waveAmplitude = 0.1;
-      float waveX = uv.x * PI * 4.0 - mod(currentTime / 300.0, PI2);
+      float waveX = uv.x * PI * 4.0 - mod(elapsed / 300.0, PI2);
       float waveZ = sin(waveX) * waveAmplitude;
       normal.xyz = normalize(vec3(-cos(waveX) * waveAmplitude, 0.0, 1.0));
       position.z += waveZ;
@@ -133,7 +128,7 @@ class TextExample extends React.Component {
             y: 0,
             z: 2
           } }
-          lights={ state.material !== 'MeshBasicMaterial' ? [
+          lights={[
             {type: 'ambient', color: 0x666666},
             {
               type: 'point',
@@ -143,7 +138,7 @@ class TextExample extends React.Component {
               castShadow: state.shadows,
               shadow: {
                 mapSize: {width: 1024, height: 1024},
-                // camera: {far: 100, near: 0.1, left: -10, right: 10, top: 10, bottom: -10}
+                // camera: {far: 10, near: 0.1, left: -3, right: 3, top: 3, bottom: -3}
               },
               animation: {
                 from: {x: 1},
@@ -154,7 +149,7 @@ class TextExample extends React.Component {
                 duration: 2000
               }
             }
-          ] : null }
+          ]}
           fog={state.fog ? {
             color: 0x222222,
             density: 0.75
@@ -184,12 +179,6 @@ class TextExample extends React.Component {
                 scaleX: true,
                 scaleY: true,
                 scaleZ: true
-              },
-              onBeforeRender() {
-                const curTimeUniform = this.threeObject.material.uniforms.currentTime
-                if (curTimeUniform) {
-                  curTimeUniform.value = Date.now() & 0xffffff
-                }
               },
               // onMouseOver() {
               //   console.log('mouseover')
