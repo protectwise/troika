@@ -1,6 +1,6 @@
 import { voidMainRegExp } from './voidMainRegExp.js'
 import { expandShaderIncludes } from './expandShaderIncludes.js'
-import { UniformsUtils } from 'three'
+import { MeshDepthMaterial, MeshDistanceMaterial, RGBADepthPacking, UniformsUtils } from 'three'
 
 
 // Local assign polyfill to avoid importing troika-core
@@ -21,6 +21,7 @@ const assign = Object.assign || function(/*target, ...sources*/) {
 
 
 let idCtr = 0
+const epoch = Date.now()
 const CACHE = new WeakMap() //threejs requires WeakMap internally so should be safe to assume support
 
 
@@ -37,6 +38,10 @@ const CACHE = new WeakMap() //threejs requires WeakMap internally so should be s
  * @param {Object} options.uniforms - Custom `uniforms` for use in the modified shader. These can
  *        be accessed and manipulated via the resulting material's `uniforms` property, just like
  *        in a ShaderMaterial. You do not need to repeat the base material's own uniforms here.
+ * @param {String} options.timeUniform - If specified, a uniform of this name will be injected into
+ *        both shaders, and it will automatically be updated on each render frame with a number of
+ *        elapsed milliseconds. The "zero" epoch time is not significant so don't rely on this as a
+ *        true calendar time.
  * @param {String} options.vertexDefs - Custom GLSL code to inject into the vertex shader's top-level
  *        definitions, above the `void main()` function.
  * @param {String} options.vertexMainIntro - Custom GLSL code to inject at the top of the vertex
@@ -53,6 +58,15 @@ const CACHE = new WeakMap() //threejs requires WeakMap internally so should be s
  *        TODO allow injecting before base shader logic or elsewhere?
  *
  * @return {THREE.Material}
+ *
+ * The returned material will also have two new methods, `getDepthMaterial()` and `getDistanceMaterial()`,
+ * which can be called to get a variant of the derived material for use in shadow casting. If the
+ * target mesh is expected to cast shadows, then you can assign these to the mesh's `customDepthMaterial`
+ * (for directional and spot lights) and/or `customDistanceMaterial` (for point lights) properties to
+ * allow the cast shadow to honor your derived shader's vertex transforms and discarded fragments. These
+ * will also set a custom `#define IS_DEPTH_MATERIAL` or `#define IS_DISTANCE_MATERIAL` that you can look
+ * for in your derived shaders with `#ifdef` to customize their behavior for the depth or distance
+ * scenarios, e.g. skipping antialiasing or expensive shader logic.
  */
 export function createDerivedMaterial(baseMaterial, options) {
   // First check the cache to see if we've already derived from this baseMaterial using
@@ -92,6 +106,13 @@ export function createDerivedMaterial(baseMaterial, options) {
     shaderInfo.fragmentShader = fragment.result
     assign(shaderInfo.uniforms, this.uniforms)
 
+    // Inject auto-updating time uniform if requested
+    if (options.timeUniform) {
+      shaderInfo.uniforms[options.timeUniform] = {
+        get value() {return Date.now() - epoch}
+      }
+    }
+
     // Users can still add their own handlers on top of ours
     if (this[privateBeforeCompileProp]) {
       this[privateBeforeCompileProp](shaderInfo)
@@ -126,7 +147,50 @@ export function createDerivedMaterial(baseMaterial, options) {
         }
         return this
       }
-    }
+    },
+
+    /**
+     * Utility to get a MeshDepthMaterial that will honor this derived material's vertex
+     * transformations and discarded fragments.
+     */
+    getDepthMaterial: {value() {
+      let depthMaterial = this._depthMaterial
+      if (!depthMaterial) {
+        depthMaterial = this._depthMaterial = createDerivedMaterial(
+          baseMaterial.isDerivedMaterial
+            ? baseMaterial.getDepthMaterial()
+            : new MeshDepthMaterial({depthPacking: RGBADepthPacking}),
+          options
+        )
+        depthMaterial.defines.IS_DEPTH_MATERIAL = ''
+      }
+      return depthMaterial
+    }},
+
+    /**
+     * Utility to get a MeshDistanceMaterial that will honor this derived material's vertex
+     * transformations and discarded fragments.
+     */
+    getDistanceMaterial: {value() {
+      let distMaterial = this._distanceMaterial
+      if (!distMaterial) {
+        distMaterial = this._distanceMaterial = createDerivedMaterial(
+          baseMaterial.isDerivedMaterial
+            ? baseMaterial.getDistanceMaterial()
+            : new MeshDistanceMaterial(),
+          options
+        )
+        distMaterial.defines.IS_DISTANCE_MATERIAL = ''
+      }
+      return distMaterial
+    }},
+
+    dispose: {value() {
+      const {_depthMaterial, _distanceMaterial} = this
+      if (_depthMaterial) _depthMaterial.dispose()
+      if (_distanceMaterial) _distanceMaterial.dispose()
+      baseMaterial.dispose.call(this)
+    }}
   })
 
   const material = new DerivedMaterial()
@@ -150,8 +214,16 @@ function upgradeShaders({vertexShader, fragmentShader}, options, id) {
     vertexTransform,
     fragmentDefs,
     fragmentMainIntro,
-    fragmentColorTransform
+    fragmentColorTransform,
+    timeUniform
   } = options
+
+  // Inject auto-updating time uniform if requested
+  if (timeUniform) {
+    const code = `\nuniform float ${timeUniform};\n`
+    vertexDefs = (vertexDefs || '') + code
+    fragmentDefs = (fragmentDefs || '') + code
+  }
 
   // Modify vertex shader
   if (vertexDefs || vertexMainIntro || vertexTransform) {
