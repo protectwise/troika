@@ -97,22 +97,11 @@ if (textAlphaMult == 0.0) {
 #endif
 `
 
-const FRAGMENT_TRANSFORM_DEPTH = `
-troikaApplyClipping();
-
-float troikaSDFValue = texture2D(uTroikaSDFTexture, vTroikaGlyphUV).r;
-
-if (troikaSDFValue < 0.5) {
-  discard;
-}
-`
-
 
 /**
  * Create a material for rendering text, derived from a baseMaterial
  */
 export function createTextDerivedMaterial(baseMaterial) {
-  const isForShadow = baseMaterial.isMeshDepthMaterial || baseMaterial.isMeshDistanceMaterial
   const textMaterial = createDerivedMaterial(baseMaterial, {
     extensions: {derivatives: true},
     uniforms: {
@@ -126,25 +115,19 @@ export function createTextDerivedMaterial(baseMaterial) {
     vertexDefs: VERTEX_DEFS,
     vertexTransform: VERTEX_TRANSFORM,
     fragmentDefs: FRAGMENT_DEFS,
-    fragmentColorTransform: isForShadow ? FRAGMENT_TRANSFORM_DEPTH : FRAGMENT_TRANSFORM
+    fragmentColorTransform: FRAGMENT_TRANSFORM
   })
 
-  if (!isForShadow) {
-    // Force transparency - TODO is this reasonable?
-    textMaterial.transparent = true
+  // Force transparency - TODO is this reasonable?
+  textMaterial.transparent = true
 
-    // WebGLShadowMap reverses the side of the shadow material by default, which fails
-    // for planes, so here we force the `shadowSide` to always match the main side.
-    let _side = textMaterial.shadowSide = textMaterial.side
-    Object.defineProperty(textMaterial, 'side', {
-      get() {
-        return _side
-      },
-      set(side) {
-        _side = this.shadowSide = side
-      }
-    })
-  }
+  // WebGLShadowMap reverses the side of the shadow material by default, which fails
+  // for planes, so here we force the `shadowSide` to always match the main side.
+  Object.defineProperty(textMaterial, 'shadowSide', {
+    get() {
+      return this.side
+    }
+  })
 
   return textMaterial
 }
