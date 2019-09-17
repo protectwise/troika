@@ -3,7 +3,7 @@ import { Group3DFacade } from 'troika-3d'
 import UITextNode3DFacade from './UITextNode3DFacade'
 import UIBlockLayer3DFacade from './UIBlockLayer3DFacade'
 import { extendAsFlexNode } from '../flex-layout/FlexNode'
-import { getInheritable } from '../uiUtils'
+import { getComputedFontSize, getInheritable } from '../uiUtils'
 import { utils } from 'troika-core'
 
 const raycastMesh = new Mesh(new PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0))
@@ -162,7 +162,7 @@ class UIBlock3DFacade extends Group3DFacade {
       if (text) {
         textChild.text = text
         textChild.font = getInheritable(this, 'font')
-        textChild.fontSize = getInheritable(this, 'fontSize', DEFAULT_FONT_SIZE)
+        textChild.fontSize = getComputedFontSize(this, DEFAULT_FONT_SIZE)
         textChild.textAlign = getInheritable(this, 'textAlign')
         textChild.lineHeight = getInheritable(this, 'lineHeight', DEFAULT_LINE_HEIGHT)
         textChild.letterSpacing = getInheritable(this, 'letterSpacing', 0)
