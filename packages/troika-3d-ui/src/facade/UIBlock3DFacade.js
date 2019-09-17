@@ -282,14 +282,22 @@ class UIBlock3DFacade extends Group3DFacade {
    * @override Custom raycaster to test against the layout block
    */
   raycast(raycaster) {
-    const {offsetWidth, offsetHeight} = this
+    const {offsetWidth, offsetHeight, clipTop, clipRight, clipBottom, clipLeft} = this
+    let hits = null
     if (offsetWidth && offsetHeight) {
       raycastMesh.matrixWorld.multiplyMatrices(
         this.threeObject.matrixWorld,
         tempMat4.makeScale(offsetWidth, offsetHeight, 1)
       )
-      const hits = this._raycastObject(raycastMesh, raycaster)
+      hits = this._raycastObject(raycastMesh, raycaster)
       if (hits) {
+        // Filter out hits that occurred on clipped areas
+        hits = hits.filter(hit => {
+          const x = hit.uv.x * offsetWidth
+          const y = (1 - hit.uv.y) * offsetHeight
+          return x > clipLeft && x < clipRight && y > clipTop && y < clipBottom
+        })
+
         // Add a distance bias (used as secondary sort for equidistant intersections) to prevent
         // container blocks from intercepting pointer events for their children. Also apply a
         // slight rounding prevent floating point precision irregularities from reporting different
@@ -299,9 +307,8 @@ class UIBlock3DFacade extends Group3DFacade {
           hit.distanceBias = -this.flexNodeDepth
         })
       }
-      return hits
     }
-    return null
+    return hits && hits.length ? hits : null
   }
 
 
