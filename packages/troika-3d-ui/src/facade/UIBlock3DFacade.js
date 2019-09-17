@@ -334,41 +334,43 @@ utils.assign(UIBlock3DFacade.prototype, {
 
 
 function wheelHandler(e) {
-  const facade = e.currentTarget
-  let {deltaX, deltaY, deltaMode} = e.nativeEvent
-  let deltaMultiplier
-  if (deltaMode === 0x01) { //line mode
-    deltaMultiplier = getComputedFontSize(facade, DEFAULT_FONT_SIZE) *
-      getInheritable(facade, 'lineHeight', 1.2) //Note: fixed default since we can't resolve 'normal' here
-  } else { //pixel mode
-    //TODO can we more accurately scale to visual expectation?
-    deltaMultiplier = getComputedFontSize(facade, DEFAULT_FONT_SIZE) / 12
-  }
-  deltaX *= deltaMultiplier
-  deltaY *= deltaMultiplier
+  if (!e._didScroll) {
+    const facade = e.currentTarget
+    let {deltaX, deltaY, deltaMode} = e.nativeEvent
+    let deltaMultiplier
+    if (deltaMode === 0x01) { //line mode
+      deltaMultiplier = getComputedFontSize(facade, DEFAULT_FONT_SIZE) *
+        getInheritable(facade, 'lineHeight', 1.2) //Note: fixed default since we can't resolve 'normal' here
+    } else { //pixel mode
+      //TODO can we more accurately scale to visual expectation?
+      deltaMultiplier = getComputedFontSize(facade, DEFAULT_FONT_SIZE) / 12
+    }
+    deltaX *= deltaMultiplier
+    deltaY *= deltaMultiplier
 
-  const scrollLeft = Math.max(0, Math.min(
-    facade.scrollWidth - facade.clientWidth,
-    facade.scrollLeft + deltaX
-  ))
-  const scrollTop = Math.max(0, Math.min(
-    facade.scrollHeight - facade.clientHeight,
-    facade.scrollTop + deltaY
-  ))
+    const scrollLeft = Math.max(0, Math.min(
+      facade.scrollWidth - facade.clientWidth,
+      facade.scrollLeft + deltaX
+    ))
+    const scrollTop = Math.max(0, Math.min(
+      facade.scrollHeight - facade.clientHeight,
+      facade.scrollTop + deltaY
+    ))
 
-  // Only scroll if the major scroll direction would actually result in a scroll change
-  const abs = Math.abs
-  if (
-    (scrollLeft !== this.scrollLeft && abs(deltaX) > abs(deltaY)) ||
-    (scrollTop !== this.scrollTop && abs(deltaY) > abs(deltaX))
-  ) {
-    this.scrollLeft = scrollLeft
-    this.scrollTop = scrollTop
-    facade.afterUpdate()
-    facade.notifyWorld('needsRender')
-    e.stopPropagation() //only scroll deepest
+    // Only scroll if the major scroll direction would actually result in a scroll change
+    const abs = Math.abs
+    if (
+      (scrollLeft !== this.scrollLeft && abs(deltaX) > abs(deltaY)) ||
+      (scrollTop !== this.scrollTop && abs(deltaY) > abs(deltaX))
+    ) {
+      this.scrollLeft = scrollLeft
+      this.scrollTop = scrollTop
+      facade.afterUpdate()
+      facade.notifyWorld('needsRender')
+      e._didScroll = true
+    }
+    e.preventDefault()
   }
-  e.preventDefault()
 }
 
 function isTextNodeChild(child) {
