@@ -10,6 +10,7 @@ import {
   Mesh
 } from 'three'
 import DatGui, {DatBoolean, DatSelect, DatNumber} from 'react-dat-gui'
+import DatGuiFacade from '../troika-dat-gui/DatGuiFacade'
 
 
 const FONTS = {
@@ -220,7 +221,39 @@ class TextExample extends React.Component {
               scale: 3,
               rotateX: Math.PI / -6,
               z: -1
-            } : null
+            } : null,
+            /*{
+              key: 'dat',
+              facade: DatGuiFacade,
+              x: -1,
+              y: .5,
+              z: 1,
+              rotateY: Math.PI / 16,
+              //height: 0.4,
+              overflow: 'scroll',
+              data: state,
+              onUpdate: this._onConfigUpdate,
+              items: [
+                {type: 'select', path: 'font', options: Object.keys(FONTS).sort()},
+                {type: 'select', path: 'textAlign', options: ['left', 'right', 'center', 'justify']},
+                {type: 'select', path: "material", options: MATERIAL_OPTS},
+
+                {type: 'boolean', path: "useTexture", label: "Texture"},
+                {type: 'boolean', path: "animTextColor", label: "Cycle Colors"},
+                {type: 'boolean', path: "animTilt", label: "Tilt"},
+                {type: 'boolean', path: "animRotate", label: "Rotate"},
+                {type: 'boolean', path: "fog", label: "Fog"},
+                {type: 'boolean', path: "shadows", label: "Shadows"},
+                {type: 'boolean', path: "debugSDF", label: "Show SDF"},
+
+                {type: 'number', path: "textScale", label: "scale", min: 0.1, max: 10, step: 0.1},
+                {type: 'number', path: "maxWidth", min: 1, max: 5, step: 0.01},
+                {type: 'number', path: "lineHeight", min: 1, max: 2, step: 0.01},
+                {type: 'number', path: "letterSpacing", min: -0.1, max: 0.5, step: 0.01},
+
+                {type: 'button', label: 'Hello', onClick: e => this.setState({textScale: Math.random() * 5})}
+              ]
+            }*/
           ] }
         />
 
