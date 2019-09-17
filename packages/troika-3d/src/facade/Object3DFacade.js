@@ -196,6 +196,7 @@ class Object3DFacade extends PointerEventTarget {
    * @returns {Vector3}
    */
   getCameraPosition() {
+    notifyWorldGetter.value = null
     this.notifyWorld('getCameraPosition', notifyWorldGetter)
     return notifyWorldGetter.value
   }
@@ -204,9 +205,10 @@ class Object3DFacade extends PointerEventTarget {
    * Get the facade object for the world's camera. Can be used to get to low-level info
    * about the camera such as its various matrices, but be careful not to make modifications
    * to the camera as that can lead to things getting out of sync.
-   * @returns {Vector3}
+   * @returns {Camera3DFacade}
    */
   getCameraFacade() {
+    notifyWorldGetter.value = null
     this.notifyWorld('getCameraFacade', notifyWorldGetter)
     return notifyWorldGetter.value
   }
@@ -229,8 +231,19 @@ class Object3DFacade extends PointerEventTarget {
    */
   getProjectedPosition(x, y, z) {
     this.updateMatrices()
+    notifyWorldGetter.value = null
     notifyWorldGetter.worldPosition = singletonVec3.set(x || 0, y || 0, z || 0).applyMatrix4(this.threeObject.matrixWorld)
     this.notifyWorld('projectWorldPosition', notifyWorldGetter)
+    return notifyWorldGetter.value
+  }
+
+  /**
+   * Get the facade object for the world's scene.
+   * @returns {Scene3DFacade}
+   */
+  getSceneFacade() {
+    notifyWorldGetter.value = null
+    this.notifyWorld('getSceneFacade', notifyWorldGetter)
     return notifyWorldGetter.value
   }
 
