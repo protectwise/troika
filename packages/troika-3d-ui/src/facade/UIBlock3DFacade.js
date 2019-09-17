@@ -329,12 +329,17 @@ utils.assign(UIBlock3DFacade.prototype, {
 function wheelHandler(e) {
   const facade = e.currentTarget
   let {deltaX, deltaY, deltaMode} = e.nativeEvent
+  let deltaMultiplier
   if (deltaMode === 0x01) { //line mode
-    const lineSize = getInheritable(facade, 'fontSize', DEFAULT_FONT_SIZE) *
+    deltaMultiplier = getComputedFontSize(facade, DEFAULT_FONT_SIZE) *
       getInheritable(facade, 'lineHeight', 1.2) //Note: fixed default since we can't resolve 'normal' here
-    deltaX *= lineSize
-    deltaY *= lineSize
+  } else { //pixel mode
+    //TODO can we more accurately scale to visual expectation?
+    deltaMultiplier = getComputedFontSize(facade, DEFAULT_FONT_SIZE) / 12
   }
+  deltaX *= deltaMultiplier
+  deltaY *= deltaMultiplier
+
   const scrollLeft = Math.max(0, Math.min(
     facade.scrollWidth - facade.clientWidth,
     facade.scrollLeft + deltaX
