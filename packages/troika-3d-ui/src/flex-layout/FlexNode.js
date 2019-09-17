@@ -124,9 +124,19 @@ export const extendAsFlexNode = createClassExtender('flexNode', BaseFacadeClass 
       }
     }
 
+    destructor() {
+      if (this.parentFlexNode) {
+        this.notifyWorld('needsFlexLayout')
+      }
+      super.destructor()
+    }
+
     onNotifyWorld(source, message, data) {
       if (message === 'needsFlexLayout' && !this.parentFlexNode) {
         this.needsFlexLayout = true
+        if (!this._rootLayoutReq) {
+          this._rootLayoutReq = setTimeout(this._performRootLayout.bind(this), 0)
+        }
         return
       }
       super.onNotifyWorld(source, message, data)
@@ -139,6 +149,8 @@ export const extendAsFlexNode = createClassExtender('flexNode', BaseFacadeClass 
 
       this._hasActiveFlexRequest = true
       this.needsFlexLayout = false
+      clearTimeout(this._rootLayoutReq)
+      delete this._rootLayoutReq
 
       // Traverse the flex node tree in document order and add the ordered child
       // relationships to the style nodes at each level
