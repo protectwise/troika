@@ -1,0 +1,23 @@
+{
+  "name": "troika-physics",
+  "version": "0.15.1",
+  "description": "Troika Physics",
+  "author": "Richard Trott <richard.trott@protectwise.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/protectwise/troika.git",
+    "directory": "packages/troika-physics"
+  },
+  "license": "MIT",
+  "main": "dist/troika-phsyics.umd.js",
+  "browser": "dist/troika-phsyics.umd.js",
+  "jsnext:main": "dist/troika-phsyics.esm.js",
+  "module": "dist/troika-phsyics.esm.js",
+  "module:es2015": "src/index.js",
+  "dependencies": {
+    "ammo.js": "github:kripken/ammo.js",
+    "troika-3d": "^0.15.1",
+    "troika-core": "^0.15.0",
+    "troika-worker-utils": "^0.15.0"
+  }
+}
