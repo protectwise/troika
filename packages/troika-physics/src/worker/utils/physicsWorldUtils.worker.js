@@ -10,35 +10,21 @@ function rescaleCollisionShape (body, scaleArgs) {
     throw new Error(`Collision shape: not found or does not support the setLocalScaling method.`)
   }
   collisionShape.setLocalScaling(new Ammo.btVector3(scaleX, scaleY, scaleZ))
-  // FIXME copy motion state? velocity is reset
+  
+  // FIXME copy motion state? seems to lose motion when rescaling an object that is moving
+
   if (!body.isActive()) {
     body.activate() // If this body was sleeping, activate it
   }
 }
 
-function updateCollisionShapeMatrix (body, worldMatrixElements) {
-  // console.log(`~~ update matrix`, worldMatrixElements)
+function updateBodyMatrix (body, worldMatrixElements) {  
+  // Update the transform
+  // singletonTransform.setIdentity() // TODO need to reset this?
+  singletonTransform.setFromOpenGLMatrix(worldMatrixElements) 
   
-  // const collisionShape = body.getCollisionShape()
-  // if (!collisionShape || !collisionShape.setLocalScaling) {
-  //   throw new Error(`Collision shape: not found or does not support the setLocalScaling method.`)
-  // }
-
-  // body
-  //   .getWorldTransform()
-  //   .setFromOpenGLMatrix(worldMatrixElements) //
-  // singletonTransform.setIdentity() // Reset
-  const newTransform = new Ammo.btTransform()
-  // const motionState = body.getMotionState()
-    
-  // body.getMotionState().getWorldTransform(newTransform) // Copy motionState transform to shared transform object
-  newTransform.setFromOpenGLMatrix(worldMatrixElements) // Update the transform
-  body.getMotionState().setWorldTransform(newTransform) // Apply back to the body's motionState
-
-  // body.setWorldTransform(new Ammo.btVector3(scaleX, scaleY, scaleZ))
-  // if (!body.isActive()) {
-  //   body.activate() // If this body was sleeping, activate it
-  // }
+  // Apply transform to the body's motionState so Bullet keeps track of its velocity etc.
+  body.getMotionState().setWorldTransform(singletonTransform) // Apply back to the body's motionState
 }
 
 function disableDeactivation (body, force = false) {
@@ -55,6 +41,6 @@ function disableDeactivation (body, force = false) {
 // "export" utils to global scope
 self.utils = {
   rescaleCollisionShape,
-  updateCollisionShapeMatrix,
+  updateBodyMatrix,
   disableDeactivation
 }
