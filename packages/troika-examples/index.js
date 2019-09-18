@@ -15,6 +15,7 @@ import Canvas2DExample from './canvas2d/Canvas2DExample'
 import EasingsExample from './easings/EasingsExample'
 import InstanceableExample from './instanceable/InstanceableExample'
 import InceptionExample from './inception/InceptionExample'
+import PhysicsExample from './physics/PhysicsExample'
 
 import 'react-dat-gui/dist/index.css'
 import './index.css'
@@ -34,7 +35,8 @@ const EXAMPLES = [
   {id: 'twoDee', name: 'Canvas2D', component: Canvas2DExample, disableVR:true},
   {id: 'easings', name: 'Animation Easings', component: EasingsExample, disableVR:true},
   {id: 'instanceable', name: 'Instanceable Objects', component: InstanceableExample},
-  {id: 'inception', name: 'Inception', component: InceptionExample}
+  {id: 'inception', name: 'Inception', component: InceptionExample},
+  {id: 'physics', name: 'Physics', component: PhysicsExample}
 ]
 
 class ExamplesApp extends React.Component {

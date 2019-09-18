@@ -29,6 +29,7 @@
     "troika-3d-ui": "^0.15.2",
     "troika-animation": "^0.15.0",
     "troika-core": "^0.15.0",
-    "troika-xr": "^0.15.2"
+    "troika-xr": "^0.15.2",
+    "troika-physics": "^0.15.1"
   }
 }
