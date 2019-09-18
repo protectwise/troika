@@ -87,6 +87,7 @@ class World3DFacade extends WorldBaseFacade {
       facade: Scene3DFacade,
       lights: this.lights,
       objects: this.objects,
+      background: this.background,
       fog: this.fog,
       onClick: this.onBackgroundClick ? this._onBgClick : null
     }

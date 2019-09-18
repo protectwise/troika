@@ -28,6 +28,7 @@ class Canvas3D extends ReactCanvasBase {
             antialias: props.antialias,
             rendererClass: props.rendererClass,
             backgroundColor: props.backgroundColor,
+            background: props.background,
             shadows: props.shadows,
             camera: props.camera,
             lights: props.lights,
