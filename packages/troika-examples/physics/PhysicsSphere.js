@@ -18,10 +18,6 @@ class Sphere extends Object3DFacade {
   constructor (parent) {
     const mesh = new Mesh(geometry, material.clone())
     super(parent, mesh)
-    this._physicsShapeCfg = {
-      shape: 'sphere',
-      ctrArgs: [DEFAULT_RADIUS]
-    }
   }
 
   set radius (r) {

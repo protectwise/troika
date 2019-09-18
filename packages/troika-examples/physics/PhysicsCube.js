@@ -14,11 +14,11 @@ const material = new MeshPhongMaterial({
   opacity: 1.0
 })
 const physicsShape = {
-  shape: 'box',
-  ctrArgs: [{
-    method: 'btVector3',
-    args: [DEFAULT_RADIUS / 2, DEFAULT_RADIUS / 2, DEFAULT_RADIUS / 2]
-  }]
+  // shape: 'box',
+  // ctrArgs: [{
+  //   method: 'btVector3',
+  //   args: [DEFAULT_RADIUS / 2, DEFAULT_RADIUS / 2, DEFAULT_RADIUS / 2]
+  // }]
   // shapeActions: [
   //   {
   //     method: 'setLocalScaling',
@@ -34,7 +34,6 @@ class Cube extends Object3DFacade {
   constructor (parent) {
     const mesh = new Mesh(geometry, material.clone())
     super(parent, mesh)
-    this._physicsShapeCfg = physicsShape
   }
 
   set radius (r) {

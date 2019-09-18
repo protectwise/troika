@@ -23,13 +23,6 @@ class InstanceableCube extends Instanceable3DFacade {
   constructor (parent) {
     super(parent)
     this.instancedThreeObject = protoObj
-    this._physicsShapeCfg = {
-      shape: 'box',
-      ctrArgs: [{
-        method: 'btVector3',
-        args: [DEFAULT_RADIUS / 2, DEFAULT_RADIUS / 2, DEFAULT_RADIUS / 2]
-      }]
-    }
   }
 
   afterUpdate () {

@@ -1,5 +1,5 @@
 import {
-  BoxBufferGeometry,
+  BoxGeometry,
   Mesh,
   MeshPhongMaterial
 } from 'three'
@@ -10,7 +10,7 @@ const sx = 0.5
 const sy = 0.5
 const sz = 10
 
-const geometry = new BoxBufferGeometry(sx, sy, sz, 1, 1, 1)
+const geometry = new BoxGeometry(sx, sy, sz, 1, 1, 1)
 const material = new MeshPhongMaterial({
   transparent: true,
   opacity: 1.0,
@@ -23,13 +23,6 @@ class FanBlade extends Object3DFacade {
     const ground = new Mesh(geometry, material.clone())
 
     super(parent, ground)
-    this._physicsShapeCfg = {
-      shape: 'box',
-      ctrArgs: [{
-        method: 'btVector3',
-        args: [sx * 0.5, sy * 0.5, sz * 0.5]
-      }]
-    }
   }
 
   set color (c) {

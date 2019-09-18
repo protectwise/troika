@@ -112,9 +112,9 @@ class PhysicsExample extends React.Component {
         bladeSpinning: false,
         bladeHeight: 0.5,
         bladeSpeed: 5,
-        numToAdd: 50,
+        numToAdd: 5,
       },
-      balls: this._getBalls(50),
+      balls: this._getBalls(5),
     }
   }
 

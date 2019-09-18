@@ -23,10 +23,6 @@ class InstanceableSphere extends Instanceable3DFacade {
   constructor (parent) {
     super(parent)
     this.instancedThreeObject = protoObj
-    this._physicsShapeCfg = {
-      shape: 'sphere',
-      ctrArgs: [DEFAULT_RADIUS]
-    }
   }
 
   afterUpdate () {

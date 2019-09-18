@@ -21,16 +21,7 @@ const material = new MeshPhongMaterial({
 class Ground extends Object3DFacade {
   constructor (parent) {
     const ground = new Mesh(geometry, material.clone())
-
     super(parent, ground)
-    
-    this._physicsShapeCfg = {
-      shape: 'box',
-      ctrArgs: [{
-        method: 'btVector3',
-        args: [sx * 0.5, sy * 0.5, sz * 0.5]
-      }]
-    }
   }
 
   set color (c) {

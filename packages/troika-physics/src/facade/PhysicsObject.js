@@ -1,16 +1,7 @@
 import { Facade, utils } from 'troika-core'
+import { inferPhysicsShape } from '../utils/inferPhysicsShape'
 
 const { assign, createClassExtender } = utils
-
-const POS_AND_ROT_PROPS = [
-  'x', 'y', 'z',
-  'quaternionX', 'quaternionY', 'quaternionZ', 'quaternionW',
-  'rotateX', 'rotateY', 'rotateZ' /* 'rotateOrder */
-]
-
-const SCALE_PROPS = [
-  'scaleX', 'scaleY', 'scaleZ'
-]
 
 /**
  * Extends a given Facade class to become a `PhysicsObjectFacade`, allowing it to
@@ -23,6 +14,7 @@ const SCALE_PROPS = [
  * physics: {
  *   isDisabled: boolean // When toggled, will delete/add the shape from the Physics World,
  *   isPaused: boolean // When toggled, will change the activation state of the shape, potentially allowing it to passively receive collisions from other shapes
+ *   isKinematic: boolean // Kinematic bodies _must_ have a mass of zero. They will interact with dynamic objects in the physicsWorld, but have their position/orientation controlled by the facade parent.
  *
  *   mass: number // kilograms
  *
@@ -37,11 +29,13 @@ const SCALE_PROPS = [
  * }
  *
  * @param {class} BaseFacadeClass
- * @return {PhysicsObject} a new class that extends the BaseFacadeClass
+ * @return {PhysicsObjectFacade} a new class that extends the BaseFacadeClass
  */
 export const extendAsPhysical = createClassExtender('physical', BaseFacadeClass => {
   class PhysicsObjectFacade extends BaseFacadeClass {
     constructor (parent, threeObject) {
+      console.log(`~~ ctr obj`, threeObject)
+      
       super(parent, threeObject)
 
       this.$isControlledByDynamicsWorld = false
@@ -49,13 +43,10 @@ export const extendAsPhysical = createClassExtender('physical', BaseFacadeClass 
       this._prevScaleX = this.scaleX
       this._prevScaleY = this.scaleY
       this._prevScaleZ = this.scaleZ
-      // this._prevs = Object.create(null)
-      // SCALE_PROPS.forEach(prop => {
-      //   this._prevs[prop] = this[prop]
-      // })
-      // POS_AND_ROT_PROPS.forEach(prop => {
-      //   this._prevs[prop] = this[prop]
-      // })
+
+      if (!this._physicsShapeCfg) {
+        this._physicsShapeCfg = inferPhysicsShape(this)
+      }
 
       this.notifyWorld('physicsObjectAdded')
     }

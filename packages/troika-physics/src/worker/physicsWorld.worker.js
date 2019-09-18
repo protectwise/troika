@@ -89,8 +89,8 @@ function createWorkerPhysicsWorld () {
   let _cachedBox
 
   function createPhysicsShape (shapeConfig) {
-    const { shape, ctrArgs = [], shapeActions = [] } = shapeConfig
-    const composedArgs = recurComposeArgs(ctrArgs)
+    const { shape, args = [], shapeActions = [] } = shapeConfig
+    const constructorArgs = recurComposeArgs(args)
     let ammoShape
 
     // NOTE re: caching/sharing https://pybullet.org/Bullet/BulletFull/classbtRigidBody.html
@@ -99,13 +99,13 @@ function createWorkerPhysicsWorld () {
 
     switch (shape) {
       case 'sphere': {
-        // ammoShape = _cachedSphere || (_cachedSphere = new Ammo.btSphereShape(...composedArgs))
-        ammoShape = new Ammo.btSphereShape(...composedArgs)
+        // ammoShape = _cachedSphere || (_cachedSphere = new Ammo.btSphereShape(...constructorArgs))
+        ammoShape = new Ammo.btSphereShape(...constructorArgs)
         break
       }
       case 'box': {
-        // ammoShape = _cachedBox || (_cachedBox = new Ammo.btBoxShape(...composedArgs))
-        ammoShape = new Ammo.btBoxShape(...composedArgs)
+        // ammoShape = _cachedBox || (_cachedBox = new Ammo.btBoxShape(...constructorArgs))
+        ammoShape = new Ammo.btBoxShape(...constructorArgs)
         break
       }
       default:
