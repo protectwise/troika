@@ -322,7 +322,7 @@ class WorldBaseFacade extends ParentFacade {
 
         // mousedown/touchstart could be prepping for drag gesture
         if (facade.onDragStart && (e.type === 'mousedown' || e.type === 'touchstart')) {
-          let dragStartEvent = new SyntheticEvent(e, 'dragstart', facade, null, hoverInfo)
+          let dragStartEvent = new SyntheticEvent(e, 'dragstart', facade, null, {intersection: hoverInfo})
           this.$dragInfo = {
             draggedFacade: facade,
             dragStartFired: false,
