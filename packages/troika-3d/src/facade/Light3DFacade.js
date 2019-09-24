@@ -5,7 +5,7 @@ import {
   PointLight
 } from 'three'
 import Object3DFacade from './Object3DFacade'
-import { assignDeep } from 'troika-core/src/utils'
+import { assignDeep } from 'troika-core'
 //import {ShadowMapViewer} from 'three/examples/jsm/utils/ShadowMapViewer.js'
 
 

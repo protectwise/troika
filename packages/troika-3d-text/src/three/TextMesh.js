@@ -3,10 +3,7 @@ import {
   Matrix4,
   Mesh,
   MeshBasicMaterial,
-  MeshDepthMaterial,
-  MeshDistanceMaterial,
-  PlaneBufferGeometry,
-  RGBADepthPacking
+  PlaneBufferGeometry
 } from 'three'
 import { GlyphsGeometry } from './GlyphsGeometry.js'
 import { createTextDerivedMaterial } from './TextDerivedMaterial.js'
