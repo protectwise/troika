@@ -4,7 +4,7 @@ import objectPath from 'object-path'
 
 import DatBooleanFacade from './DatBooleanFacade'
 import DatButtonFacade from './DatButtonFacade'
-// import DatColorFacade from './DatColorFacade'
+import DatColorFacade from './DatColorFacade'
 // import DatFolderFacade from './DatFolderFacade'
 import DatNumberFacade from './DatNumberFacade'
 // import DatPresetsFacade from './DatPresetsFacade'
@@ -14,7 +14,7 @@ import DatSelectFacade from './DatSelectFacade'
 const TYPE_FACADES = {
   boolean: DatBooleanFacade,
   button: DatButtonFacade,
-  // color: DatColorFacade,
+  color: DatColorFacade,
   // folder: DatFolderFacade,
   number: DatNumberFacade,
   // presets: DatPresetsFacade,
@@ -50,22 +50,24 @@ class DatGuiFacade extends UIBlock3DFacade {
         flexDirection: 'column',
         margin: [0, 0.03, 0, 0],
         children: (this.items || []).map((item, i) => {
-          return {
+          return item ? {
             facade: UIBlock3DFacade,
             text: item.type === 'button' ? null : item.label || item.path,
             height: item.height || this.itemHeight,
             margin: [i ? 0 : 0.02, 0, 0.02],
             flexDirection: 'row',
             alignItems: 'center'
-          }
+          } : null
         })
       },
       // Values
       {
         facade: UIBlock3DFacade,
         flexDirection: 'column',
+        minWidth: 0.2,
         children: (this.items || []).map((item, i) => {
-          const facade = TYPE_FACADES[item.type]
+          if (!item) return null
+          const facade = item && TYPE_FACADES[item.type]
           return facade ?
             utils.assign({
               key: item.path || i,

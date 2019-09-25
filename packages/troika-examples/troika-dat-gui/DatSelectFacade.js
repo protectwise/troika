@@ -1,44 +1,17 @@
 import { ListFacade } from 'troika-core'
 import { UIBlock3DFacade } from 'troika-3d-ui'
 import Icon from './MaterialIconFacade'
+import PopupOwner from './PopupOwner'
 
-const sceneCloserEvents = ['mousedown', 'wheel']
 
-
-class DatSelectFacade extends UIBlock3DFacade {
+class DatSelectFacade extends PopupOwner {
   constructor(parent) {
     super(parent)
     this.position = 'relative'
 
     this._onItemClick = e => {
       this.onUpdate(e.target.value)
-      this._closeMenu()
-    }
-
-    this._openMenu = () => {
-      if (!this._menuOpen) {
-        this._menuOpen = true
-        this.afterUpdate()
-        let scene = this.getSceneFacade()
-        if (scene) {
-          sceneCloserEvents.forEach(type => {
-            scene.addEventListener(type, this._closeMenu)
-          })
-        }
-      }
-    }
-
-    this._closeMenu = e => {
-      if (this._menuOpen && (!e || !isEventInFacade(e, this))) {
-        this._menuOpen = false
-        this.afterUpdate()
-        let scene = this.getSceneFacade()
-        if (scene) {
-          sceneCloserEvents.forEach(type => {
-            scene.removeEventListener(type, this._closeMenu)
-          })
-        }
-      }
+      this.closePopup()
     }
 
     this.children = [
@@ -58,7 +31,7 @@ class DatSelectFacade extends UIBlock3DFacade {
             backgroundColor: 0x6666cc
           }
         },
-        onClick: this._openMenu,
+        onClick: this.openPopup,
         children: [
           '', //label
           {
@@ -66,25 +39,24 @@ class DatSelectFacade extends UIBlock3DFacade {
             icon: 'keyboard_arrow_down'
           }
         ]
-      },
-      null //slot for menu child
+      }
     ]
 
-    this._menuChild = {
+    // Content definition for menu when open
+    this.popupContent = {
       key: 'menu',
       facade: UIBlock3DFacade,
-      debugMe: true,
       position: 'absolute',
       top: '100%',
       left: 0,
       width: '100%',
       backgroundColor: 0x333333,
-      z: 0.001,
-      //rotateX: Math.PI / -24,
+      z: 0.01,
+      //rotateX: Math.PI / -90,
       maxHeight: 0.5,
       overflow: 'scroll',
       flexDirection: 'column',
-      children: {
+      children: this._menuListDef = {
         facade: ListFacade,
         data: null, //populated by `options` property
         template: {
@@ -143,30 +115,10 @@ class DatSelectFacade extends UIBlock3DFacade {
 
     this._btnChild.children[0] = currentOption ? currentOption.label : '[Select...]'
 
-    if (this._menuOpen) {
-      const menu = this._menuChild
-      menu.children.data = options
-      this.children[1] = menu
-    } else {
-      this.children[1] = null
-    }
+    this._menuListDef.data = options
 
     super.afterUpdate()
   }
-
-  destructor () {
-    this._closeMenu(null)
-    super.destructor()
-  }
-}
-
-function isEventInFacade(e, facade) {
-  let tgt = e.target
-  while (tgt) {
-    if (tgt === facade) return true
-    tgt = tgt.parent
-  }
-  return false
 }
 
 export default DatSelectFacade
