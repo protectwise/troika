@@ -15,6 +15,7 @@ import Canvas2DExample from './canvas2d/Canvas2DExample'
 import EasingsExample from './easings/EasingsExample'
 import InstanceableExample from './instanceable/InstanceableExample'
 import InceptionExample from './inception/InceptionExample'
+import Bezier3DExample from './bezier-3d/Bezier3DExample'
 
 import 'react-dat-gui/dist/index.css'
 import './index.css'
@@ -31,6 +32,7 @@ const EXAMPLES = [
   {id: 'dragdrop', name: 'Drag and Drop', component: DragDrop},
   {id: 'lod', name: 'Level of Detail', component: LevelOfDetail},
   {id: 'curveAnim', name: 'Line Graph', component: CurveAnim, disableVR:true},
+  {id: 'bezier3d', name: '3D Bezier Tubes', component: Bezier3DExample},
   {id: 'twoDee', name: 'Canvas2D', component: Canvas2DExample, disableVR:true},
   {id: 'easings', name: 'Animation Easings', component: EasingsExample, disableVR:true},
   {id: 'instanceable', name: 'Instanceable Objects', component: InstanceableExample},
