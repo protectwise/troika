@@ -166,12 +166,14 @@ export const extendAsFlexNode = createClassExtender('flexNode', BaseFacadeClass 
       })
 
       requestFlexLayout(this._flexStyles, results => {
-        this._applyRootLayoutResults(results)
+        if (!this.isDestroying) {
+          this._applyRootLayoutResults(results)
 
-        // Final afterUpdate on the whole subtree
-        this._hasActiveFlexRequest = false
-        this.afterUpdate()
-        this.notifyWorld('needsRender')
+          // Final afterUpdate on the whole subtree
+          this._hasActiveFlexRequest = false
+          this.afterUpdate()
+          this.notifyWorld('needsRender')
+        }
       })
     }
 
