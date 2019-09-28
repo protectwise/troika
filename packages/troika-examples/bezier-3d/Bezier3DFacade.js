@@ -3,6 +3,7 @@ import { CylinderBufferGeometry, DoubleSide, Mesh, MeshBasicMaterial, MeshStanda
 import { createBezierMaterial } from './BezierMaterial'
 
 const geometry = new CylinderBufferGeometry(1, 1, 1, 6, 64).translate(0, 0.5, 0)
+
 const material = createBezierMaterial(
   new MeshStandardMaterial({side: DoubleSide, roughness: 0.8})
   // new MeshBasicMaterial({
@@ -17,7 +18,9 @@ class Bezier3DFacade extends Object3DFacade {
     const mtl = material.clone()
     super(parent, new Mesh(geometry, mtl))
     this.threeObject.customDepthMaterial = mtl.getDepthMaterial().clone()
+    this.radius = 0.01
     this.opacity = 1
+    this.color = 0x66ccff
   }
 
   afterUpdate() {
@@ -28,6 +31,7 @@ class Bezier3DFacade extends Object3DFacade {
     }
     material.opacity = this.opacity
     material.transparent = material.opacity < 1
+    material.color.set(this.color)
     super.afterUpdate()
   }
 

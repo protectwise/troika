@@ -60,18 +60,6 @@ discTx[3][3] = 1.0;
 // Apply transform, ignoring original y
 position = (discTx * vec4(position.x, 0.0, position.z, 1.0)).xyz;
 normal = normalize(mat3(discTx) * normal);
-
-//vCameraSpaceNormal = normalize((modelViewMatrix * vec4(normal, 0.0)).xyz);
-vUV = uv;
-`
-
-const fragmentDefs = `
-//varying vec3 vCameraSpaceNormal;
-varying vec2 vUV;
-`
-
-const fragmentColorTransform = `
-//gl_FragColor.w = 1.0 - length(cross(vCameraSpaceNormal, vec3(0.,0.,1.)));
 `
 
 // Debugging: separate color for each of the 6 sides:
@@ -98,11 +86,8 @@ export function createBezierMaterial(baseMaterial) {
         radius: {value: 0.01}
       },
       vertexDefs,
-      vertexTransform,
-      fragmentDefs,
-      //fragmentColorTransform
+      vertexTransform
     }
   )
-  //derived.transparent = true
   return derived
 }
