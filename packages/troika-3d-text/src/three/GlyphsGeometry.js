@@ -52,16 +52,6 @@ class GlyphsGeometry extends InstancedBufferGeometry {
     // Base per-instance attributes
     this.copy(templateGeometry)
 
-    // Add our custom instanced attributes
-    this.addAttribute(
-      glyphBoundsAttrName,
-      new InstancedBufferAttribute(new Float32Array(0), 4)
-    )
-    this.addAttribute(
-      glyphIndexAttrName,
-      new InstancedBufferAttribute(new Float32Array(0), 1)
-    )
-
     // Preallocate zero-radius bounding sphere
     this.boundingSphere = new Sphere()
   }
@@ -80,8 +70,8 @@ class GlyphsGeometry extends InstancedBufferGeometry {
    */
   updateGlyphs(glyphBounds, glyphIndices, totalBounds) {
     // Update the instance attributes
-    updateBufferAttrArray(this.attributes[glyphBoundsAttrName], glyphBounds)
-    updateBufferAttrArray(this.attributes[glyphIndexAttrName], glyphIndices)
+    updateBufferAttr(this, glyphBoundsAttrName, glyphBounds, 4)
+    updateBufferAttr(this, glyphIndexAttrName, glyphIndices, 1)
     this.maxInstancedCount = glyphIndices.length
 
     // Update the boundingSphere based on the total bounds
@@ -95,15 +85,24 @@ class GlyphsGeometry extends InstancedBufferGeometry {
   }
 }
 
-
-
-function updateBufferAttrArray(attr, newArray) {
-  if (attr.array.length === newArray.length) {
-    attr.array.set(newArray)
-  } else {
-    attr.setArray(newArray)
+// Compat for pre r109:
+if (!GlyphsGeometry.prototype.setAttribute) {
+  GlyphsGeometry.prototype.setAttribute = function(name, attribute) {
+    this.attributes[ name ] = attribute
+    return this
   }
-  attr.needsUpdate = true
+}
+
+
+function updateBufferAttr(geom, attrName, newArray, itemSize) {
+  const attr = geom.getAttribute(attrName)
+  // If length isn't changing, just update the attribute's array data
+  if (attr && attr.array.length === newArray.length) {
+    attr.array.set(newArray)
+    attr.needsUpdate = true
+  } else {
+    geom.setAttribute(attrName, new InstancedBufferAttribute(newArray, itemSize))
+  }
 }
 
 
