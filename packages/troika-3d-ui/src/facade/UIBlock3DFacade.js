@@ -5,6 +5,7 @@ import UIBlockLayer3DFacade from './UIBlockLayer3DFacade'
 import { extendAsFlexNode } from '../flex-layout/FlexNode'
 import { getComputedFontSize, getInheritable } from '../uiUtils'
 import { utils } from 'troika-core'
+import ScrollbarsFacade from './ScrollbarsFacade'
 
 const raycastMesh = new Mesh(new PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0))
 const tempMat4 = new Matrix4()
@@ -32,25 +33,10 @@ class UIBlock3DFacade extends Group3DFacade {
     // If fully hidden by parent clipping rect, cull the whole Group out of the scene
     Object.defineProperty(this.threeObject, 'visible', groupVisiblePropDef)
 
-    // Create rendering layer child definitions
-    // These live separate from the main `children` tree
-    this.bgLayer = {
-      key: 'bg',
-      facade: UIBlockLayer3DFacade
-    }
-    this.borderLayer = {
-      key: 'border',
-      facade: UIBlockLayer3DFacade,
-      isBorder: true
-    }
+    // Anonymous container for bg/border/scrollbar child objects; these live separate
+    // from the main `children` tree
     this.layers = new Group3DFacade(this)
-    this.layers.children = [null, null]
-
-    // Create child def for text node
-    this.textChild = {
-      key: 'text',
-      facade: UITextNode3DFacade
-    }
+    this.layers.children = [null, null, null]
 
     this._sizeVec2 = new Vector2()
     this._clipRectVec4 = new Vector4()
@@ -63,6 +49,7 @@ class UIBlock3DFacade extends Group3DFacade {
    * @override When fully clipped out of view, skip updating children entirely. We do this by
    * overriding `updateChildren` instead of using the `shouldUpdateChildren` hook, because the
    * latter would still traverse the child tree to sync matrices, which we don't need here.
+   * TODO this doesn't work so well when descendants are absolutely positioned or overflow outside our bounds
    */
   updateChildren(children) {
     if (!this.isFullyClipped) {
@@ -72,9 +59,6 @@ class UIBlock3DFacade extends Group3DFacade {
 
   afterUpdate() {
     let {
-      bgLayer,
-      borderLayer,
-      textChild,
       layers,
       backgroundColor,
       backgroundMaterial,
@@ -97,6 +81,9 @@ class UIBlock3DFacade extends Group3DFacade {
     const hasNonZeroSize = !!(offsetWidth && offsetHeight)
     const hasBg = hasNonZeroSize && !isFullyClipped && (backgroundColor != null || backgroundMaterial != null)
     const hasBorder = hasNonZeroSize && !isFullyClipped && (borderColor != null || borderMaterial != null) && Math.max(...borderWidth) > 0
+    const canScroll = hasNonZeroSize && (this.overflow === 'scroll' || this.overflow === 'auto') && (
+      this.scrollHeight > this.clientHeight || this.scrollWidth > this.clientWidth
+    )
 
     // Update the block's element and size from flexbox computed values
     if (hasLayout) {
@@ -123,7 +110,12 @@ class UIBlock3DFacade extends Group3DFacade {
       _clipRectVec4.set(this.clipLeft, this.clipTop, this.clipRight, this.clipBottom)
 
       // Update rendering layers...
+      let bgLayer = null
       if (hasBg) {
+        bgLayer = this._bgLayerDef || (this._bgLayerDef = {
+          key: 'bg',
+          facade: UIBlockLayer3DFacade
+        })
         bgLayer.size = _sizeVec2
         bgLayer.color = backgroundColor
         bgLayer.borderRadius = radii
@@ -133,12 +125,16 @@ class UIBlock3DFacade extends Group3DFacade {
         bgLayer.renderOrder = flexNodeDepth //TODO how can we make this play with the rest of the scene?
         // bgLayer.castShadow = this.castShadow
         // bgLayer.receiveShadow = this.receiveShadow
-      } else {
-        bgLayer = null
       }
       layers.children[0] = bgLayer
 
+      let borderLayer = null
       if (hasBorder) {
+        borderLayer = this._borderLayerDef || (this._borderLayerDef = {
+          key: 'border',
+          facade: UIBlockLayer3DFacade,
+          isBorder: true
+        })
         borderLayer.size = _sizeVec2
         borderLayer.color = borderColor
         borderLayer.borderWidth = _borderWidthVec4
@@ -149,10 +145,20 @@ class UIBlock3DFacade extends Group3DFacade {
         borderLayer.renderOrder = flexNodeDepth + 0.1 //TODO how can we make this play with the rest of the scene?
         // borderLayer.castShadow = this.castShadow
         // borderLayer.receiveShadow = this.receiveShadow
-      } else {
-        borderLayer = null
       }
       layers.children[1] = borderLayer
+
+      // Scrollbars if scrollable:
+      let scrollbarsLayer = null
+      if (canScroll) {
+        scrollbarsLayer = this._scrollbarsDef || (this._scrollbarsDef = {
+          key: 'sb',
+          facade: ScrollbarsFacade,
+          target: this
+        })
+        scrollbarsLayer.renderOrder = flexNodeDepth + 0.2 //TODO how can we make this play with the rest of the scene?
+      }
+      layers.children[2] = scrollbarsLayer
 
       // Allow text to be specified as a single string child
       if (!text && isTextNodeChild(this.children)) {
@@ -160,9 +166,13 @@ class UIBlock3DFacade extends Group3DFacade {
       }
       // Update text child...
       if (text) {
+        const textChild = this._textChildDef || (this._textChildDef = {
+          key: 'text',
+          facade: UITextNode3DFacade
+        })
         textChild.text = text
         textChild.font = getInheritable(this, 'font')
-        textChild.fontSize = getComputedFontSize(this, DEFAULT_FONT_SIZE)
+        textChild.fontSize = this.getComputedFontSize()
         textChild.textAlign = getInheritable(this, 'textAlign')
         textChild.lineHeight = getInheritable(this, 'lineHeight', DEFAULT_LINE_HEIGHT)
         textChild.letterSpacing = getInheritable(this, 'letterSpacing', 0)
@@ -200,15 +210,19 @@ class UIBlock3DFacade extends Group3DFacade {
 
     // Add mousewheel listener if scrollable
     // TODO scroll via drag?
-    const canScroll = hasNonZeroSize && (this.overflow === 'scroll' || this.overflow === 'auto') && (
-      this.scrollHeight > this.clientHeight || this.scrollWidth > this.clientWidth
-    )
-    this[`${canScroll ? 'add' : 'remove'}EventListener`]('wheel', wheelHandler)
+    if (canScroll !== this._couldScroll) {
+      this._couldScroll = canScroll
+      this[`${canScroll ? 'add' : 'remove'}EventListener`]('wheel', wheelHandler)
+    }
 
     super.afterUpdate()
     if (!isFullyClipped) {
       layers.afterUpdate()
     }
+  }
+
+  getComputedFontSize() {
+    return getComputedFontSize(this, DEFAULT_FONT_SIZE)
   }
 
   _normalizeBorderRadius() {
