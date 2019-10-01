@@ -2,6 +2,8 @@ import { Object3DFacade } from 'troika-3d'
 import { CylinderBufferGeometry, DoubleSide, Mesh, MeshBasicMaterial, MeshStandardMaterial } from 'three'
 import { createBezierMaterial } from './BezierMaterial'
 
+const noDash = [0, 0]
+
 const geometry = new CylinderBufferGeometry(1, 1, 1, 6, 64).translate(0, 0.5, 0)
 
 const material = createBezierMaterial(
@@ -21,6 +23,8 @@ class Bezier3DFacade extends Object3DFacade {
     this.radius = 0.01
     this.opacity = 1
     this.color = 0x66ccff
+    this.dashArray = [0, 0]
+    this.dashArrayOffset = 0
   }
 
   afterUpdate() {
@@ -43,6 +47,8 @@ class Bezier3DFacade extends Object3DFacade {
     uniforms.controlB.value.set(c2x || 0, c2y || 0, c2z || 0)
     uniforms.pointB.value.set(p2x || 0, p2y || 0, p2z || 0)
     uniforms.radius.value = this.radius
+    uniforms.dashArray.value.fromArray(this.dashArray || noDash)
+    uniforms.dashArrayOffset.value = this.dashArrayOffset
   }
 }
 

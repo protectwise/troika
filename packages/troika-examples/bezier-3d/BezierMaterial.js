@@ -1,5 +1,5 @@
 import { createDerivedMaterial } from 'troika-three-utils'
-import { Vector3 } from 'three'
+import { Vector2, Vector3 } from 'three'
 
 /*
 Input geometry is a cylinder with r=1, height in y dimension from 0 to 1,
@@ -12,10 +12,7 @@ uniform vec3 controlA;
 uniform vec3 controlB;
 uniform vec3 pointB;
 uniform float radius;
-
-varying vec2 vUV;
-
-//varying vec3 vCameraSpaceNormal;
+varying float bezierT;
 
 vec3 cubicBezier(vec3 p1, vec3 c1, vec3 c2, vec3 p2, float t) {
   float t2 = 1.0 - t;
@@ -37,6 +34,7 @@ vec3 cubicBezierDerivative(vec3 p1, vec3 c1, vec3 c2, vec3 p2, float t) {
 
 const vertexTransform = `
 float t = position.y;
+bezierT = t;
 vec3 bezierCenterPos = cubicBezier(pointA, controlA, controlB, pointB, t);
 vec3 bezierDir = normalize(cubicBezierDerivative(pointA, controlA, controlB, pointB, t));
 
@@ -62,6 +60,21 @@ position = (discTx * vec4(position.x, 0.0, position.z, 1.0)).xyz;
 normal = normalize(mat3(discTx) * normal);
 `
 
+const fragmentDefs = `
+uniform vec2 dashArray;
+uniform float dashArrayOffset;
+varying float bezierT;
+`
+
+const fragmentMainIntro = `
+if (dashArray.x + dashArray.y > 0.0) {
+  float dashFrac = mod(bezierT - dashArrayOffset, dashArray.x + dashArray.y);
+  if (dashFrac > dashArray.x) {
+    discard;
+  }
+}
+`
+
 // Debugging: separate color for each of the 6 sides:
 // const fragmentColorTransform = `
 // float sideNum = floor(vUV.x * 6.0);
@@ -83,10 +96,14 @@ export function createBezierMaterial(baseMaterial) {
         controlA: {value: new Vector3()},
         controlB: {value: new Vector3()},
         pointB: {value: new Vector3()},
-        radius: {value: 0.01}
+        radius: {value: 0.01},
+        dashArray: {value: new Vector2()},
+        dashArrayOffset: {value: 0}
       },
       vertexDefs,
-      vertexTransform
+      vertexTransform,
+      fragmentDefs,
+      fragmentMainIntro
     }
   )
   return derived

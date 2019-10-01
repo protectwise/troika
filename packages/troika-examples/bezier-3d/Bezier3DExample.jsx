@@ -13,7 +13,8 @@ class Bezier3DExample extends React.Component {
     super(props)
     this.state = {
       count: 1,
-      radius: 0.02,
+      radius: 0.01,
+      dashed: 0,
       randomize: true,
       shadows: true,
       p1x: -1,
@@ -42,6 +43,7 @@ class Bezier3DExample extends React.Component {
         facade: Bezier3DFacade,
         radius: state.radius,
         castShadow: state.shadows,
+        dashArray: [state.dashed, state.dashed],
         animation: state.randomize ? getAnimation(i) : null
       }
       pointProps.forEach(prop => {
@@ -99,8 +101,8 @@ class Bezier3DExample extends React.Component {
       />
 
       <DatGui data={state} onUpdate={s => this.setState(s)}>
-        <DatNumber path="radius" min={0.01} max={0.2} step={0.01} />
-
+        <DatNumber path="radius" min={0.001} max={0.1} step={0.001} />
+        <DatNumber path="dashed" min={0} max={0.2} step={0.01} />
         <DatBoolean path="shadows" />
         <DatBoolean path="randomize" />
         {state.randomize ? <DatNumber path="count" min={1} max={100} step={1} /> : null }
