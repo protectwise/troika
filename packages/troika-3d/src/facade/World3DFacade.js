@@ -70,11 +70,11 @@ class World3DFacade extends WorldBaseFacade {
    */
   _getCameraDef() {
     const {camera} = this
-    return assign({}, camera, {
+    return assign({
       key: 'camera',
-      facade: camera.facade || PerspectiveCamera3DFacade,
-      aspect: typeof camera.aspect === 'number' ? camera.aspect : this.width / this.height
-    })
+      facade: PerspectiveCamera3DFacade,
+      aspect: this.width / this.height
+    }, camera)
   }
 
   /**
