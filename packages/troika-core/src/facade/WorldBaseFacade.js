@@ -425,9 +425,11 @@ class WorldBaseFacade extends ParentFacade {
    * by that event. If any hits are found, this should return an array of objects that contain
    * at least `facade` and `distance` properties. Any additional properties will be exposed to
    * event listeners on the synthetic event object as an `intersection` property.
+   * @param {Event} e
+   * @param {Function} [filterFn]
    * @return {Array<{facade, distance, ?distanceBias, ...}>|null}
    */
-  getFacadesAtEvent(e) {
+  getFacadesAtEvent(e, filterFn) {
     throw new Error('getFacadesAtEvent: no impl')
   }
 
@@ -437,18 +439,20 @@ class WorldBaseFacade extends ParentFacade {
       return null
     }
 
-    let allHits = this.getFacadesAtEvent(e)
+    let allHits = this.getFacadesAtEvent(e, facade =>
+      facade.isPointerEventTarget && facade.interceptsPointerEvents(this.eventRegistry)
+    )
     if (allHits) {
-      // Sort by distance, or by distanceBias if distance is the same
-      allHits.sort((a, b) => (a.distance - b.distance) || ((a.distanceBias || 0) - (b.distanceBias || 0)))
-
-      // Find nearest that should intercept mouse events
-      for (let i = 0; i < allHits.length; i++) {
-        let facade = allHits[i].facade
-        if (facade.isPointerEventTarget && facade.interceptsPointerEvents(this.eventRegistry)) {
-          return allHits[i]
+      // Find the closest by comparing distance, or distanceBias if distance is the same
+      let closestHit = allHits[0]
+      for (let i = 1; i < allHits.length; i++) {
+        if (allHits[i].distance < closestHit.distance ||
+          (allHits[i].distance === closestHit.distance && (allHits[i].distanceBias || 0) < (closestHit.distanceBias || 0))
+        ) {
+          closestHit = allHits[i]
         }
       }
+      return closestHit
     }
 
     return null
