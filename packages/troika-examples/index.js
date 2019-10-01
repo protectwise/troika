@@ -5,6 +5,7 @@ import CityGrid from './citygrid/CityGrid'
 import ShaderAnim from './shader-anim/ShaderAnim'
 import ArcsExample from './arcs/ArcsExample'
 import GlobeExample from './globe/GlobeExample'
+import GlobeConnectionsExample from './globe-connections/GlobeConnectionsExample'
 import HtmlOverlays from './html-overlays/HtmlOverlaysExample'
 import TextExample from './text/TextExample'
 import UIExample from './ui2/UIExample'
@@ -26,6 +27,7 @@ const EXAMPLES = [
   {id: 'shaderanim', name: 'Animated Shaders', component: ShaderAnim},
   {id: 'arcs', name: 'Arcs', component: ArcsExample},
   {id: 'globe', name: 'Globe', component: GlobeExample},
+  {id: 'globeConnections', name: 'Globe Connections', component: GlobeConnectionsExample},
   {id: 'htmlOverlays', name: 'HTML Overlays', component: HtmlOverlays},
   {id: 'text', name: '3D Text', component: TextExample},
   {id: 'ui', name: 'User Interface', component: UIExample},
