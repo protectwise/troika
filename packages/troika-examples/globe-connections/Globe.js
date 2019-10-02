@@ -70,33 +70,34 @@ const positionAttr = new BufferAttribute(new Float32Array(lineSegmentPositions),
 countryBordersGeometry.addAttribute('position', positionAttr)
 countryBordersGeometry.addAttribute('normal', positionAttr) //positions are based off r=1 so they can be used directly as normals
 
+const sphereGeometry = new SphereBufferGeometry(1, 32, 24)
+const sphereMaterial = createDerivedMaterial(new MeshBasicMaterial({
+  color: 0x6666ff,
+  transparent: true,
+  opacity: 0.6,
+  side: BackSide
+}), {
+  vertexDefs: 'varying vec3 vCameraSpaceNormal;',
+  vertexMainIntro: `vCameraSpaceNormal = normalize((modelViewMatrix * vec4(normal, 0.0)).xyz);`,
+  fragmentDefs: 'varying vec3 vCameraSpaceNormal;',
+  fragmentColorTransform: `gl_FragColor.w = 0.15 + 0.5 * pow(length(cross(vCameraSpaceNormal, vec3(0.,0.,1.))), 8.0);`
+})
 
 class Globe extends Object3DFacade {
   constructor (parent) {
-    let mesh = new LineSegments(
+    const lines = new LineSegments(
       countryBordersGeometry,
       new MeshStandardMaterial({
         color: 0xffffff,
         emissive: 0x999999
       })
     )
-    mesh.add(new Mesh(
-      new SphereBufferGeometry(1, 32, 24),
-      createDerivedMaterial(new MeshBasicMaterial({
-        color: 0x6666ff,
-        transparent: true,
-        opacity: 0.6,
-        side: BackSide
-      }), {
-        vertexDefs: 'varying vec3 vCameraSpaceNormal;',
-        vertexMainIntro: `vCameraSpaceNormal = normalize((modelViewMatrix * vec4(normal, 0.0)).xyz);`,
-        fragmentDefs: 'varying vec3 vCameraSpaceNormal;',
-        fragmentColorTransform: `
-          gl_FragColor.w = 0.15 + 0.5 * pow(length(cross(vCameraSpaceNormal, vec3(0.,0.,1.))), 8.0);
-        `
-      })
-    ))
-    super(parent, mesh)
+    const sphere = new Mesh(
+      sphereGeometry,
+      sphereMaterial
+    )
+    sphere.add(lines)
+    super(parent, sphere)
   }
 
   latLonToLocalPosition(lat, lon, radius = 1) {

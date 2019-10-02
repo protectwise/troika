@@ -13,12 +13,7 @@ class GlobeConnectionsExample extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      rotateX: 0,
-      rotateY: 0,
-      trackMouse: false,
-      hoveredCountry: null,
-      wireframe: false,
-      colorScheme: 'technicolor'
+      stickToHand: true
     }
 
     this.refs = Object.create(null)
@@ -53,22 +48,28 @@ class GlobeConnectionsExample extends React.Component {
           objects={ [
             {
               facade: TrackedControllerAnchoredFacade,
+              hand: 'left',
+              weight: state.stickToHand ? 1 : 0,
+              transition: {
+                weight: {duration: 500, easing: 'easeOutExpo'}
+              },
+              x: -0.15,
+              y: -0.1,
+              z: -0.5,
               children: {
                 key: 'globe',
                 facade: Globe,
                 ref: this._onFacadeRef.bind(this, 'globe'),
                 scale: 0.075,
-                x: props.vr ? 0 : -0.15,
-                y: props.vr ? 0.1 : 0,
-                z: props.vr ? 0 : -0.5,
+                y: 0.1,
                 animation: {
                   from: {rotateY: -Math.PI},
                   to: {rotateY: Math.PI},
                   duration: 24000,
                   iterations: Infinity
                 },
-                // transition: {
-                //   scaleY: true
+                // onMouseDown: e => {
+                //   this.setState({stickToHand: true})
                 // }
               }
             },
@@ -81,34 +82,68 @@ class GlobeConnectionsExample extends React.Component {
               width: 0.25,
               height: 0.3,
               fontSize: 0.012,
-              overflow: 'scroll',
               flexDirection: 'column',
-              backgroundColor: 0x444444,
-              borderRadius: 0.005,
-              children: {
-                key: 'cities',
-                ref: this._onFacadeRef.bind(this, 'cities'),
-                facade: ListFacade,
-                data: cities,
-                template: {
-                  key: (d, i) => i,
+              children: [
+                {
                   facade: UIBlock3DFacade,
-                  lat: d => d.lat,
-                  lng: d => d.lng,
                   padding: [0.005, 0.01],
-                  hovering: false,
-                  backgroundColor: null,
+                  backgroundColor: 0x333333,
+                  borderRadius: [0.005, 0.005, 0, 0],
                   flexDirection: 'row',
                   justifyContent: 'space-between',
-                  pointerStates: {
-                    hover: {
-                      hovering: true,
-                      backgroundColor: 0x444499
+                  children: ['City', 'Population']
+                },
+                {
+                  facade: UIBlock3DFacade,
+                  flex: 1,
+                  overflow: 'scroll',
+                  flexDirection: 'column',
+                  backgroundColor: 0x444444,
+                  children: {
+                    key: 'cities',
+                    ref: this._onFacadeRef.bind(this, 'cities'),
+                    facade: ListFacade,
+                    data: cities,
+                    template: {
+                      key: (d, i) => i,
+                      facade: UIBlock3DFacade,
+                      lat: d => d.lat,
+                      lng: d => d.lng,
+                      padding: [0.005, 0.01],
+                      hovering: false,
+                      backgroundColor: null,
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      pointerStates: {
+                        hover: {
+                          hovering: true,
+                          backgroundColor: 0x444499
+                        }
+                      },
+                      children: d => [d.city_ascii + ', ' + d.country, d.population.toLocaleString()],
                     }
-                  },
-                  children: d => [d.city_ascii + ', ' + d.country, d.population.toLocaleString()],
-                }
-              }
+                  }
+                },
+                props.vr ? {
+                  facade: UIBlock3DFacade,
+                  flexDirection: 'row',
+                  justifyContent: 'flex-end',
+                  padding: 0.005,
+                  children: [
+                    {
+                      facade: UIBlock3DFacade,
+                      onClick: e => this.setState({stickToHand: !state.stickToHand}),
+                      text: 'Attach to hand',
+                      padding: 0.005,
+                      backgroundColor: state.stickToHand ? 0x333399 : null,
+                      borderColor: state.stickToHand ? null : 0x666666,
+                      borderWidth: 0.002,
+                      color: state.stickToHand ? 0xffffff : 0x999999,
+                      borderRadius: 0.005
+                    }
+                  ]
+                } : null
+              ]
             },
             {
               facade: ConnectionsFacade,
