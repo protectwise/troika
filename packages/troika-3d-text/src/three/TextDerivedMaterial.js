@@ -38,23 +38,23 @@ uniform vec4 uTroikaClipRect;
 varying vec2 vTroikaGlyphUV;
 varying vec3 vTroikaLocalPos;
 
-void troikaApplyClipping() {
-  vec4 rect = uTroikaClipRect;
+float troikaGetClipAlpha() {
+  vec4 clip = uTroikaClipRect;
   vec3 pos = vTroikaLocalPos;
-  if (rect != vec4(.0,.0,.0,.0) && (
-    pos.x < min(rect.x, rect.z) || 
-    pos.y < min(rect.y, rect.w) ||
-    pos.x > max(rect.x, rect.z) ||
-    pos.y > max(rect.y, rect.w)
-  )) {
-    discard;
-  }
+  float dClip = min(
+    min(pos.x - min(clip.x, clip.z), max(clip.x, clip.z) - pos.x),
+    min(pos.y - min(clip.y, clip.w), max(clip.y, clip.w) - pos.y)
+  );
+  #if defined(GL_OES_standard_derivatives) || __VERSION__ >= 300
+  float aa = length(fwidth(pos)) * 0.5;
+  return smoothstep(-aa, aa, dClip);
+  #else
+  return step(0.0, dClip);
+  #endif
 }
 `
 
 const FRAGMENT_TRANSFORM = `
-troikaApplyClipping();
-
 float troikaSDFValue = texture2D(uTroikaSDFTexture, vTroikaGlyphUV).r;
 
 #if defined(IS_DEPTH_MATERIAL) || defined(IS_DISTANCE_MATERIAL)
@@ -84,6 +84,9 @@ float textAlphaMult = uTroikaSDFDebug ? troikaSDFValue : smoothstep(
   0.5 + troikaAntiAliasDist,
   troikaSDFValue
 );
+
+textAlphaMult = min(textAlphaMult, troikaGetClipAlpha());
+
 if (textAlphaMult == 0.0) {
   if (uTroikaSDFDebug) {
     gl_FragColor *= 0.5;

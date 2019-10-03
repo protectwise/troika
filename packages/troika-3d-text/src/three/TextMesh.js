@@ -3,7 +3,9 @@ import {
   Matrix4,
   Mesh,
   MeshBasicMaterial,
-  PlaneBufferGeometry
+  PlaneBufferGeometry,
+  Plane,
+  Vector3
 } from 'three'
 import { GlyphsGeometry } from './GlyphsGeometry.js'
 import { createTextDerivedMaterial } from './TextDerivedMaterial.js'
@@ -17,9 +19,11 @@ const defaultMaterial = new MeshBasicMaterial({
   transparent: true
 })
 
-const noclip = Object.freeze([0, 0, 0, 0])
+const noclip = Object.freeze([-Infinity, -Infinity, Infinity, Infinity])
 
 const tempMat4 = new Matrix4()
+const tempPlane = new Plane()
+const tempVec3 = new Vector3()
 
 const raycastMesh = new Mesh(
   new PlaneBufferGeometry(1, 1).translate(0.5, 0.5, 0),
@@ -284,15 +288,24 @@ class TextMesh extends Mesh {
     const textInfo = this._textRenderInfo
     const uniforms = material.uniforms
     if (textInfo) {
-      const sdfTexture = textInfo.sdfTexture
+      const {sdfTexture, totalBounds} = textInfo
       uniforms.uTroikaSDFTexture.value = sdfTexture
       uniforms.uTroikaSDFMinDistancePct.value = textInfo.sdfMinDistancePercent
       uniforms.uTroikaGlyphVSize.value = sdfTexture.image.width / sdfTexture.image.height
-      uniforms.uTroikaTotalBounds.value.fromArray(textInfo.totalBounds)
+      uniforms.uTroikaTotalBounds.value.fromArray(totalBounds)
+
+      let clipRect = this.clipRect
+      if (!(clipRect && Array.isArray(clipRect) && clipRect.length === 4)) {
+        uniforms.uTroikaClipRect.value.fromArray(totalBounds)
+      } else {
+        uniforms.uTroikaClipRect.value.set(
+          Math.max(totalBounds[0], clipRect[0]),
+          Math.max(totalBounds[1], clipRect[1]),
+          Math.min(totalBounds[2], clipRect[2]),
+          Math.min(totalBounds[3], clipRect[3])
+        )
+      }
     }
-    let clipRect = this.clipRect
-    if (!(clipRect && Array.isArray(clipRect) && clipRect.length === 4)) { clipRect = noclip }
-    uniforms.uTroikaClipRect.value.fromArray(clipRect)
     return material
   }
 
