@@ -107,7 +107,12 @@ class UIBlock3DFacade extends Group3DFacade {
       // Update shared vector objects for the sublayers
       const radii = (hasBg || hasBorder) ? this._normalizeBorderRadius() : null
       _borderWidthVec4.fromArray(borderWidth)
-      _clipRectVec4.set(this.clipLeft, this.clipTop, this.clipRight, this.clipBottom)
+      _clipRectVec4.set(
+        Math.max(this.clipLeft, 0),
+        Math.max(this.clipTop, 0),
+        Math.min(this.clipRight, offsetWidth),
+        Math.min(this.clipBottom, offsetHeight)
+      )
 
       // Update rendering layers...
       let bgLayer = null
