@@ -9,7 +9,7 @@ import css from 'rollup-plugin-postcss'
 import serve from 'rollup-plugin-serve'
 
 
-const { LERNA_PACKAGE_NAME, LERNA_ROOT_PATH, START_SERVER, SERVER_HOST } = process.env
+const { LERNA_PACKAGE_NAME, LERNA_ROOT_PATH, START_SERVER, SERVER_HOST, SERVER_PORT } = process.env
 if (!LERNA_PACKAGE_NAME || !LERNA_ROOT_PATH) {
   throw new Error("The examples build must be run by Lerna; please use `npm run examples` from the repository root.")
 }
@@ -58,7 +58,8 @@ export default {
     START_SERVER ? serve({
       //open: true,
       contentBase: '',
-      host: SERVER_HOST || 'localhost'
+      host: SERVER_HOST || 'localhost',
+      port: SERVER_PORT || '10001'
     }) : null
   ],
 
