@@ -477,7 +477,7 @@ assign(Object3DFacade.prototype, {
   threeObject: null,
   _parentObject3DFacade: null,
   _removeChildIds: null,
-  _matrixChanged: false,
+  _matrixChanged: true,
   _worldMatrixVersion: -1,
   _worldMatrixVersionAfterLastUpdate: -1,
   _boundingSphereChanged: false
