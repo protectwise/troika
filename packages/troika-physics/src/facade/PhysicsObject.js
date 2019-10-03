@@ -1,20 +1,19 @@
 import { Facade, utils } from 'troika-core'
-import { inferPhysicsShape } from '../utils/inferPhysicsShape'
 
-const { assign, createClassExtender } = utils
+const { createClassExtender } = utils
 
 /**
  * Extends a given Facade class to become a `PhysicsObjectFacade`, allowing it to
  * have its position and rotation controlled by a `PhysicsManager`.
- *
- * Documentation of Ammo.js (ported from Bullet) Physics Implementation https://pybullet.org/Bullet/BulletFull/annotated.html
  *
  * Physical property configuration
 
  * physics: {
  *   isDisabled: boolean // When toggled, will delete/add the shape from the Physics World,
  *   isPaused: boolean // When toggled, will change the activation state of the shape, potentially allowing it to passively receive collisions from other shapes
- *   isKinematic: boolean // Kinematic bodies _must_ have a mass of zero. They will interact with dynamic objects in the physicsWorld, but have their position/orientation controlled by the facade parent.
+ *   isKinematic: boolean // Kinematic bodies will interact with dynamic objects in the physicsWorld, but have their position/orientation controlled by the facade parent.
+ *   isStatic: boolean // Static bodies will interact with dynamic objects in the physicsWorld, but have their position/orientation fixed in place.
+ *   isSoftBody: boolean default=false
  *
  *   mass: number // kilograms
  *
@@ -24,8 +23,12 @@ const { assign, createClassExtender } = utils
  *
  *   restitution: float (0-1) default=0  "bounciness" of an object
  *
+ *   // Rigid Bodies only
  *   linearDamping: float(0-1) default=0 // Additional "drag" friction applied to linear (translation) motion. Applied even when bodies are not colliding.
  *   angularDamping: float(0-1) default=0 // Additional "drag" friction applied to angular (rotation) motion. Applied even when bodies are not colliding.
+ *
+ *   // Soft Bodies only
+ *   pressure: float(-Infinity,+Infinity] default=100 // Pressure coefficient of soft volume
  * }
  *
  * @param {class} BaseFacadeClass
@@ -34,49 +37,28 @@ const { assign, createClassExtender } = utils
 export const extendAsPhysical = createClassExtender('physical', BaseFacadeClass => {
   class PhysicsObjectFacade extends BaseFacadeClass {
     constructor (parent, threeObject) {
-      console.log(`~~ ctr obj`, threeObject)
-      
       super(parent, threeObject)
 
-      this.$isControlledByDynamicsWorld = false
+      this.$isControlledByDynamicsWorld = false // Managed by PhysicsManager
 
       this._prevScaleX = this.scaleX
       this._prevScaleY = this.scaleY
       this._prevScaleZ = this.scaleZ
 
-      if (!this._physicsShapeCfg) {
-        this._physicsShapeCfg = inferPhysicsShape(this)
-      }
-
       this.notifyWorld('physicsObjectAdded')
     }
 
-    set physics (descriptor) {
-      if (this.physics$descriptor === descriptor) return
-      const prevDescriptor = this.physics$descriptor || descriptor // (this.physics$descriptor = descriptor)
-      this.physics$descriptor = descriptor
-
-      // console.log(`~~ PHYSICS CHANGED`, descriptor)
-      // let hasChanged = false
-
-      if (descriptor) {
-        if (Object.prototype.hasOwnProperty.call(descriptor, 'isDisabled')) {
-          // If disabled state has changed,
-          if (descriptor.isDisabled !== prevDescriptor.isDisabled) {
-            this.notifyWorld('physicsObjectDisabledChange', descriptor.isDisabled)
-          }
+    set physics (desc = {}) {
+      const newId = JSON.stringify(desc)
+      const descChangedAfterInit = this.physics$cfgId && this.physics$cfgId !== newId
+      if (descChangedAfterInit) {
+        if (this.physics$descriptor && desc.isDisabled !== this.physics$descriptor.isDisabled) {
+          this.notifyWorld('physicsObjectDisabledChange', !!desc.isDisabled)
         }
-        if (Object.prototype.hasOwnProperty.call(descriptor, 'isPaused')) {
-          if (descriptor.isPaused !== prevDescriptor.isPaused) {
-            this.notifyWorld('physicsObjectPausedChange', descriptor.isPaused)
-          }
-        }
+        this.notifyWorld('physicsObjectConfigChange', desc)
       }
-
-      // if (hasChanged) {
-      //   // Physics config has changed
-      //   console.log(`~~ TODO handle physics config changed`)
-      // }
+      this.physics$cfgId = newId
+      this.physics$descriptor = desc
     }
 
     get physics () {
@@ -87,7 +69,7 @@ export const extendAsPhysical = createClassExtender('physical', BaseFacadeClass 
       const _prevWorldMatrixVersion = this._worldMatrixVersion
 
       super.afterUpdate()
-  
+
       if (this._worldMatrixVersion !== _prevWorldMatrixVersion) {
         const scaleChanged = this._prevScaleX !== this.scaleX || this._prevScaleY !== this.scaleY || this._prevScaleZ !== this.scaleZ
         // Dynamic objects (controlled by the dynamicsWorld) need to receive troika-managed scale changes

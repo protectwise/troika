@@ -1,26 +1,19 @@
 import {
-  CircleBufferGeometry,
   Mesh,
   MeshPhongMaterial,
-  MeshStandardMaterial,
+  BoxBufferGeometry,
   TextureLoader,
   Euler,
   Vector2,
   Vector3,
-  Quaternion,
   Matrix4
 } from 'three'
 import { Object3DFacade } from 'troika-3d'
 import { DecalGeometry } from 'three/examples/jsm/geometries/DecalGeometry'
-import { BoxBufferGeometry } from '../node_modules/three/src/Three'
-
-const crackTextures = {
-  large: new TextureLoader().load('physics/textures/cracks/broken-window-png-427.png')
-}
 
 const textureLoader = new TextureLoader()
-const decalDiffuse = textureLoader.load('physics/textures/cracks/decal-diffuse.png')
-const decalNormal = textureLoader.load('physics/textures/cracks/decal-normal.jpg')
+const decalDiffuse = textureLoader.load('physics/_shared/textures/cracks/decal-diffuse.png')
+const decalNormal = textureLoader.load('physics/_shared/textures/cracks/decal-normal.jpg')
 
 const tempGeometry = new BoxBufferGeometry(1, 1, 1, 1, 1, 1, 1, 1)
 
@@ -36,7 +29,8 @@ const decalMaterial = new MeshPhongMaterial({
   depthWrite: false,
   polygonOffset: true,
   polygonOffsetFactor: -4,
-  wireframe: false
+  wireframe: false,
+  refractionRatio: 0.8
 })
 
 export default class CollisionDecal extends Object3DFacade {
@@ -49,6 +43,10 @@ export default class CollisionDecal extends Object3DFacade {
     this.threeObject.material.color.set(c)
   }
 
+  set environmentMap (envMapTexture) {
+    this.threeObject.material.envMap = envMapTexture
+  }
+
   afterUpdate () {
     super.afterUpdate()
 
@@ -59,23 +57,14 @@ export default class CollisionDecal extends Object3DFacade {
         normalXYZ,
         scaledForce
       } = this.collision
-      
-      const collisionWorldPos = new Vector3().fromArray(targetXYZ)
-      // const parentWorldPosition = this.parent.getWorldPosition()
-      // const corrected = collisionWorldPos.clone().sub(parentWorldPosition)
-      // console.log(`~~ wat`, collisionWorldPos, parentWorldPosition, ' ->', corrected)
 
-      // // Use collisionNormal
-      // // const myDirectionVector = new Vector3(this.normalX, this.normalY, this.normalZ)
-      // const collisionPosition = new Vector3(target.x, target.y, target.z)
+      const collisionWorldPos = new Vector3().fromArray(targetXYZ)
       const mx = new Matrix4().lookAt(
         new Vector3().fromArray(normalXYZ), // eye
         new Vector3(0, 0, 0), // center
         new Vector3(0, 1, 0) // up
       )
       const rot = new Euler().setFromRotationMatrix(mx)
-      // console.log(`~~ rot?`, rot)
-      // this.threeObject.updateMatrixWorld(true)
 
       // TODO It would be better to create the DecalGeometry in the constructor,
       // and just update its position attributes here. I'm unsure what else would
@@ -86,20 +75,6 @@ export default class CollisionDecal extends Object3DFacade {
         rot,
         new Vector3(scaledForce, scaledForce, scaledForce) // size/scale
       )
-      // this.threeObject.geometry.verticesNeedUpdate = true
-      // this.threeObject.geometry.elementsNeedUpdate = true
-      // this.threeObject.geometry.morphTargetsNeedUpdate = true
-      // this.threeObject.geometry.uvsNeedUpdate = true
-      // this.threeObject.geometry.normalsNeedUpdate = true
-      // this.threeObject.geometry.colorsNeedUpdate = true
-      // this.threeObject.geometry.tangentsNeedUpdate = true
-
-      // this.threeObject.geometry.attributes.position.needsUpdate = true // required after the first render
-      // this.threeObject.geometry.computeBoundingSphere()
-
-      // this.threeObject.updateMatrixWorld(true)
     }
-    // this._matrixChanged = true
-    // super.afterUpdate()
   }
 }

@@ -1,36 +1,33 @@
 import {
-  BoxGeometry,
+  BoxBufferGeometry,
   Mesh,
   MeshPhongMaterial
 } from 'three'
 import { Object3DFacade } from 'troika-3d'
-import { extendAsPhysical } from 'troika-physics'
 
-const sx = 20
-const sy = 1
-const sz = 20
+const sx = 40
+const sy = 0.2
+const sz = 40
 
-const geometry = new BoxGeometry(sx, sy, sz, 1, 1, 1)
+const geometry = new BoxBufferGeometry(sx, sy, sz, 1, 1, 1)
 const material = new MeshPhongMaterial({
   transparent: true,
-  opacity: 0.8,
+  opacity: 0.2,
   color: 0xFFFFFF,
-  refractionRatio: 0.8
+  refractionRatio: 1.0
 })
 
-class Ground extends Object3DFacade {
+export default class Ground extends Object3DFacade {
   constructor (parent) {
     const ground = new Mesh(geometry, material.clone())
     super(parent, ground)
   }
 
-  set color (c) {
-    this.threeObject.material.color.set(c)
-  }
-
   set environmentMap (envMapTexture) {
     this.threeObject.material.envMap = envMapTexture
   }
-}
 
-export default extendAsPhysical(Ground)
+  set color (c) {
+    this.threeObject.material.color.set(c)
+  }
+}

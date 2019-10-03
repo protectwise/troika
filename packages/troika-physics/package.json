@@ -17,7 +17,6 @@
   "dependencies": {
     "ammo.js": "github:kripken/ammo.js",
     "troika-3d": "^0.15.1",
-    "troika-core": "^0.15.0",
-    "troika-worker-utils": "^0.15.0"
+    "troika-core": "^0.15.0"
   }
 }

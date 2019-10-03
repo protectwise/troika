@@ -15,7 +15,10 @@ import Canvas2DExample from './canvas2d/Canvas2DExample'
 import EasingsExample from './easings/EasingsExample'
 import InstanceableExample from './instanceable/InstanceableExample'
 import InceptionExample from './inception/InceptionExample'
-import PhysicsExample from './physics/PhysicsExample'
+import RigidBodyExample from './physics/rigidBody/RigidBodyExample'
+import SoftBodyExample from './physics/softBody/SoftBodyExample'
+import KinematicsExample from './physics/kinematics/KinematicsExample'
+import CollisionEventExample from './physics/collisionEvents/CollisionEventExample'
 
 import 'react-dat-gui/dist/index.css'
 import './index.css'
@@ -36,7 +39,10 @@ const EXAMPLES = [
   {id: 'easings', name: 'Animation Easings', component: EasingsExample, disableVR:true},
   {id: 'instanceable', name: 'Instanceable Objects', component: InstanceableExample},
   {id: 'inception', name: 'Inception', component: InceptionExample},
-  {id: 'physics', name: 'Physics', component: PhysicsExample}
+  {id: 'physics-rigid-body', name: 'Physics / Rigid Body', component: RigidBodyExample},
+  {id: 'physics-soft-body', name: 'Physics / Soft Body', component: SoftBodyExample},
+  {id: 'physics-kinematics', name: 'Physics / Kinematics', component: KinematicsExample},
+  {id: 'physics-collisions', name: 'Physics / Collision Events', component: CollisionEventExample}
 ]
 
 class ExamplesApp extends React.Component {

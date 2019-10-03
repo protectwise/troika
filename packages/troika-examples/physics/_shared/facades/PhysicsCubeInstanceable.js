@@ -1,5 +1,5 @@
 import {
-  SphereBufferGeometry,
+  BoxBufferGeometry,
   Mesh,
   MeshPhongMaterial,
   Color
@@ -8,9 +8,10 @@ import { Instanceable3DFacade } from 'troika-3d'
 import { extendAsPhysical } from 'troika-physics'
 
 const DEFAULT_RADIUS = 1
+const SEGMENTS = 10
 
 // Common shared geometry
-const geometry = new SphereBufferGeometry(DEFAULT_RADIUS, 16, 16)
+const geometry = new BoxBufferGeometry(DEFAULT_RADIUS, DEFAULT_RADIUS, DEFAULT_RADIUS, SEGMENTS, SEGMENTS, SEGMENTS)
 
 // Common shared material, declaring the diffuse color as an instanceable uniform
 const material = new MeshPhongMaterial()
@@ -19,7 +20,7 @@ material.instanceUniforms = ['diffuse']
 // Single mesh shared between all instanceables
 const protoObj = new Mesh(geometry, material)
 
-class InstanceableSphere extends Instanceable3DFacade {
+class InstanceableCube extends Instanceable3DFacade {
   constructor (parent) {
     super(parent)
     this.instancedThreeObject = protoObj
@@ -39,4 +40,4 @@ class InstanceableSphere extends Instanceable3DFacade {
   }
 }
 
-export default extendAsPhysical(InstanceableSphere)
+export default extendAsPhysical(InstanceableCube)

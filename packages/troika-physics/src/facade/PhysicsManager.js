@@ -1,9 +1,15 @@
-import { Clock } from 'three'
+/* eslint-env browser */
+import { Clock, Vector3 } from 'three'
 import { utils } from 'troika-core'
 import { Group3DFacade } from 'troika-3d'
+import { inferPhysicsShape } from '../utils/inferPhysicsShape'
 // import { getTransitionPropInterceptorFactory } from 'troika-core/src/facade/getPropInterceptorFactory'
 
-const { assign, assignIf } = utils
+const { assign } = utils
+
+const PHYSICS_ENGINE = 'ammojs'
+
+const sharedVec3 = new Vector3()
 
 class CollisionEvent {
   constructor (eventType, target, collisionTarget, contacts, extraProps) {
@@ -77,13 +83,14 @@ export class PhysicsManager extends Group3DFacade {
 
     this.physicsWorker.onmessage = this._handleWorkerMessage.bind(this)
     this.physicsWorker.onerror = function (err) {
-      console.error(`Worker onError`, err)
+      console.error('Worker onError', err)
     }
 
     // this.sendToWorker('init', [document.location.origin])
     this.physicsWorker.postMessage({
       method: 'init',
-      args: [document.location.origin]
+      args: [PHYSICS_ENGINE]
+      // args: [document.location.origin]
     })
   }
 
@@ -92,20 +99,21 @@ export class PhysicsManager extends Group3DFacade {
     switch (msgData.type) {
       case 'ready':
         this._workerReady = true
-        this.afterUpdate() // Allow world startup
-
-        // this.doRender()
+        this.afterUpdate()
         break
       case 'physicsWorldUpdated':
         if (msgData.rigidBodies) {
           this.handleRigidBodiesUpdated(msgData.rigidBodies)
+        }
+        if (msgData.softBodies) {
+          this.handleSoftBodiesUpdated(msgData.softBodies)
         }
         if (msgData.collisions) {
           this.handleCollisionsUpdated(msgData.collisions)
         }
         break
       default:
-        console.warn(`~~ Unhandled workerMessage`, message)
+        console.warn('~~ Unhandled workerMessage', message)
         break
     }
   }
@@ -113,7 +121,7 @@ export class PhysicsManager extends Group3DFacade {
   sendToWorker (method, args) {
     if (!this._workerReady) {
       // TODO Buffer messages?
-      console.error(`~~ sendToWorker before ready!`, method, args)
+      console.error('~~ sendToWorker before ready!', method, args)
       return
     }
     if (this.physicsWorker) {
@@ -126,22 +134,75 @@ export class PhysicsManager extends Group3DFacade {
 
   handleRigidBodiesUpdated (rigidBodies) {
     for (let i = 0, iLen = rigidBodies.length; i < iLen; i++) {
-      // const facade = rigidBodies[i]
       const [facadeId, px, py, pz, qx, qy, qz, qw] = rigidBodies[i]
       const facade = this._physicsObjectFacadesById[facadeId]
       if (facade && !facade.physics.isKinematic) {
-        
         facade.$isControlledByDynamicsWorld = true
 
-        facade.threeObject.position.set( px, py, pz )
-        facade.threeObject.quaternion.set( qx, qy, qz, qw )
-        
+        facade.threeObject.position.set(px, py, pz)
+        facade.threeObject.quaternion.set(qx, qy, qz, qw)
+
         if (!facade._matrixChanged) {
           facade._matrixChanged = true
         }
-        facade.afterUpdate.call(facade)
-      } else {
-        // console.error('Facade not found:', facadeId)
+        facade.afterUpdate()
+      }
+    }
+  }
+
+  handleSoftBodiesUpdated (softBodies) {
+    for (let i = 0, iLen = softBodies.length; i < iLen; i++) {
+      const [facadeId, nodes] = softBodies[i]
+      const facade = this._physicsObjectFacadesById[facadeId]
+
+      if (facade && !facade.physics.isKinematic) {
+        facade.$isControlledByDynamicsWorld = true
+
+        const geom = facade.threeObject.geometry
+        const volumePositions = geom.attributes.position.array
+        const volumeNormals = geom.attributes.normal.array
+        const association = geom.$physicsIndexAssociation
+
+        var numVerts = association.length
+        const flattenedDims = 6
+        for (let j = 0; j < numVerts; j++) {
+          var assocVertex = association[j]
+          const dj = j * flattenedDims
+          let x = nodes[dj + 0]
+          let y = nodes[dj + 1]
+          let z = nodes[dj + 2]
+          const nx = nodes[dj + 3]
+          const ny = nodes[dj + 4]
+          const nz = nodes[dj + 5]
+
+          sharedVec3.set(x, y, z)
+          facade.threeObject.worldToLocal(sharedVec3) // Translate world-space coords back to local
+
+          x = sharedVec3.x
+          y = sharedVec3.y
+          z = sharedVec3.z
+
+          for (var k = 0, kl = assocVertex.length; k < kl; k++) {
+            var indexVertex = assocVertex[k]
+
+            volumePositions[indexVertex] = x
+            volumeNormals[indexVertex] = nx
+            indexVertex++
+            volumePositions[indexVertex] = y
+            volumeNormals[indexVertex] = ny
+            indexVertex++
+            volumePositions[indexVertex] = z
+            volumeNormals[indexVertex] = nz
+          }
+        }
+
+        geom.attributes.position.needsUpdate = true
+        geom.attributes.normal.needsUpdate = true
+
+        if (!facade._matrixChanged) {
+          facade._matrixChanged = true
+        }
+        facade.afterUpdate()
       }
     }
   }
@@ -201,14 +262,12 @@ export class PhysicsManager extends Group3DFacade {
     }
     for (const facadeId in this._physicsObjectFacadesById) {
       const facade = this._physicsObjectFacadesById[facadeId]
-      facade.$isControlledByDynamicsWorld = false // relenquish physics control of pos/rot props
+      facade.$isControlledByDynamicsWorld = false // release physics control of pos/rot props
     }
     super.destructor()
   }
 
   _queuePhysicsWorldChange (changeType, facade, args) {
-    // console.log(`~~ _queuePhysicsWorldChange`, changeType, facade, args)
-
     const changes = this._physicsBodyChangeset || (this._physicsBodyChangeset = {})
     const map = changes[changeType] || (changes[changeType] = Object.create(null))
     if (changeType === 'update') {
@@ -241,7 +300,7 @@ export class PhysicsManager extends Group3DFacade {
 
       if (remove) {
         for (const facadeId in remove) {
-          this.sendToWorker('removeRigidBody', [facadeId])
+          this.sendToWorker('remove', [facadeId])
           // const facade = this._physicsObjectFacadesById[facadeId]
           // facade.$isControlledByDynamicsWorld = false // Reset flag so regular props regain control
           // delete this._physicsObjectFacadesById[facadeId]
@@ -252,12 +311,17 @@ export class PhysicsManager extends Group3DFacade {
           // Check for add requests for objects that are now obsolete
           const facade = this._physicsObjectFacadesById[facadeId]
           if (facade && !facade.isDestroying && !(remove && remove[facadeId])) {
-            // Get the facade's current current physics config.
-            // This is needed in case pos/quat values have been updated since the facade was registered
             const pos = facade.threeObject.position
             const quat = facade.threeObject.quaternion
+
+            if (!facade.$physicsShapeConfig) {
+              // Auto-generate physics shape from ThreeJS geometry if not provided
+              facade.$physicsShapeConfig = inferPhysicsShape(facade)
+            }
+
+            // FIXME need to get matrixWorld offsets for initial pos
             const currentBodyConfig = {
-              shapeConfig: facade._physicsShapeCfg,
+              shapeConfig: facade.$physicsShapeConfig,
               physicsConfig: facade.physics,
               initialPos: {
                 x: pos.x,
@@ -273,16 +337,16 @@ export class PhysicsManager extends Group3DFacade {
             }
 
             if (currentBodyConfig) {
-              this.sendToWorker('addRigidBody', [facadeId, currentBodyConfig])
+              this.sendToWorker('add', [facadeId, currentBodyConfig])
             } else {
-              this.sendToWorker('removeRigidBody', [facadeId])
+              this.sendToWorker('remove', [facadeId])
             }
           }
         }
       }
       if (update) {
         // Single batched update request
-        this.sendToWorker('batchedBodyUpdates', [update]) // FIXME finish
+        this.sendToWorker('batchedUpdate', [update]) // FIXME finish
       }
       this._physicsBodyChangeset = null
     }
@@ -320,13 +384,11 @@ PhysicsManager.prototype._notifyWorldHandlers = {
       this._queuePhysicsWorldChange('add', source)
     }
   },
-  physicsObjectPausedChange (source, isPaused) {
-    const facadeId = source.$facadeId
-    this.sendToWorker('setBodyActivationState', [facadeId, isPaused])
-  },
-  updatePhysicsShape (source, shapeMethodConfig) {
-    const facadeId = source.$facadeId
-
-    this.sendToWorker('updatePhysicsShape', [facadeId, shapeMethodConfig])
+  physicsObjectConfigChange (source, args) {
+    this._queuePhysicsWorldChange('update', source, ['configChange', args])
   }
+  // updatePhysicsShape (source, shapeMethodConfig) {
+  //   const facadeId = source.$facadeIdå
+  //   this.sendToWorker('updatePhysicsShape', [facadeId, shapeMethodConfig])
+  // }
 }
