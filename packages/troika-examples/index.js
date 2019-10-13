@@ -23,7 +23,7 @@ import './index.css'
 
 
 const EXAMPLES = [
-  {id: 'citygrid', name: 'City', component: CityGrid},
+  {id: 'citygrid', name: 'City', component: CityGrid, disableVR:true}, //fps too low for vr, too many draw calls
   {id: 'shaderanim', name: 'Animated Shaders', component: ShaderAnim},
   {id: 'arcs', name: 'Arcs', component: ArcsExample},
   {id: 'globe', name: 'Globe', component: GlobeExample},
