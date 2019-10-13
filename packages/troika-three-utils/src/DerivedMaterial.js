@@ -85,7 +85,6 @@ export function createDerivedMaterial(baseMaterial, options) {
   const id = ++idCtr
   const privateDerivedShadersProp = `_derivedShaders${id}`
   const privateBeforeCompileProp = `_onBeforeCompile${id}`
-  let depthMaterial, distanceMaterial
 
   // Private onBeforeCompile handler that injects the modified shaders and uniforms when
   // the renderer switches to this material's program
@@ -154,9 +153,10 @@ export function createDerivedMaterial(baseMaterial, options) {
      * Utility to get a MeshDepthMaterial that will honor this derived material's vertex
      * transformations and discarded fragments.
      */
-    getDepthMaterial: {value() {
+    getDepthMaterial: {value: function() {
+      let depthMaterial = this._depthMaterial
       if (!depthMaterial) {
-        depthMaterial = createDerivedMaterial(
+        depthMaterial = this._depthMaterial = createDerivedMaterial(
           baseMaterial.isDerivedMaterial
             ? baseMaterial.getDepthMaterial()
             : new MeshDepthMaterial({depthPacking: RGBADepthPacking}),
@@ -171,9 +171,10 @@ export function createDerivedMaterial(baseMaterial, options) {
      * Utility to get a MeshDistanceMaterial that will honor this derived material's vertex
      * transformations and discarded fragments.
      */
-    getDistanceMaterial: {value() {
+    getDistanceMaterial: {value: function() {
+      let distanceMaterial = this._distanceMaterial
       if (!distanceMaterial) {
-        distanceMaterial = createDerivedMaterial(
+        distanceMaterial = this._distanceMaterial = createDerivedMaterial(
           baseMaterial.isDerivedMaterial
             ? baseMaterial.getDistanceMaterial()
             : new MeshDistanceMaterial(),
