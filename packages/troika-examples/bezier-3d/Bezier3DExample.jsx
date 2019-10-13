@@ -6,13 +6,14 @@ import DatGui, {DatBoolean, DatNumber} from 'react-dat-gui'
 
 
 const pointProps = ["p1x", "p1y", "p1z", "c1x", "c1y", "c1z", "c2x", "c2y", "c2z", "p2x", "p2y", "p2z"]
-
+const colors = []
+const randomColor = () => Math.round(Math.random() * 0xffffff)
 
 class Bezier3DExample extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      count: 1,
+      count: 4,
       radius: 0.01,
       dashed: 0,
       randomize: true,
@@ -42,6 +43,7 @@ class Bezier3DExample extends React.Component {
         key: 'bezier' + i,
         facade: Bezier3DFacade,
         radius: state.radius,
+        color: state.randomize ? (colors[i] || (colors[i] = randomColor())) : 0x66ccff,
         castShadow: state.shadows,
         dashArray: [state.dashed, state.dashed],
         animation: state.randomize ? getAnimation(i) : null

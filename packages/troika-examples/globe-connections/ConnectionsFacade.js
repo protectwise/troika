@@ -63,9 +63,9 @@ class ConnectionsFacade extends Group3DFacade {
               p2z: labelPos.z,
               dashArray: hovering ? [0.01, 0.01] : null,
               animation: hovering ? {
-                from: {dashArrayOffset: 0},
-                to: {dashArrayOffset: -0.02},
-                duration: 300,
+                from: {dashOffset: 0},
+                to: {dashOffset: -0.02},
+                duration: 200,
                 iterations: Infinity
               } : null
             })

@@ -1,4 +1,4 @@
-import { createDerivedMaterial } from 'troika-three-utils'
+import { createDerivedMaterial } from './DerivedMaterial'
 import { Vector2, Vector3 } from 'three'
 
 /*
@@ -61,15 +61,14 @@ normal = normalize(mat3(discTx) * normal);
 `
 
 const fragmentDefs = `
-uniform vec2 dashArray;
-uniform float dashArrayOffset;
+uniform vec3 dashing;
 varying float bezierT;
 `
 
 const fragmentMainIntro = `
-if (dashArray.x + dashArray.y > 0.0) {
-  float dashFrac = mod(bezierT - dashArrayOffset, dashArray.x + dashArray.y);
-  if (dashFrac > dashArray.x) {
+if (dashing.x + dashing.y > 0.0) {
+  float dashFrac = mod(bezierT - dashing.z, dashing.x + dashing.y);
+  if (dashFrac > dashing.x) {
     discard;
   }
 }
@@ -87,8 +86,10 @@ if (dashArray.x + dashArray.y > 0.0) {
 // gl_FragColor.xyz = mix(gl_FragColor.xyz, mixColor, 0.5);
 // `
 
-export function createBezierMaterial(baseMaterial) {
-  const derived = createDerivedMaterial(
+
+
+export function createBezierMeshMaterial(baseMaterial) {
+  return createDerivedMaterial(
     baseMaterial,
     {
       uniforms: {
@@ -97,8 +98,7 @@ export function createBezierMaterial(baseMaterial) {
         controlB: {value: new Vector3()},
         pointB: {value: new Vector3()},
         radius: {value: 0.01},
-        dashArray: {value: new Vector2()},
-        dashArrayOffset: {value: 0}
+        dashing: {value: new Vector3()} //on, off, offset
       },
       vertexDefs,
       vertexTransform,
@@ -106,5 +106,4 @@ export function createBezierMaterial(baseMaterial) {
       fragmentMainIntro
     }
   )
-  return derived
 }
