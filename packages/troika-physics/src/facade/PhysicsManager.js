@@ -272,7 +272,7 @@ export class PhysicsManager extends Group3DFacade {
     const map = changes[changeType] || (changes[changeType] = Object.create(null))
     if (changeType === 'update') {
       // Updates are merged/batched for a particular facade
-      // Update values are a nested map of change requests, keyed by
+      // Update values are a nested map of change requests, keyed by `updateType`
       map[facade.$facadeId] = map[facade.$facadeId] || Object.create(null)
       const [updateType, updateArgs] = args
       if (map[facade.$facadeId][updateType]) {
@@ -355,8 +355,6 @@ export class PhysicsManager extends Group3DFacade {
 
 PhysicsManager.prototype._notifyWorldHandlers = {
   physicsObjectAdded (source) {
-    // console.log(`~~ physicsObjectAdded`)
-
     this._physicsObjectFacadesById[source.$facadeId] = source
     this._queuePhysicsWorldChange('add', source)
   },
