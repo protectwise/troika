@@ -19,23 +19,31 @@ html, body {
 .examples_header {
   background: #666;
   padding: 10px 20px;
+  display: flex;
+  align-items: center;
 }
 
 .stats_toggle {
-  position: absolute;
-  right: 20px;
-  top: 10px;
+  margin-left: auto;
 }
 
 .vr_button {
   margin-left: 20px;
 }
 
-h1 {
+.examples_header h1 {
   font-size: 16px;
-  display: inline;
-  margin-right: 20px;
+  margin: 0 20px 0 0;
 }
+
+.examples_header .repo_link {
+  margin-left: 30px;
+  text-decoration: none;
+}
+.examples_header .repo_link > img {
+  vertical-align: bottom;
+}
+
 
 a {
   color: #00b3ee;

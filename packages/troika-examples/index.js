@@ -114,6 +114,10 @@ class ExamplesApp extends React.Component {
           <div className="stats_toggle">
             Show Stats <input type="checkbox" checked={stats} onChange={this._onToggleStats} />
           </div>
+
+          <a href="https://github.com/protectwise/troika/tree/master/packages/troika-examples" className="repo_link">
+            <img alt="GitHub" title="Sources on GitHub" src="./GitHub-Mark-64px.png" width={24} height={24} />
+          </a>
         </header>
         <section className="examples_body" ref={ this._onBodyElRef }>
           { ExampleCmp ?
