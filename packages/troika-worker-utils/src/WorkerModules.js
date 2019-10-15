@@ -2,8 +2,7 @@ import Thenable from './Thenable'
 
 let _workerModuleId = 0
 let _messageId = 0
-let worker = null
-
+const workers = Object.create(null)
 const openRequests = Object.create(null)
 openRequests._count = 0
 
@@ -31,13 +30,21 @@ openRequests._count = 0
  *        It will be passed that response value, and if it returns an array then that will be
  *        used as the "transferables" parameter to `postMessage`. Use this if there are values
  *        in the response that can/should be transfered rather than cloned.
+ * @param {string} [options.workerId] - By default all modules will run in the same dedicated worker,
+ *        but if you want to use multiple workers you can pass a `workerId` to indicate a specific
+ *        worker to spawn. Note that each worker is completely standalone and no data or state will
+ *        be shared between them. If a worker module is used as a dependency by worker modules
+ *        using different `workerId`s, then that dependency will be re-registered in each worker.
  * @return {function(...[*]): {then}}
  */
 export function defineWorkerModule(options) {
   if (!options || typeof options.init !== 'function') {
     throw new Error('requires `options.init` function')
   }
-  let {dependencies, init, getTransferables} = options
+  let {dependencies, init, getTransferables, workerId} = options
+  if (workerId == null) {
+    workerId = '#default'
+  }
   const id = `workerModule${++_workerModuleId}`
   let registrationThenable = null
 
@@ -45,6 +52,7 @@ export function defineWorkerModule(options) {
     // Wrap raw functions as worker modules with no dependencies
     if (typeof dep === 'function' && !dep.workerModuleData) {
       dep = defineWorkerModule({
+        workerId,
         init: new Function(`return function(){return (${stringifyFunction(dep)})}`)()
       })
     }
@@ -58,13 +66,13 @@ export function defineWorkerModule(options) {
   function moduleFunc(...args) {
     // Register this module if needed
     if (!registrationThenable) {
-      registrationThenable = callWorker('registerModule', moduleFunc.workerModuleData)
+      registrationThenable = callWorker(workerId,'registerModule', moduleFunc.workerModuleData)
     }
 
     // Invoke the module, returning a thenable
     return registrationThenable.then(({isCallable}) => {
       if (isCallable) {
-        return callWorker('callModule', {id, args})
+        return callWorker(workerId,'callModule', {id, args})
       } else {
         throw new Error('Worker module function was called but `init` did not return a callable function')
       }
@@ -94,7 +102,8 @@ function stringifyFunction(fn) {
 }
 
 
-function getWorker() {
+function getWorker(workerId) {
+  let worker = workers[workerId]
   if (!worker) {
     // Bootstrap the worker's content
     const bootstrap = (function() {
@@ -219,7 +228,7 @@ function getWorker() {
     }).toString()
 
     // Create the worker from the bootstrap function content
-    worker = new Worker(
+    worker = workers[workerId] = new Worker(
       URL.createObjectURL(
         new Blob([`;(${bootstrap})()`], {type: 'application/javascript'})
       )
@@ -242,7 +251,7 @@ function getWorker() {
 }
 
 // Issue a call to the worker with a callback to handle the response
-function callWorker(action, data) {
+function callWorker(workerId, action, data) {
   const thenable = Thenable()
   const messageId = ++_messageId
   openRequests[messageId] = response => {
@@ -256,7 +265,7 @@ function callWorker(action, data) {
   if (openRequests.count > 1000) { //detect leaks
     console.warn('Large number of open WorkerModule requests, some may not be returning')
   }
-  getWorker().postMessage({
+  getWorker(workerId).postMessage({
     messageId,
     action,
     data
