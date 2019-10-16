@@ -96,7 +96,7 @@ class CubeOfCubes extends Group3DFacade {
       this.afterUpdate()
     }
     this.onClick = e => {
-      this.onSelectColor(e.target.color)
+      this.onSelectColor(this.selectedColor == null ? e.target.color : null)
     }
   }
 
