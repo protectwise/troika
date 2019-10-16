@@ -1,11 +1,16 @@
 import { Object3DFacade } from 'troika-3d'
-import { Group } from 'three'
+import { Group, Ray, Vector3 } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
 
 function getUrl(hand) {
   return `https://cdn.aframe.io/controllers/oculus/oculus-touch-controller-${hand}.gltf`
 }
+
+const pointerRay = new Ray(
+  new Vector3(0, 0, -0.0332),
+  new Vector3(0, 0, -1)
+)
 
 // TODO define mapping here that will allow us to pass in a set of active button
 //  ids and highlight their corresponding meshes when pressed...
@@ -26,6 +31,8 @@ class OculusTouchModelFacade extends Object3DFacade {
 
   constructor(parent) {
     super(parent, new Group())
+
+    this.pointerRay = pointerRay
 
     this.bodyColor = 0x999999
     this.buttonColor = 0xffffff
