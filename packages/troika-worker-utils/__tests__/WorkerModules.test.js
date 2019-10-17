@@ -275,3 +275,55 @@ describe('getTransferables', () => {
   })
 })
 
+describe('multiple workers', () => {
+  test('different `workerId`s execute in different workers', () => {
+
+    const commonDep = defineWorkerModule({
+      init: function() {
+        return Math.random() //give a unique value per worker
+      }
+    })
+
+    // 1a and 1b share a worker so their dependency should init with the same value;
+    // 2 is a different worker so the dependency should init with a different value.
+    const module1a = defineWorkerModule({
+      workerId: 'worker1',
+      dependencies: [commonDep],
+      init: function(depVal) {
+        return () => depVal
+      }
+    })
+    const module1b = defineWorkerModule({
+      workerId: 'worker1',
+      dependencies: [commonDep],
+      init: function(depVal) {
+        return () => depVal
+      }
+    })
+    const module2 = defineWorkerModule({
+      workerId: 'worker2',
+      dependencies: [commonDep],
+      init: function(depVal) {
+        return () => depVal
+      }
+    })
+    const module3 = defineWorkerModule({
+      workerId: null, //default worker
+      dependencies: [commonDep],
+      init: function(depVal) {
+        return () => depVal
+      }
+    })
+
+    return Promise.all([module1a(), module1b(), module2(), module3()]).then(([result1a, result1b, result2, result3]) => {
+      expect(typeof result1a).toEqual('number')
+      expect(typeof result1b).toEqual('number')
+      expect(typeof result2).toEqual('number')
+      expect(typeof result3).toEqual('number')
+      expect(result1a).toEqual(result1b)
+      expect(result2).not.toEqual(result1a)
+      expect(result3).not.toEqual(result1a)
+      expect(result3).not.toEqual(result2)
+    })
+  })
+})

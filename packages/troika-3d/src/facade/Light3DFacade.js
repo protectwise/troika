@@ -5,7 +5,7 @@ import {
   PointLight
 } from 'three'
 import Object3DFacade from './Object3DFacade'
-import { assignDeep } from 'troika-core/src/utils'
+import { utils } from 'troika-core'
 //import {ShadowMapViewer} from 'three/examples/jsm/utils/ShadowMapViewer.js'
 
 
@@ -20,7 +20,7 @@ class Light3DFacade extends Object3DFacade {
     return this.threeObject.shadow
   }
   set shadow(val) {
-    assignDeep(this.threeObject.shadow, val)
+    utils.assignDeep(this.threeObject.shadow, val)
   }
 }
 // Setters for simple properties to be copied

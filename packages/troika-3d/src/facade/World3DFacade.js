@@ -70,11 +70,11 @@ class World3DFacade extends WorldBaseFacade {
    */
   _getCameraDef() {
     const {camera} = this
-    return assign({}, camera, {
+    return assign({
       key: 'camera',
-      facade: camera.facade || PerspectiveCamera3DFacade,
-      aspect: typeof camera.aspect === 'number' ? camera.aspect : this.width / this.height
-    })
+      facade: PerspectiveCamera3DFacade,
+      aspect: this.width / this.height
+    }, camera)
   }
 
   /**
@@ -211,11 +211,11 @@ class World3DFacade extends WorldBaseFacade {
    * @override Implementation of abstract
    * @return {Array<{facade, distance, ?distanceBias, ...}>|null}
    */
-  getFacadesAtEvent(e) {
-    return e.ray ? this.getFacadesOnRay(e.ray) : null
+  getFacadesAtEvent(e, filterFn) {
+    return e.ray ? this.getFacadesOnRay(e.ray, filterFn) : null
   }
 
-  getFacadesOnRay(ray) {
+  getFacadesOnRay(ray, filterFn) {
     // update bounding sphere octree
     const octree = this._updateOctree()
 
@@ -227,7 +227,8 @@ class World3DFacade extends WorldBaseFacade {
       octree.forEachSphereOnRay(ray, (sphere, facadeId) => {
         const facadesById = this._object3DFacadesById
         const facade = facadesById && facadesById[facadeId]
-        const hits = facade && facade.raycast && facade.raycast(raycaster)
+        // let the filterFn eliminate things before trying to raycast them
+        const hits = facade && (!filterFn || filterFn(facade)) && facade.raycast && facade.raycast(raycaster)
         if (hits && hits[0]) {
           // Ignore all but closest
           hits[0].facade = facade
@@ -305,6 +306,9 @@ World3DFacade.prototype._notifyWorldHandlers = assign(
     },
     getCameraFacade(source, data) {
       data.callback(this.getChildByKey('camera'))
+    },
+    getSceneFacade(source, data) {
+      data.callback(this.getChildByKey('scene'))
     },
     projectWorldPosition(source, data) {
       let pos = data.worldPosition

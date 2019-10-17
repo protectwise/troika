@@ -19,17 +19,17 @@ const INIT_ORIGIN = {
 const TABS = [
   {
     key: 'colors',
-    title: 'Colorz',
+    title: 'Colors',
     desc: 'Select a color from the cubes to show its value.'
   },
   {
     key: 'globe',
-    title: 'Globez',
+    title: 'Globes',
     desc: paleBlueDot
   },
   {
     key: 'graph',
-    title: 'Graphz',
+    title: 'Graphs',
     desc: 'Line graphs stacked in the depth dimension'
   }
 ]
@@ -180,7 +180,7 @@ class UIExample extends React.Component {
                 scale={1 / 640} //640 units within ui = 1 meter
                 x={-1}
                 y={0.3}
-                z={-1.6}
+                z={-1.4}
               >
                 <Block
                   key="topRow"

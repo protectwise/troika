@@ -5,12 +5,14 @@ import CityGrid from './citygrid/CityGrid'
 import ShaderAnim from './shader-anim/ShaderAnim'
 import ArcsExample from './arcs/ArcsExample'
 import GlobeExample from './globe/GlobeExample'
+import GlobeConnectionsExample from './globe-connections/GlobeConnectionsExample'
 import HtmlOverlays from './html-overlays/HtmlOverlaysExample'
 import TextExample from './text/TextExample'
 import UIExample from './ui2/UIExample'
 import DragDrop from './dragdrop/DragDropExample'
 import LevelOfDetail from './lod/LevelOfDetailExample'
 import CurveAnim from './curve-anim/CurveAnimExample'
+import Bezier3DExample from './bezier-3d/Bezier3DExample'
 import Canvas2DExample from './canvas2d/Canvas2DExample'
 import EasingsExample from './easings/EasingsExample'
 import InstanceableExample from './instanceable/InstanceableExample'
@@ -25,16 +27,18 @@ import './index.css'
 
 
 const EXAMPLES = [
-  {id: 'citygrid', name: 'City', component: CityGrid},
+  {id: 'citygrid', name: 'City', component: CityGrid, disableVR:true}, //fps too low for vr, too many draw calls
   {id: 'shaderanim', name: 'Animated Shaders', component: ShaderAnim},
   {id: 'arcs', name: 'Arcs', component: ArcsExample},
   {id: 'globe', name: 'Globe', component: GlobeExample},
+  {id: 'globeConnections', name: 'Globe Connections', component: GlobeConnectionsExample},
   {id: 'htmlOverlays', name: 'HTML Overlays', component: HtmlOverlays},
   {id: 'text', name: '3D Text', component: TextExample},
   {id: 'ui', name: 'User Interface', component: UIExample},
   {id: 'dragdrop', name: 'Drag and Drop', component: DragDrop},
   {id: 'lod', name: 'Level of Detail', component: LevelOfDetail},
   {id: 'curveAnim', name: 'Line Graph', component: CurveAnim, disableVR:true},
+  {id: 'bezier3d', name: '3D Bezier Tubes', component: Bezier3DExample},
   {id: 'twoDee', name: 'Canvas2D', component: Canvas2DExample, disableVR:true},
   {id: 'easings', name: 'Animation Easings', component: EasingsExample, disableVR:true},
   {id: 'instanceable', name: 'Instanceable Objects', component: InstanceableExample},
@@ -118,6 +122,10 @@ class ExamplesApp extends React.Component {
           <div className="stats_toggle">
             Show Stats <input type="checkbox" checked={stats} onChange={this._onToggleStats} />
           </div>
+
+          <a href="https://github.com/protectwise/troika/tree/master/packages/troika-examples" className="repo_link">
+            <img alt="GitHub" title="Sources on GitHub" src="./GitHub-Mark-64px.png" width={24} height={24} />
+          </a>
         </header>
         <section className="examples_body" ref={ this._onBodyElRef }>
           { ExampleCmp ?

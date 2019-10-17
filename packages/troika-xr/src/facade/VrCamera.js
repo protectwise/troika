@@ -54,7 +54,6 @@ export const extendAsVrCamera = utils.createClassExtender('vrCamera', function(B
 
       this.vrDisplay = null
       this._frameData = new VRFrameData()
-      this._lastFrameTime = -1
     }
 
     /**
@@ -83,16 +82,16 @@ export const extendAsVrCamera = utils.createClassExtender('vrCamera', function(B
           // Sync eye cameras; note the eye matrices include the pose transform so we do this prior to
           // applying the pose transform to the main camera.
           const {renderWidth, renderHeight} = vrDisplay.getEyeParameters('left') //meh feels like fragile assumption but can't get actual px viewports for both eyes
-          const syncEye = function(eyeCam, eyeViewMatrix, eyeProjMatrix) {
-            eyeCam.viewport.set(eyeCam === rightCam ? renderWidth : 0, 0, renderWidth, renderHeight)
-            eyeCam.near = mainCam.near
-            eyeCam.far = mainCam.far
-            eyeCam.matrixWorldInverse.multiplyMatrices(tempMat4.fromArray(eyeViewMatrix), mainCam.matrixWorldInverse)
-            eyeCam.matrixWorld.getInverse(eyeCam.matrixWorldInverse)
-            eyeCam.projectionMatrix.fromArray(eyeProjMatrix)
-          }
-          syncEye(leftCam, frameData.leftViewMatrix, frameData.leftProjectionMatrix)
-          syncEye(rightCam, frameData.rightViewMatrix, frameData.rightProjectionMatrix)
+          syncEye(
+            mainCam, leftCam,
+            frameData.leftViewMatrix, frameData.leftProjectionMatrix,
+            0, 0, renderWidth, renderHeight
+          )
+          syncEye(
+            mainCam, rightCam,
+            frameData.rightViewMatrix, frameData.rightProjectionMatrix,
+            renderWidth, 0, renderWidth, renderHeight
+          )
 
           // The eye cameras now match the pose, but we also need to make the main camera match
           // an overall pose/projection for use in frustum culling etc.
@@ -130,6 +129,17 @@ export const extendAsVrCamera = utils.createClassExtender('vrCamera', function(B
 
   return VrCamera
 })
+
+
+function syncEye(mainCam, eyeCam, eyeViewMatrix, eyeProjMatrix, x, y, width, height) {
+  eyeCam.viewport.set(x, y, width, height)
+  eyeCam.near = mainCam.near
+  eyeCam.far = mainCam.far
+  eyeCam.matrixWorldInverse.multiplyMatrices(tempMat4.fromArray(eyeViewMatrix), mainCam.matrixWorldInverse)
+  eyeCam.matrixWorld.getInverse(eyeCam.matrixWorldInverse)
+  eyeCam.projectionMatrix.fromArray(eyeProjMatrix)
+}
+
 
 
 

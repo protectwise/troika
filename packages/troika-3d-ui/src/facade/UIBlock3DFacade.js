@@ -3,8 +3,9 @@ import { Group3DFacade } from 'troika-3d'
 import UITextNode3DFacade from './UITextNode3DFacade'
 import UIBlockLayer3DFacade from './UIBlockLayer3DFacade'
 import { extendAsFlexNode } from '../flex-layout/FlexNode'
-import { getInheritable } from '../uiUtils'
+import { getComputedFontSize, getInheritable } from '../uiUtils'
 import { utils } from 'troika-core'
+import ScrollbarsFacade from './ScrollbarsFacade'
 
 const raycastMesh = new Mesh(new PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0))
 const tempMat4 = new Matrix4()
@@ -32,25 +33,10 @@ class UIBlock3DFacade extends Group3DFacade {
     // If fully hidden by parent clipping rect, cull the whole Group out of the scene
     Object.defineProperty(this.threeObject, 'visible', groupVisiblePropDef)
 
-    // Create rendering layer child definitions
-    // These live separate from the main `children` tree
-    this.bgLayer = {
-      key: 'bg',
-      facade: UIBlockLayer3DFacade
-    }
-    this.borderLayer = {
-      key: 'border',
-      facade: UIBlockLayer3DFacade,
-      isBorder: true
-    }
+    // Anonymous container for bg/border/scrollbar child objects; these live separate
+    // from the main `children` tree
     this.layers = new Group3DFacade(this)
-    this.layers.children = [null, null]
-
-    // Create child def for text node
-    this.textChild = {
-      key: 'text',
-      facade: UITextNode3DFacade
-    }
+    this.layers.children = [null, null, null]
 
     this._sizeVec2 = new Vector2()
     this._clipRectVec4 = new Vector4()
@@ -63,6 +49,7 @@ class UIBlock3DFacade extends Group3DFacade {
    * @override When fully clipped out of view, skip updating children entirely. We do this by
    * overriding `updateChildren` instead of using the `shouldUpdateChildren` hook, because the
    * latter would still traverse the child tree to sync matrices, which we don't need here.
+   * TODO this doesn't work so well when descendants are absolutely positioned or overflow outside our bounds
    */
   updateChildren(children) {
     if (!this.isFullyClipped) {
@@ -72,9 +59,6 @@ class UIBlock3DFacade extends Group3DFacade {
 
   afterUpdate() {
     let {
-      bgLayer,
-      borderLayer,
-      textChild,
       layers,
       backgroundColor,
       backgroundMaterial,
@@ -97,6 +81,9 @@ class UIBlock3DFacade extends Group3DFacade {
     const hasNonZeroSize = !!(offsetWidth && offsetHeight)
     const hasBg = hasNonZeroSize && !isFullyClipped && (backgroundColor != null || backgroundMaterial != null)
     const hasBorder = hasNonZeroSize && !isFullyClipped && (borderColor != null || borderMaterial != null) && Math.max(...borderWidth) > 0
+    const canScroll = hasNonZeroSize && (this.overflow === 'scroll' || this.overflow === 'auto') && (
+      this.scrollHeight > this.clientHeight || this.scrollWidth > this.clientWidth
+    )
 
     // Update the block's element and size from flexbox computed values
     if (hasLayout) {
@@ -120,10 +107,20 @@ class UIBlock3DFacade extends Group3DFacade {
       // Update shared vector objects for the sublayers
       const radii = (hasBg || hasBorder) ? this._normalizeBorderRadius() : null
       _borderWidthVec4.fromArray(borderWidth)
-      _clipRectVec4.set(this.clipLeft, this.clipTop, this.clipRight, this.clipBottom)
+      _clipRectVec4.set(
+        Math.max(this.clipLeft, 0),
+        Math.max(this.clipTop, 0),
+        Math.min(this.clipRight, offsetWidth),
+        Math.min(this.clipBottom, offsetHeight)
+      )
 
       // Update rendering layers...
+      let bgLayer = null
       if (hasBg) {
+        bgLayer = this._bgLayerDef || (this._bgLayerDef = {
+          key: 'bg',
+          facade: UIBlockLayer3DFacade
+        })
         bgLayer.size = _sizeVec2
         bgLayer.color = backgroundColor
         bgLayer.borderRadius = radii
@@ -133,12 +130,16 @@ class UIBlock3DFacade extends Group3DFacade {
         bgLayer.renderOrder = flexNodeDepth //TODO how can we make this play with the rest of the scene?
         // bgLayer.castShadow = this.castShadow
         // bgLayer.receiveShadow = this.receiveShadow
-      } else {
-        bgLayer = null
       }
       layers.children[0] = bgLayer
 
+      let borderLayer = null
       if (hasBorder) {
+        borderLayer = this._borderLayerDef || (this._borderLayerDef = {
+          key: 'border',
+          facade: UIBlockLayer3DFacade,
+          isBorder: true
+        })
         borderLayer.size = _sizeVec2
         borderLayer.color = borderColor
         borderLayer.borderWidth = _borderWidthVec4
@@ -149,10 +150,20 @@ class UIBlock3DFacade extends Group3DFacade {
         borderLayer.renderOrder = flexNodeDepth + 0.1 //TODO how can we make this play with the rest of the scene?
         // borderLayer.castShadow = this.castShadow
         // borderLayer.receiveShadow = this.receiveShadow
-      } else {
-        borderLayer = null
       }
       layers.children[1] = borderLayer
+
+      // Scrollbars if scrollable:
+      let scrollbarsLayer = null
+      if (canScroll) {
+        scrollbarsLayer = this._scrollbarsDef || (this._scrollbarsDef = {
+          key: 'sb',
+          facade: ScrollbarsFacade,
+          target: this
+        })
+        scrollbarsLayer.renderOrder = flexNodeDepth + 0.2 //TODO how can we make this play with the rest of the scene?
+      }
+      layers.children[2] = scrollbarsLayer
 
       // Allow text to be specified as a single string child
       if (!text && isTextNodeChild(this.children)) {
@@ -160,9 +171,13 @@ class UIBlock3DFacade extends Group3DFacade {
       }
       // Update text child...
       if (text) {
+        const textChild = this._textChildDef || (this._textChildDef = {
+          key: 'text',
+          facade: UITextNode3DFacade
+        })
         textChild.text = text
         textChild.font = getInheritable(this, 'font')
-        textChild.fontSize = getInheritable(this, 'fontSize', DEFAULT_FONT_SIZE)
+        textChild.fontSize = this.getComputedFontSize()
         textChild.textAlign = getInheritable(this, 'textAlign')
         textChild.lineHeight = getInheritable(this, 'lineHeight', DEFAULT_LINE_HEIGHT)
         textChild.letterSpacing = getInheritable(this, 'letterSpacing', 0)
@@ -200,15 +215,19 @@ class UIBlock3DFacade extends Group3DFacade {
 
     // Add mousewheel listener if scrollable
     // TODO scroll via drag?
-    const canScroll = hasNonZeroSize && (this.overflow === 'scroll' || this.overflow === 'auto') && (
-      this.scrollHeight > this.clientHeight || this.scrollWidth > this.clientWidth
-    )
-    this[`${canScroll ? 'add' : 'remove'}EventListener`]('wheel', wheelHandler)
+    if (canScroll !== this._couldScroll) {
+      this._couldScroll = canScroll
+      this[`${canScroll ? 'add' : 'remove'}EventListener`]('wheel', wheelHandler)
+    }
 
     super.afterUpdate()
     if (!isFullyClipped) {
       layers.afterUpdate()
     }
+  }
+
+  getComputedFontSize() {
+    return getComputedFontSize(this, DEFAULT_FONT_SIZE)
   }
 
   _normalizeBorderRadius() {
@@ -282,14 +301,22 @@ class UIBlock3DFacade extends Group3DFacade {
    * @override Custom raycaster to test against the layout block
    */
   raycast(raycaster) {
-    const {offsetWidth, offsetHeight} = this
+    const {offsetWidth, offsetHeight, clipTop, clipRight, clipBottom, clipLeft} = this
+    let hits = null
     if (offsetWidth && offsetHeight) {
       raycastMesh.matrixWorld.multiplyMatrices(
         this.threeObject.matrixWorld,
         tempMat4.makeScale(offsetWidth, offsetHeight, 1)
       )
-      const hits = this._raycastObject(raycastMesh, raycaster)
+      hits = this._raycastObject(raycastMesh, raycaster)
       if (hits) {
+        // Filter out hits that occurred on clipped areas
+        hits = hits.filter(hit => {
+          const x = hit.uv.x * offsetWidth
+          const y = (1 - hit.uv.y) * offsetHeight
+          return x > clipLeft && x < clipRight && y > clipTop && y < clipBottom
+        })
+
         // Add a distance bias (used as secondary sort for equidistant intersections) to prevent
         // container blocks from intercepting pointer events for their children. Also apply a
         // slight rounding prevent floating point precision irregularities from reporting different
@@ -299,9 +326,8 @@ class UIBlock3DFacade extends Group3DFacade {
           hit.distanceBias = -this.flexNodeDepth
         })
       }
-      return hits
     }
-    return null
+    return hits && hits.length ? hits : null
   }
 
 
@@ -327,36 +353,43 @@ utils.assign(UIBlock3DFacade.prototype, {
 
 
 function wheelHandler(e) {
-  const facade = e.currentTarget
-  let {deltaX, deltaY, deltaMode} = e.nativeEvent
-  if (deltaMode === 0x01) { //line mode
-    const lineSize = getInheritable(facade, 'fontSize', DEFAULT_FONT_SIZE) *
-      getInheritable(facade, 'lineHeight', 1.2) //Note: fixed default since we can't resolve 'normal' here
-    deltaX *= lineSize
-    deltaY *= lineSize
-  }
-  const scrollLeft = Math.max(0, Math.min(
-    facade.scrollWidth - facade.clientWidth,
-    facade.scrollLeft + deltaX
-  ))
-  const scrollTop = Math.max(0, Math.min(
-    facade.scrollHeight - facade.clientHeight,
-    facade.scrollTop + deltaY
-  ))
+  if (!e._didScroll) {
+    const facade = e.currentTarget
+    let {deltaX, deltaY, deltaMode} = e.nativeEvent
+    let deltaMultiplier
+    if (deltaMode === 0x01) { //line mode
+      deltaMultiplier = getComputedFontSize(facade, DEFAULT_FONT_SIZE) *
+        getInheritable(facade, 'lineHeight', 1.2) //Note: fixed default since we can't resolve 'normal' here
+    } else { //pixel mode
+      //TODO can we more accurately scale to visual expectation?
+      deltaMultiplier = getComputedFontSize(facade, DEFAULT_FONT_SIZE) / 12
+    }
+    deltaX *= deltaMultiplier
+    deltaY *= deltaMultiplier
 
-  // Only scroll if the major scroll direction would actually result in a scroll change
-  const abs = Math.abs
-  if (
-    (scrollLeft !== this.scrollLeft && abs(deltaX) > abs(deltaY)) ||
-    (scrollTop !== this.scrollTop && abs(deltaY) > abs(deltaX))
-  ) {
-    this.scrollLeft = scrollLeft
-    this.scrollTop = scrollTop
-    facade.afterUpdate()
-    facade.notifyWorld('needsRender')
-    e.stopPropagation() //only scroll deepest
+    const scrollLeft = Math.max(0, Math.min(
+      facade.scrollWidth - facade.clientWidth,
+      facade.scrollLeft + deltaX
+    ))
+    const scrollTop = Math.max(0, Math.min(
+      facade.scrollHeight - facade.clientHeight,
+      facade.scrollTop + deltaY
+    ))
+
+    // Only scroll if the major scroll direction would actually result in a scroll change
+    const abs = Math.abs
+    if (
+      (scrollLeft !== this.scrollLeft && abs(deltaX) > abs(deltaY)) ||
+      (scrollTop !== this.scrollTop && abs(deltaY) > abs(deltaX))
+    ) {
+      this.scrollLeft = scrollLeft
+      this.scrollTop = scrollTop
+      facade.afterUpdate()
+      facade.notifyWorld('needsRender')
+      e._didScroll = true
+    }
+    e.preventDefault()
   }
-  e.preventDefault()
 }
 
 function isTextNodeChild(child) {

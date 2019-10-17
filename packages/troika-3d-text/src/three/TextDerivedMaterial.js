@@ -38,23 +38,23 @@ uniform vec4 uTroikaClipRect;
 varying vec2 vTroikaGlyphUV;
 varying vec3 vTroikaLocalPos;
 
-void troikaApplyClipping() {
-  vec4 rect = uTroikaClipRect;
+float troikaGetClipAlpha() {
+  vec4 clip = uTroikaClipRect;
   vec3 pos = vTroikaLocalPos;
-  if (rect != vec4(.0,.0,.0,.0) && (
-    pos.x < min(rect.x, rect.z) || 
-    pos.y < min(rect.y, rect.w) ||
-    pos.x > max(rect.x, rect.z) ||
-    pos.y > max(rect.y, rect.w)
-  )) {
-    discard;
-  }
+  float dClip = min(
+    min(pos.x - min(clip.x, clip.z), max(clip.x, clip.z) - pos.x),
+    min(pos.y - min(clip.y, clip.w), max(clip.y, clip.w) - pos.y)
+  );
+  #if defined(GL_OES_standard_derivatives) || __VERSION__ >= 300
+  float aa = length(fwidth(pos)) * 0.5;
+  return smoothstep(-aa, aa, dClip);
+  #else
+  return step(0.0, dClip);
+  #endif
 }
 `
 
 const FRAGMENT_TRANSFORM = `
-troikaApplyClipping();
-
 float troikaSDFValue = texture2D(uTroikaSDFTexture, vTroikaGlyphUV).r;
 
 #if defined(IS_DEPTH_MATERIAL) || defined(IS_DISTANCE_MATERIAL)
@@ -84,6 +84,9 @@ float textAlphaMult = uTroikaSDFDebug ? troikaSDFValue : smoothstep(
   0.5 + troikaAntiAliasDist,
   troikaSDFValue
 );
+
+textAlphaMult = min(textAlphaMult, troikaGetClipAlpha());
+
 if (textAlphaMult == 0.0) {
   if (uTroikaSDFDebug) {
     gl_FragColor *= 0.5;
@@ -97,22 +100,11 @@ if (textAlphaMult == 0.0) {
 #endif
 `
 
-const FRAGMENT_TRANSFORM_DEPTH = `
-troikaApplyClipping();
-
-float troikaSDFValue = texture2D(uTroikaSDFTexture, vTroikaGlyphUV).r;
-
-if (troikaSDFValue < 0.5) {
-  discard;
-}
-`
-
 
 /**
  * Create a material for rendering text, derived from a baseMaterial
  */
 export function createTextDerivedMaterial(baseMaterial) {
-  const isForShadow = baseMaterial.isMeshDepthMaterial || baseMaterial.isMeshDistanceMaterial
   const textMaterial = createDerivedMaterial(baseMaterial, {
     extensions: {derivatives: true},
     uniforms: {
@@ -126,25 +118,19 @@ export function createTextDerivedMaterial(baseMaterial) {
     vertexDefs: VERTEX_DEFS,
     vertexTransform: VERTEX_TRANSFORM,
     fragmentDefs: FRAGMENT_DEFS,
-    fragmentColorTransform: isForShadow ? FRAGMENT_TRANSFORM_DEPTH : FRAGMENT_TRANSFORM
+    fragmentColorTransform: FRAGMENT_TRANSFORM
   })
 
-  if (!isForShadow) {
-    // Force transparency - TODO is this reasonable?
-    textMaterial.transparent = true
+  // Force transparency - TODO is this reasonable?
+  textMaterial.transparent = true
 
-    // WebGLShadowMap reverses the side of the shadow material by default, which fails
-    // for planes, so here we force the `shadowSide` to always match the main side.
-    let _side = textMaterial.shadowSide = textMaterial.side
-    Object.defineProperty(textMaterial, 'side', {
-      get() {
-        return _side
-      },
-      set(side) {
-        _side = this.shadowSide = side
-      }
-    })
-  }
+  // WebGLShadowMap reverses the side of the shadow material by default, which fails
+  // for planes, so here we force the `shadowSide` to always match the main side.
+  Object.defineProperty(textMaterial, 'shadowSide', {
+    get() {
+      return this.side
+    }
+  })
 
   return textMaterial
 }

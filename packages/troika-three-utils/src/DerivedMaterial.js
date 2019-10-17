@@ -85,6 +85,7 @@ export function createDerivedMaterial(baseMaterial, options) {
   const id = ++idCtr
   const privateDerivedShadersProp = `_derivedShaders${id}`
   const privateBeforeCompileProp = `_onBeforeCompile${id}`
+  let distanceMaterialTpl, depthMaterialTpl
 
   // Private onBeforeCompile handler that injects the modified shaders and uniforms when
   // the renderer switches to this material's program
@@ -153,16 +154,19 @@ export function createDerivedMaterial(baseMaterial, options) {
      * Utility to get a MeshDepthMaterial that will honor this derived material's vertex
      * transformations and discarded fragments.
      */
-    getDepthMaterial: {value() {
+    getDepthMaterial: {value: function() {
       let depthMaterial = this._depthMaterial
       if (!depthMaterial) {
-        depthMaterial = this._depthMaterial = createDerivedMaterial(
-          baseMaterial.isDerivedMaterial
-            ? baseMaterial.getDepthMaterial()
-            : new MeshDepthMaterial({depthPacking: RGBADepthPacking}),
-          options
-        )
-        depthMaterial.defines.IS_DEPTH_MATERIAL = ''
+        if (!depthMaterialTpl) {
+          depthMaterialTpl = createDerivedMaterial(
+            baseMaterial.isDerivedMaterial
+              ? baseMaterial.getDepthMaterial()
+              : new MeshDepthMaterial({depthPacking: RGBADepthPacking}),
+            options
+          )
+          depthMaterialTpl.defines.IS_DEPTH_MATERIAL = ''
+        }
+        depthMaterial = this._depthMaterial = depthMaterialTpl.clone()
       }
       return depthMaterial
     }},
@@ -171,18 +175,21 @@ export function createDerivedMaterial(baseMaterial, options) {
      * Utility to get a MeshDistanceMaterial that will honor this derived material's vertex
      * transformations and discarded fragments.
      */
-    getDistanceMaterial: {value() {
-      let distMaterial = this._distanceMaterial
-      if (!distMaterial) {
-        distMaterial = this._distanceMaterial = createDerivedMaterial(
-          baseMaterial.isDerivedMaterial
-            ? baseMaterial.getDistanceMaterial()
-            : new MeshDistanceMaterial(),
-          options
-        )
-        distMaterial.defines.IS_DISTANCE_MATERIAL = ''
+    getDistanceMaterial: {value: function() {
+      let distanceMaterial = this._distanceMaterial
+      if (!distanceMaterial) {
+        if (!distanceMaterialTpl) {
+          distanceMaterialTpl = createDerivedMaterial(
+            baseMaterial.isDerivedMaterial
+              ? baseMaterial.getDistanceMaterial()
+              : new MeshDistanceMaterial(),
+            options
+          )
+          distanceMaterialTpl.defines.IS_DISTANCE_MATERIAL = ''
+        }
+        distanceMaterial = this._distanceMaterial = distanceMaterialTpl.clone()
       }
-      return distMaterial
+      return distanceMaterial
     }},
 
     dispose: {value() {

@@ -1,4 +1,4 @@
-import {Ray} from 'three'
+import {Ray, Vector3} from 'three'
 import VrController from './VrControllerFacade'
 import CursorFacade from './CursorFacade'
 import OculusTouchModelFacade from './controllers/OculusTouchModelFacade.js'
@@ -7,6 +7,11 @@ import LaserPointerModel from './controllers/LaserPointerModel.js'
 
 
 const CLICK_MAX_DUR = 300
+
+const DEFAULT_POINTER_RAY = new Ray(
+  new Vector3(0, 0, 0),
+  new Vector3(0, 0, -1)
+)
 
 // Mapping of gamepad ids to controller model facades
 const CONTROLLER_MODELS = {
@@ -30,6 +35,7 @@ export default class TrackedVrController extends VrController {
   constructor(parent) {
     super(parent)
     this._buttonPresses = []
+    this._bumpingState = {target: null, isBumping: false, time: 0}
 
     this.children = [
       this.modelChildDef = {
@@ -49,11 +55,14 @@ export default class TrackedVrController extends VrController {
 
   getPointerRay() {
     if (this.isPointing) {
+      // get local ray from controller model
+      const model = this.getChildByKey('model')
+      const modelRay = (model && model.pointerRay) || DEFAULT_POINTER_RAY
+
       // return ray from pose
       const ray = this._pointerRay || (this._pointerRay = new Ray())
       const matrix = this.threeObject.matrixWorld
-      ray.origin.setFromMatrixPosition(matrix)
-      ray.direction.set(0, 0, -1).transformDirection(matrix)
+      ray.copy(modelRay).applyMatrix4(matrix)
       return ray
     }
   }
@@ -87,7 +96,28 @@ export default class TrackedVrController extends VrController {
     laserChildDef.visible = true
     laserChildDef.length = localPoint ? localPoint.length() : null
 
+    // Check physical proximity based press
+    this._checkBumping(event)
+
     super.onPointerRayIntersectionChange(intersectionInfo)
+  }
+
+  _checkBumping(event) {
+    const DEBOUNCE = 500 //todo debounce quick exit+enter of same target?
+    const RAY_DISTANCE = 0.02 //slight buffer
+    const {intersection, target} = event
+    const bumpingState = this._bumpingState
+    const isBumping = !!intersection && intersection.distance < RAY_DISTANCE
+
+    if (isBumping && (!bumpingState.isBumping || target !== bumpingState.target) && Date.now() - bumpingState.time > DEBOUNCE) {
+      bumpingState.time = Date.now()
+      this.notifyWorld('rayPointerAction', {
+        ray: event.ray,
+        type: 'click'
+      })
+    }
+    bumpingState.isBumping = isBumping
+    bumpingState.target = target
   }
 
   afterUpdate() {

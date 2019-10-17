@@ -36,10 +36,34 @@ vrCanvasStyles.right = utils.assign({}, vrCanvasStyles.both, {
   clipPath: `inset(0 0 0 50%)`
 })
 
-export function makeVrAware(ReactClass, options) {
+
+/**
+ * Wraps a React component with the ability to manage/launch WebVR sessions. The wrapped
+ * component will be passed
+ *
+ * @param {class|function} BaseReactComponent - the React component to wrap
+ * @param {Object} [options]
+ *   @param {class|function} [options.buttonRenderer] - a custom React component to render
+ *          the button for launching a VR session. Defaults to a builtin component.
+ *   @param {boolean|function(VRDisplay):boolean|null} [options.highRefreshRate] - for browsers
+ *          that support it (e.g. Oculus browser), opts in to a higher refresh rate when in VR.
+ *          Defaults to true for Oculus Quest and the browser's default value otherwise.
+ *   @param {number|function(VRDisplay):number|null} [options.foveationLevel] - for browsers that
+ *          support it (e.g. Oculus browser), sets a level for "fixed foveated rendering", from
+ *          `0` (no foveation) to `3` (high foveation). Defaults to the browser's default.
+ *   @param {'both'|'left'|'right'} [options.screenViewEye] - controls which eye's/eyes' view
+ *          should be displayed on the 2D screen while the user is in in VR mode; defaults to
+ *          'both' but setting this to e.g. the 'left' eye only can improve the experience for
+ *          others watching the screen. In all cases the view(s) will be displayed at the correct
+ *          aspect ratio.
+ * @return {VrAware}
+ */
+export function makeVrAware(BaseReactComponent, options) {
   options = utils.assign({
     buttonRenderer: VrButton,
-    screenViewEye: 'left' //or 'right' or 'both'
+    highRefreshRate: null, //vrDisplay => vrDisplay.displayName === 'Oculus Quest',
+    foveationLevel: null,
+    screenViewEye: 'both' //or 'right' or 'both' - TODO should this be a dynamic prop instead of a static config?
   }, options)
 
   class VrAware extends React.Component {
@@ -99,7 +123,17 @@ export function makeVrAware(ReactClass, options) {
         } else {
           vrDisplay = (vrAvailableDisplays && vrAvailableDisplays[0]) || null
           if (vrDisplay && this._vrCanvas) {
-            vrDisplay.requestPresent([{source: this._vrCanvas}]).then(() => {
+            let {highRefreshRate, foveationLevel} = options
+            if (typeof highRefreshRate === 'function') {highRefreshRate = highRefreshRate(vrDisplay)}
+            if (typeof foveationLevel === 'function') {foveationLevel = foveationLevel(vrDisplay)}
+            const attributes = {
+              highRefreshRate: highRefreshRate != null ? highRefreshRate : undefined,
+              foveationLevel: foveationLevel != null ? foveationLevel : undefined
+            }
+            vrDisplay.requestPresent([{
+              source: this._vrCanvas,
+              attributes
+            }]).then(() => {
               this.setState({vrDisplay})
             }, err => {
               console.error(err)
@@ -141,7 +175,7 @@ export function makeVrAware(ReactClass, options) {
 
       return React.createElement(Canvas3D.contextType.Provider, {value: contextValue},
         React.createElement(
-          ReactClass,
+          BaseReactComponent,
           utils.assign({}, props, {
             vrAvailable,
             vrDisplay,
@@ -153,7 +187,7 @@ export function makeVrAware(ReactClass, options) {
     }
   }
 
-  VrAware.displayName = `VrAware(${ReactClass.displayName || ReactClass.name || '?'})`
+  VrAware.displayName = `VrAware(${BaseReactComponent.displayName || BaseReactComponent.name || '?'})`
 
   return VrAware
 }

@@ -114,7 +114,7 @@ class World2DFacade extends WorldBaseFacade {
    * @override Implementation of abstract
    * @return {Array<{facade, distance, ?distanceBias, ...}>|null}
    */
-  getFacadesAtEvent(e) {
+  getFacadesAtEvent(e, filterFn) {
     const canvasRect = e.target.getBoundingClientRect() //e.target is the canvas
     let x = e.clientX - canvasRect.left
     let y = e.clientY - canvasRect.top
@@ -122,7 +122,7 @@ class World2DFacade extends WorldBaseFacade {
     let distance = 0
 
     traverseInZOrder(this.getChildByKey('bg'), facade => {
-      if (facade.hitTest(x, y)) {
+      if ((!filterFn || filterFn(facade)) && facade.hitTest(x, y)) {
         if (!hits) hits = Object.create(null)
         hits[facade.$facadeId] = {
           facade: facade,

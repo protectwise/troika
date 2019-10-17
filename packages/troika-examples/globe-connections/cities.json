@@ -1,0 +1,402 @@
+[
+  {
+    "city_ascii": "Tokyo",
+    "lat": 35.685,
+    "lng": 139.7514,
+    "country": "Japan",
+    "AR": "GR",
+    "population": 35676000
+  },
+  {
+    "city_ascii": "New York",
+    "lat": 40.6943,
+    "lng": -73.9249,
+    "country": "United States",
+    "AR": "US",
+    "population": 19354922
+  },
+  {
+    "city_ascii": "Mexico City",
+    "lat": 19.4424,
+    "lng": -99.131,
+    "country": "Mexico",
+    "AR": "CN",
+    "population": 19028000
+  },
+  {
+    "city_ascii": "Mumbai",
+    "lat": 19.017,
+    "lng": 72.857,
+    "country": "India",
+    "AR": "US",
+    "population": 18978000
+  },
+  {
+    "city_ascii": "Sao Paulo",
+    "lat": -23.5587,
+    "lng": -46.625,
+    "country": "Brazil",
+    "AR": "ES",
+    "population": 18845000
+  },
+  {
+    "city_ascii": "Delhi",
+    "lat": 28.67,
+    "lng": 77.23,
+    "country": "India",
+    "AR": "RU",
+    "population": 15926000
+  },
+  {
+    "city_ascii": "Shanghai",
+    "lat": 31.2165,
+    "lng": 121.4365,
+    "country": "China",
+    "AR": "MX",
+    "population": 14987000
+  },
+  {
+    "city_ascii": "Kolkata",
+    "lat": 22.495,
+    "lng": 88.3247,
+    "country": "India",
+    "AR": "NG",
+    "population": 14787000
+  },
+  {
+    "city_ascii": "Los Angeles",
+    "lat": 34.1139,
+    "lng": -118.4068,
+    "country": "United States",
+    "AR": "GT",
+    "population": 12815475
+  },
+  {
+    "city_ascii": "Dhaka",
+    "lat": 23.7231,
+    "lng": 90.4086,
+    "country": "Bangladesh",
+    "AR": "ZM",
+    "population": 12797394
+  },
+  {
+    "city_ascii": "Buenos Aires",
+    "lat": -34.6025,
+    "lng": -58.3975,
+    "country": "Argentina",
+    "AR": "FR",
+    "population": 12795000
+  },
+  {
+    "city_ascii": "Karachi",
+    "lat": 24.87,
+    "lng": 66.99,
+    "country": "Pakistan",
+    "AR": "NG",
+    "population": 12130000
+  },
+  {
+    "city_ascii": "Cairo",
+    "lat": 30.05,
+    "lng": 31.25,
+    "country": "Egypt",
+    "AR": "RU",
+    "population": 11893000
+  },
+  {
+    "city_ascii": "Rio de Janeiro",
+    "lat": -22.925,
+    "lng": -43.225,
+    "country": "Brazil",
+    "AR": "US",
+    "population": 11748000
+  },
+  {
+    "city_ascii": "Osaka",
+    "lat": 34.75,
+    "lng": 135.4601,
+    "country": "Japan",
+    "AR": "CN",
+    "population": 11294000
+  },
+  {
+    "city_ascii": "Beijing",
+    "lat": 39.9289,
+    "lng": 116.3883,
+    "country": "China",
+    "AR": "IR",
+    "population": 11106000
+  },
+  {
+    "city_ascii": "Manila",
+    "lat": 14.6042,
+    "lng": 120.9822,
+    "country": "Philippines",
+    "AR": "AR",
+    "population": 11100000
+  },
+  {
+    "city_ascii": "Moscow",
+    "lat": 55.7522,
+    "lng": 37.6155,
+    "country": "Russia",
+    "AR": "TH",
+    "population": 10452000
+  },
+  {
+    "city_ascii": "Istanbul",
+    "lat": 41.105,
+    "lng": 29.01,
+    "country": "Turkey",
+    "AR": "KR",
+    "population": 10061000
+  },
+  {
+    "city_ascii": "Paris",
+    "lat": 48.8667,
+    "lng": 2.3333,
+    "country": "France",
+    "AR": "FR",
+    "population": 9904000
+  },
+  {
+    "city_ascii": "Seoul",
+    "lat": 37.5663,
+    "lng": 126.9997,
+    "country": "Korea, South",
+    "AR": "US",
+    "population": 9796000
+  },
+  {
+    "city_ascii": "Lagos",
+    "lat": 6.4433,
+    "lng": 3.3915,
+    "country": "Nigeria",
+    "AR": "BR",
+    "population": 9466000
+  },
+  {
+    "city_ascii": "Jakarta",
+    "lat": -6.1744,
+    "lng": 106.8294,
+    "country": "Indonesia",
+    "AR": "BR",
+    "population": 9125000
+  },
+  {
+    "city_ascii": "Guangzhou",
+    "lat": 23.145,
+    "lng": 113.325,
+    "country": "China",
+    "AR": "BR",
+    "population": 8829000
+  },
+  {
+    "city_ascii": "Chicago",
+    "lat": 41.8373,
+    "lng": -87.6861,
+    "country": "United States",
+    "AR": "LV",
+    "population": 8675982
+  },
+  {
+    "city_ascii": "London",
+    "lat": 51.5,
+    "lng": -0.1167,
+    "country": "United Kingdom",
+    "AR": "AU",
+    "population": 8567000
+  },
+  {
+    "city_ascii": "Lima",
+    "lat": -12.048,
+    "lng": -77.0501,
+    "country": "Peru",
+    "AR": "SN",
+    "population": 8012000
+  },
+  {
+    "city_ascii": "Tehran",
+    "lat": 35.6719,
+    "lng": 51.4243,
+    "country": "Iran",
+    "AR": "AR",
+    "population": 7873000
+  },
+  {
+    "city_ascii": "Kinshasa",
+    "lat": -4.3297,
+    "lng": 15.315,
+    "country": "Congo (Kinshasa)",
+    "AR": "CR",
+    "population": 7843000
+  },
+  {
+    "city_ascii": "Bogota",
+    "lat": 4.5964,
+    "lng": -74.0833,
+    "country": "Colombia",
+    "AR": "FR",
+    "population": 7772000
+  },
+  {
+    "city_ascii": "Shenzhen",
+    "lat": 22.5524,
+    "lng": 114.1221,
+    "country": "China",
+    "AR": "US",
+    "population": 7581000
+  },
+  {
+    "city_ascii": "Wuhan",
+    "lat": 30.58,
+    "lng": 114.27,
+    "country": "China",
+    "AR": "CA",
+    "population": 7243000
+  },
+  {
+    "city_ascii": "Hong Kong",
+    "lat": 22.305,
+    "lng": 114.185,
+    "country": "Hong Kong",
+    "AR": "LA",
+    "population": 7206000
+  },
+  {
+    "city_ascii": "Tianjin",
+    "lat": 39.13,
+    "lng": 117.2,
+    "country": "China",
+    "AR": "US",
+    "population": 7180000
+  },
+  {
+    "city_ascii": "Chennai",
+    "lat": 13.09,
+    "lng": 80.28,
+    "country": "India",
+    "AR": "ID",
+    "population": 7163000
+  },
+  {
+    "city_ascii": "Taipei",
+    "lat": 25.0358,
+    "lng": 121.5683,
+    "country": "Taiwan",
+    "AR": "CM",
+    "population": 6900273
+  },
+  {
+    "city_ascii": "Bangalore",
+    "lat": 12.97,
+    "lng": 77.56,
+    "country": "India",
+    "AR": "US",
+    "population": 6787000
+  },
+  {
+    "city_ascii": "Bangkok",
+    "lat": 13.75,
+    "lng": 100.5166,
+    "country": "Thailand",
+    "AR": "US",
+    "population": 6704000
+  },
+  {
+    "city_ascii": "Lahore",
+    "lat": 31.56,
+    "lng": 74.35,
+    "country": "Pakistan",
+    "AR": "US",
+    "population": 6577000
+  },
+  {
+    "city_ascii": "Chongqing",
+    "lat": 29.565,
+    "lng": 106.595,
+    "country": "China",
+    "AR": "CN",
+    "population": 6461000
+  },
+  {
+    "city_ascii": "Miami",
+    "lat": 25.784,
+    "lng": -80.2102,
+    "country": "United States",
+    "AR": "US",
+    "population": 6381966
+  },
+  {
+    "city_ascii": "Hyderabad",
+    "lat": 17.4,
+    "lng": 78.48,
+    "country": "India",
+    "AR": "BO",
+    "population": 6376000
+  },
+  {
+    "city_ascii": "Dallas",
+    "lat": 32.7937,
+    "lng": -96.7662,
+    "country": "United States",
+    "AR": "RU",
+    "population": 5733259
+  },
+  {
+    "city_ascii": "Santiago",
+    "lat": -33.45,
+    "lng": -70.667,
+    "country": "Chile",
+    "AR": "US",
+    "population": 5720000
+  },
+  {
+    "city_ascii": "Philadelphia",
+    "lat": 40.0076,
+    "lng": -75.134,
+    "country": "United States",
+    "AR": "BR",
+    "population": 5637884
+  },
+  {
+    "city_ascii": "Belo Horizonte",
+    "lat": -19.915,
+    "lng": -43.915,
+    "country": "Brazil",
+    "AR": "US",
+    "population": 5575000
+  },
+  {
+    "city_ascii": "Madrid",
+    "lat": 40.4,
+    "lng": -3.6834,
+    "country": "Spain",
+    "AR": "US",
+    "population": 5567000
+  },
+  {
+    "city_ascii": "Houston",
+    "lat": 29.7868,
+    "lng": -95.3905,
+    "country": "United States",
+    "AR": "UG",
+    "population": 5446468
+  },
+  {
+    "city_ascii": "Ahmedabad",
+    "lat": 23.0301,
+    "lng": 72.58,
+    "country": "India",
+    "AR": "RU",
+    "population": 5375000
+  },
+  {
+    "city_ascii": "Ho Chi Minh City",
+    "lat": 10.78,
+    "lng": 106.695,
+    "country": "Vietnam",
+    "AR": "ZA",
+    "population": 5314000
+  }
+]
