@@ -89,6 +89,21 @@ export function defineWorkerModule(options) {
 }
 
 /**
+ * Terminate a Worker that was initialized using `defineWorkerModule`
+ *
+ * @param {string} [workerId = '#default'] - Optional ID of worker to terminate.
+ * @return {void}
+ */
+export function terminateWorkerById (workerId = '#default') {
+  const worker = getWorker(workerId)
+  if (!worker) {
+    throw new Error(`terminateWorkerById: Unable to locate worker with ID: "${workerId}" `)
+  }
+  worker.terminate()
+  delete workers[workerId]
+}
+
+/**
  * Stringifies a function into a form that can be deserialized in the worker
  * @param fn
  */
