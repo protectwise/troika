@@ -8,7 +8,6 @@ import { Object3DFacade } from 'troika-3d'
 
 const DEFAULT_RADIUS = 1
 
-const geometry = new BoxBufferGeometry(DEFAULT_RADIUS, DEFAULT_RADIUS, DEFAULT_RADIUS, 10, 10, 10)
 const material = new MeshPhongMaterial({
   transparent: true,
   opacity: 1.0
@@ -16,6 +15,7 @@ const material = new MeshPhongMaterial({
 
 class Cube extends Object3DFacade {
   constructor (parent) {
+    const geometry = new BoxBufferGeometry(DEFAULT_RADIUS, DEFAULT_RADIUS, DEFAULT_RADIUS, 10, 10, 10)  // Unique geometry to allow Soft Body demo to modify the vertices without affecting other demos
     const mesh = new Mesh(geometry, material.clone())
     super(parent, mesh)
   }

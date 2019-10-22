@@ -8,7 +8,6 @@ import { Object3DFacade } from 'troika-3d'
 
 const DEFAULT_RADIUS = 1
 
-const geometry = new SphereBufferGeometry(DEFAULT_RADIUS, 32, 32)
 const material = new MeshPhongMaterial({
   transparent: true,
   opacity: 1.0
@@ -16,6 +15,7 @@ const material = new MeshPhongMaterial({
 
 class Sphere extends Object3DFacade {
   constructor (parent) {
+    const geometry = new SphereBufferGeometry(DEFAULT_RADIUS, 32, 32) // Unique geometry to allow Soft Body demo to modify the vertices without affecting other demos
     const mesh = new Mesh(geometry, material.clone())
     super(parent, mesh)
   }
