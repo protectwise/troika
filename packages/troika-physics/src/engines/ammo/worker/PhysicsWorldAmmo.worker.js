@@ -1,5 +1,5 @@
 import { ThenableWorkerModule } from 'troika-worker-utils'
-import * as ammoLoader from '../../../../libs/troika-ammo.wasm.js'
+import ammoLoader from '../../../../libs/troika-ammo.wasm.js'
 import getAmmoShapeManager from './AmmoShapeManager'
 import getAmmoUtils from './AmmoUtils'
 import ammoConstants from './ammoConstants'

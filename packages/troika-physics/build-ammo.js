@@ -34,10 +34,6 @@ const CUSTOM_BANNER = `
  */
 `
 
-/**
- * NOTE: This expects the preceding `customizeAmmoCompat` function to have already run on the 
- * working directory's files, it only adds on additional options to generate WebAssmebly output.
- */
 async function customizeAmmoWasm () {
   await replace({
     files: path.resolve(workingAmmoDir, 'make.py'),
@@ -46,15 +42,15 @@ async function customizeAmmoWasm () {
       "wasm = 'wasm' in sys.argv",
       "closure = 'closure' in sys.argv",
       'EXPORTED_RUNTIME_METHODS=["UTF8ToString"]',
-      'WASM=1 ', // First-occurrence only
+      'WASM=1 ' // First-occurrence only
     ],
     to: [
       `
 // This is ammo.js, a port of Bullet Physics to JavaScript. zlib licensed. 
 ${CUSTOM_BANNER}
       `,
-      "wasm = True", // Force WASM output
-      "closure = True", // Force Closure compiler output (?)
+      'wasm = True', // Force WASM output
+      'closure = True', // Force Closure compiler output (?)
       'EXPORTED_RUNTIME_METHODS=[]', // Strip unneeded UTF8ToString
       'WASM=1 -s SINGLE_FILE=1 -s ENVIRONMENT="worker" ' // Generate WASM output with base64-encoded wasm output inline
     ]
@@ -75,9 +71,8 @@ function dockerBuild () {
   })
 }
 
-
 async function buildTroikaAmmoCompat () {
-  // Compatibility Ammo.js (ASM.js) just copied from pre-built source. 
+  // Compatibility Ammo.js (ASM.js) just copied from pre-built source.
   await copy(workingAmmoOutputCompat, destPathCompat)
   console.log(`buildTroikaAmmoWasm: copied to "${workingAmmoOutputCompat}" -> "${destPathCompat}"`)
 }

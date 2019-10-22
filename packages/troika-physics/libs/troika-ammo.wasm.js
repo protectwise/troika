@@ -2,7 +2,7 @@
   
 // This is ammo.js, a port of Bullet Physics to JavaScript. zlib licensed. 
 
-/* Custom WASM build for troika generated at 2019-10-22T19:11:44.838Z
+/* Custom WASM build for troika generated at 2019-10-22T20:29:17.258Z
  * customizations:
  * - `SINGLE_FILE` WASM output to simplify portability when used with a web worker
  * - Closure compiler used

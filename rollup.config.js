@@ -1,5 +1,6 @@
 import buble from 'rollup-plugin-buble'
 import closureCompiler from '@ampproject/rollup-plugin-closure-compiler'
+import commonjs from 'rollup-plugin-commonjs'
 import fs from 'fs'
 
 
@@ -33,6 +34,7 @@ const EXTERNAL_GLOBALS = SIBLING_PACKAGES.reduce((out, sib) => {
   react: 'React',
   three: 'THREE',
   'three/examples/jsm/loaders/GLTFLoader': 'THREE.GLTFLoader',
+  'three/examples/jsm/utils/BufferGeometryUtils': 'THREE.BufferGeometryUtils',
   'prop-types': 'PropTypes'
 })
 
@@ -74,6 +76,7 @@ for (let entry of Object.keys(entries)) {
       },
       external: Object.keys(EXTERNAL_GLOBALS),
       plugins: [
+        commonjs({include: '**/troika-ammo.**'}),
         buble()
       ],
       onwarn
@@ -89,6 +92,7 @@ for (let entry of Object.keys(entries)) {
       },
       external: Object.keys(EXTERNAL_GLOBALS),
       plugins: [
+        commonjs({include: '**/troika-ammo.**'}),
         buble()
       ],
       onwarn
@@ -104,6 +108,7 @@ for (let entry of Object.keys(entries)) {
       },
       external: Object.keys(EXTERNAL_GLOBALS),
       plugins: [
+        commonjs({include: '**/troika-ammo.**'}),
         buble(),
         closureCompiler()
       ],
