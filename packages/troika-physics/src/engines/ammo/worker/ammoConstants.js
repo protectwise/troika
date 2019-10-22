@@ -1,6 +1,3 @@
-/* eslint-env worker  */
-'use strict'
-
 // More info on states https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=6221
 const ACTIVATION_STATES = Object.freeze({
   ACTIVE_TAG: 1,
@@ -24,10 +21,14 @@ const COLLISION_FLAGS = Object.freeze({
   CF_HAS_COLLISION_SOUND_TRIGGER: 1024
 })
 
-self.CONSTANTS = Object.freeze({
+export default Object.freeze({
   DEFAULT_MARGIN: 0.05,
   DEFAULT_GRAVITY: -9.8, // m/s^2
   DEFAULT_ACTIVATION_STATE: ACTIVATION_STATES.ACTIVE_TAG, // DISABLE_DEACTIVATION,
   ACTIVATION_STATES,
-  COLLISION_FLAGS
+  COLLISION_FLAGS,
+  // Map generic method names used by troika-physics to this physics engine
+  METHODS_TO_AMMO: Object.freeze({
+    Vector3: 'btVector3'
+  })
 })

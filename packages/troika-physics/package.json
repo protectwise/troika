@@ -9,15 +9,16 @@
     "directory": "packages/troika-physics"
   },
   "license": "MIT",
-  "main": "dist/troika-phsyics.umd.js",
-  "browser": "dist/troika-phsyics.umd.js",
-  "jsnext:main": "dist/troika-phsyics.esm.js",
-  "module": "dist/troika-phsyics.esm.js",
-  "module:es2015": "src/index.js",
+  "main": "dist/troika-physics-ammo.umd.js",
+  "browser": "dist/troika-physics-ammo.umd.js",
+  "jsnext:main": "dist/troika-physics-ammo.esm.js",
+  "module": "dist/troika-physics-ammo.esm.js",
+  "module:es2015": "src/engines/ammo/index.js",
   "dependencies": {
     "ammo.js": "github:kripken/ammo.js",
     "troika-3d": "^0.15.1",
-    "troika-core": "^0.15.0"
+    "troika-core": "^0.15.0",
+    "troika-worker-utils": "^0.15.0"
   },
   "scripts": {
     "build-ammo": "node --max-old-space-size=4096 ./build-ammo.js"
