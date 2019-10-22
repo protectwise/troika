@@ -29,6 +29,7 @@ const CUSTOM_BANNER = `
  * customizations:
  * - \`SINGLE_FILE\` WASM output to simplify portability when used with a web worker
  * - Closure compiler used
+ * - specify \`ENVIRONMENT="worker"\` so strip browser and node related code. Simplifies build, as we no longer need to mock out \`fs\` and \`path\` to satisfy it.
  * - Strip unused components (UTF8ToString)
  */
 `
@@ -55,7 +56,7 @@ ${CUSTOM_BANNER}
       "wasm = True", // Force WASM output
       "closure = True", // Force Closure compiler output (?)
       'EXPORTED_RUNTIME_METHODS=[]', // Strip unneeded UTF8ToString
-      'WASM=1 -s SINGLE_FILE=1 ' // Generate WASM output with base64-encoded wasm output inline
+      'WASM=1 -s SINGLE_FILE=1 -s ENVIRONMENT="worker" ' // Generate WASM output with base64-encoded wasm output inline
     ]
   })
 }
