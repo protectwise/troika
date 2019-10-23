@@ -57,6 +57,29 @@ ${CUSTOM_BANNER}
   })
 }
 
+// FIXME find something cleaner than this.
+async function convertToES6Module (file) {
+  await replace({
+    files: file,
+    from: [
+      'if (typeof exports === \'object\' && typeof module === \'object\')',
+      '      module.exports = Ammo;',
+      '    else if (typeof define === \'function\' && define[\'amd\'])',
+      '      define([], function() { return Ammo; });',
+      '    else if (typeof exports === \'object\')',
+      '      exports["Ammo"] = Ammo;'
+    ],
+    to: [
+      'export default Ammo;',
+      '',
+      '',
+      '',
+      '',
+      ''
+    ]
+  })
+}
+
 function dockerBuild () {
   return new Promise((resolve, reject) => {
     const child = spawn('docker-compose', ['up'], {
@@ -85,6 +108,7 @@ async function buildTroikaAmmoWasm () {
   const dockerExitCode = await dockerBuild()
 
   if (dockerExitCode === 0) {
+    await convertToES6Module(workingAmmoOutputWasm)
     await copy(workingAmmoOutputWasm, destPathWasm)
     console.log(`buildTroikaAmmoWasm: copied to "${workingAmmoOutputWasm}" -> "${destPathWasm}"`)
   }

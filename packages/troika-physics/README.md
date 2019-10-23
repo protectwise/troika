@@ -35,6 +35,9 @@ ammo.js (the initial engine used for `troika-physics`) is a javascript port of t
 - [x] Static Bodies (`isStatic: true`)
 - [ ] CoM (Center of Mass) handling
 - [ ] Simpler user-specified collider configuration
+- [x] Inlined Ammo.js WASM engine, for simpler distribution
+- [x] Custom Ammo.js build
+- [ ] Fallback to ASM.js Ammo build if WASM is unsupported
 
 ## External docs and useful information
 

@@ -2,7 +2,7 @@
   
 // This is ammo.js, a port of Bullet Physics to JavaScript. zlib licensed. 
 
-/* Custom WASM build for troika generated at 2019-10-22T20:29:17.258Z
+/* Custom WASM build for troika generated at 2019-10-23T16:48:59.670Z
  * customizations:
  * - `SINGLE_FILE` WASM output to simplify portability when used with a web worker
  * - Closure compiler used
@@ -660,10 +660,10 @@ Object.defineProperty(Z.prototype,"m_hitFraction",{get:Z.prototype.Zz,set:Z.prot
 }
 );
 })();
-if (typeof exports === 'object' && typeof module === 'object')
-      module.exports = Ammo;
-    else if (typeof define === 'function' && define['amd'])
-      define([], function() { return Ammo; });
-    else if (typeof exports === 'object')
-      exports["Ammo"] = Ammo;
+export default Ammo;
+
+
+
+
+
     

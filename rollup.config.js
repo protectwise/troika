@@ -1,6 +1,5 @@
 import buble from 'rollup-plugin-buble'
 import closureCompiler from '@ampproject/rollup-plugin-closure-compiler'
-import commonjs from 'rollup-plugin-commonjs'
 import fs from 'fs'
 
 
@@ -76,7 +75,6 @@ for (let entry of Object.keys(entries)) {
       },
       external: Object.keys(EXTERNAL_GLOBALS),
       plugins: [
-        commonjs({include: '**/troika-ammo.**'}),
         buble()
       ],
       onwarn
@@ -92,7 +90,6 @@ for (let entry of Object.keys(entries)) {
       },
       external: Object.keys(EXTERNAL_GLOBALS),
       plugins: [
-        commonjs({include: '**/troika-ammo.**'}),
         buble()
       ],
       onwarn
@@ -108,7 +105,6 @@ for (let entry of Object.keys(entries)) {
       },
       external: Object.keys(EXTERNAL_GLOBALS),
       plugins: [
-        commonjs({include: '**/troika-ammo.**'}),
         buble(),
         closureCompiler()
       ],
