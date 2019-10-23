@@ -76,3 +76,8 @@ a {
   padding: 10px 20px;
   background: rgba(255,255,255,.1);
 }
+
+.example_desc.dark {
+  color: rgba(0,0,0,.7);
+  background: rgba(0,0,0,.1);
+}

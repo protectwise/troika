@@ -8,11 +8,15 @@
     "node": "=8.16.0",
     "npm": "=6.4.1"
   },
+  "standard": {
+    "parser": "babel-eslint"
+  },
   "devDependencies": {
     "@ampproject/rollup-plugin-closure-compiler": "^0.10.0",
     "@babel/core": "^7.6.2",
     "@babel/preset-env": "^7.6.2",
     "@babel/preset-react": "^7.0.0",
+    "babel-eslint": "^10.0.3",
     "babel-jest": "^24.9.0",
     "buble": "0.19.4",
     "jest": "^24.9.0",
@@ -30,7 +34,7 @@
     "rollup-plugin-serve": "^1.0.1",
     "rollup-plugin-string": "^3.0.0",
     "rollup-watch": "^4.3.1",
-    "standard": "^13.1.0"
+    "standard": "^14.3.1"
   },
   "scripts": {
     "postinstall": "npm run bootstrap",
@@ -39,12 +43,13 @@
     "build-opentype": "npm run bootstrap && lerna exec --scope=troika-3d-text -- npm run build-opentype",
     "build-typr": "lerna exec --scope=troika-3d-text -- npm run build-typr",
     "build-yoga": "npm run bootstrap && lerna exec --scope=troika-3d-ui -- npm run build-yoga",
+    "build-physics-ammo": "npm run bootstrap && lerna exec --scope=troika-physics -- npm run build-ammo",
     "test": "jest",
     "build-examples": "lerna exec --scope=troika-examples -- npm run build",
     "serve-examples": "lerna exec --scope=troika-examples -- npm run serve",
     "examples": "npm run serve-examples",
     "serve-docs": "cd website && npm start",
     "clean": "lerna exec -- rm -rf dist",
-    "lint": "lerna exec -- standard src/**/*.js src/**/*.jsx"
+    "lint": "lerna exec --no-bail -- standard src/**/*.js src/**/*.jsx --parser babel-eslint"
   }
 }

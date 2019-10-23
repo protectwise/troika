@@ -68,6 +68,20 @@ class Scene3DFacade extends Object3DFacade {
     this.threeObject.fog = fogObj
   }
 
+  /**
+   * Sets the ThreeJS Scene's `background` property.
+   * 
+   * Parameters supported:
+   * - Color
+   * - Texture
+   * - CubeTexture
+   *
+   * @memberof Scene3DFacade
+   */
+  set background(backgroundDef) {
+    this.threeObject.background = backgroundDef
+  }
+
   getBoundingSphere() {
     return INFINITE_SPHERE
   }

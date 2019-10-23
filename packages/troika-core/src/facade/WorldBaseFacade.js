@@ -484,6 +484,9 @@ WorldBaseFacade.prototype._notifyWorldHandlers = {
   removeAllEventListeners(source) {
     this.eventRegistry.removeAllListenersForFacade(source)
   },
+  dispatchEvent(source, data) {
+    this.eventRegistry.forEachFacadeListenerOfType(data.targetFacade, data.type, data.handler, null)
+  },
   addHtmlOverlay(source) {
     this._htmlOverlays[source.$facadeId] = source
   },
