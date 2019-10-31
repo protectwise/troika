@@ -87,6 +87,25 @@ export function forOwn(object, fn, scope) {
 
 
 /**
+ * Given an object instance, return a consistent unique id for it.
+ * @type function
+ * @param {Object} obj - The object instance
+ * @return {string} id
+ */
+export const getIdForObject = (() => {
+  let objIds = new WeakMap()
+  let lastId = 0
+  return function getIdForObject(obj) {
+    let id = objIds.get(obj)
+    if (!id) {
+      objIds.set(obj, (id = `$id${++lastId}`))
+    }
+    return id
+  }
+})()
+
+
+/**
  * Utility for the "extend-as" pattern used in several places to decorate facade
  * classes with extra capabilities.
  * @param {string} name - unique identifier for this class extension

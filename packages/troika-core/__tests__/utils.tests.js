@@ -1,4 +1,4 @@
-import {_assign, assign, assignIf, forOwn, createClassExtender, isReactElement} from '../src/utils'
+import {_assign, assign, assignIf, forOwn, getIdForObject, createClassExtender, isReactElement} from '../src/utils'
 import React from 'react'
 
 
@@ -113,6 +113,27 @@ describe('forOwn', () => {
     expect(cb).toHaveBeenCalledTimes(2)
     expect(cb).toHaveBeenCalledWith(1, 'one', obj)
     expect(cb).toHaveBeenCalledWith(2, 'two', obj)
+  })
+})
+
+describe('getIdForObject', () => {
+  test('Returns a string', () => {
+    const obj = {}
+    const id = getIdForObject(obj)
+    expect(typeof id).toBe('string')
+  })
+  test('Returns the same id for the same object', () => {
+    const obj1 = {}
+    const id1 = getIdForObject(obj1)
+    const id2 = getIdForObject(obj1)
+    expect(id1).toEqual(id2)
+  })
+  test('Returns different ids for different objects', () => {
+    const obj1 = {}
+    const obj2 = {}
+    const id1 = getIdForObject(obj1)
+    const id2 = getIdForObject(obj2)
+    expect(id1).not.toEqual(id2)
   })
 })
 
