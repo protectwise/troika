@@ -104,7 +104,7 @@ class World3DFacade extends WorldBaseFacade {
     }
   }
 
-  doRender() {
+  doRender(/*...frameArgs*/) {
     let sceneFacade = this.getChildByKey('scene')
     let scene = sceneFacade.threeObject
     let camera = this.getChildByKey('camera').threeObject

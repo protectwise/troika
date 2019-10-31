@@ -1,82 +1,161 @@
 import {Group3DFacade} from 'troika-3d'
-import TrackedVrController from 'src/troika/packages/troika-xr/src/facade/TrackedVrControllerFacade'
-import GazeVrController from 'src/troika/packages/troika-xr/src/facade/GazeVrControllerFacade'
+import {utils, ParentFacade, ListFacade} from 'troika-core'
+import XrInputSourceFacade from './XrInputSourceFacade'
+
+
+/*
+
+Additive or replace?
+
+
+{
+  key: 'primaryTool',
+  facade: XRInputSourceAnchored,
+  selector: xrInputSource => (
+    xrInputSource.targetRayMode === 'tracked-pointer' &&
+    xrInputSource.handedness === prefs.handedness
+  ),
+  referenceSpace: 'grip'
+},
+{
+  key: 'xrInputDefaultGrips',
+  facade: XRInputVendorGrips
+},
+{
+  facade: TrackedPointerXRInputSource,
+  matches: (xrInputSource, allSources) => (
+    xrInputSource.handedness === 'left'
+  ),
+
+  onSelectStart: e => {},
+  onSelect: e => {},
+  onSelectEnd: e => {},
+  onSqueezeStart: e => {},
+  onSqueeze: e => {},
+  onSqueezeEnd: e => {},
+
+  onButtonDown: e => {},
+  onButtonClick: e => {},
+  onButtonUp: e => {},
+  onAxisChange: e => {},
+
+  targetRay: true,
+  targetRay: {facade: MyCustomLaser},
+  targetRay: {color: 0x33ff33},
+  cursor: true,
+  cursor: {facade: MyCustomCursor},
+  cursor: {color: 0xff0000},
+  grip: true,
+  grip: {facade: PlatformGripModel},
+  grip: {
+    facade: Group3DFacade,
+    children: [{
+      key: 'main',
+      facade: PlatformGripModel
+    }, {
+      key: 'ui',
+      facade: GripTabletFacade,
+      visible: state.
+    }]
+  }
+}
+
+
+
+{
+  facade: XRInputSourceConfig,
+  configs: [
+    {
+      match: src => src.targetRayMode === 'tracked-pointer' && src.handedness === 'left'
+    }
+  ]
+}
+
+
+
+---
+
+For each XRInputSource:
+  - Resolve a XRInputSourceFacade
+    - based on...?
+  - Find objects in scene matching the XRInputSource
+    - based on: targetRayMode, handedness, profiles, ...?
+    - if none found, supply a default set
+
+
+
+*/
+
 
 
 /**
- * Single parent facade that monitors the available `XRInputSource`s and renders visual
- * representations within the scene as appropriate per the WebXR recommendations:
+ * A container facade, placed at the root of the scene, that manages the tracking of
+ * `XRInputSource`s and the rendering of their related scene objects.
  *
- * |                   | Highlight | Cursor | Pointing Ray | Renderable Model |
- * | ------------------| --------- | ------ | ------------ | ---------------- |
- * | 'screen'          | √         | X      | X            | X                |
- * | 'gaze'            | √         | √      | X            | X                |
- * | 'tracked-pointer' | √         | √      | √            | √ (if possible)  |
  *
- * It also serves as a Group in the ThreeJS scene, with its world transform synchronized
- * to that of the camera object (minus the VR headset pose); each controller facade therefore only
- * has to manage its own local transform relative to the camera origin.
- *
- * In addition, it changes the standard lifecycle slightly so that the `afterUpdate()` phase
- * of it and its subtree is invoked on every VR frame, during the VR display's
- * `requestAnimationFrame` callback. This simplifies the implementation of `VrControllerFacade`s
- * by guaranteeing that their poses and parent matrix are all current and correct when their
- * `afterUpdate` logic is executed.
  */
-export class XrInputSourceManager extends Group3DFacade {
+export class XrInputSourceManager extends ParentFacade {
   constructor(parent) {
     super(parent)
-    this.addEventListener('xrframe', this._onXrFrame.bind(this))
-    this.children = []
+    this._sourcesDirty = true
+
+    // Required props:
+    this.xrSession = null
+    this.xrReferenceSpace = null
+
+    // Separate subtree for the XRInputSourceFacade instances:
+    this._xrInputSourceSubtree = new ParentFacade(this)
+
+    this._onInputSourcesChange = e => {
+      this._sourcesDirty = true
+      this.afterUpdate()
+    }
   }
 
-  shouldUpdateChildren() {
-    // Never update child controllers during the normal afterUpdate; they will instead be updated during
-    // onBeforeRender since that's when the XRFrame info will be available.
-    return false
-  }
+  afterUpdate() {
+    const {xrSession, _lastXrSession} = this
 
-  _onXrFrame(xrFrame) {
-    const {xrSession, children} = this
-    children.length = 0
-
-    // Sync the group container to the worldspace transform of the camera prior to headset pose;
-    // this allows each controller to just maintain its own local pose transform
-    this.threeObject.matrixWorld.compose(camera.position, camera.quaternion, camera.scale)
-
-    // Add a tracked controller for each available gamepad
-    if (xrSession) {
-
-
-      /*const allGamepads = navigator.getGamepads && navigator.getGamepads()
-      if (allGamepads) {
-        for (let i = allGamepads.length; i--;) { //iterate backwards so first encountered is primary
-          const gamepad = allGamepads[i]
-          // Only include gamepads that match the active VRDisplay's id, and that are in use (have pose data).
-          // Note: we don't use the `gamepad.connected` property as there's indication in other projects
-          // that it is not accurate in some browsers, but we should verify that's still true.
-          if (gamepad && gamepad.displayId === vrDisplay.displayId && gamepad.pose && gamepad.pose.orientation) {
-            children.push({
-              key: `tracked${i}`,
-              facade: TrackedVrController,
-              gamepad,
-              isPointing: !children.length
-            })
-          }
-        }
-      }*/
+    if (xrSession !== _lastXrSession) {
+      this._lastXrSession = xrSession
+      if (_lastXrSession) {
+        _lastXrSession.removeEventListener('inputsourceschange', this._onInputSourcesChange)
+      }
+      if (xrSession) {
+        xrSession.addEventListener('inputsourceschange', this._onInputSourcesChange)
+      }
     }
 
-    // // Use a single gaze controller as fallback
-    // if (!children.length) {
-    //   children.push({
-    //     key: 'gaze',
-    //     facade: GazeVrController
-    //   })
-    // }
+    if (this._sourcesDirty) {
+      this._sourcesDirty = false
+      const inputSources = xrSession && xrSession.inputSources
+      this._xrInputSourceSubtree.children = inputSources && inputSources.map(xrInputSource => {
+        // TODO resolve config overrides?
+        return {
+          facade: XrInputSourceFacade,
+          key: utils.getIdForObject(xrInputSource),
+          xrInputSource,
+          xrSession: this.xrSession,
+          xrReferenceSpace: this.xrReferenceSpace
+        }
+      })
+      this._xrInputSourceSubtree.afterUpdate()
+    }
+    super.afterUpdate()
+  }
 
-    // Update the child controllers
-    this.updateChildren(children)
+  /**
+   * Override
+   */
+  updateMatrices() {
+
+  }
+
+  destructor () {
+    if (this.xrSession) {
+      this.xrSession.removeEventListener('inputsourceschange', this._onInputSourcesChange)
+    }
+    super.destructor()
+    this._xrInputSourceSubtree.destructor()
   }
 }
 

@@ -1,9 +1,10 @@
-import { Facade, World3DFacade } from 'troika-3d'
-import {extendAsXrCamera} from './XrCamera'
-import {XrInputSourceManager} from 'src/troika/packages/troika-xr/src/facade/webxr-wip/XrInputSourceManager.js'
+import { World3DFacade } from 'troika-3d'
+import {XrInputSourceManager} from './XrInputSourceManager'
+import XrCameraFacade from './XrCameraFacade'
 
 const emptyArray = []
 
+const _xrSessions = new WeakMap()
 
 
 class WorldXrFacade extends World3DFacade {
@@ -13,41 +14,63 @@ class WorldXrFacade extends World3DFacade {
    * @property {XRSessionMode} xrSessionMode
    * @property {XRReferenceSpace} xrReferenceSpace
    * @property {XRReferenceSpaceType} xrReferenceSpaceType
+   *
+   * New global event types:
+   * `xrframe` - fired on each frame, with the current time and XRFrame object as arguments
    */
 
   afterUpdate() {
     // Disable pointer events on the onscreen canvas when in an immersive XR session
     this._togglePointerListeners(!this._isImmersive())
+
     super.afterUpdate()
+
+    const {xrSession, _threeRenderer:renderer} = this
+
+    const prevXrSession = _xrSessions.get(this)
+    if (xrSession !== prevXrSession) {
+      _xrSessions.set(this, xrSession)
+      if (xrSession) {
+        let baseLayer = xrSession.renderState.baseLayer
+        const gl = renderer.getContext()
+
+        // If the session has an existing valid XRWebGLLayer, just grab its framebuffer.
+        // Otherwise, create a new XRWebGLLayer
+        if (baseLayer && baseLayer._glContext === gl) {
+          renderer.setFramebuffer(baseLayer.framebuffer)
+        } else {
+          const promise = gl.makeXRCompatible ? gl.makeXRCompatible() : Promise.resolve() //not always implemented?
+          promise.then(() => {
+            if (this.xrSession === xrSession) {
+              baseLayer = new XRWebGLLayer(xrSession, gl)
+              baseLayer._glContext = gl
+              xrSession.updateRenderState({ baseLayer })
+              renderer.setFramebuffer(baseLayer.framebuffer)
+              this._queueRender()
+            }
+          })
+        }
+      } else {
+        renderer.setFramebuffer(null)
+        renderer.setRenderTarget(renderer.getRenderTarget()) //see https://github.com/mrdoob/three.js/pull/15830
+      }
+    }
+
   }
 
   /**
    * @override
    */
   doRender(timestamp, xrFrame) {
-    const {xrSession, _threeRenderer:renderer} = this
-
-    // Invoke xrFrame handlers
-    if (xrSession && xrFrame) {
-      this.eventRegistry.forEachListenerOfType('xrframe', fn => fn(xrFrame), this)
-    }
-
-    if (xrSession) {
-      // Initialize XRWebGLLayer if needed
-      let layer = this._webglLayer
-      const context = renderer.getContext()
-      if (!layer || layer._context !== context) {
-        layer = this._webglLayer = new XRWebGLLayer(xrSession, context)
-        layer._context = context
-      }
-    } else {
-      renderer.setFramebuffer(null)
+    // Invoke xrframe event handlers
+    if (xrFrame && xrFrame.session) {
+      this.eventRegistry.forEachListenerOfType('xrframe', fn => fn(timestamp, xrFrame), this)
     }
 
     super.doRender()
   }
 
-  _isOpaque() {
+  _isOpaque() { //TODO???
     return this.xrSession && this.xrSession.environmentBlendMode === 'opaque'
   }
 
@@ -56,14 +79,14 @@ class WorldXrFacade extends World3DFacade {
   }
 
   /**
-   * @override to wrap the configured camera with XR camera support
+   * @override to use an XR stereo camera when in immersive XR mode
    */
   _getCameraDef() {
     const camera = super._getCameraDef()
-    const {xrSession} = this
-    if (xrSession) {
-      camera.facade = extendAsXrCamera(camera.facade)
-      camera.xrSession = xrSession
+    if (this._isImmersive()) {
+      camera.facade = XrCameraFacade
+      camera.xrSession = this.xrSession
+      camera.xrReferenceSpace = this.xrReferenceSpace
     }
     return camera
   }
@@ -75,34 +98,19 @@ class WorldXrFacade extends World3DFacade {
     const scene = super._getSceneDef()
     const {xrSession} = this
     if (xrSession) {
-      scene.objects = emptyArray.concat(scene.objects, {
+      scene.objects = {
         key: 'xrInputMgr',
         facade: XrInputSourceManager,
-        xrSession
-      })
+        xrSession,
+        xrReferenceSpace: this.xrReferenceSpace,
+        children: scene.objects
+      }
     }
     return scene
   }
 
   /**
-   * @override to size the rendering buffer based on the active VR display
-   */
-  _updateDrawingBufferSize(width, height, pixelRatio) {
-    const {xrSession} = this
-    if (xrSession) {
-
-
-      const leftEye = vrDisplay.getEyeParameters('left')
-      const rightEye = vrDisplay.getEyeParameters('right')
-      width = Math.max(leftEye.renderWidth, rightEye.renderWidth) * 2
-      height = Math.max(leftEye.renderHeight, rightEye.renderHeight)
-      pixelRatio = 1
-    }
-    super._updateDrawingBufferSize(width, height, pixelRatio)
-  }
-
-    /**
-   * @override to always continuously render when in VR mode
+   * @override to always continuously render when in XR
    */
   _isContinuousRender() {
     return this.xrSession || this.continuousRender
@@ -113,6 +121,7 @@ class WorldXrFacade extends World3DFacade {
    */
   _requestRenderFrame(callback) {
     return (this.xrSession || window).requestAnimationFrame(callback)
+      || Math.random() + 1 //webxr emulation extension doesn't return a handle
   }
 
   /**

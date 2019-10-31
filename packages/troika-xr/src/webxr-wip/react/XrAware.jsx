@@ -39,7 +39,7 @@ export const xrAwarePropTypes = {
 export function makeXrAware(ReactClass, options) {
   options = utils.assign({
     xrLauncherRenderer: XrLauncher,
-    sessionModes: ['immersive-vr', 'local'],
+    sessionModes: ['immersive-vr', 'inline'],
     referenceSpaces: ['local-floor', 'local', 'viewer'],
     requiredFeatures: [],
     optionalFeatures: []
@@ -60,32 +60,49 @@ export function makeXrAware(ReactClass, options) {
       // bind handler methods:
       ;[
         '_checkXrSupport',
-        '_startSession',
-        '_stopSession'
+        '_stopSession',
+        '_onLauncherSelect'
       ].forEach(method => {
         this[method] = this[method].bind(this)
       })
 
-      window.addEventListener('devicechange', this._checkXrSupport, false)
+      const xr = navigator.xr
+      if (xr) {
+        xr.addEventListener('devicechange', this._checkXrSupport)
+      }
       this._checkXrSupport()
     }
 
     componentWillUnmount() {
-      window.removeEventListener('devicechange', this._checkXrSupport, false)
+      const xr = navigator.xr
+      if (xr) {
+        xr.removeEventListener('devicechange', this._checkXrSupport)
+      }
     }
 
     _checkXrSupport() {
       const xr = navigator.xr
       if (xr) {
         const xrSupportedSessionModes = []
-        Promise.all(options.sessionTypes.map(type => {
-          return xr.supportsSession(type)
-            .then(() => {
-              xrSupportedSessionModes.push(type)
-            })
-            .catch(err => {
-              console.log(`XR session type '${type}' not supported`, err)
-            })
+        Promise.all(options.sessionModes.map(mode => {
+          if (typeof xr.isSessionSupported === 'function') {
+            return xr.isSessionSupported(mode)
+              .then(supported => {
+                if (supported) {
+                  xrSupportedSessionModes.push(mode)
+                } else {
+                  console.info(`XR session type '${mode}' not supported`, err)
+                }
+              })
+          } else {
+            // TODO remove this fallback for slightly old API impls...
+            return xr.supportsSession(mode)
+              .then(() => {
+                xrSupportedSessionModes.push(mode)
+              }, err => {
+                console.info(`XR session type '${mode}' not supported`, err)
+              })
+          }
         })).then(() => {
           this.setState({xrSupportedSessionModes})
         })
@@ -100,7 +117,7 @@ export function makeXrAware(ReactClass, options) {
       let {xrSupportedSessionModes, xrSession} = this.state
       if (xrSupportedSessionModes.includes(xrSessionMode)) {
         const doRequest = () => {
-          navigator.xr.requestSession(xrSessionMode)
+          return navigator.xr.requestSession(xrSessionMode)
             .then(xrSession => {
               xrSession.addEventListener('end', this._stopSession, false)
 
@@ -111,7 +128,7 @@ export function makeXrAware(ReactClass, options) {
               }
               const getRefSpace = (index=0) => {
                 const type = candidateRefSpaces[index]
-                xrSession.requestReferenceSpace(type)
+                return xrSession.requestReferenceSpace(type)
                   .then(xrReferenceSpace => [xrReferenceSpace, type])
                   .catch(err => {
                     console.log(`Failed requesting XRReferenceSpace '${type}'`, err)
@@ -123,7 +140,7 @@ export function makeXrAware(ReactClass, options) {
                     }
                   })
               }
-              getRefSpace().then(([xrReferenceSpace, xrReferenceSpaceType]) => {
+              return getRefSpace().then(([xrReferenceSpace, xrReferenceSpaceType]) => {
                 this.setState({
                   xrSession,
                   xrSessionMode,
@@ -131,7 +148,6 @@ export function makeXrAware(ReactClass, options) {
                   xrReferenceSpaceType
                 })
               })
-
             })
             .catch(err => {
               console.error(err)
@@ -139,26 +155,40 @@ export function makeXrAware(ReactClass, options) {
             })
         }
 
-        if (xrSession) {
-          this._stopSession().then(doRequest)
-        } else {
-          doRequest()
-        }
+        return xrSession
+          ? this._stopSession().then(doRequest)
+          : doRequest()
+      } else {
+        return this._stopSession()
       }
     }
 
     _stopSession() {
-      const {xrSession} = this.state.xrSession
+      const {xrSession} = this.state
       if (xrSession) {
         xrSession.removeEventListener('end', this._stopSession, false)
         return xrSession.end().then(() => {
           this.setState({
             xrSession: null,
-            xrSessionMode: null
+            xrSessionMode: null,
+            xrReferenceSpace: null,
+            xrReferenceSpaceType: null
           })
         })
       }
       return Promise.resolve()
+    }
+
+    _onLauncherSelect(mode) {
+      if (!mode || mode !== this.state.xrSessionMode) {
+        this._stopSession().then(() => {
+          if (mode) {
+            this._startSession(mode)
+          }
+        })
+      } else {
+        this._startSession(mode)
+      }
     }
 
     render() {
@@ -171,12 +201,17 @@ export function makeXrAware(ReactClass, options) {
         xrSupportedSessionModes={xrSupportedSessionModes}
         xrSupported={xrSupported}
         xrSession={xrSession}
-        onRequestSessionType={this._startSession}
+        onSelectSession={this._onLauncherSelect}
       />
 
       const contextValue = {
         worldFacade: WorldXrFacade,
-        worldProps: { xrSession, xrSessionMode }
+        worldProps: {
+          xrSession,
+          xrSessionMode,
+          xrReferenceSpace,
+          xrReferenceSpaceType
+        }
       }
 
       return React.createElement(Canvas3D.contextType.Provider, {value: contextValue},

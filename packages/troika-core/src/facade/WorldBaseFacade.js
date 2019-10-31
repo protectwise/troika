@@ -174,7 +174,7 @@ class WorldBaseFacade extends ParentFacade {
   /**
    * @abstract
    */
-  doRender() {
+  doRender(/*...frameArgs*/) {
   }
 
   /**
