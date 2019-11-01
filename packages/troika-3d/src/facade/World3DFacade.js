@@ -330,7 +330,7 @@ World3DFacade.prototype._notifyWorldHandlers = assign(
       const e = new MouseEvent('mousemove')
       e.isRayEvent = true
       e.ray = ray
-      e.raySource = source
+      e.eventSource = source //for tracking gesture states per ray source
       this._onPointerMotionEvent(e)
     },
     rayPointerAction(source, eventParams) {
@@ -339,7 +339,7 @@ World3DFacade.prototype._notifyWorldHandlers = assign(
       const e = new (eventParams.type === 'wheel' ? WheelEvent : MouseEvent)(eventParams.type, eventParams)
       e.isRayEvent = true
       e.ray = eventParams.ray
-      e.raySource = source
+      e.eventSource = source //for tracking gesture states per ray source
       this._onPointerActionEvent(e)
     }
   }

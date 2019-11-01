@@ -6,6 +6,7 @@ import {assign} from '../utils'
 const TAP_DISTANCE_THRESHOLD = 10
 const TAP_GESTURE_MAX_DUR = 300
 const TAP_DBLCLICK_MAX_DUR = 300
+const DEFAULT_EVENT_SOURCE = {}
 
 const domPointerMotionEventTypes = [
   'mousemove',
@@ -218,13 +219,14 @@ class WorldBaseFacade extends ParentFacade {
    */
   _onPointerMotionEvent(e) {
     this._normalizePointerEvent(e)
+    const eventState = this._getPointerEventState(e)
 
     if (pointerMotionEventTypes.some(this.eventRegistry.hasAnyListenersOfType)) {
-      let hoverInfo = (e.type === 'mouseout' || isTouchEndOrCancel(e)) ? null : this._findHoverTarget(e)
-      let lastHovered = this.$hoveredFacade
-      let hovered = this.$hoveredFacade = hoverInfo && hoverInfo.facade
+      const hoverInfo = (e.type === 'mouseout' || isTouchEndOrCancel(e)) ? null : this._findHoverTarget(e)
+      let lastHovered = eventState.hoveredFacade
+      let hovered = eventState.hoveredFacade = hoverInfo && hoverInfo.facade
 
-      let dragInfo = this.$dragInfo
+      let dragInfo = eventState.dragInfo
       if (dragInfo) {
         if (!dragInfo.dragStartFired) {
           this._firePointerEvent('dragstart', dragInfo.dragStartEvent, dragInfo.draggedFacade, null, hoverInfo)
@@ -256,11 +258,11 @@ class WorldBaseFacade extends ParentFacade {
     }
 
     // Cancel tap gesture if moving past threshold
-    let tapInfo = this.$tapInfo
+    let tapInfo = eventState.tapInfo
     if (tapInfo && e.type === 'touchmove') {
       let touch = e.changedTouches[0]
       if (touch && Math.sqrt(Math.pow(touch.clientX - tapInfo.x, 2) + Math.pow(touch.clientY - tapInfo.y, 2)) > TAP_DISTANCE_THRESHOLD) {
-        this.$tapInfo = null
+        eventState.tapInfo = null
       }
     }
   }
@@ -293,13 +295,14 @@ class WorldBaseFacade extends ParentFacade {
       let hoverInfo = this._findHoverTarget(e)
       let facade = hoverInfo && hoverInfo.facade
       if (facade) {
+        const eventState = this._getPointerEventState(e)
         this._firePointerEvent(pointerActionEventTypeMappings[e.type] || e.type, e, facade, null, hoverInfo)
 
         // touchstart/touchend could be start/end of a tap - map to click
         if (this._hasEventHandlerInParentTree(facade, 'click') || this._hasEventHandlerInParentTree(facade, 'dblclick')) {
-          let tapInfo = this.$tapInfo
+          let tapInfo = eventState.tapInfo
           if (e.type === 'touchstart' && e.touches.length === 1) {
-            this.$tapInfo = {
+            eventState.tapInfo = {
               facade: facade,
               x: e.touches[0].clientX,
               y: e.touches[0].clientY,
@@ -323,7 +326,7 @@ class WorldBaseFacade extends ParentFacade {
         // mousedown/touchstart could be prepping for drag gesture
         if (facade.onDragStart && (e.type === 'mousedown' || e.type === 'touchstart')) {
           let dragStartEvent = new SyntheticEvent(e, 'dragstart', facade, null, {intersection: hoverInfo})
-          this.$dragInfo = {
+          eventState.dragInfo = {
             draggedFacade: facade,
             dragStartFired: false,
             dragStartEvent: dragStartEvent
@@ -345,7 +348,8 @@ class WorldBaseFacade extends ParentFacade {
   }
 
   _onDropEvent(e) {
-    let dragInfo = this.$dragInfo
+    const eventState = this._getPointerEventState(e)
+    let dragInfo = eventState.dragInfo
     if (dragInfo) {
       this._normalizePointerEvent(e)
       let hoverInfo = this._findHoverTarget(e)
@@ -355,7 +359,7 @@ class WorldBaseFacade extends ParentFacade {
       }
       this._firePointerEvent('dragend', e, dragInfo.draggedFacade, null, hoverInfo)
       this._toggleDropListeners(false)
-      this.$dragInfo = null
+      eventState.dragInfo = null
     }
   }
 
@@ -374,6 +378,16 @@ class WorldBaseFacade extends ParentFacade {
       )
     // Dispatch with bubbling
     this.eventRegistry.dispatchEventOnFacade(targetFacade, newEvent)
+  }
+
+  _getPointerEventState(e) {
+    const states = this._pointerEventStates || (this._pointerEventStates = new WeakMap())
+    const eventSource = e.eventSource || DEFAULT_EVENT_SOURCE
+    let eventState = states.get(eventSource)
+    if (!eventState) {
+      states.set(eventSource, eventState = {})
+    }
+    return eventState
   }
 
   _hasEventHandlerInParentTree(targetFacade, eventType) {
