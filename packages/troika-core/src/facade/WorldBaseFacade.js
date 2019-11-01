@@ -367,19 +367,13 @@ class WorldBaseFacade extends ParentFacade {
         eventType,
         targetFacade,
         relatedTargetFacade,
-        {intersection}
+        {
+          bubbles: true,
+          intersection
+        }
       )
     // Dispatch with bubbling
-    // TODO genericize bubbling for future non-pointer-related events
-    let currentTarget = targetFacade
-    function callHandler(handler) {
-      handler.call(currentTarget, newEvent)
-    }
-    while (currentTarget && !newEvent.propagationStopped) { //TODO should defaultPrevented mean anything here?
-      newEvent.currentTarget = currentTarget
-      this.eventRegistry.forEachFacadeListenerOfType(currentTarget, eventType, callHandler, null)
-      currentTarget = currentTarget.parent
-    }
+    this.eventRegistry.dispatchEventOnFacade(targetFacade, newEvent)
   }
 
   _hasEventHandlerInParentTree(targetFacade, eventType) {
@@ -483,6 +477,9 @@ WorldBaseFacade.prototype._notifyWorldHandlers = {
   },
   removeAllEventListeners(source) {
     this.eventRegistry.removeAllListenersForFacade(source)
+  },
+  dispatchEvent(source, event) {
+    this.eventRegistry.dispatchEventOnFacade(source, event)
   },
   addHtmlOverlay(source) {
     this._htmlOverlays[source.$facadeId] = source

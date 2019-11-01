@@ -143,6 +143,14 @@ export default class Facade {
   }
 
   /**
+   * Dispatch an Event object on this facade, with DOM events bubbling logic.
+   * @param {Event} event
+   */
+  dispatchEvent(event) {
+    this.notifyWorld('dispatchEvent', event)
+  }
+
+  /**
    * Called when the instance is being removed from the scene. Override this to implement any
    * custom cleanup logic.
    */

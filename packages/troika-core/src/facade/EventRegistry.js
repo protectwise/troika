@@ -107,5 +107,22 @@ export default function EventRegistry() {
       }
     }
   }
+
+  this.dispatchEventOnFacade = (facade, event) => {
+    let currentTarget = facade
+    function callHandler(handler) {
+      handler.call(currentTarget, event)
+    }
+    event.target = facade
+    while (currentTarget && !event.propagationStopped) { //TODO should defaultPrevented mean anything here?
+      event.currentTarget = currentTarget
+      this.forEachFacadeListenerOfType(currentTarget, event.type, callHandler, null)
+      if (event.bubbles) {
+        currentTarget = currentTarget.parent
+      } else {
+        break
+      }
+    }
+  }
 }
 
