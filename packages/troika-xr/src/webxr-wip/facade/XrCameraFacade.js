@@ -29,7 +29,7 @@ class XrCameraFacade extends PerspectiveCamera3DFacade {
 
 
   afterUpdate() {
-    const {near, far, xrSession, threeObject} = this
+    const {near, far, xrSession, xrReferenceSpace, threeObject} = this
 
     // Update near/far planes
     const {depthNear, depthFar} = xrSession.renderState
@@ -40,14 +40,17 @@ class XrCameraFacade extends PerspectiveCamera3DFacade {
       })
     }
 
-    // Update a rigid transform for the camera's world offset
+    // Update reference space offset to match configured camera position/rotation
     // TODO should we force y=0 for floor-relative spaces?
-    // TODO this needs testing outside the webxr emulator extension which doesn't support pose offsets
-    if (this._matrixChanged) {
-      this.xrOffsetTransform = new XRRigidTransform(
-        tempVec3.copy(threeObject.position).negate(),
-        tempQuat.copy(threeObject.quaternion).inverse()
-      )
+    // TODO test if this reacts to reset events properly
+    if (this._matrixChanged || xrReferenceSpace !== this._lastRefSpace) {
+      this._lastRefSpace = xrReferenceSpace
+      this.offsetReferenceSpace = xrReferenceSpace ? xrReferenceSpace.getOffsetReferenceSpace(
+        new XRRigidTransform(
+          tempVec3.copy(threeObject.position).negate(),
+          tempQuat.copy(threeObject.quaternion).inverse()
+        )
+      ) : null
     }
 
     super.afterUpdate()
@@ -58,15 +61,10 @@ class XrCameraFacade extends PerspectiveCamera3DFacade {
    * Handle syncing the cameras to the current XRFrame's pose data
    */
   _onXrFrame(timestamp, xrFrame) {
-    const {xrSession, xrReferenceSpace, threeObject:mainCam} = this
+    const {xrSession, offsetReferenceSpace, threeObject:mainCam} = this
+    const pose = offsetReferenceSpace && xrFrame.getViewerPose(offsetReferenceSpace)
 
-    // Update reference space offset to match configured camera position/rotation
-    // We do this every frame because impls may slightly change the base space from frame
-    // to frame without firing a reset event.
-    const offsetSpace = xrReferenceSpace.getOffsetReferenceSpace(this.xrOffsetTransform)
-    const pose = xrFrame.getViewerPose(offsetSpace)
-
-    if (pose && xrSession && xrReferenceSpace && xrSession.renderState.baseLayer) {
+    if (pose && xrSession && xrSession.renderState.baseLayer) {
       const views = pose.views
       const viewCameras = mainCam.cameras
 

@@ -2,9 +2,37 @@ import { Object3DFacade } from 'troika-3d'
 import { Group, Ray, Vector3 } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
+const MODEL_GEN = 'gen2'
 
-function getUrl(hand) {
-  return `https://cdn.aframe.io/controllers/oculus/oculus-touch-controller-${hand}.gltf`
+function getModelUrl(gen, hand) {
+  return `https://cdn.aframe.io/controllers/oculus/oculus-touch-controller-${gen}-${hand}.gltf`
+}
+
+const MODEL_PARAMS = {
+  gen1: {
+    left: {
+      url: getModelUrl('gen1', 'left'),
+      position: [0, 0, -0.1],
+      rotation: [0, 0, 0]
+    },
+    right: {
+      url: getModelUrl('gen1', 'right'),
+      position: [0, 0, -0.1],
+      rotation: [0, 0, 0]
+    }
+  },
+  gen2: {
+    left: {
+      url: getModelUrl('gen2', 'left'),
+      position: [0.01, -0.01, -0.05],
+      rotation: [-0.67, 0, 0]
+    },
+    right: {
+      url: getModelUrl('gen2', 'right'),
+      position: [-0.01, -0.01, -0.05],
+      rotation: [-0.67, 0, 0]
+    }
+  }
 }
 
 // TODO define mapping here that will allow us to pass in a set of active button
@@ -42,7 +70,7 @@ class OculusTouchGrip extends Object3DFacade {
       this._hand = hand
       this.removeObjects()
       new GLTFLoader().load(
-        getUrl(hand),
+        MODEL_PARAMS[MODEL_GEN][hand].url,
         this.addObjects.bind(this),
         null,
         err => {
@@ -58,10 +86,8 @@ class OculusTouchGrip extends Object3DFacade {
   addObjects(gltf) {
     if (this.threeObject) {
       const root = this.rootObj = gltf.scene
-
-      // Adjustments to match gripSpace
-      root.position.set(0, 0, -0.1)
-
+      root.position.fromArray(MODEL_PARAMS[MODEL_GEN][this._hand].position)
+      root.rotation.fromArray(MODEL_PARAMS[MODEL_GEN][this._hand].rotation)
       this.threeObject.add(root)
 
       // Find all the individual meshes

@@ -1,11 +1,10 @@
 import { Object3DFacade } from 'troika-3d'
 import { copyPoseToFacadeProps } from '../xrUtils'
-import { Mesh, MeshBasicMaterial, CylinderBufferGeometry } from 'three'
+import { Group, Mesh, MeshBasicMaterial, CylinderBufferGeometry } from 'three'
 
-const MAX_LENGTH = 5
 
 let getGeometry = () => {
-  const geometry = new CylinderBufferGeometry(1, 1, 1, 4, 1, true)
+  const geometry = new CylinderBufferGeometry(1, 1, 1, 4, 1, false)
     .translate(0, 0.5, 0)
     .rotateY(Math.PI / 4)
     .rotateX(Math.PI / -2)
@@ -27,21 +26,31 @@ let getMaterial = () => {
 
 class TargetRayFacade extends Object3DFacade {
   constructor(parent) {
-    const mesh = new Mesh(getGeometry(), getMaterial())
-    super(parent, mesh)
+    super(parent, new Group())
+
+    this.threeObject.add(this.laserMesh = new Mesh(getGeometry(), getMaterial()))
 
     this.radius = 0.003
+    this.startDistance = 0.05
+    this.maxLength = 5
   }
 
   afterUpdate() {
-    if (this.targetRayPose) {
-      // Position and orientation from the pose, but scale from radius/rayIntersection props
-      this.scaleX = this.scaleY = this.radius
-      this.scaleZ = this.rayIntersection ? Math.min(this.rayIntersection.distance, MAX_LENGTH) : MAX_LENGTH
-      copyPoseToFacadeProps(this.targetRayPose, this)
-      this.visible = true
+    const {laserMesh, targetRayPose, radius, rayIntersection, startDistance, maxLength} = this
+    if (targetRayPose) {
+      // Sync group to the targetRay pose
+      copyPoseToFacadeProps(targetRayPose, this)
+
+      // Update laser size from radius/rayIntersection props
+      laserMesh.scale.set(
+        radius,
+        radius,
+        (rayIntersection ? Math.min(rayIntersection.distance, maxLength) : maxLength) - startDistance
+      )
+      laserMesh.position.z = -startDistance
+      laserMesh.visible = true
     } else {
-      this.visible = false
+      laserMesh.visible = false
     }
 
     super.afterUpdate()

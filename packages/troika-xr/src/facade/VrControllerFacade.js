@@ -77,7 +77,7 @@ export default class VrController extends Group3DFacade {
   }
 
   _onSceneMouseEvent(e) {
-    if (e.nativeEvent.raySource === this) {
+    if (e.nativeEvent.eventSource === this) {
       // Find point of intersection in local coordinates
       let localPoint = null
       const worldPoint = e.intersection && e.intersection.point

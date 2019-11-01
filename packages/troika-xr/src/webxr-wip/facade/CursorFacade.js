@@ -11,7 +11,8 @@ class CursorFacade extends Object3DFacade {
       cursorMaterial.clone()
     ))
 
-    this.scale = 0.02 // TODO set scale on each intersection to maintain uniform visible size regardless of distance?
+    // TODO set scale on each intersection to maintain uniform visible size regardless of distance?
+    this.scale = 0.005
   }
 
   afterUpdate() {

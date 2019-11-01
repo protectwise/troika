@@ -1,12 +1,14 @@
 import { Group3DFacade } from 'troika-3d'
-import { ParentFacade, utils } from 'troika-core'
+import { Facade, utils } from 'troika-core'
 import { Matrix4, Ray } from 'three'
 import CursorFacade from './CursorFacade'
 import TargetRayFacade from './TargetRayFacade'
 import GripFacade from './GripFacade'
+import { BUTTON_TRIGGER } from '../xrStandardGamepadMapping'
 
 const SCENE_EVENTS = ['mousemove', 'mouseover', 'click']
 const XRSESSION_EVENTS = ['selectstart', 'select', 'selectend']
+const CLICK_MAX_DUR = 300
 
 const HAPTICS = { //TODO allow control
   mouseover: {value: 0.3, duration: 10},
@@ -23,7 +25,7 @@ const DEFAULT_GRIP = {
   facade: GripFacade
 }
 
-function toggleEvents(target, on, eventTypes, handler) {
+function toggleEvents (target, on, eventTypes, handler) {
   if (target) {
     eventTypes.forEach(type => {
       target[`${on ? 'add' : 'remove'}EventListener`](type, handler)
@@ -31,13 +33,7 @@ function toggleEvents(target, on, eventTypes, handler) {
   }
 }
 
-function matricesTraversal(facade) {
-  facade.updateMatrices()
-}
-
 const tempMat4 = new Matrix4()
-
-
 
 /**
  * Controls the behavior and visual representation of a single XRInputSource.
@@ -49,15 +45,13 @@ const tempMat4 = new Matrix4()
  * | 'tracked-pointer' | √         | √      | √            | √ (if possible)  |
  */
 class XrInputSourceFacade extends Group3DFacade {
-  constructor(parent) {
+  constructor (parent) {
     super(parent)
 
     // Required props
     this.xrInputSource = null
     this.xrSession = null
     this.xrReferenceSpace = null
-
-    this._ray = new Ray()
 
     // Current frame state data, passed to all children:
     this.targetRayPose = null
@@ -69,11 +63,16 @@ class XrInputSourceFacade extends Group3DFacade {
     this.targetRay = utils.assign(DEFAULT_TARGET_RAY)
     this.grip = utils.assign(DEFAULT_GRIP)
 
+    // Pointing - true for all inputs by default
+    this.isPointing = true
+
     this.children = [
       null, //cursor
       null, //targetRay
       null //grip
     ]
+
+    this._ray = new Ray()
 
     this._onSelectEvent = this._onSelectEvent.bind(this)
     this._onSceneRayEvent = this._onSceneRayEvent.bind(this)
@@ -83,40 +82,45 @@ class XrInputSourceFacade extends Group3DFacade {
     toggleEvents(this.getSceneFacade(), true, SCENE_EVENTS, this._onSceneRayEvent)
   }
 
-  afterUpdate() {
-    const {xrSession, _lastXrSession, xrInputSource, rayIntersection, children, cursor, targetRay, grip} = this
+  afterUpdate () {
+    const {xrSession, _lastXrSession, xrInputSource, rayIntersection, children, isPointing, cursor, targetRay, grip, targetRayPose, gripPose} = this
+
     if (xrSession !== _lastXrSession) {
       this._lastXrSession = xrSession
       toggleEvents(_lastXrSession, false, XRSESSION_EVENTS, this._onSelectEvent)
-      toggleEvents(xrSession, true, XRSESSION_EVENTS, this._onSelectEvent)
+      // Only listen for XRSession 'select' event if we won't be handling the xr-standard
+      // gamepad button tracking ourselves
+      if (!this._isXrStandardGamepad()) {
+        toggleEvents(xrSession, true, XRSESSION_EVENTS, this._onSelectEvent)
+      }
     }
 
     // Update child objects
     let cursorCfg = null, targetRayCfg = null, gripCfg = null
     if (xrInputSource.targetRayMode !== 'screen') {
-      cursorCfg = cursor
+      cursorCfg = isPointing && cursor
       if (cursorCfg) {
         cursorCfg.key = 'cursor'
-        cursorCfg.targetRayPose = this.targetRayPose
-        cursorCfg.gripPose = this.gripPose
+        cursorCfg.targetRayPose = targetRayPose
+        cursorCfg.gripPose = gripPose
         cursorCfg.rayIntersection = rayIntersection
         cursorCfg.xrInputSource = xrInputSource
       }
     }
     if (xrInputSource.targetRayMode === 'tracked-pointer') {
-      targetRayCfg = targetRay
+      targetRayCfg = isPointing && targetRay
       if (targetRayCfg) {
         targetRayCfg.key = 'targetRay'
-        targetRayCfg.targetRayPose = this.targetRayPose
-        targetRayCfg.gripPose = this.gripPose
+        targetRayCfg.targetRayPose = targetRayPose
+        targetRayCfg.gripPose = gripPose
         targetRayCfg.rayIntersection = rayIntersection
         targetRayCfg.xrInputSource = xrInputSource
       }
-      gripCfg = grip
+      gripCfg = gripPose ? grip : null
       if (gripCfg) {
         gripCfg.key = 'grip'
-        gripCfg.targetRayPose = this.targetRayPose
-        gripCfg.gripPose = this.gripPose
+        gripCfg.targetRayPose = targetRayPose
+        gripCfg.gripPose = gripPose
         gripCfg.rayIntersection = rayIntersection
         gripCfg.xrInputSource = xrInputSource
       }
@@ -128,94 +132,124 @@ class XrInputSourceFacade extends Group3DFacade {
     super.afterUpdate()
   }
 
-
-  _onXrFrame(time, xrFrame) {
+  _onXrFrame (time, xrFrame) {
     // TODO offset the ref space the same way as the camera (?)
-    const {xrInputSource, xrReferenceSpace, _ray:ray} = this
-    const {targetRaySpace, gripSpace} = xrInputSource
-    const offsetReferenceSpace = xrReferenceSpace.getOffsetReferenceSpace(
-      this.getCameraFacade().xrOffsetTransform
-    )
+    const {xrInputSource, isPointing, _ray: ray} = this
+    const offsetReferenceSpace = this.getCameraFacade().offsetReferenceSpace
 
-    const targetRayPose = xrFrame.getPose(targetRaySpace, offsetReferenceSpace)
-    if (targetRayPose) {
-      ray.direction.set(0, 0, -1)
-      ray.origin.set(0, 0, 0)
-      ray.applyMatrix4(tempMat4.fromArray(targetRayPose.transform.matrix))
-      this.notifyWorld('rayPointerMotion', ray)
-
-      // Update targetRaySpace transform
-      // this._syncFacadeToPose(this.getChildByKey('cursor'), targetRayPose)
-      // this._syncFacadeToPose(this.getChildByKey('targetRay'), targetRayPose)
+    if (offsetReferenceSpace) {
+      // Update current poses
+      const {targetRaySpace, gripSpace} = xrInputSource
+      const targetRayPose = xrFrame.getPose(targetRaySpace, offsetReferenceSpace)
+      if (targetRayPose && isPointing) {
+        ray.origin.copy(targetRayPose.transform.position)
+        ray.direction.set(0, 0, -1).applyQuaternion(targetRayPose.transform.orientation)
+        this.notifyWorld('rayPointerMotion', ray)
+      }
+      this.targetRayPose = targetRayPose
+      this.gripPose = gripSpace ? xrFrame.getPose(gripSpace, offsetReferenceSpace) : null
     }
-    this.targetRayPose = targetRayPose
-
-    // Update gripSpace child group transform
-    this.gripPose = gripSpace ? xrFrame.getPose(gripSpace, offsetReferenceSpace) : null
 
     // If this is a tracked-pointer with a gamepad, track its button/axis states
-    // Need to figure out how (or if we need) to exclude the primary button which would already fire select events
+    if (this._isXrStandardGamepad()) {
+      this._trackGamepadState(xrInputSource.gamepad)
+    }
 
     this.afterUpdate()
   }
 
-  _onSelectEvent(e) {
-
+  _isXrStandardGamepad() {
+    const {gamepad} = this.xrInputSource
+    return gamepad && gamepad.mapping === 'xr-standard'
   }
 
-  _onSceneRayEvent(e) {
-    // Only handle events where this was the ray's source
-    if (e.nativeEvent.raySource === this) {
-      const {xrInputSource, children} = this
-      const {targetRayMode, gamepad} = xrInputSource
-      const isScene = e.target === e.currentTarget
-      const worldPoint = e.intersection && e.intersection.point
+  _trackGamepadState(gamepad) {
+    // Handle button presses
+    const buttons = gamepad.buttons
+    const pressedTimes = this._buttonPresses || (this._buttonPresses = [])
+    const now = Date.now()
+    const ray = this._ray //assumes already updated to current frame pose
+    for (let i = 0; i < buttons.length; i++) {
+      if (buttons[i].pressed !== !!pressedTimes[i]) {
+        if (this.isPointing) {
+          this.notifyWorld('rayPointerAction', {
+            ray,
+            type: buttons[i].pressed ? 'mousedown' : 'mouseup',
+            button: i
+          })
+          if (pressedTimes[i] && !buttons[i].pressed && now - pressedTimes[i] <= CLICK_MAX_DUR) {
+            this.notifyWorld('rayPointerAction', {
+              ray,
+              type: 'click',
+              button: i
+            })
+          }
+        }
+        pressedTimes[i] = buttons[i].pressed ? now : null
+      }
+      pressedTimes.length = buttons.length
+    }
 
-      this.rayIntersection = e.intersection
-      this.afterUpdate()
-
-      // If gaze or tracked-pointer, set the cursor to the intersection point if any
-      // const cursorFacade = this.getChildByKey('cursor')
-      // if (targetRayMode !== 'screen' && cursorFacade) {
-      //   if (worldPoint) {
-      //     cursorFacade.visible = true
-      //     cursorFacade.x = worldPoint.x
-      //     cursorFacade.y = worldPoint.y
-      //     cursorFacade.z = worldPoint.z
-      //     // TODO scale based on camera distance?
-      //   } else {
-      //     cursorFacade.visible = false
-      //   }
-      //   cursorFacade.afterUpdate()
-      // }
-
-      // If tracked-pointer, set the targetRay length to match the intersection point if any
-      // if (targetRayMode === 'tracked-pointer') {
-      //   const laserChild = children[1] || (children[1] = {key: 'laser', facade: LaserFacade})
-      //
-      //   // Update the laser length to match the intersection if any
-      //   laserChild.length = e.intersection && e.intersection.distance || null
-      //
-      //   // If haptics available, trigger a pulse
-      //   const hapticPulse = e.type === 'click' ? HAPTICS.click
-      //     : (e.type === 'mouseover' && !isScene) ? HAPTICS.mouseover
-      //     : null
-      //   if (hapticPulse) {
-      //     const hapticActuator = gamepad && gamepad.hapticActuators && gamepad.hapticActuators[0]
-      //     if (hapticActuator) {
-      //       hapticActuator.pulse(hapticPulse.value || 1, hapticPulse.duration || 100)
-      //     }
-      //   }
-      // }
+    // Handle axis inputs
+    const axes = gamepad.axes
+    for (let i = 0; i < axes.length; i += 2) {
+      // Map each pair of axes to wheel event deltaX/Y
+      // TODO investigate better mapping
+      const deltaX = (axes[i] || 0) * 10
+      const deltaY = (axes[i + 1] || 0) * 10
+      if (Math.hypot(deltaX, deltaY) > 0.1) {
+        if (this.isPointing) {
+          this.notifyWorld('rayPointerAction', {
+            ray,
+            type: 'wheel',
+            deltaX,
+            deltaY,
+            deltaMode: 0 //pixel mode
+          })
+        }
+      }
     }
   }
 
-  destructor() {
+  _onSelectEvent (e) {
+    this.notifyWorld('rayPointerAction', {
+      ray: this._ray,
+      type: e.type === 'select' ? 'click' : e.type === 'selectstart' ? 'mousedown' : 'mouseup',
+      button: BUTTON_TRIGGER
+    })
+    const handlerMethod = e.type === 'select' ? 'onSelect' : e.type === 'selectstart' ? 'onSelectStart' : 'onSelectEnd'
+    if (this[handlerMethod]) {
+      this[handlerMethod](e)
+    }
+  }
+
+  _onSceneRayEvent (e) {
+    // Only handle events where this was the ray's source
+    if (e.nativeEvent.eventSource === this) {
+      // Copy intersection info to local state and update subtree
+      this.rayIntersection = e.intersection
+      this.afterUpdate()
+
+      // If haptics available, trigger a pulse
+      const isScene = e.target === e.currentTarget
+      const hapticPulse = e.type === 'click' ? HAPTICS.click
+        : (e.type === 'mouseover' && !isScene) ? HAPTICS.mouseover
+        : null
+      if (hapticPulse) {
+        const {gamepad} = this.xrInputSource
+        const hapticActuator = gamepad && gamepad.hapticActuators && gamepad.hapticActuators[0]
+        if (hapticActuator) {
+          hapticActuator.pulse(hapticPulse.value || 1, hapticPulse.duration || 100)
+        }
+      }
+    }
+  }
+
+  destructor () {
     toggleEvents(this.xrSession, false, XRSESSION_EVENTS, this._onSelectEvent)
     toggleEvents(this.getSceneFacade(), false, SCENE_EVENTS, this._onSceneRayEvent)
     super.destructor()
   }
-
 }
 
 export default XrInputSourceFacade
