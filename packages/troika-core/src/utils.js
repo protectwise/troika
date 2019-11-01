@@ -114,13 +114,12 @@ export const getIdForObject = (() => {
  * @return {function(class): class}
  */
 export function createClassExtender(name, doExtend) {
-  const extProp = `$${name}ClassExtension`
-  const baseProp = `$${name}ExtensionBase`
+  const cache = new WeakMap()
   return function(classToExtend) {
-    let extended = classToExtend[extProp]
-    if (!extended || extended[baseProp] !== classToExtend) { //bidir check due to inheritance of statics
-      extended = classToExtend[extProp] = doExtend(classToExtend)
-      extended[baseProp] = classToExtend
+    let extended = cache.get(classToExtend)
+    if (!extended) { //bidir check due to inheritance of statics
+      extended = doExtend(classToExtend)
+      cache.set(classToExtend, extended)
     }
     return extended
   }
