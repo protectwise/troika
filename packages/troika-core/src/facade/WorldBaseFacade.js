@@ -493,6 +493,9 @@ WorldBaseFacade.prototype._notifyWorldHandlers = {
     this.eventRegistry.removeAllListenersForFacade(source)
   },
   dispatchEvent(source, event) {
+    if (!(event instanceof SyntheticEvent)) {
+      event = new SyntheticEvent(event, event.type, event.target, event.relatedTarget)
+    }
     this.eventRegistry.dispatchEventOnFacade(source, event)
   },
   addHtmlOverlay(source) {
