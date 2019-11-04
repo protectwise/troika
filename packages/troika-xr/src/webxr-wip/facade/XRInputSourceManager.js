@@ -127,7 +127,7 @@ export class XRInputSourceManager extends ParentFacade {
     if (this._sourcesDirty) {
       this._sourcesDirty = false
       const inputSources = xrSession && xrSession.inputSources
-      this._xrInputSourceSubtree.children = inputSources && inputSources.map(xrInputSource => {
+      this._xrInputSourceSubtree.children = inputSources && Array.from(inputSources).map(xrInputSource => {
         // TODO resolve config overrides?
         return {
           facade: XRInputSourceFacade,

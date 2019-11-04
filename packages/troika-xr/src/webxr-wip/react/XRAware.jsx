@@ -38,11 +38,31 @@ export const XRAwarePropTypes = {
  */
 export function ReactXRAware(ReactClass, options) {
   options = utils.assign({
+    /**
+     * The React component to use for rendering the launcher button. Defaults to a basic
+     * launcher button implementation.
+     */
     xrLauncherRenderer: XRLauncher,
-    sessionModes: ['immersive-vr', 'inline'],
-    referenceSpaces: ['local-floor', 'local', 'viewer'],
-    requiredFeatures: [],
-    optionalFeatures: []
+
+    /**
+     * The XRSessionMode(s) supported by this particular scene.
+     * Assumes an 'immersive-vr' experience only by default. Authors can add 'inline' as a
+     * fallback, or force 'inline' only.
+     * TODO: allow secondary mode to be chosen by the user, rather than just as a fallback?
+     */
+    sessionModes: ['immersive-vr'],
+
+    /**
+     * The XRReferenceSpaceType(s) supported by this particular scene.
+     * By default a floor-relative space is required, preferring 'bounded-floor', falling
+     * back to 'local-floor', and failing session initialization if neither is available or
+     * permitted by the user. Authors can change this list to support other reference space
+     * types as fallbacks. All but the final will be used as `optionalFeatures`, and the final
+     * will be used for `requiredFeatures`.
+     * TODO: allow secondary spaces to be chosen by the user, rather than just as a fallback?
+     * TODO: allow different spaces to be specified for immersive-vr vs. local modes?
+     */
+    referenceSpaces: ['bounded-floor', 'local-floor']
   }, options)
 
   class XRAware extends React.Component {
@@ -116,50 +136,58 @@ export function ReactXRAware(ReactClass, options) {
     _startSession(xrSessionMode) {
       let {xrSupportedSessionModes, xrSession} = this.state
       if (xrSupportedSessionModes.includes(xrSessionMode)) {
-        const doRequest = () => {
-          return navigator.xr.requestSession(xrSessionMode)
-            .then(xrSession => {
-              xrSession.addEventListener('end', this._stopSession, false)
-
-              // Get the first XRReferenceSpace supported by the hardware - always include 'viewer' as a guaranteed fallback
-              const candidateRefSpaces = (options.referenceSpaces || []).slice()
-              if (!candidateRefSpaces.includes('viewer')) {
-                candidateRefSpaces.push('viewer')
-              }
-              const getRefSpace = (index=0) => {
-                const type = candidateRefSpaces[index]
-                return xrSession.requestReferenceSpace(type)
-                  .then(xrReferenceSpace => [xrReferenceSpace, type])
-                  .catch(err => {
-                    console.log(`Failed requesting XRReferenceSpace '${type}'`, err)
-                    if (index + 1 === candidateRefSpaces.length) {
-                      console.error('All XRReferenceSpaces failed - should not happen!')
-                      throw err
-                    } else {
-                      return getRefSpace(index + 1)
-                    }
-                  })
-              }
-              return getRefSpace().then(([xrReferenceSpace, xrReferenceSpaceType]) => {
-                this.setState({
-                  xrSession,
-                  xrSessionMode,
-                  xrReferenceSpace,
-                  xrReferenceSpaceType
-                })
-              })
-            })
-            .catch(err => {
-              console.error(err)
-              //TODO supply for user feedback... this.setState({xrSessionError: err})
-            })
+        // Stop current session if running
+        // TODO not sure if this is a potential race condition, but we can't wait for its promise
+        //  to resolve because that fails the "user activation" requirement for starting the new session.
+        //  We may want to make the selection UI require first ending a session before being able to select a new one.
+        if (xrSession) {
+          this._stopSession()
         }
 
-        return xrSession
-          ? this._stopSession().then(doRequest)
-          : doRequest()
+        //
+        const candidateRefSpaces = options.referenceSpaces
+        if (!candidateRefSpaces || !candidateRefSpaces.length) {
+          console.error('XRAware `referencesSpaces` cannot be empty')
+          return
+        }
+
+        navigator.xr.requestSession(xrSessionMode, {
+          optionalFeatures: candidateRefSpaces.slice(0, -1),
+          requiredFeatures: candidateRefSpaces.slice(-1)
+        })
+          .then(xrSession => {
+            xrSession.addEventListener('end', this._stopSession, false)
+
+            // Get the first XRReferenceSpace supported by the hardware
+            const getRefSpace = (index=0) => {
+              const type = candidateRefSpaces[index]
+              return xrSession.requestReferenceSpace(type)
+                .then(xrReferenceSpace => [xrReferenceSpace, type])
+                .catch(err => {
+                  console.log(`Failed requesting XRReferenceSpace '${type}'`, err)
+                  if (index + 1 === candidateRefSpaces.length) {
+                    console.error('All XRReferenceSpaces failed - should not happen!')
+                    throw err
+                  } else {
+                    return getRefSpace(index + 1)
+                  }
+                })
+            }
+            return getRefSpace().then(([xrReferenceSpace, xrReferenceSpaceType]) => {
+              this.setState({
+                xrSession,
+                xrSessionMode,
+                xrReferenceSpace,
+                xrReferenceSpaceType
+              })
+            })
+          })
+          .catch(err => {
+            console.error(err)
+            //TODO supply for user feedback... this.setState({xrSessionError: err})
+          })
       } else {
-        return this._stopSession()
+        this._stopSession()
       }
     }
 
@@ -180,15 +208,16 @@ export function ReactXRAware(ReactClass, options) {
     }
 
     _onLauncherSelect(mode) {
-      if (!mode || mode !== this.state.xrSessionMode) {
-        this._stopSession().then(() => {
-          if (mode) {
-            this._startSession(mode)
-          }
-        })
-      } else {
+      // TODO this fails due to user activation requirement
+      // if (!mode || mode !== this.state.xrSessionMode) {
+      //   this._stopSession().then(() => {
+      //     if (mode) {
+      //       this._startSession(mode)
+      //     }
+      //   })
+      // } else {
         this._startSession(mode)
-      }
+      //}
     }
 
     render() {
