@@ -2,7 +2,7 @@ import { Group3DFacade } from 'troika-3d'
 import { utils } from 'troika-core'
 import BasicGrip from './grip-models/BasicGrip'
 import OculusTouchGrip from './grip-models/OculusTouchGrip'
-import { copyPoseToFacadeProps } from '../xrUtils'
+import { copyXRPoseToFacadeProps } from '../xrUtils'
 
 
 const PROFILE_MODELS = [
@@ -46,7 +46,7 @@ class GripFacade extends Group3DFacade {
       const pose = modelConfig.space === 'targetRay' ? this.targetRayPose : this.gripPose
       this.visible = !!pose
       if (pose) {
-        copyPoseToFacadeProps(pose, this)
+        copyXRPoseToFacadeProps(pose, this)
       }
       modelConfig.rayIntersection = this.rayIntersection
     }

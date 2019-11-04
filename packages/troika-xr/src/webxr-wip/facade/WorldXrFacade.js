@@ -96,15 +96,17 @@ class WorldXrFacade extends World3DFacade {
    */
   _getSceneDef() {
     const scene = super._getSceneDef()
-    const {xrSession} = this
-    if (xrSession) {
-      scene.objects = {
-        key: 'xrInputMgr',
-        facade: XrInputSourceManager,
-        xrSession,
-        xrReferenceSpace: this.xrReferenceSpace,
-        children: scene.objects
-      }
+    const {xrSession, xrReferenceSpace} = this
+    if (xrSession && xrReferenceSpace) {
+      scene.objects = emptyArray.concat(
+        scene.objects,
+        {
+          key: 'xrInputMgr',
+          facade: XrInputSourceManager,
+          xrSession,
+          xrReferenceSpace
+        }
+      )
     }
     return scene
   }

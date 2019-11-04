@@ -1,13 +1,13 @@
-import { Group3DFacade } from 'troika-3d'
+import { Group3DFacade, Object3DFacade } from 'troika-3d'
 import { Facade, utils } from 'troika-core'
 import { Matrix4, Ray } from 'three'
 import CursorFacade from './CursorFacade'
 import TargetRayFacade from './TargetRayFacade'
 import GripFacade from './GripFacade'
-import { BUTTON_TRIGGER } from '../xrStandardGamepadMapping'
+import { BUTTON_SQUEEZE, BUTTON_TRIGGER } from '../xrStandardGamepadMapping'
 
-const SCENE_EVENTS = ['mousemove', 'mouseover', 'click']
-const XRSESSION_EVENTS = ['selectstart', 'select', 'selectend']
+const SCENE_EVENTS = ['mousemove', 'mouseover', 'mouseout', 'mousedown', 'mouseup', 'click']
+const XRSESSION_EVENTS = ['selectstart', 'select', 'selectend', 'squeezestart', 'squeeze', 'squeezeend']
 const CLICK_MAX_DUR = 300
 
 const HAPTICS = { //TODO allow control
@@ -74,7 +74,7 @@ class XrInputSourceFacade extends Group3DFacade {
 
     this._ray = new Ray()
 
-    this._onSelectEvent = this._onSelectEvent.bind(this)
+    this._onSessionEvent = this._onSessionEvent.bind(this)
     this._onSceneRayEvent = this._onSceneRayEvent.bind(this)
     this.addEventListener('xrframe', this._onXrFrame.bind(this))
 
@@ -87,11 +87,11 @@ class XrInputSourceFacade extends Group3DFacade {
 
     if (xrSession !== _lastXrSession) {
       this._lastXrSession = xrSession
-      toggleEvents(_lastXrSession, false, XRSESSION_EVENTS, this._onSelectEvent)
+      toggleEvents(_lastXrSession, false, XRSESSION_EVENTS, this._onSessionEvent)
       // Only listen for XRSession 'select' event if we won't be handling the xr-standard
       // gamepad button tracking ourselves
       if (!this._isXrStandardGamepad()) {
-        toggleEvents(xrSession, true, XRSESSION_EVENTS, this._onSelectEvent)
+        toggleEvents(xrSession, true, XRSESSION_EVENTS, this._onSessionEvent)
       }
     }
 
@@ -211,16 +211,15 @@ class XrInputSourceFacade extends Group3DFacade {
     }
   }
 
-  _onSelectEvent (e) {
+  _onSessionEvent (e) {
+    // Redispatch select and squeeze events as standard pointer events to the world's event system.
+    // Note this is only used for non xr-standard gamepad inputs, otherwise it's handled in the
+    // gamepad button state tracking.
     this.notifyWorld('rayPointerAction', {
       ray: this._ray,
-      type: e.type === 'select' ? 'click' : e.type === 'selectstart' ? 'mousedown' : 'mouseup',
-      button: BUTTON_TRIGGER
+      type: /start$/.test(e.type) ? 'mousedown' : /end$/.test(e.type) ? 'mouseup' : 'click',
+      button: /^squeeze/.test(e.type) ? BUTTON_SQUEEZE : BUTTON_TRIGGER
     })
-    const handlerMethod = e.type === 'select' ? 'onSelect' : e.type === 'selectstart' ? 'onSelectStart' : 'onSelectEnd'
-    if (this[handlerMethod]) {
-      this[handlerMethod](e)
-    }
   }
 
   _onSceneRayEvent (e) {
@@ -242,14 +241,61 @@ class XrInputSourceFacade extends Group3DFacade {
           hapticActuator.pulse(hapticPulse.value || 1, hapticPulse.duration || 100)
         }
       }
+
+      // For certain events, dispatch an xr-specific event to the raycast target:
+      const xrTargetEvent = RAY_TARGET_EVENTS[e.button] && RAY_TARGET_EVENTS[e.button][e.type]
+      if (xrTargetEvent) {
+        const event = new Event(xrTargetEvent, {bubbles: true})
+        event.eventSource = this
+        e.target.dispatchEvent(event)
+      }
     }
   }
 
   destructor () {
-    toggleEvents(this.xrSession, false, XRSESSION_EVENTS, this._onSelectEvent)
+    toggleEvents(this.xrSession, false, XRSESSION_EVENTS, this._onSessionEvent)
     toggleEvents(this.getSceneFacade(), false, SCENE_EVENTS, this._onSceneRayEvent)
     super.destructor()
   }
 }
+
+// this.onXrFrame = null //timestamp, XRFrame
+// this.onIntersectionEvent = null //???
+// this.onSelectStart = null
+// this.onSelect = null
+// this.onSelectEnd = null
+// this.onSqueezeStart = null
+// this.onSqueeze = null
+// this.onSqueezeEnd = null
+// this.onButtonTouchStart = null
+// this.onButtonPressStart = null
+// this.onButtonPress = null
+// this.onButtonPressEnd = null
+// this.onButtonTouchEnd = null
+
+
+// Define some custom xr-specific events that will be dispatched to the target Object3DFacade
+// intersecting the ray at the time of a button action:
+const RAY_TARGET_EVENTS = {
+  [BUTTON_TRIGGER]: {
+    mousedown: 'xrselectstart',
+    mouseup: 'xrselectend',
+    click: 'xrselect'
+  },
+  [BUTTON_SQUEEZE]: {
+    mousedown: 'xrsqueezestart',
+    mouseup: 'xrsqueezeend',
+    click: 'xrsqueeze'
+  }
+}
+
+// ...and add shortcut event handler properties on Object3DFacade for those events:
+Facade.defineEventProperty(Object3DFacade, 'onXRSelectStart', 'xrselectstart')
+Facade.defineEventProperty(Object3DFacade, 'onXRSelect', 'xrselect')
+Facade.defineEventProperty(Object3DFacade, 'onXRSelectEnd', 'xrselectend')
+Facade.defineEventProperty(Object3DFacade, 'onXRSqueezeStart', 'xrsqueezestart')
+Facade.defineEventProperty(Object3DFacade, 'onXRSqueeze', 'xrsqueeze')
+Facade.defineEventProperty(Object3DFacade, 'onXRSqueezeEnd', 'xrsqueezeend')
+
 
 export default XrInputSourceFacade

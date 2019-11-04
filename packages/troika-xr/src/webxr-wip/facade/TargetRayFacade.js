@@ -1,5 +1,5 @@
 import { Object3DFacade } from 'troika-3d'
-import { copyPoseToFacadeProps } from '../xrUtils'
+import { copyXRPoseToFacadeProps } from '../xrUtils'
 import { Group, Mesh, MeshBasicMaterial, CylinderBufferGeometry } from 'three'
 
 
@@ -39,7 +39,7 @@ class TargetRayFacade extends Object3DFacade {
     const {laserMesh, targetRayPose, radius, rayIntersection, startDistance, maxLength} = this
     if (targetRayPose) {
       // Sync group to the targetRay pose
-      copyPoseToFacadeProps(targetRayPose, this)
+      copyXRPoseToFacadeProps(targetRayPose, this)
 
       // Update laser size from radius/rayIntersection props
       laserMesh.scale.set(
