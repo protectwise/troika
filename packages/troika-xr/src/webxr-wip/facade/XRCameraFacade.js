@@ -5,7 +5,7 @@ const tempVec3 = new Vector3()
 const tempQuat = new Quaternion()
 
 
-class XrCameraFacade extends PerspectiveCamera3DFacade {
+class XRCameraFacade extends PerspectiveCamera3DFacade {
   constructor(parent) {
     super(parent)
 
@@ -130,5 +130,5 @@ class XrCameraFacade extends PerspectiveCamera3DFacade {
 }
 
 
-export default XrCameraFacade
+export default XRCameraFacade
 

@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default class XrLauncher extends React.PureComponent {
+export default class XRLauncher extends React.PureComponent {
   constructor(props) {
     super(props)
 

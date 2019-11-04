@@ -2,8 +2,8 @@ import React from 'react'
 import T from 'prop-types'
 import {utils} from 'troika-core'
 import {Canvas3D} from 'troika-3d'
-import XrLauncher from './XrLauncher.jsx'
-import WorldXrFacade from '../facade/WorldXrFacade.js'
+import XRLauncher from './XRLauncher.jsx'
+import WorldXRFacade from '../facade/WorldXRFacade.js'
 
 
 const SESSION_MODES = ['inline', 'immersive-vr'] //TODO add others as they are added to the specs
@@ -13,7 +13,7 @@ const REFERENCE_SPACE_TYPES = ['viewer', 'local', 'local-floor', 'bounded-floor'
 /**
  * The types of the props that are passed down to the wrapped React component
  */
-export const xrAwarePropTypes = {
+export const XRAwarePropTypes = {
   xrSupported: T.bool,
   xrSupportedSessionModes: T.arrayOf(T.oneOf(SESSION_MODES)),
   xrSession: T.object,
@@ -36,16 +36,16 @@ export const xrAwarePropTypes = {
  * @param {object} options
  * @return {class}
  */
-export function makeXrAware(ReactClass, options) {
+export function ReactXRAware(ReactClass, options) {
   options = utils.assign({
-    xrLauncherRenderer: XrLauncher,
+    xrLauncherRenderer: XRLauncher,
     sessionModes: ['immersive-vr', 'inline'],
     referenceSpaces: ['local-floor', 'local', 'viewer'],
     requiredFeatures: [],
     optionalFeatures: []
   }, options)
 
-  class XrAware extends React.Component {
+  class XRAware extends React.Component {
     constructor(props) {
       super(props)
 
@@ -91,7 +91,7 @@ export function makeXrAware(ReactClass, options) {
                 if (supported) {
                   xrSupportedSessionModes.push(mode)
                 } else {
-                  console.info(`XR session type '${mode}' not supported`, err)
+                  console.info(`XR session type '${mode}' not supported`)
                 }
               })
           } else {
@@ -205,7 +205,7 @@ export function makeXrAware(ReactClass, options) {
       />
 
       const contextValue = {
-        worldFacade: WorldXrFacade,
+        worldFacade: WorldXRFacade,
         worldProps: {
           xrSession,
           xrSessionMode,
@@ -232,8 +232,8 @@ export function makeXrAware(ReactClass, options) {
     }
   }
 
-  XrAware.displayName = `XrAware(${ReactClass.displayName || ReactClass.name || '?'})`
+  XRAware.displayName = `XRAware(${ReactClass.displayName || ReactClass.name || '?'})`
 
-  return XrAware
+  return XRAware
 }
 

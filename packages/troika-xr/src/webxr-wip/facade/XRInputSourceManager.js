@@ -1,6 +1,5 @@
-import {Group3DFacade} from 'troika-3d'
-import {utils, ParentFacade, ListFacade} from 'troika-core'
-import XrInputSourceFacade from './XrInputSourceFacade'
+import {utils, ParentFacade} from 'troika-core'
+import XRInputSourceFacade from './XRInputSourceFacade'
 
 
 /*
@@ -94,7 +93,7 @@ For each XRInputSource:
  *
  *
  */
-export class XrInputSourceManager extends ParentFacade {
+export class XRInputSourceManager extends ParentFacade {
   constructor(parent) {
     super(parent)
     this._sourcesDirty = true
@@ -131,7 +130,7 @@ export class XrInputSourceManager extends ParentFacade {
       this._xrInputSourceSubtree.children = inputSources && inputSources.map(xrInputSource => {
         // TODO resolve config overrides?
         return {
-          facade: XrInputSourceFacade,
+          facade: XRInputSourceFacade,
           key: utils.getIdForObject(xrInputSource),
           xrInputSource,
           xrSession: this.xrSession,

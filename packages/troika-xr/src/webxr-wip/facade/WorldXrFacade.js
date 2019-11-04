@@ -1,15 +1,15 @@
 import { World3DFacade } from 'troika-3d'
-import {XrInputSourceManager} from './XrInputSourceManager'
-import XrCameraFacade from './XrCameraFacade'
+import {XRInputSourceManager} from './XRInputSourceManager'
+import XRCameraFacade from './XRCameraFacade'
 
 const emptyArray = []
 
 const _xrSessions = new WeakMap()
 
 
-class WorldXrFacade extends World3DFacade {
+class WorldXRFacade extends World3DFacade {
   /**
-   * Relevant things passed in from XrAware:
+   * Relevant things passed in from XRAware:
    * @property {XRSession} xrSession
    * @property {XRSessionMode} xrSessionMode
    * @property {XRReferenceSpace} xrReferenceSpace
@@ -84,7 +84,7 @@ class WorldXrFacade extends World3DFacade {
   _getCameraDef() {
     const camera = super._getCameraDef()
     if (this._isImmersive()) {
-      camera.facade = XrCameraFacade
+      camera.facade = XRCameraFacade
       camera.xrSession = this.xrSession
       camera.xrReferenceSpace = this.xrReferenceSpace
     }
@@ -102,7 +102,7 @@ class WorldXrFacade extends World3DFacade {
         scene.objects,
         {
           key: 'xrInputMgr',
-          facade: XrInputSourceManager,
+          facade: XRInputSourceManager,
           xrSession,
           xrReferenceSpace
         }
@@ -148,4 +148,4 @@ class WorldXrFacade extends World3DFacade {
 }
 
 
-export default WorldXrFacade
+export default WorldXRFacade

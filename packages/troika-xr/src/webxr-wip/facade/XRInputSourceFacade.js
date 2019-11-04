@@ -4,7 +4,7 @@ import { Matrix4, Ray } from 'three'
 import CursorFacade from './CursorFacade'
 import TargetRayFacade from './TargetRayFacade'
 import GripFacade from './GripFacade'
-import { BUTTON_SQUEEZE, BUTTON_TRIGGER } from '../xrStandardGamepadMapping'
+import { BUTTON_SQUEEZE, BUTTON_TRIGGER } from '../XRStandardGamepadMapping'
 
 const SCENE_EVENTS = ['mousemove', 'mouseover', 'mouseout', 'mousedown', 'mouseup', 'click']
 const XRSESSION_EVENTS = ['selectstart', 'select', 'selectend', 'squeezestart', 'squeeze', 'squeezeend']
@@ -44,7 +44,7 @@ const tempMat4 = new Matrix4()
  * | 'gaze'            | √         | √      | X            | X                |
  * | 'tracked-pointer' | √         | √      | √            | √ (if possible)  |
  */
-class XrInputSourceFacade extends Group3DFacade {
+class XRInputSourceFacade extends Group3DFacade {
   constructor (parent) {
     super(parent)
 
@@ -298,4 +298,4 @@ Facade.defineEventProperty(Object3DFacade, 'onXRSqueeze', 'xrsqueeze')
 Facade.defineEventProperty(Object3DFacade, 'onXRSqueezeEnd', 'xrsqueezeend')
 
 
-export default XrInputSourceFacade
+export default XRInputSourceFacade
