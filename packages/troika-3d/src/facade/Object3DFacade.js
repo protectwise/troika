@@ -352,13 +352,23 @@ class Object3DFacade extends PointerEventTarget {
 
   /**
    * Custom optimized raycast that, unlike Raycaster.intersectObject(), avoids creating a
-   * new array unless there are actually hits.
+   * new array unless there are actually hits. It also supports the custom `raycastSide`
+   * override property, hit on sides other than the material's configured `side`.
    * @protected
    */
   _raycastObject(obj, raycaster) {
     if (obj.visible) {
       singletonIntersects.length = 0
+      let origSide = null
+      const raycastSide = this.raycastSide
+      if (raycastSide != null) {
+        origSide = obj.material.side
+        obj.material.side = raycastSide
+      }
       obj.raycast(raycaster, singletonIntersects)
+      if (origSide !== null) {
+        obj.material.side = origSide
+      }
       if (singletonIntersects.length) {
         singletonIntersects.sort(ascDistanceSort)
         return singletonIntersects.slice()
@@ -405,6 +415,14 @@ class Object3DFacade extends PointerEventTarget {
     }
   })
 })
+
+/**
+ * @property {null|number} raycastSide
+ * Hook to force a different `side` than that of the material for mesh raycasting.
+ * Should be set to `FrontSide`|`BackSide`|`DoubleSide`, or `null` to use the
+ * material's side.
+ */
+Object3DFacade.prototype.raycastSide = null
 
 
 // Create flat property setters for individual position/scale/rotation properties
