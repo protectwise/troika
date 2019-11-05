@@ -25,6 +25,11 @@ export default function getAmmoShapeManager (Ammo, utils) {
           ammoShape = new Ammo.btBoxShape(...constructorArgs)
           break
         }
+        case 'cylinder': {
+          // Note that there are also btCylinderShapeX and btCylinderShapeZ options, for cylinders with a primary axis that matches. Default is Y
+          ammoShape = new Ammo.btCylinderShape(...constructorArgs)
+          break
+        }
         default:
           throw new Error(`Unsupported shape specified: ${shape}`)
       }

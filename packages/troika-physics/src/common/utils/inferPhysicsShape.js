@@ -35,6 +35,19 @@ function inferRigidBodyShape (geometry) {
           ]
         }]
       }
+    case 'CylinderBufferGeometry':
+    case 'CylinderGeometry':
+      return {
+        shape: 'cylinder',
+        args: [{
+          method: 'Vector3',
+          args: [
+            parameters.radiusTop,
+            parameters.height / 2, // Half-extents
+            parameters.radiusTop
+          ]
+        }]
+      }
     // TODO collider for non-infinite threeJS planes -- box2dShape?
     // case 'PlaneGeometry':
     // case 'PlaneBufferGeometry':
