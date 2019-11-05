@@ -95,15 +95,13 @@ export default function getAmmoUtils (Ammo, CONSTANTS) {
      * @param {boolean} isSoftBody
      * @param {btVector3} [rigidBodyInertia]
      */
-    setMass (body, newMass, isSoftBody, rigidBodyInertia) {
+    setMass (body, newMass, isSoftBody) {
       if (isSoftBody) {
         body.setTotalMass(newMass, false)
       } else {
-        if (rigidBodyInertia) {
-          body.setMassProps(newMass, rigidBodyInertia)
-        } else {
-          body.setMassProps(newMass, rigidBodyInertia)
-        }
+        const inertia = new Ammo.btVector3() // Inertia will be calculated "into" this Vec3
+        body.getCollisionShape().calculateLocalInertia(newMass, inertia)
+        body.setMassProps(newMass, inertia)
       }
     }
 
