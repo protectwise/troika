@@ -3,7 +3,7 @@ import {Object3DFacade} from 'troika-3d'
 
 /*
 const hostGeometry = new BufferGeometry()
-hostGeometry.addAttribute('position', new BufferAttribute(new Float32Array([
+hostGeometry.setAttribute('position', new BufferAttribute(new Float32Array([
   0,0,0, 1,0,0, 1,0,1,
   0,0,0, 1,0,1, 0,0,1,
 

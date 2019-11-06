@@ -113,9 +113,9 @@ export default class CountryBufferGeometry extends BufferGeometry {
 
     // Init the buffer geometry with the projected vertices and triangulation indexes
     var positionAttr = new BufferAttribute(xyzPositions, 3)
-    this.addAttribute('position', positionAttr)
-    this.addAttribute('normal', positionAttr) //positions are based off r=1 so they can be used directly as normals
-    this.addAttribute('uv', new BufferAttribute(uvs, 2))
+    this.setAttribute('position', positionAttr)
+    this.setAttribute('normal', positionAttr) //positions are based off r=1 so they can be used directly as normals
+    this.setAttribute('uv', new BufferAttribute(uvs, 2))
     this.setIndex(new BufferAttribute(
       xyzPositions.length / 3 >> 16 === 0 ? new Uint16Array(indexes) :
       new Uint32Array(indexes)

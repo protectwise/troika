@@ -9,13 +9,11 @@ import {
 } from 'three'
 import {Object3DFacade} from 'troika-3d'
 import adaptiveBezierCurve from 'adaptive-bezier-curve'
-import initLine2DGeometry from 'three-line-2d'
 import strokeVertexShader from './strokeVertex.glsl'
 import strokeFragmentShader from './strokeFragment.glsl'
 import fillVertexShader from './fillVertex.glsl'
 import fillFragmentShader from './fillFragment.glsl'
-
-const Line2DGeometry = initLine2DGeometry({BufferAttribute, BufferGeometry})
+import Line2DGeometry from '../_shared/Line2DGeometry'
 
 // Given an array of y values, construct a smooth curve connecting those points.
 function valuesToCurvePoints(values, totalWidth, totalHeight) {

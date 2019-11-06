@@ -5,7 +5,7 @@ import Tooltip from './Tooltip.jsx'
 
 
 const wallsGeometry = new BufferGeometry()
-wallsGeometry.addAttribute( 'position', new BufferAttribute(new Float32Array([
+wallsGeometry.setAttribute( 'position', new BufferAttribute(new Float32Array([
   0,0,0, 1,0,0, 1,0,1,
   0,0,0, 0,0,1, 1,0,1,
 
@@ -50,7 +50,7 @@ const wallsMaterial = new MeshLambertMaterial({
 
 
 const wallsOutlineGeometry = new BufferGeometry()
-wallsOutlineGeometry.addAttribute( 'position', new BufferAttribute(new Float32Array([
+wallsOutlineGeometry.setAttribute( 'position', new BufferAttribute(new Float32Array([
   0,0,1, 0,1,1, 1,1,1, 1,0,1, 0,0,1
 ]), 3))
 

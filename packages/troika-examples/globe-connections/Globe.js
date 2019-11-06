@@ -67,8 +67,8 @@ Object.keys(geojson).forEach(region => {
 })
 const countryBordersGeometry = new BufferGeometry()
 const positionAttr = new BufferAttribute(new Float32Array(lineSegmentPositions), 3)
-countryBordersGeometry.addAttribute('position', positionAttr)
-countryBordersGeometry.addAttribute('normal', positionAttr) //positions are based off r=1 so they can be used directly as normals
+countryBordersGeometry.setAttribute('position', positionAttr)
+countryBordersGeometry.setAttribute('normal', positionAttr) //positions are based off r=1 so they can be used directly as normals
 
 const sphereGeometry = new SphereBufferGeometry(1, 32, 24)
 const sphereMaterial = createDerivedMaterial(new MeshBasicMaterial({
