@@ -164,10 +164,9 @@ export function ReactXRAware(ReactClass, options) {
               return xrSession.requestReferenceSpace(type)
                 .then(xrReferenceSpace => [xrReferenceSpace, type])
                 .catch(err => {
-                  console.log(`Failed requesting XRReferenceSpace '${type}'`, err)
+                  console.debug(`Reference space ${type} not supported or denied by user.`, err)
                   if (index + 1 === candidateRefSpaces.length) {
-                    console.error('All XRReferenceSpaces failed - should not happen!')
-                    throw err
+                    throw new Error(`All requested referenceSpaces (${candidateRefSpaces.join(', ')}) are either unsupported or were denied by the user.`)
                   } else {
                     return getRefSpace(index + 1)
                   }
