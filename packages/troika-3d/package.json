@@ -1,6 +1,6 @@
 {
   "name": "troika-3d",
-  "version": "0.15.5",
+  "version": "0.15.6",
   "description": "Troika 3D",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "repository": {
@@ -15,8 +15,8 @@
   "module": "dist/troika-3d.esm.js",
   "module:es2015": "src/index.js",
   "dependencies": {
-    "troika-core": "^0.15.3",
-    "troika-three-utils": "^0.15.3"
+    "troika-core": "^0.15.6",
+    "troika-three-utils": "^0.15.6"
   },
   "peerDependencies": {
     "three": "0.103.x - 0.110.x"
