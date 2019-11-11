@@ -264,18 +264,37 @@ ${vertexMainIntro || ''}
 
   // Modify fragment shader
   if (fragmentDefs || fragmentMainIntro || fragmentColorTransform) {
+    // If the shader includes any of the builtin postprocessing chunks, we still want
+    // those to run after the fragmentColorTransform, so extract them first
+    let postTransformChunks
+    if (fragmentColorTransform) {
+      fragmentShader = fragmentShader.replace(
+        /#include <(?:tonemapping|encodings|fog|premultiplied_alpha|dithering)_fragment>/g,
+        (match) => {
+          (postTransformChunks || (postTransformChunks = [])).push(match)
+          return ''
+        }
+      )
+    }
+
+    // Expand includes just in case void main is in an include:
     fragmentShader = expandShaderIncludes(fragmentShader)
+
+    // Move void main content to a custom function and call it from our new void main:
     fragmentShader = fragmentShader.replace(voidMainRegExp, `
 ${fragmentDefs || ''}
 void troikaOrigMain${id}() {
 ${fragmentMainIntro || ''}
-`)
-    fragmentShader += `
+`) + `
 void main() {
   troikaOrigMain${id}();
   ${fragmentColorTransform || ''}
+  ${postTransformChunks ? postTransformChunks.join('\n') : ''}
 }`
   }
+
+  //console.log(vertexShader)
+  //console.log(fragmentShader)
 
   return {
     vertexShader,
