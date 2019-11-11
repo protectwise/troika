@@ -142,7 +142,7 @@ export function createDerivedMaterial(baseMaterial, options) {
       value: function (source) {
         baseMaterial.copy.call(this, source)
         if (!baseMaterial.isShaderMaterial && !baseMaterial.isDerivedMaterial) {
-          this.extensions = source.extensions
+          this.extensions = assign({}, source.extensions)
           this.defines = assign({}, source.defines)
           this.uniforms = UniformsUtils.clone(source.uniforms)
         }
@@ -246,7 +246,7 @@ void troikaVertexTransform${id}(inout vec3 position, inout vec3 normal, inout ve
 }
 `
       vertexShader = vertexShader.replace(/\b(position|normal|uv)\b/g, (match, match1, index, fullStr) => {
-        return /\battribute\s+vec3\s+$/.test(fullStr.substr(0, index)) ? match1 : `troika_${match1}_${id}`
+        return /\battribute\s+vec[23]\s+$/.test(fullStr.substr(0, index)) ? match1 : `troika_${match1}_${id}`
       })
       vertexMainIntro = `
 vec3 troika_position_${id} = vec3(position);
