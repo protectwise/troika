@@ -288,8 +288,8 @@ ${fragmentMainIntro || ''}
 `) + `
 void main() {
   troikaOrigMain${id}();
-  ${fragmentColorTransform || ''}
   ${postTransformChunks ? postTransformChunks.join('\n') : ''}
+  ${fragmentColorTransform || ''}
 }`
   }
 
