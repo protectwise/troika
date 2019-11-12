@@ -287,7 +287,9 @@ void troikaOrigMain${id}(inout vec4 gl_FragColor) {
 ${fragmentMainIntro || ''}
 `) + `
 void main() {
-  troikaOrigMain${id}(gl_FragColor);
+  vec4 troikaColor${id} = gl_FragColor.rgba;
+  troikaOrigMain${id}(troikaColor${id});
+  gl_FragColor.rgba = troikaColor${id};
   ${postTransformChunks ? postTransformChunks.join('\n') : ''}
   ${fragmentColorTransform || ''}
 }`
