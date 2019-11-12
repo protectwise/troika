@@ -290,6 +290,7 @@ void main() {
   troikaOrigMain${id}();
   ${postTransformChunks ? postTransformChunks.join('\n') : ''}
   ${fragmentColorTransform || ''}
+  gl_FragColor.rgba = vec4(gl_FragColor.rgba);
 }`
   }
 
