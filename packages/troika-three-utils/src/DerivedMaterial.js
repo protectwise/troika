@@ -290,7 +290,6 @@ void main() {
   troikaOrigMain${id}();
   ${postTransformChunks ? postTransformChunks.join('\n') : ''}
   ${fragmentColorTransform || ''}
-  gl_FragColor = gl_FragColor;
 }`
   }
 
