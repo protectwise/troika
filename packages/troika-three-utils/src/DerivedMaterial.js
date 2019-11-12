@@ -283,14 +283,13 @@ ${vertexMainIntro || ''}
     // Move void main content to a custom function and call it from our new void main:
     fragmentShader = fragmentShader.replace(voidMainRegExp, `
 ${fragmentDefs || ''}
-void troikaOrigMain${id}() {
+void troikaOrigMain${id}(inout vec4 gl_FragColor) {
 ${fragmentMainIntro || ''}
 `) + `
 void main() {
-  troikaOrigMain${id}();
+  troikaOrigMain${id}(gl_FragColor);
   ${postTransformChunks ? postTransformChunks.join('\n') : ''}
   ${fragmentColorTransform || ''}
-  gl_FragColor.rgba = vec4(gl_FragColor.rgba);
 }`
   }
 
