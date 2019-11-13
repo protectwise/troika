@@ -1,6 +1,7 @@
 import { createDerivedMaterial } from 'troika-three-utils'
 import { Vector4 } from 'three'
 
+// language=GLSL
 const VERTEX_DEFS = `
 uniform float uTroikaGlyphVSize;
 uniform vec4 uTroikaTotalBounds;
@@ -10,6 +11,7 @@ varying vec2 vTroikaGlyphUV;
 varying vec3 vTroikaLocalPos;
 `
 
+// language=GLSL prefix="void main() {" suffix="}"
 const VERTEX_TRANSFORM = `
 vTroikaGlyphUV = vec2(
   position.x,
@@ -29,6 +31,7 @@ uv = vec2(
 );
 `
 
+// language=GLSL
 const FRAGMENT_DEFS = `
 uniform sampler2D uTroikaSDFTexture;
 uniform float uTroikaSDFMinDistancePct;
@@ -52,52 +55,50 @@ float troikaGetClipAlpha() {
   return step(0.0, dClip);
   #endif
 }
-`
 
-const FRAGMENT_TRANSFORM = `
-float troikaSDFValue = texture2D(uTroikaSDFTexture, vTroikaGlyphUV).r;
-
-#if defined(IS_DEPTH_MATERIAL) || defined(IS_DISTANCE_MATERIAL)
-if (troikaSDFValue < 0.5) discard;
-#else
-
-${''/*
-  When the standard derivatives extension is available, we choose an antialiasing alpha threshold based
-  on the potential change in the SDF's alpha from this fragment to its neighbor. This strategy maximizes 
-  readability and edge crispness at all sizes and screen resolutions. Interestingly, this also means that 
-  below a minimum size we're effectively displaying the SDF texture unmodified.
-*/}
-#if defined(GL_OES_standard_derivatives) || __VERSION__ >= 300
-  float troikaAntiAliasDist = min(
+float troikaGetTextAlpha() {
+  float troikaSDFValue = texture2D(uTroikaSDFTexture, vTroikaGlyphUV).r;
+  
+  #if defined(IS_DEPTH_MATERIAL) || defined(IS_DISTANCE_MATERIAL)
+  float alpha = step(0.5, troikaSDFValue);
+  #else
+  ${''/*
+    When the standard derivatives extension is available, we choose an antialiasing alpha threshold based
+    on the potential change in the SDF's alpha from this fragment to its neighbor. This strategy maximizes 
+    readability and edge crispness at all sizes and screen resolutions. Interestingly, this also means that 
+    below a minimum size we're effectively displaying the SDF texture unmodified.
+  */}
+  #if defined(GL_OES_standard_derivatives) || __VERSION__ >= 300
+  float aaDist = min(
     0.5,
     0.5 * min(
       fwidth(vTroikaGlyphUV.x), 
       fwidth(vTroikaGlyphUV.y / uTroikaGlyphVSize)
     )
   ) / uTroikaSDFMinDistancePct;
-#else
-  float troikaAntiAliasDist = 0.01;
-#endif
-
-float textAlphaMult = uTroikaSDFDebug ? troikaSDFValue : smoothstep(
-  0.5 - troikaAntiAliasDist,
-  0.5 + troikaAntiAliasDist,
-  troikaSDFValue
-);
-
-textAlphaMult = min(textAlphaMult, troikaGetClipAlpha());
-
-if (textAlphaMult == 0.0) {
-  if (uTroikaSDFDebug) {
-    gl_FragColor *= 0.5;
-  } else {
-    discard;
-  }
-} else {
-  gl_FragColor.a *= textAlphaMult;
+  #else
+  float aaDist = 0.01;
+  #endif
+  
+  float alpha = uTroikaSDFDebug ? troikaSDFValue : smoothstep(
+    0.5 - aaDist,
+    0.5 + aaDist,
+    troikaSDFValue
+  );
+  #endif
+  
+  return min(alpha, troikaGetClipAlpha());
 }
+`
 
-#endif
+// language=GLSL prefix="void main() {" suffix="}"
+const FRAGMENT_TRANSFORM = `
+float troikaAlphaMult = troikaGetTextAlpha();
+if (troikaAlphaMult == 0.0) {
+  discard;
+} else {
+  gl_FragColor.a *= troikaAlphaMult;
+}
 `
 
 
