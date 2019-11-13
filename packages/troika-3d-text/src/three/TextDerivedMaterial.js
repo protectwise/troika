@@ -65,21 +65,25 @@ float troikaGetTextAlpha() {
     readability and edge crispness at all sizes and screen resolutions. Interestingly, this also means that 
     below a minimum size we're effectively displaying the SDF texture unmodified.
   */}
-  float troikaAntiAliasDist;
   #if defined(GL_OES_standard_derivatives) || __VERSION__ >= 300
-  float derivU = fwidth(vTroikaGlyphUV.x);
-  float v = vTroikaGlyphUV.y / uTroikaGlyphVSize;
-  float derivV = fwidth(v);
-  troikaAntiAliasDist = min(0.5, 0.5 * min(derivU, derivV)) / uTroikaSDFMinDistancePct;
+  float troikaAntiAliasDist = min(
+    0.5,
+    0.5 * min(
+      fwidth(vTroikaGlyphUV.x), 
+      fwidth(vTroikaGlyphUV.y / uTroikaGlyphVSize)
+    )
+  ) / uTroikaSDFMinDistancePct;
   #else
-  troikaAntiAliasDist = 0.01;
+    float troikaAntiAliasDist = 0.01;
   #endif
   
-  return smoothstep(
+  float textAlphaMult = uTroikaSDFDebug ? troikaSDFValue : smoothstep(
     0.5 - troikaAntiAliasDist,
     0.5 + troikaAntiAliasDist,
     troikaSDFValue
   );
+  
+  return min(textAlphaMult, troikaGetClipAlpha());
   #endif
 }
 `
@@ -87,7 +91,11 @@ float troikaGetTextAlpha() {
 const FRAGMENT_TRANSFORM = `
 float troikaAlphaMult = troikaGetTextAlpha();
 if (troikaAlphaMult == 0.0) {
-  discard;
+  if (uTroikaSDFDebug) {
+    gl_FragColor *= 0.5;
+  } else {
+    discard;
+  }
 } else {
   gl_FragColor.a *= troikaAlphaMult;
 }
