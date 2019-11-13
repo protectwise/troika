@@ -66,13 +66,10 @@ float troikaGetTextAlpha() {
     below a minimum size we're effectively displaying the SDF texture unmodified.
   */}
   #if defined(GL_OES_standard_derivatives) || __VERSION__ >= 300
-  float troikaAntiAliasDist = min(
-    0.5,
-    0.5 * min(
-      fwidth(vTroikaGlyphUV.x), 
-      fwidth(vTroikaGlyphUV.y / uTroikaGlyphVSize)
-    )
-  ) / uTroikaSDFMinDistancePct;
+  float derivU = fwidth(vTroikaGlyphUV.x);
+  float v = vTroikaGlyphUV.y / uTroikaGlyphVSize;
+  float derivV = fwidth(v);
+  float troikaAntiAliasDist = min(0.5, 0.5 * min(derivU, derivV)) / uTroikaSDFMinDistancePct;
   #else
     float troikaAntiAliasDist = 0.01;
   #endif
