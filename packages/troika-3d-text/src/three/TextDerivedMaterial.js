@@ -52,22 +52,20 @@ float troikaGetClipAlpha() {
   return step(0.0, dClip);
   #endif
 }
-`
 
-const FRAGMENT_TRANSFORM = `
-float troikaSDFValue = texture2D(uTroikaSDFTexture, vTroikaGlyphUV).r;
-
-#if defined(IS_DEPTH_MATERIAL) || defined(IS_DISTANCE_MATERIAL)
-if (troikaSDFValue < 0.5) discard;
-#else
-
-${''/*
-  When the standard derivatives extension is available, we choose an antialiasing alpha threshold based
-  on the potential change in the SDF's alpha from this fragment to its neighbor. This strategy maximizes 
-  readability and edge crispness at all sizes and screen resolutions. Interestingly, this also means that 
-  below a minimum size we're effectively displaying the SDF texture unmodified.
-*/}
-#if defined(GL_OES_standard_derivatives) || __VERSION__ >= 300
+float troikaGetTextAlpha() {
+  float troikaSDFValue = texture2D(uTroikaSDFTexture, vTroikaGlyphUV).r;
+  
+  #if defined(IS_DEPTH_MATERIAL) || defined(IS_DISTANCE_MATERIAL)
+  return step(0.5, troikaSDFValue);
+  #else
+  ${''/*
+    When the standard derivatives extension is available, we choose an antialiasing alpha threshold based
+    on the potential change in the SDF's alpha from this fragment to its neighbor. This strategy maximizes 
+    readability and edge crispness at all sizes and screen resolutions. Interestingly, this also means that 
+    below a minimum size we're effectively displaying the SDF texture unmodified.
+  */}
+  #if defined(GL_OES_standard_derivatives) || __VERSION__ >= 300
   float troikaAntiAliasDist = min(
     0.5,
     0.5 * min(
@@ -75,29 +73,28 @@ ${''/*
       fwidth(vTroikaGlyphUV.y / uTroikaGlyphVSize)
     )
   ) / uTroikaSDFMinDistancePct;
-#else
-  float troikaAntiAliasDist = 0.01;
-#endif
-
-float textAlphaMult = uTroikaSDFDebug ? troikaSDFValue : smoothstep(
-  0.5 - troikaAntiAliasDist,
-  0.5 + troikaAntiAliasDist,
-  troikaSDFValue
-);
-
-textAlphaMult = min(textAlphaMult, troikaGetClipAlpha());
-
-if (textAlphaMult == 0.0) {
-  if (uTroikaSDFDebug) {
-    gl_FragColor *= 0.5;
-  } else {
-    discard;
-  }
-} else {
-  gl_FragColor.a *= textAlphaMult;
+  #else
+    float troikaAntiAliasDist = 0.01;
+  #endif
+  
+  float textAlphaMult = uTroikaSDFDebug ? troikaSDFValue : smoothstep(
+    0.5 - troikaAntiAliasDist,
+    0.5 + troikaAntiAliasDist,
+    troikaSDFValue
+  );
+  
+  return min(textAlphaMult, troikaGetClipAlpha());
+  #endif
 }
+`
 
-#endif
+const FRAGMENT_TRANSFORM = `
+float troikaAlphaMult = troikaGetTextAlpha();
+if (troikaAlphaMult == 0.0) {
+  discard;
+} else {
+  gl_FragColor.a *= troikaAlphaMult;
+}
 `
 
 
