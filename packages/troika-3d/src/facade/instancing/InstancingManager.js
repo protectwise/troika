@@ -15,7 +15,7 @@ import { getShadersForMaterial, getShaderUniformTypes, expandShaderIncludes } fr
 const { assign, assignIf } = utils
 
 const INSTANCE_BATCH_SIZE = 1024 //TODO make this an option?
-
+const DYNAMIC_DRAW = 0x88E8 //can't import DynamicDrawUsage from three without breaking older versions
 
 /**
  * An InstancingManager handles aggregating all Instanceable3DFacade descendants into
@@ -362,7 +362,11 @@ class BatchGeometryPool {
       // Create instancing attributes for the modelMatrix's rows
       for (let row = 0; row < 3; row++) {
         let attr = new InstancedBufferAttribute(new Float32Array(INSTANCE_BATCH_SIZE * 4), 4)
-        attr.dynamic = true
+        if (attr.setUsage) {
+          attr.setUsage(DYNAMIC_DRAW)
+        } else {
+          attr.dynamic = true
+        }
         batchGeometry.attributes[`troika_modelMatrixRow${row}`] = attr
         instanceAttrs.matrix[row] = attr
       }
@@ -373,7 +377,11 @@ class BatchGeometryPool {
         let itemSize = ATTR_ITEM_SIZES[type]
         let ArrayType = type === 'int' ? Uint32Array : Float32Array
         let attr = new InstancedBufferAttribute(new ArrayType(INSTANCE_BATCH_SIZE * itemSize), itemSize)
-        attr.dynamic = true
+        if (attr.setUsage) {
+          attr.setUsage(DYNAMIC_DRAW)
+        } else {
+          attr.dynamic = true
+        }
         batchGeometry.attributes[`troika_${name}`] = attr
         instanceAttrs.uniforms[name] = attr
       }
