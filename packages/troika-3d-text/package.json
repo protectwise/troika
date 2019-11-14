@@ -1,6 +1,6 @@
 {
   "name": "troika-3d-text",
-  "version": "0.15.6",
+  "version": "0.15.7",
   "description": "Troika 3D Text",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "repository": {
@@ -15,8 +15,8 @@
   "module": "dist/troika-3d-text.esm.js",
   "module:es2015": "src/index.js",
   "dependencies": {
-    "troika-3d": "^0.15.6",
-    "troika-three-utils": "^0.15.6",
+    "troika-3d": "^0.15.7",
+    "troika-three-utils": "^0.15.7",
     "troika-worker-utils": "^0.15.6"
   },
   "devDependencies": {
