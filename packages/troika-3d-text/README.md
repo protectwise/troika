@@ -113,6 +113,14 @@ Use the `material` property if you want to control aspects of the material other
 
 Default: _none_ - uses the color of the `material`
 
+#### `depthOffset`
+
+This is a shortcut for setting the material's [`polygonOffset` and related properties](https://threejs.org/docs/#api/en/materials/Material.polygonOffset), which can be useful in preventing z-fighting when this text is laid on top of another plane in the scene. Positive numbers are further from the camera, negatives closer.
+
+Be aware that while this can help with z-fighting, it does not affect the rendering order; if the text renders before the content behind it, you may see antialiasing pixels that appear too dark or light. You may need to also change the text mesh's `renderOrder`, or set its `z` position a fraction closer to the camera, to ensure the text renders after background objects.
+
+Default: `0`
+
 #### `font`
 
 The URL of a custom font file to be used. Supported font formats are:
