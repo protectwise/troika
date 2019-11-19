@@ -27,28 +27,34 @@ function tick() {
   }
 }
 
-// let _raf = fn => setTimeout(fn, 10)
-let _raf = window.requestAnimationFrame
-function queueFrame() {
-  if (!nextFrameTimer) {
-    nextFrameTimer = _raf(tick)
+let _scheduler = window
+
+/**
+ * Allow the scheduler to be modified, e.g. when switching to an immersive XRSession.
+ *
+ * TODO: we may want to only do this for a subset of animations, like just those subject to
+ *  an XRSession, while letting others use the default. This global hook won't work for that.
+ *
+ * @param {{requestAnimationFrame, cancelAnimationFrame}} scheduler - an object holding
+ *        the two scheduling functions.
+ */
+export function setAnimationScheduler(scheduler) {
+  scheduler = scheduler || window
+  if (scheduler !== _scheduler) {
+    if (nextFrameTimer) {
+      _scheduler.cancelAnimationFrame(nextFrameTimer)
+      nextFrameTimer = null
+    }
+    _scheduler = scheduler
+    queueFrame()
   }
 }
 
-// Handle switching to VR-specific rAF when needed. This works around issues in some browsers
-// where they pause the main window.rAF during VR presentation.
-// TODO really this should be done only for those animations that affect a VR canvas, so others
-// don't continue executing even through they're not visible.
-window.addEventListener('vrdisplaypresentchange', e => {
-  navigator.getVRDisplays().then((displays) => {
-    displays = displays.filter(d => d.isPresenting)
-    _raf = displays[0] ?
-      displays[0].requestAnimationFrame.bind(displays[0]) : //not pre-bound, strangely
-      window.requestAnimationFrame
-    nextFrameTimer = null
-    queueFrame()
-  })
-}, false)
+function queueFrame() {
+  if (!nextFrameTimer) {
+    nextFrameTimer = _scheduler.requestAnimationFrame(tick)
+  }
+}
 
 
 function startRunner(runner) {

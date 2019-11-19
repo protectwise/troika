@@ -1,4 +1,5 @@
 import { World3DFacade } from 'troika-3d'
+import { setAnimationScheduler } from 'troika-animation'
 import {XRInputSourceManager} from './XRInputSourceManager'
 import XRCameraFacade from './XRCameraFacade'
 
@@ -30,6 +31,8 @@ class WorldXRFacade extends World3DFacade {
     const prevXrSession = _xrSessions.get(this)
     if (xrSession !== prevXrSession) {
       _xrSessions.set(this, xrSession)
+      this.renderingScheduler = xrSession || window
+      setAnimationScheduler(xrSession || window)
       if (xrSession) {
         let baseLayer = xrSession.renderState.baseLayer
         const gl = renderer.getContext()
@@ -53,9 +56,9 @@ class WorldXRFacade extends World3DFacade {
       } else {
         renderer.setFramebuffer(null)
         renderer.setRenderTarget(renderer.getRenderTarget()) //see https://github.com/mrdoob/three.js/pull/15830
+        this._queueRender()
       }
     }
-
   }
 
   /**
@@ -116,21 +119,6 @@ class WorldXRFacade extends World3DFacade {
    */
   _isContinuousRender() {
     return this.xrSession || this.continuousRender
-  }
-
-  /**
-   * @override to use the XRSession's scheduler when appropriate
-   */
-  _requestRenderFrame(callback) {
-    return (this.xrSession || window).requestAnimationFrame(callback)
-      || Math.random() + 1 //webxr emulation extension doesn't return a handle
-  }
-
-  /**
-   * @override to use the XRSession's scheduler when appropriate
-   */
-  _cancelAnimationFrame(frameId) {
-    return (this.xrSession || window).cancelAnimationFrame(frameId)
   }
 
   /**

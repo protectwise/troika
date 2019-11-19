@@ -1,4 +1,5 @@
 import {World3DFacade} from 'troika-3d'
+import {setAnimationScheduler} from 'troika-animation'
 import {extendAsVrCamera} from './VrCamera'
 import {VrControllerManager} from './VrControllerManager'
 
@@ -12,6 +13,14 @@ class WorldVrFacade extends World3DFacade {
     // Disable pointer events on the onscreen canvas when in VR
     const vrDisplay = this._isInVR() ? this.vrDisplay : null
     this._togglePointerListeners(!vrDisplay)
+
+    // Update the animation scheduler
+    if (vrDisplay !== this._lastVrDisplay) {
+      this._lastVrDisplay = vrDisplay
+      this.renderingScheduler = vrDisplay || window
+      setAnimationScheduler(vrDisplay || window)
+    }
+
     super.afterUpdate()
   }
 
@@ -72,25 +81,11 @@ class WorldVrFacade extends World3DFacade {
     super._updateDrawingBufferSize(width, height, pixelRatio)
   }
 
-    /**
+  /**
    * @override to always continuously render when in VR mode
    */
   _isContinuousRender() {
     return this._isInVR() || this.continuousRender
-  }
-
-  /**
-   * @override to use an active WebVR device's scheduler when appropriate
-   */
-  _requestRenderFrame(callback) {
-    return (this._isInVR() ? this.vrDisplay : window).requestAnimationFrame(callback)
-  }
-
-  /**
-   * @override to use an active WebVR device's scheduler when appropriate
-   */
-  _cancelAnimationFrame(frameId) {
-    return (this._isInVR() ? this.vrDisplay : window).cancelAnimationFrame(frameId)
   }
 
   /**

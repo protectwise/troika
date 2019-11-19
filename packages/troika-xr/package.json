@@ -16,6 +16,8 @@
   "module:es2015": "src/index.js",
   "dependencies": {
     "troika-3d": "^0.15.7",
-    "troika-core": "^0.15.6"
+    "troika-animation": "^0.15.0",
+    "troika-core": "^0.15.6",
+    "troika-three-utils": "^0.15.7"
   }
 }

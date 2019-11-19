@@ -121,27 +121,30 @@ class WorldBaseFacade extends ParentFacade {
   }
 
   /**
-   * @protected Schedule a callback for the next renderable frame. Defaults to browser's
-   * `requestAnimationFrame` but can be overridden to use different timing strategies such
-   * as WebVR's device frame rate scheduler.
+   * @property {{requestAnimationFrame, cancelAnimationFrame}} renderingScheduler
+   * The object holding `requestAnimationFrame` and `cancelAnimationFrame` scheduling
+   * functions. Defaults to `window` but can be switched to another implementation, e.g.
+   * to use an XRSession's custom scheduler.
    */
-  _requestRenderFrame(callback) {
-    return window.requestAnimationFrame(callback)
+  set renderingScheduler(scheduler) {
+    scheduler = scheduler || window
+    if (scheduler !== this.renderingScheduler) {
+      const activeHandle = this._nextFrameTimer
+      if (activeHandle) {
+        this.renderingScheduler.cancelAnimationFrame(activeHandle)
+        this._nextFrameTimer = null
+      }
+      this._renderingScheduler = scheduler
+    }
   }
-
-  /**
-   * @protected Cancel a scheduled callback for the next renderable frame. Defaults to browser's
-   * `cancelAnimationFrame` but can be overridden to use different timing strategies such
-   * as WebVR's device frame rate scheduler.
-   */
-  _cancelAnimationFrame(frameId) {
-    return window.cancelAnimationFrame(frameId)
+  get renderingScheduler() {
+    return this._renderingScheduler || window
   }
 
   // Schedule a render pass on the next frame
   _queueRender() {
     if (!this._nextFrameTimer) {
-      this._nextFrameTimer = this._requestRenderFrame(this._nextFrameHandler || (this._nextFrameHandler = (...args) => {
+      const handler = this._nextFrameHandler || (this._nextFrameHandler = (...args) => {
         let {onStatsUpdate, onBeforeRender, onAfterRender} = this
         let start = onStatsUpdate && Date.now()
 
@@ -168,7 +171,8 @@ class WorldBaseFacade extends ParentFacade {
         if (this._isContinuousRender()) {
           this._queueRender()
         }
-      }))
+      })
+      this._nextFrameTimer = this.renderingScheduler.requestAnimationFrame(handler)
     }
   }
 
@@ -468,7 +472,7 @@ class WorldBaseFacade extends ParentFacade {
 
   destructor() {
     if (this._nextFrameTimer) {
-      this._cancelAnimationFrame(this._nextFrameTimer)
+      this.renderingScheduler.cancelAnimationFrame(this._nextFrameTimer)
     }
     this._togglePointerListeners(false)
     this._toggleDropListeners(false)

@@ -85,7 +85,7 @@ export function makeWorldTextureProvider(WrappedFacadeClass) {
 
           // Use the outer world's scheduler in the inner world
           const outerWorld = this._getOuterWorld()
-          innerWorld._requestRenderFrame = outerWorld._requestRenderFrame.bind(outerWorld)
+          innerWorld.renderingScheduler = outerWorld.renderingScheduler
 
           // Trigger texture update whenever the inner world is rerendered
           innerWorld.onAfterRender = () => {
