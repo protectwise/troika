@@ -48,7 +48,7 @@ export default class ParentFacade extends Facade {
         children = TEMP_ARRAY
       }
 
-      let childIndex = 0
+      orderedChildKeys.length = 0
       for (let i = 0, len = children.length; i < len; i++) {
         let childDesc = children[i]
         if (!childDesc) continue //child members can be null
@@ -116,13 +116,10 @@ export default class ParentFacade extends Facade {
             newImpl[prop] = propsObj[prop]
           }
         }
-        newImpl.afterUpdate()
         newDict[key] = newImpl
-        orderedChildKeys[childIndex++] = key
+        orderedChildKeys.push(key)
+        newImpl.afterUpdate()
       }
-      orderedChildKeys.length = childIndex
-    } else {
-      orderedChildKeys.length = 0
     }
 
     // Destroy all old child instances that were not reused or replaced
