@@ -1,41 +1,36 @@
-// WebXR polyfill
-//import WebXRPolyfill from 'webxr-polyfill'
-if (self.WebXRPolyfill) {
-  new WebXRPolyfill()
-}
 
 //=== WebVR: ===//
 
 // Main entry point
-export {makeVrAware} from './react/VrAware.jsx'
+export {makeVrAware} from './webvr-deprecated/react/VrAware.jsx'
 
 // Supporting facades
-export {default as WorldVrFacade} from './facade/WorldVrFacade.js'
+export {default as WorldVrFacade} from './webvr-deprecated/facade/WorldVrFacade.js'
 
 // Controller models
-export {default as OculusTouchModelFacade} from './facade/controllers/OculusTouchModelFacade.js'
-export {default as BasicModelFacade} from './facade/controllers/BasicModelFacade.js'
+export {default as OculusTouchModelFacade} from './webvr-deprecated/facade/controllers/OculusTouchModelFacade.js'
+export {default as BasicModelFacade} from './webvr-deprecated/facade/controllers/BasicModelFacade.js'
 
 
 //=== WebXR: ===//
 
 // Main entry point
-export {ReactXRAware, XRAwarePropTypes} from './webxr-wip/react/XRAware.jsx'
+export {ReactXRAware, XRAwarePropTypes} from './react/XRAware.jsx'
 
 // Supporting facades
-export {default as WorldXRFacade} from './webxr-wip/facade/WorldXRFacade.js'
-export {default as XRCameraFacade} from './webxr-wip/facade/XRCameraFacade.js'
+export {default as WorldXRFacade} from './facade/WorldXRFacade.js'
+export {default as XRCameraFacade} from './facade/XRCameraFacade.js'
 
 // Input Sources
-export {default as XRInputSourceFacade} from './webxr-wip/facade/XRInputSourceFacade.js'
-export {default as CursorFacade} from './webxr-wip/facade/CursorFacade.js'
-export {default as GripFacade} from './webxr-wip/facade/GripFacade.js'
-export {default as TargetRayFacade} from './webxr-wip/facade/TargetRayFacade.js'
-export * from './webxr-wip/XRStandardGamepadMapping.js'
+export {default as XRInputSourceFacade} from './facade/XRInputSourceFacade.js'
+export {default as CursorFacade} from './facade/CursorFacade.js'
+export {default as GripFacade} from './facade/GripFacade.js'
+export {default as TargetRayFacade} from './facade/TargetRayFacade.js'
+export * from './XRStandardGamepadMapping.js'
 
 // Controller Grip Models
-export {default as BasicGrip} from './webxr-wip/facade/grip-models/BasicGrip.js'
-export {default as OculusTouchGrip} from './webxr-wip/facade/grip-models/OculusTouchGrip.js'
+export {default as BasicGrip} from './facade/grip-models/BasicGrip.js'
+export {default as OculusTouchGrip} from './facade/grip-models/OculusTouchGrip.js'
 
 // Misc
-export * from './webxr-wip/XRUtils.js'
+export * from './XRUtils.js'
