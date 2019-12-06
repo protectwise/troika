@@ -1,7 +1,7 @@
 import { World3DFacade } from 'troika-3d'
 import { setAnimationScheduler } from 'troika-animation'
-import {XRInputSourceManager} from './XRInputSourceManager'
-import XRCameraFacade from './XRCameraFacade'
+import { XRInputSourceManager } from './XRInputSourceManager'
+import { extendAsXRCamera } from './XRCameraFacade'
 
 const emptyArray = []
 
@@ -87,7 +87,7 @@ class WorldXRFacade extends World3DFacade {
   _getCameraDef() {
     const camera = super._getCameraDef()
     if (this._isImmersive()) {
-      camera.facade = XRCameraFacade
+      camera.facade = extendAsXRCamera(camera.facade)
       camera.xrSession = this.xrSession
       camera.xrReferenceSpace = this.xrReferenceSpace
     }

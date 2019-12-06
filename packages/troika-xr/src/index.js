@@ -19,7 +19,7 @@ export {ReactXRAware, XRAwarePropTypes} from './react/XRAware.jsx'
 
 // Supporting facades
 export {default as WorldXRFacade} from './facade/WorldXRFacade.js'
-export {default as XRCameraFacade} from './facade/XRCameraFacade.js'
+export {extendAsXRCamera} from './facade/XRCameraFacade.js'
 
 // Input Sources
 export {default as XRInputSourceFacade} from './facade/XRInputSourceFacade.js'

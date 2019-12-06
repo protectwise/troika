@@ -133,7 +133,6 @@ class XRInputSourceFacade extends Group3DFacade {
   }
 
   _onXrFrame (time, xrFrame) {
-    // TODO offset the ref space the same way as the camera (?)
     const {xrInputSource, isPointing, _ray: ray} = this
     const offsetReferenceSpace = this.getCameraFacade().offsetReferenceSpace
 
