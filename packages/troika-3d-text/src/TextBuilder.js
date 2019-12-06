@@ -1,4 +1,4 @@
-import { DataTexture, LinearFilter, LuminanceFormat } from 'three'
+import { DataTexture, LinearFilter, LuminanceFormat, Vector2 } from 'three'
 import { defineWorkerModule, ThenableWorkerModule } from 'troika-worker-utils'
 import createSDFGenerator from './SDFGenerator.js'
 import createFontProcessor from './FontProcessor.js'
@@ -10,7 +10,8 @@ import fontParser from './FontParser_Typr.js'
 
 const CONFIG = {
   defaultFontURL: 'https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff', //Roboto Regular
-  sdfGlyphSize: 64
+  sdfGlyphSize: 64,
+  textureWidth: 2048
 }
 const linkEl = document.createElement('a') //for resolving relative URLs to absolute
 let hasRequested = false
@@ -27,6 +28,12 @@ let hasRequested = false
  *                 Larger sizes can improve the quality of glyph rendering by increasing the sharpness
  *                 of corners and preventing loss of very thin lines, at the expense of memory. Defaults
  *                 to 64 which is generally a good balance of size and quality.
+ * @param {Number} config.textureWidth - The width of the SDF texture; must be a power of 2. Defaults to
+ *                 2048 which is a safe maximum texture dimension according to the stats at
+ *                 https://webglstats.com/webgl/parameter/MAX_TEXTURE_SIZE and should allow for a
+ *                 reasonably large number of glyphs (default glyph size of 64 and safe texture size of
+ *                 2048^2 allows for 1024 glyphs.) This can be increased if you need to increase the
+ *                 glyph size and/or have an extraordinary number of glyphs.
  */
 export function configureTextBuilder(config) {
   if (hasRequested) {
@@ -36,11 +43,6 @@ export function configureTextBuilder(config) {
   }
 }
 
-
-/**
- * How many glyphs the font's SDF texture should initially be created to hold.
- */
-const SDF_INITIAL_GLYPH_COUNT = 64
 
 /**
  * The radial distance from glyph edges over which the SDF alpha will be calculated; if the alpha
@@ -83,14 +85,14 @@ export function getTextRenderInfo(args, callback) {
   args.text = '' + args.text
 
   // Init the atlas for this font if needed
-  const sdfGlyphSize = CONFIG.sdfGlyphSize
+  const {sdfGlyphSize, textureWidth} = CONFIG
   let atlas = atlases[args.font]
   if (!atlas) {
     atlas = atlases[args.font] = {
       sdfTexture: new DataTexture(
-        new Uint8Array(sdfGlyphSize * sdfGlyphSize * SDF_INITIAL_GLYPH_COUNT),
+        new Uint8Array(sdfGlyphSize * textureWidth),
+        textureWidth,
         sdfGlyphSize,
-        sdfGlyphSize * SDF_INITIAL_GLYPH_COUNT,
         LuminanceFormat,
         undefined,
         undefined,
@@ -109,18 +111,26 @@ export function getTextRenderInfo(args, callback) {
     if (result.newGlyphSDFs) {
       result.newGlyphSDFs.forEach(({textureData, atlasIndex}) => {
         const texImg = atlas.sdfTexture.image
-        const arrayOffset = atlasIndex * sdfGlyphSize * sdfGlyphSize
 
         // Grow the texture by power of 2 if needed
-        while (arrayOffset > texImg.data.length - 1) {
+        while (texImg.data.length < (atlasIndex + 1) * sdfGlyphSize * sdfGlyphSize) {
           const biggerArray = new Uint8Array(texImg.data.length * 2)
           biggerArray.set(texImg.data)
           texImg.data = biggerArray
           texImg.height *= 2
         }
 
-        // Insert the new glyph's data at the proper index
-        texImg.data.set(textureData, arrayOffset)
+        // Insert the new glyph's data into the full texture image at the correct offsets
+        const cols = texImg.width / sdfGlyphSize
+        for (let y = 0; y < sdfGlyphSize; y++) {
+          const srcStartIndex = y * sdfGlyphSize
+          const tgtStartIndex = texImg.width * sdfGlyphSize * Math.floor(atlasIndex / cols) //full rows
+            + (atlasIndex % cols) * sdfGlyphSize //partial row
+            + (y * texImg.width) //row within glyph
+          for (let x = 0; x < sdfGlyphSize; x++) {
+            texImg.data[tgtStartIndex + x] = textureData[srcStartIndex + x]
+          }
+        }
       })
       atlas.sdfTexture.needsUpdate = true
     }
@@ -128,6 +138,7 @@ export function getTextRenderInfo(args, callback) {
     // Invoke callback with the text layout arrays and updated texture
     callback({
       sdfTexture: atlas.sdfTexture,
+      sdfGlyphSize,
       sdfMinDistancePercent: SDF_DISTANCE_PERCENT,
       glyphBounds: result.glyphBounds,
       glyphIndices: result.glyphIndices,
@@ -188,3 +199,27 @@ export const processInWorker = defineWorkerModule({
   }
 })
 
+/*
+window._dumpSDFs = function() {
+  Object.values(atlases).forEach(atlas => {
+    const imgData = atlas.sdfTexture.image.data
+    const canvas = document.createElement('canvas')
+    const {width, height} = atlas.sdfTexture.image
+    canvas.width = width
+    canvas.height = height
+    const ctx = canvas.getContext('2d')
+    ctx.fillStyle = '#fff'
+    ctx.fillRect(0, 0, width, height)
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        ctx.fillStyle = `rgba(0,0,0,${imgData[y * width + x]/255})`
+        ctx.fillRect(x, y, 1, 1)
+      }
+    }
+    const img = new Image()
+    img.src = canvas.toDataURL()
+    document.body.appendChild(img)
+    console.log(img)
+  })
+}
+*/

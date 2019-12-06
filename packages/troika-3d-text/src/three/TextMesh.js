@@ -290,8 +290,9 @@ class TextMesh extends Mesh {
     if (textInfo) {
       const {sdfTexture, totalBounds} = textInfo
       uniforms.uTroikaSDFTexture.value = sdfTexture
+      uniforms.uTroikaSDFTextureSize.value.set(sdfTexture.image.width, sdfTexture.image.height)
+      uniforms.uTroikaSDFGlyphSize.value = textInfo.sdfGlyphSize
       uniforms.uTroikaSDFMinDistancePct.value = textInfo.sdfMinDistancePercent
-      uniforms.uTroikaGlyphVSize.value = sdfTexture.image.width / sdfTexture.image.height
       uniforms.uTroikaTotalBounds.value.fromArray(totalBounds)
 
       let clipRect = this.clipRect

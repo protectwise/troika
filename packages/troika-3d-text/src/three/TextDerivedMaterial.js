@@ -1,22 +1,27 @@
 import { createDerivedMaterial } from 'troika-three-utils'
-import { Vector4 } from 'three'
+import { Vector2, Vector4 } from 'three'
 
 // language=GLSL
 const VERTEX_DEFS = `
-uniform float uTroikaGlyphVSize;
+uniform vec2 uTroikaSDFTextureSize;
+uniform float uTroikaSDFGlyphSize;
 uniform vec4 uTroikaTotalBounds;
 attribute vec4 aTroikaGlyphBounds;
 attribute float aTroikaGlyphIndex;
+varying vec2 vTroikaSDFTextureUV;
 varying vec2 vTroikaGlyphUV;
 varying vec3 vTroikaLocalPos;
 `
 
 // language=GLSL prefix="void main() {" suffix="}"
 const VERTEX_TRANSFORM = `
-vTroikaGlyphUV = vec2(
-  position.x,
-  uTroikaGlyphVSize * (aTroikaGlyphIndex + position.y)
-);
+vTroikaGlyphUV = vec2(position);
+
+vec2 colsAndRows = uTroikaSDFTextureSize / uTroikaSDFGlyphSize;
+vTroikaSDFTextureUV = vec2(
+  mod(aTroikaGlyphIndex, colsAndRows.x) + position.x,
+  floor(aTroikaGlyphIndex / colsAndRows.x) + position.y
+) * uTroikaSDFGlyphSize / uTroikaSDFTextureSize;
 
 position = vec3(
   mix(aTroikaGlyphBounds.x, aTroikaGlyphBounds.z, position.x),
@@ -36,8 +41,8 @@ const FRAGMENT_DEFS = `
 uniform sampler2D uTroikaSDFTexture;
 uniform float uTroikaSDFMinDistancePct;
 uniform bool uTroikaSDFDebug;
-uniform float uTroikaGlyphVSize;
 uniform vec4 uTroikaClipRect;
+varying vec2 vTroikaSDFTextureUV;
 varying vec2 vTroikaGlyphUV;
 varying vec3 vTroikaLocalPos;
 
@@ -57,7 +62,7 @@ float troikaGetClipAlpha() {
 }
 
 float troikaGetTextAlpha() {
-  float troikaSDFValue = texture2D(uTroikaSDFTexture, vTroikaGlyphUV).r;
+  float troikaSDFValue = texture2D(uTroikaSDFTexture, vTroikaSDFTextureUV).r;
   
   #if defined(IS_DEPTH_MATERIAL) || defined(IS_DISTANCE_MATERIAL)
   float alpha = step(0.5, troikaSDFValue);
@@ -72,8 +77,8 @@ float troikaGetTextAlpha() {
   float aaDist = min(
     0.5,
     0.5 * min(
-      fwidth(vTroikaGlyphUV.x), 
-      fwidth(vTroikaGlyphUV.y / uTroikaGlyphVSize)
+      fwidth(vTroikaGlyphUV.x),
+      fwidth(vTroikaGlyphUV.y)
     )
   ) / uTroikaSDFMinDistancePct;
   #else
@@ -110,8 +115,9 @@ export function createTextDerivedMaterial(baseMaterial) {
     extensions: {derivatives: true},
     uniforms: {
       uTroikaSDFTexture: {value: null},
+      uTroikaSDFTextureSize: {value: new Vector2()},
+      uTroikaSDFGlyphSize: {value: 0},
       uTroikaSDFMinDistancePct: {value: 0},
-      uTroikaGlyphVSize: {value: 0},
       uTroikaTotalBounds: {value: new Vector4()},
       uTroikaClipRect: {value: new Vector4()},
       uTroikaSDFDebug: {value: false}
