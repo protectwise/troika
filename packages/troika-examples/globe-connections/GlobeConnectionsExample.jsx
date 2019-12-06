@@ -1,12 +1,15 @@
 import React from 'react'
 import T from 'prop-types'
-import ReactDOM from 'react-dom'
 import {Canvas3D, Group3DFacade, ListFacade} from 'troika-3d'
 import {UIBlock3DFacade} from 'troika-3d-ui'
 import Globe from './Globe'
-import TrackedControllerAnchoredFacade from './TrackedControllerAnchoredFacade'
+import XRGrabbable from './XRGrabbable'
 import ConnectionsFacade from './ConnectionsFacade'
 import cities from './cities.json'
+import { Matrix4 } from 'three'
+
+
+const gripSpaceTransform = new Matrix4().makeRotationX(Math.PI / -2).setPosition(0, 0.02, -0.17)
 
 
 class GlobeConnectionsExample extends React.Component {
@@ -46,37 +49,35 @@ class GlobeConnectionsExample extends React.Component {
             }
           ] }
           objects={ [
+            // Spinning globe - wrapped to make it grabbable by an XR hand controller
             {
-              facade: TrackedControllerAnchoredFacade,
-              hand: 'left',
-              weight: state.stickToHand ? 1 : 0,
+              facade: XRGrabbable,
               transition: {
-                weight: {duration: 500, easing: 'easeOutExpo'}
+                grabbedAmount: {duration: 500, easing: 'easeOutExpo'}
               },
               x: -0.15,
-              y: -0.1,
               z: -0.5,
+              gripSpaceTransform,
               children: {
                 key: 'globe',
                 facade: Globe,
                 ref: this._onFacadeRef.bind(this, 'globe'),
                 scale: 0.075,
-                y: 0.1,
+                pointerEvents: true,
                 animation: {
                   from: {rotateY: -Math.PI},
                   to: {rotateY: Math.PI},
                   duration: 24000,
                   iterations: Infinity
-                },
-                // onMouseDown: e => {
-                //   this.setState({stickToHand: true})
-                // }
+                }
               }
             },
+
+            // Scrollable list of cities:
             {
               facade: UIBlock3DFacade,
               x: 0.3,
-              y: props.vr ? 0 : 0.1,
+              y: 0.1,
               z: props.vr ? -0.5 : -0.9,
               rotateY: Math.PI / -16,
               width: 0.25,
@@ -124,39 +125,32 @@ class GlobeConnectionsExample extends React.Component {
                     }
                   }
                 },
-                props.vr ? {
+                /*{
                   facade: UIBlock3DFacade,
-                  flexDirection: 'row',
-                  justifyContent: 'flex-end',
                   padding: 0.005,
-                  children: [
-                    {
-                      facade: UIBlock3DFacade,
-                      onClick: e => this.setState({stickToHand: !state.stickToHand}),
-                      text: 'Attach to hand',
-                      padding: 0.005,
-                      backgroundColor: state.stickToHand ? 0x333399 : null,
-                      borderColor: state.stickToHand ? null : 0x666666,
-                      borderWidth: 0.002,
-                      color: state.stickToHand ? 0xffffff : 0x999999,
-                      borderRadius: 0.005
+                  text: '',
+                  onAfterRender(renderer) {
+                    const now = Date.now()
+                    if (now - (this._lastStats || 0) > 500) {
+                      this.text = 'Draw calls: ' + renderer.info.render.calls
+                      this.afterUpdate()
+                      this._lastStats = now
                     }
-                  ]
-                } : null
+                  }
+                }*/
               ]
             },
-            {
+            { // Container that manages syncing connection beziers to their endpoint object positions
               facade: ConnectionsFacade,
-              globe: this.refs.globe,
-              cities: this.refs.cities
+              objectRefs: this.refs
             }
           ] }
         />
 
         <div className="example_desc">
           <p>This uses <a href="#bezier3d">3D bezier curves</a> to visually connect a list of cities to their
-          corresponding coordinates on a globe. Additionally, when in VR mode, the globe sticks to the position
-          of one of the hand controllers.</p>
+          corresponding coordinates on a globe. Additionally, when in XR mode, you can use a hand controller's
+          squeeze button to bring the globe to that hand.</p>
         </div>
 
       </div>

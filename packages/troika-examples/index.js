@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { makeVrAware } from 'troika-xr'
+import { ReactXRAware } from 'troika-xr'
 import CityGrid from './citygrid/CityGrid'
 import ShaderAnim from './shader-anim/ShaderAnim'
 import ArcsExample from './arcs/ArcsExample'
@@ -23,7 +23,7 @@ import './index.css'
 
 
 const EXAMPLES = [
-  {id: 'citygrid', name: 'City', component: CityGrid, disableVR:true}, //fps too low for vr, too many draw calls
+  {id: 'citygrid', name: 'City', component: CityGrid, disableXR:true}, //fps too low for vr, too many draw calls
   {id: 'shaderanim', name: 'Animated Shaders', component: ShaderAnim},
   {id: 'arcs', name: 'Arcs', component: ArcsExample},
   {id: 'globe', name: 'Globe', component: GlobeExample},
@@ -33,10 +33,10 @@ const EXAMPLES = [
   {id: 'ui', name: 'User Interface', component: UIExample},
   {id: 'dragdrop', name: 'Drag and Drop', component: DragDrop},
   {id: 'lod', name: 'Level of Detail', component: LevelOfDetail},
-  {id: 'curveAnim', name: 'Line Graph', component: CurveAnim, disableVR:true},
+  {id: 'curveAnim', name: 'Line Graph', component: CurveAnim, disableXR:true},
   {id: 'bezier3d', name: '3D Bezier Tubes', component: Bezier3DExample},
-  {id: 'twoDee', name: 'Canvas2D', component: Canvas2DExample, disableVR:true},
-  {id: 'easings', name: 'Animation Easings', component: EasingsExample, disableVR:true},
+  {id: 'twoDee', name: 'Canvas2D', component: Canvas2DExample, disableXR:true},
+  {id: 'easings', name: 'Animation Easings', component: EasingsExample, disableXR:true},
   {id: 'instanceable', name: 'Instanceable Objects', component: InstanceableExample},
   {id: 'inception', name: 'Inception', component: InceptionExample}
 ]
@@ -79,9 +79,17 @@ class ExamplesApp extends React.Component {
   }
 
   _onHashChange() {
-    this.setState({
-      selectedExampleId: location.hash.replace(/^#/, '')
-    })
+    const selectedExampleId = location.hash.replace(/^#/, '')
+    const exampleObj = EXAMPLES.filter(({id}) => id === selectedExampleId)[0]
+    if (exampleObj) {
+      if (exampleObj.disableXR && this.props.xrSession) {
+        this.props.xrSession.end().then(() => {
+          this.setState({selectedExampleId})
+        })
+      } else {
+        this.setState({selectedExampleId})
+      }
+    }
   }
 
   _onExampleSelect(e) {
@@ -107,8 +115,8 @@ class ExamplesApp extends React.Component {
             ) }
           </select>
 
-          {this.props.vrButton && !example.disableVR ? (
-            <span className="vr_button">{this.props.vrButton}</span>
+          {this.props.xrLauncher && !example.disableXR ? (
+            <span className="vr_button">{this.props.xrLauncher}</span>
           ) : null}
 
           <div className="stats_toggle">
@@ -121,7 +129,12 @@ class ExamplesApp extends React.Component {
         </header>
         <section className="examples_body" ref={ this._onBodyElRef }>
           { ExampleCmp ?
-            (bodyWidth && bodyHeight ? <ExampleCmp width={ bodyWidth } height={ bodyHeight } stats={ stats } vr={!!this.props.vrDisplay} /> : null) :
+            (bodyWidth && bodyHeight ? <ExampleCmp
+              width={ bodyWidth }
+              height={ bodyHeight }
+              stats={ stats }
+              vr={!!this.props.xrSession && !example.disableXR}
+            /> : null) :
             `Unknown example: ${selectedExampleId}`
           }
         </section>
@@ -130,6 +143,12 @@ class ExamplesApp extends React.Component {
   }
 }
 
-ExamplesApp = makeVrAware(ExamplesApp)
+ExamplesApp = ReactXRAware(ExamplesApp, {
+  // For now, none of the examples make use of floor-relative tracking, so let's just
+  // limit it to a 'local' space to make it easier to keep things at eye height.
+  // TODO: figure out a good approach for floor-relative tracking for any future
+  //  examples that make use of it.
+  referenceSpaces: ['local']
+})
 
 ReactDOM.render(<ExamplesApp />, document.getElementById('app'))

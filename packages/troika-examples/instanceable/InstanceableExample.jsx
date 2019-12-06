@@ -8,7 +8,7 @@ import InstanceableSphereNoMatrix from './InstanceableSphereNoMatrix'
 import {Color} from 'three'
 
 const ORIGIN = {x:0, y:0, z:0}
-const BOX_SIZE = 1000
+const BOX_SIZE = 1
 const tempColor = new Color()
 
 class OrbitingCamera extends PerspectiveCamera3DFacade {
@@ -35,7 +35,7 @@ class InstanceableExample extends React.Component {
       radiusMethod: 'uniform',
       animateRadius: true,
       animateColor: true,
-      objectCount: 10000,
+      objectCount: 2500,
       data: []
     }
     this._generateData = this._generateData.bind(this)
@@ -94,14 +94,6 @@ class InstanceableExample extends React.Component {
     let state = this.state
     let {width, height} = this.props
 
-    let anim = {
-      from: {radius: 3, color: 0x666666},
-      to: {radius: 20, color: 0xcccccc},
-      duration: 500,
-      iterations: Infinity,
-      direction: 'alternate'
-    }
-
     return (
       <div>
         <Canvas3D
@@ -116,8 +108,7 @@ class InstanceableExample extends React.Component {
           ] }
           camera={ {
             facade: OrbitingCamera,
-            far: 10000,
-            radius: 1500,
+            radius: BOX_SIZE * 1.5,
             fov: 70,
             azimuth: 0, inclination: 0,
             animation: [{
@@ -157,7 +148,7 @@ class InstanceableExample extends React.Component {
                 x: d => d.x,
                 y: d => d.y,
                 z: d => d.z,
-                radius: 6,
+                radius: BOX_SIZE * 0.006,
                 onMouseOver: () => this._onSphereOver,
                 onMouseOut: () => this._onSphereOut,
                 animation: state.animateRadius || state.animateColor ? ((d, i) => {
@@ -167,8 +158,8 @@ class InstanceableExample extends React.Component {
                   let from = {}
                   let to = {}
                   if (state.animateRadius) {
-                    from.radius = 2
-                    to.radius = 30
+                    from.radius = BOX_SIZE * 0.002
+                    to.radius = BOX_SIZE * 0.03
                   }
                   if (state.animateColor) {
                     from.color = d.color

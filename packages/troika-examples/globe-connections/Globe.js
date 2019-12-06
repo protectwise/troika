@@ -3,6 +3,7 @@ import {
   BackSide,
   BufferAttribute,
   BufferGeometry,
+  DoubleSide,
   LineSegments,
   Mesh,
   MeshBasicMaterial,
@@ -98,6 +99,8 @@ class Globe extends Object3DFacade {
     )
     sphere.add(lines)
     super(parent, sphere)
+
+    this.raycastSide = DoubleSide
   }
 
   latLonToLocalPosition(lat, lon, radius = 1) {

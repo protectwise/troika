@@ -138,7 +138,7 @@ class GlobeExample extends React.Component {
             aspect: width / height,
             x: 0,
             y: 0,
-            z: 300,
+            z: 3,
             lookAt: {x: 0, y: 0, z: 0}
           } }
           lights={ [
@@ -154,9 +154,9 @@ class GlobeExample extends React.Component {
             {
               key: 'earth',
               facade: Earth,
-              scaleX: 100,
-              scaleY: state.colorScheme === 'pumpkin' ? 70 : 100,
-              scaleZ: 100,
+              scaleX: 1,
+              scaleY: state.colorScheme === 'pumpkin' ? 0.7 : 1,
+              scaleZ: 1,
               rotateY: state.trackMouse ? state.rotateY : 0,
               rotateX: state.trackMouse ? state.rotateX : 0,
               onCountryMouseOver: this._onCountryMouseOver,

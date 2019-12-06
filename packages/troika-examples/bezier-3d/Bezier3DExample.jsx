@@ -63,8 +63,7 @@ class Bezier3DExample extends React.Component {
         width={ props.width }
         height={ props.height }
         camera={ {
-          z: vr ? 1 : 3,
-          y: vr ? 1 : 0
+          z: vr ? 1 : 3
         } }
         lights={[
           {

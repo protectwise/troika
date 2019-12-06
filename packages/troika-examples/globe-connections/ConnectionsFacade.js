@@ -24,9 +24,10 @@ const colors = ["#68affc", "#a3d71e", "#b735e8", "#5df23e", "#cf80dd", "#50942f"
 class ConnectionsFacade extends Group3DFacade {
   constructor(parent) {
     super(parent)
+    this.objectRefs = {globe: null, cities: null}
 
     this.onBeforeRender = () => {
-      const {globe, cities} = this
+      const {globe, cities} = this.objectRefs
       const cxns = []
       if (globe && cities && !globe.isDestroying && !cities.isDestroying) {
         cities.forEachChild((cityLabel, i) => {

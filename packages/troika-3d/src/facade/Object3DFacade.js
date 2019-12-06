@@ -159,9 +159,17 @@ class Object3DFacade extends PointerEventTarget {
         }
       }
 
-      this._worldMatrixVersion = ++_worldMatrixVersion
-      this._boundsChanged = true
+      this.markWorldMatrixDirty()
     }
+  }
+
+  /**
+   * If the `threeObject.matrixWorld` is modified manually instead of via the individual transformation
+   * properties, you can call this to tell the facade its caches need to be recalculated.
+   */
+  markWorldMatrixDirty() {
+    this._worldMatrixVersion = ++_worldMatrixVersion
+    this._boundsChanged = true
   }
 
   _checkBoundsChange() {
