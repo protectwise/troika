@@ -1,6 +1,6 @@
 import { Matrix4, PerspectiveCamera, Vector4, Vector3, Quaternion } from 'three'
 import { PerspectiveCamera3DFacade } from 'troika-3d'
-import { createClassExtender } from 'troika-core/src/utils'
+import { utils } from 'troika-core'
 
 const tempVec3 = new Vector3()
 const tempQuat = new Quaternion()
@@ -11,7 +11,7 @@ function extendAsXRCamera(BaseCameraFacadeClass) {
   return doExtendAsXRCamera(BaseCameraFacadeClass || PerspectiveCamera3DFacade)
 }
 
-const doExtendAsXRCamera = createClassExtender('xrCamera', function(BaseCameraFacadeClass) {
+const doExtendAsXRCamera = utils.createClassExtender('xrCamera', function(BaseCameraFacadeClass) {
   return class XRCameraFacade extends BaseCameraFacadeClass {
     constructor(parent) {
       super(parent)
