@@ -1,4 +1,5 @@
 
+/* DEPRECATED
 //=== WebVR: ===//
 
 // Main entry point
@@ -10,6 +11,7 @@ export {default as WorldVrFacade} from './webvr-deprecated/facade/WorldVrFacade.
 // Controller models
 export {default as OculusTouchModelFacade} from './webvr-deprecated/facade/controllers/OculusTouchModelFacade.js'
 export {default as BasicModelFacade} from './webvr-deprecated/facade/controllers/BasicModelFacade.js'
+*/
 
 
 //=== WebXR: ===//
