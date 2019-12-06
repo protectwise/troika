@@ -34,34 +34,26 @@ export const XRAwarePropTypes = {
  *
  * @param {class|function} ReactClass
  * @param {object} options
+ * @param {React.Component} options.xrLauncherRenderer - The React component to use for
+ *        rendering the launcher button. Defaults to a basic launcher button implementation.
+ * @param {string[]} options.sessionModes - The XRSessionMode(s) supported by this particular scene.
+ *        Assumes an 'immersive-vr' experience only by default. Authors can add 'inline' as a
+ *        fallback, or force 'inline' only.
+ *        TODO: allow secondary mode to be chosen by the user, rather than just as a fallback?
+ * @param {string[]} options.referenceSpaces - The XRReferenceSpaceType(s) supported by this particular scene.
+ *        By default a floor-relative space is required, preferring 'bounded-floor', falling
+ *        back to 'local-floor', and failing session initialization if neither is available or
+ *        permitted by the user. Authors can change this list to support other reference space
+ *        types as fallbacks. All but the final will be used as `optionalFeatures`, and the final
+ *        will be used for `requiredFeatures`.
+ *        TODO: allow secondary spaces to be chosen by the user, rather than just as a fallback?
+ *        TODO: allow different spaces to be specified for immersive-vr vs. local modes?
  * @return {class}
  */
 export function ReactXRAware(ReactClass, options) {
   options = utils.assign({
-    /**
-     * The React component to use for rendering the launcher button. Defaults to a basic
-     * launcher button implementation.
-     */
     xrLauncherRenderer: XRLauncher,
-
-    /**
-     * The XRSessionMode(s) supported by this particular scene.
-     * Assumes an 'immersive-vr' experience only by default. Authors can add 'inline' as a
-     * fallback, or force 'inline' only.
-     * TODO: allow secondary mode to be chosen by the user, rather than just as a fallback?
-     */
     sessionModes: ['immersive-vr'],
-
-    /**
-     * The XRReferenceSpaceType(s) supported by this particular scene.
-     * By default a floor-relative space is required, preferring 'bounded-floor', falling
-     * back to 'local-floor', and failing session initialization if neither is available or
-     * permitted by the user. Authors can change this list to support other reference space
-     * types as fallbacks. All but the final will be used as `optionalFeatures`, and the final
-     * will be used for `requiredFeatures`.
-     * TODO: allow secondary spaces to be chosen by the user, rather than just as a fallback?
-     * TODO: allow different spaces to be specified for immersive-vr vs. local modes?
-     */
     referenceSpaces: ['bounded-floor', 'local-floor']
   }, options)
 
@@ -80,7 +72,7 @@ export function ReactXRAware(ReactClass, options) {
       // bind handler methods:
       ;[
         '_checkXrSupport',
-        '_stopSession',
+        '_onSessionEnded',
         '_onLauncherSelect'
       ].forEach(method => {
         this[method] = this[method].bind(this)
@@ -135,16 +127,16 @@ export function ReactXRAware(ReactClass, options) {
 
     _startSession(xrSessionMode) {
       let {xrSupportedSessionModes, xrSession} = this.state
-      if (xrSupportedSessionModes.includes(xrSessionMode)) {
-        // Stop current session if running
-        // TODO not sure if this is a potential race condition, but we can't wait for its promise
-        //  to resolve because that fails the "user activation" requirement for starting the new session.
-        //  We may want to make the selection UI require first ending a session before being able to select a new one.
-        if (xrSession) {
-          this._stopSession()
-        }
 
-        //
+      // Stop current session if running
+      // TODO not sure if this is a potential race condition, but we can't wait for its promise
+      //  to resolve because that fails the "user activation" requirement for starting the new session.
+      //  We may want to make the selection UI require first ending a session before being able to select a new one.
+      if (xrSession) {
+        xrSession.end()
+      }
+
+      if (xrSupportedSessionModes.includes(xrSessionMode)) {
         const candidateRefSpaces = options.referenceSpaces
         if (!candidateRefSpaces || !candidateRefSpaces.length) {
           console.error('XRAware `referencesSpaces` cannot be empty')
@@ -156,7 +148,7 @@ export function ReactXRAware(ReactClass, options) {
           requiredFeatures: candidateRefSpaces.slice(-1)
         })
           .then(xrSession => {
-            xrSession.addEventListener('end', this._stopSession, false)
+            xrSession.addEventListener('end', this._onSessionEnded, false)
 
             // Get the first XRReferenceSpace supported by the hardware
             const getRefSpace = (index=0) => {
@@ -185,25 +177,17 @@ export function ReactXRAware(ReactClass, options) {
             console.error(err)
             //TODO supply for user feedback... this.setState({xrSessionError: err})
           })
-      } else {
-        this._stopSession()
       }
     }
 
-    _stopSession() {
-      const {xrSession} = this.state
-      if (xrSession) {
-        xrSession.removeEventListener('end', this._stopSession, false)
-        return xrSession.end().then(() => {
-          this.setState({
-            xrSession: null,
-            xrSessionMode: null,
-            xrReferenceSpace: null,
-            xrReferenceSpaceType: null
-          })
-        })
-      }
-      return Promise.resolve()
+    _onSessionEnded(e) {
+      e.session.removeEventListener('end', this._onSessionEnded, false)
+      this.setState({
+        xrSession: null,
+        xrSessionMode: null,
+        xrReferenceSpace: null,
+        xrReferenceSpaceType: null
+      })
     }
 
     _onLauncherSelect(mode) {
