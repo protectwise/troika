@@ -2,8 +2,10 @@ import { World3DFacade } from 'troika-3d'
 import { setAnimationScheduler } from 'troika-animation'
 import { XRInputSourceManager } from './XRInputSourceManager'
 import { extendAsXRCamera } from './XRCameraFacade'
+import { Vector2 } from 'three'
 
 const emptyArray = []
+const tempVec2 = new Vector2()
 
 const _xrSessions = new WeakMap()
 
@@ -56,6 +58,9 @@ class WorldXRFacade extends World3DFacade {
       } else {
         renderer.setFramebuffer(null)
         renderer.setRenderTarget(renderer.getRenderTarget()) //see https://github.com/mrdoob/three.js/pull/15830
+        // reset canvas/viewport size in case something changed it (cough cough polyfill)
+        renderer.getSize(tempVec2)
+        renderer.setDrawingBufferSize(tempVec2.x, tempVec2.y, renderer.getPixelRatio())
         this._queueRender()
       }
     }
