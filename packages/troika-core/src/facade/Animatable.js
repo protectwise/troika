@@ -395,6 +395,7 @@ export const extendAsAnimatable = createClassExtender('animatable', function(Bas
     // prototype, that would continue to take precedence, so move its value to the private property.
     if (currentInstance.hasOwnProperty(propName)) {
       currentInstance[`${ propName }➤anim:actualValue`] = currentInstance[propName]
+      currentInstance[`${ propName }➤anim:hasBeenSet`] = true
       delete currentInstance[propName]
     }
 
