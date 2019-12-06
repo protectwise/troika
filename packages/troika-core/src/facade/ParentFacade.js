@@ -40,6 +40,7 @@ export default class ParentFacade extends Facade {
     const oldDict = this._childrenDict || null
     let newDict = this._childrenDict = null
     const orderedChildKeys = this._orderedChildKeys
+    orderedChildKeys.length = 0
 
     if (children) {
       // Allow single child without wrapper array
@@ -48,7 +49,6 @@ export default class ParentFacade extends Facade {
         children = TEMP_ARRAY
       }
 
-      orderedChildKeys.length = 0
       for (let i = 0, len = children.length; i < len; i++) {
         let childDesc = children[i]
         if (!childDesc) continue //child members can be null
