@@ -141,7 +141,9 @@ export function getTextRenderInfo(args, callback) {
       sdfGlyphSize,
       sdfMinDistancePercent: SDF_DISTANCE_PERCENT,
       glyphBounds: result.glyphBounds,
-      glyphIndices: result.glyphIndices,
+      glyphAtlasIndices: result.glyphAtlasIndices,
+      caretPositions: result.caretPositions,
+      caretHeight: result.caretHeight,
       totalBounds: result.totalBounds,
       totalBlockSize: result.totalBlockSize
     })
@@ -189,7 +191,13 @@ export const processInWorker = defineWorkerModule({
   },
   getTransferables(result) {
     // Mark array buffers as transferable to avoid cloning during postMessage
-    const transferables = [result.glyphBounds.buffer, result.glyphIndices.buffer]
+    const transferables = [
+      result.glyphBounds.buffer,
+      result.glyphAtlasIndices.buffer
+    ]
+    if (result.caretPositions) {
+      transferables.push(result.caretPositions.buffer)
+    }
     if (result.newGlyphSDFs) {
       result.newGlyphSDFs.forEach(d => {
         transferables.push(d.textureData.buffer)

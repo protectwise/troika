@@ -28,49 +28,53 @@ function parserFactory(Typr, woff2otf) {
         const fontScale = 1 / fontObj.unitsPerEm * fontSize
 
         const glyphIndices = Typr.U.stringToGlyphs(typrFont, text)
+        let charIndex = 0
         glyphIndices.forEach(glyphIndex => {
-          if (glyphIndex === -1) return //Typr leaves -1s in the array after ligature substitution
+          // Typr returns a glyph index per string codepoint, with -1s in place of those that
+          // were omitted due to ligature substitution. So we can track original index in the
+          // string via simple increment, and skip everything else when seeing a -1.
+          if (glyphIndex !== -1) {
+            let glyphObj = glyphMap[glyphIndex]
+            if (!glyphObj) {
+              // !!! NOTE: Typr doesn't expose a public accessor for the glyph data, so this just
+              // copies how it parses that data in Typr.U._drawGlyf -- this may be fragile.
+              const typrGlyph = Typr.glyf._parseGlyf(typrFont, glyphIndex) || {xMin: 0, xMax: 0, yMin: 0, yMax: 0}
+              const {cmds, crds} = Typr.U.glyphToPath(typrFont, glyphIndex)
 
-          let glyphObj = glyphMap[glyphIndex]
-          if (!glyphObj) {
-            // !!! NOTE: Typr doesn't expose a public accessor for the glyph data, so this just
-            // copies how it parses that data in Typr.U._drawGlyf -- this may be fragile.
-            const typrGlyph = Typr.glyf._parseGlyf(typrFont, glyphIndex) || {xMin: 0, xMax: 0, yMin: 0, yMax: 0}
-            const {cmds, crds} = Typr.U.glyphToPath(typrFont, glyphIndex)
-
-            glyphObj = glyphMap[glyphIndex] = {
-              index: glyphIndex,
-              unicode: getUnicodeForGlyph(typrFont, glyphIndex),
-              advanceWidth: typrFont.hmtx.aWidth[glyphIndex],
-              xMin: typrGlyph.xMin,
-              yMin: typrGlyph.yMin,
-              xMax: typrGlyph.xMax,
-              yMax: typrGlyph.yMax,
-              pathCommandCount: cmds.length,
-              forEachPathCommand(callback) {
-                let argsIndex = 0
-                const argsArray = []
-                for (let i = 0, len = cmds.length; i < len; i++) {
-                  const numArgs = cmdArgLengths[cmds[i]]
-                  argsArray.length = 1 + numArgs
-                  argsArray[0] = cmds[i]
-                  for (let j = 1; j <= numArgs; j++) {
-                    argsArray[j] = crds[argsIndex++]
+              glyphObj = glyphMap[glyphIndex] = {
+                index: glyphIndex,
+                advanceWidth: typrFont.hmtx.aWidth[glyphIndex],
+                xMin: typrGlyph.xMin,
+                yMin: typrGlyph.yMin,
+                xMax: typrGlyph.xMax,
+                yMax: typrGlyph.yMax,
+                pathCommandCount: cmds.length,
+                forEachPathCommand(callback) {
+                  let argsIndex = 0
+                  const argsArray = []
+                  for (let i = 0, len = cmds.length; i < len; i++) {
+                    const numArgs = cmdArgLengths[cmds[i]]
+                    argsArray.length = 1 + numArgs
+                    argsArray[0] = cmds[i]
+                    for (let j = 1; j <= numArgs; j++) {
+                      argsArray[j] = crds[argsIndex++]
+                    }
+                    callback.apply(null, argsArray)
                   }
-                  callback.apply(null, argsArray)
                 }
               }
             }
-          }
 
-          callback.call(null, glyphObj, glyphX)
+            callback.call(null, glyphObj, glyphX, charIndex)
 
-          if (glyphObj.advanceWidth) {
-            glyphX += glyphObj.advanceWidth * fontScale
+            if (glyphObj.advanceWidth) {
+              glyphX += glyphObj.advanceWidth * fontScale
+            }
+            if (letterSpacing) {
+              glyphX += letterSpacing * fontSize
+            }
           }
-          if (letterSpacing) {
-            glyphX += letterSpacing * fontSize
-          }
+          charIndex += (text.codePointAt(charIndex) > 0xffff ? 2 : 1)
         })
         return glyphX
       }
@@ -78,56 +82,6 @@ function parserFactory(Typr, woff2otf) {
 
     return fontObj
   }
-
-
-  function getUnicodeForGlyph(typrFont, glyphIndex) {
-    let glyphToUnicodeMap = typrFont.glyphToUnicodeMap
-    if (!glyphToUnicodeMap) {
-      glyphToUnicodeMap = typrFont.glyphToUnicodeMap = Object.create(null)
-
-      // NOTE: this logic for traversing the cmap table formats follows that in Typr.U.codeToGlyph
-      const cmap = typrFont.cmap;
-
-      let tableIndex = -1
-      if (cmap.p0e4 != null) tableIndex = cmap.p0e4
-      else if (cmap.p3e1 != null) tableIndex = cmap.p3e1
-      else if (cmap.p1e0 != null) tableIndex = cmap.p1e0
-      else if (cmap.p0e3 != null) tableIndex = cmap.p0e3
-      if (tableIndex === -1) {
-        throw "no familiar platform and encoding!"
-      }
-      const table = cmap.tables[tableIndex];
-
-      if (table.format === 0) {
-        for (let code = 0; code < table.map.length; code++) {
-          glyphToUnicodeMap[table.map[code]] = code
-        }
-      }
-      else if (table.format === 4) {
-        const startCodes = table.startCount
-        const endCodes = table.endCount
-        for (let i = 0; i < startCodes.length; i++) {
-          for (let code = startCodes[i]; code <= endCodes[i]; code++) {
-            glyphToUnicodeMap[Typr.U.codeToGlyph(typrFont, code)] = code
-          }
-        }
-      }
-      else if (table.format === 12)
-      {
-        table.groups.forEach(([startCharCode, endCharCode, startGlyphID]) => {
-          let glyphId = startGlyphID
-          for (let code = startCharCode; code <= endCharCode; code++) {
-            glyphToUnicodeMap[glyphId++] = code
-          }
-        })
-      }
-      else {
-        throw "unknown cmap table format " + table.format
-      }
-    }
-    return glyphToUnicodeMap[glyphIndex] || 0
-  }
-
 
   return function parse(buffer) {
     // Look to see if we have a WOFF file and convert it if so:

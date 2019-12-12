@@ -34,7 +34,6 @@ function parserFactory(opentype) {
           if (!glyphObj) {
             glyphObj = glyphMap[otGlyph.index] = {
               index: otGlyph.index,
-              unicode: otGlyph.unicode,
               advanceWidth: otGlyph.advanceWidth,
               xMin: otGlyph.xMin,
               yMin: otGlyph.yMin,

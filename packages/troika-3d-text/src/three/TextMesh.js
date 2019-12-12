@@ -186,7 +186,8 @@ class TextMesh extends Mesh {
           textAlign: this.textAlign,
           whiteSpace: this.whiteSpace,
           overflowWrap: this.overflowWrap,
-          anchor: this.anchor
+          anchor: this.anchor,
+          includeCaretPositions: true
         }, textRenderInfo => {
           this._isSyncing = false
 
@@ -194,7 +195,7 @@ class TextMesh extends Mesh {
           this._textRenderInfo = textRenderInfo
 
           // Update the geometry attributes
-          this.geometry.updateGlyphs(textRenderInfo.glyphBounds, textRenderInfo.glyphIndices, textRenderInfo.totalBounds)
+          this.geometry.updateGlyphs(textRenderInfo.glyphBounds, textRenderInfo.glyphAtlasIndices, textRenderInfo.totalBounds)
 
           // If we had extra sync requests queued up, kick it off
           const queued = this._queuedSyncs
@@ -308,6 +309,61 @@ class TextMesh extends Mesh {
       }
     }
     return material
+  }
+
+  /**
+   * Given a local x/y coordinate in the text block plane, find the nearest caret position.
+   * @param {number} x
+   * @param {number} y
+   * @return {{x:number, y:number, height:number, charIndex:number} | null}
+   */
+  getCaretAtPoint(x, y) {
+    let closestCaret = null
+    const textInfo = this._textRenderInfo
+    if (textInfo) {
+      const {caretPositions, caretHeight} = textInfo
+      // find nearest row, then nearest char in that row
+      // TODO make this less stupid
+      const caretsByRow = new Map()
+      for (let i = 0; i < caretPositions.length; i += 3) {
+        const rowY = caretPositions[i + 2]
+        let carets = caretsByRow.get(rowY)
+        if (!carets) {
+          caretsByRow.set(rowY, carets = [])
+        }
+        carets.push({
+          x: caretPositions[i],
+          y: caretPositions[i + 2],
+          height: caretHeight,
+          charIndex: i / 3
+        })
+        // Add one more caret after the final char
+        if (i + 3 >= caretPositions.length) {
+          carets.push({
+            x: caretPositions[i + 1],
+            y: caretPositions[i + 2],
+            height: caretHeight,
+            charIndex: i / 3
+          })
+        }
+      }
+      let closestRowY = Infinity
+      caretsByRow.forEach((carets, rowY) => {
+        if (Math.abs(y - (rowY + caretHeight / 2)) < Math.abs(y - (closestRowY + caretHeight / 2))) {
+          closestRowY = rowY
+        }
+      })
+      caretsByRow.get(closestRowY).forEach(caret => {
+        if (!closestCaret || Math.abs(x - caret.x) < Math.abs(x - closestCaret.x)) {
+          closestCaret = caret
+        }
+      })
+    }
+    return closestCaret
+  }
+
+  getCaretAtCharIndex(charIndex, after) {
+
   }
 
   /**

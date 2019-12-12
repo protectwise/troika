@@ -64,15 +64,15 @@ class GlyphsGeometry extends InstancedBufferGeometry {
    * Update the geometry for a new set of glyphs.
    * @param {Float32Array} glyphBounds - An array holding the planar bounds for all glyphs
    *        to be rendered, 4 entries for each glyph: x1,x2,y1,y1
-   * @param {Float32Array} glyphIndices - An array holding the index of each glyph within
+   * @param {Float32Array} glyphAtlasIndices - An array holding the index of each glyph within
    *        the SDF atlas texture.
    * @param {Array} totalBounds - An array holding the [minX, minY, maxX, maxY] across all glyphs
    */
-  updateGlyphs(glyphBounds, glyphIndices, totalBounds) {
+  updateGlyphs(glyphBounds, glyphAtlasIndices, totalBounds) {
     // Update the instance attributes
     updateBufferAttr(this, glyphBoundsAttrName, glyphBounds, 4)
-    updateBufferAttr(this, glyphIndexAttrName, glyphIndices, 1)
-    this.maxInstancedCount = glyphIndices.length
+    updateBufferAttr(this, glyphIndexAttrName, glyphAtlasIndices, 1)
+    this.maxInstancedCount = glyphAtlasIndices.length
 
     // Update the boundingSphere based on the total bounds
     const sphere = this.boundingSphere

@@ -15,7 +15,6 @@
  *       //invokes callback for each glyph to render, passing it an object:
  *       callback({
  *         index: number,
- *         unicode: number,
  *         advanceWidth: number,
  *         xMin: number,
  *         yMin: number,
@@ -163,110 +162,125 @@ export default function createFontProcessor(fontParser, sdfGenerator, config) {
       textAlign='left',
       whiteSpace='normal',
       overflowWrap='normal',
-      anchor
+      anchor,
+      includeCaretPositions=false
     },
     callback,
     metricsOnly=false
   ) {
+    // Ensure newlines are normalized
+    if (text.indexOf('\r') > -1) {
+      console.warn('FontProcessor.process: got text with \\r chars; normalizing to \\n')
+      text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+    }
+
     getSdfAtlas(font, atlas => {
       const fontObj = atlas.fontObj
       const hasMaxWidth = isFinite(maxWidth)
       let newGlyphs = null
       let glyphBounds = null
-      let glyphIndices = null
+      let glyphAtlasIndices = null
+      let caretPositions = null
       let totalBounds = null
-      let lineCount = 0
       let maxLineWidth = 0
       let canWrap = whiteSpace !== 'nowrap'
+      const {ascender, descender, unitsPerEm} = fontObj
 
       // Find conversion between native font units and fontSize units; this will already be done
       // for the gx/gy values below but everything else we'll need to convert
-      const fontSizeMult = fontSize / fontObj.unitsPerEm
+      const fontSizeMult = fontSize / unitsPerEm
 
       // Determine appropriate value for 'normal' line height based on the font's actual metrics
       // TODO this does not guarantee individual glyphs won't exceed the line height, e.g. Roboto; should we use yMin/Max instead?
       if (lineHeight === 'normal') {
-        lineHeight = (fontObj.ascender - fontObj.descender) / fontObj.unitsPerEm
+        lineHeight = (ascender - descender) / unitsPerEm
       }
 
       // Determine line height and leading adjustments
       lineHeight = lineHeight * fontSize
-      const halfLeading = (lineHeight - (fontObj.ascender - fontObj.descender) * fontSizeMult) / 2
+      const halfLeading = (lineHeight - (ascender - descender) * fontSizeMult) / 2
+      const caretHeight = (ascender - descender) * fontSizeMult * 0.8
+      const caretBottomOffset = (descender * fontSizeMult) + ((ascender - descender) * fontSizeMult - caretHeight) / 2
 
-      // Split by hard line breaks
-      const lineBlocks = text.split(/\r?\n/).map(text => {
-        let lineXOffset = 0
+      // Distribute glyphs into lines based on wrapping
+      let lineXOffset = 0
+      let currentLine = {glyphs: [], width: 0}
+      const lines = [currentLine]
+      fontObj.forEachGlyph(text, fontSize, letterSpacing, (glyphObj, glyphX, charIndex) => {
+        const char = text.charAt(charIndex)
+        const glyphWidth = glyphObj.advanceWidth * fontSizeMult
+        const isWhitespace = !!char && /\s/.test(char)
+        const curLineGlyphs = currentLine.glyphs
+        let nextLineGlyphs
 
-        // Distribute glyphs into lines based on wrapping
-        let currentLine = []
-        const lines = [currentLine]
-        fontObj.forEachGlyph(text, fontSize, letterSpacing, (glyphObj, glyphX) => {
-          const charCode = glyphObj.unicode
-          const char = typeof charCode === 'number' && String.fromCharCode(charCode)
-          const glyphWidth = glyphObj.advanceWidth * fontSizeMult
-          const isWhitespace = !!char && /\s/.test(char)
-
-          // If a non-whitespace character overflows the max width, we need to wrap
-          if (canWrap && hasMaxWidth && !isWhitespace && glyphX + glyphWidth + lineXOffset > maxWidth && currentLine.length) {
-            // If it's the first char after a whitespace, start a new line
-            let nextLine
-            if (currentLine[currentLine.length - 1].isWhitespace) {
-              nextLine = []
-              lineXOffset = -glyphX
-            } else {
-              // Back up looking for a whitespace character to wrap at
-              for (let i = currentLine.length; i--;) {
-                // If we got the start of the line there's no soft break point; make hard break if overflowWrap='break-word'
-                if (i === 0 && overflowWrap==='break-word') {
-                  nextLine = []
-                  lineXOffset = -glyphX
-                  break
-                }
-                // Found a soft break point; move all chars since it to a new line
-                else if (currentLine[i].isWhitespace) {
-                  nextLine = currentLine.splice(i + 1)
-                  const adjustX = nextLine[0].x
-                  lineXOffset -= adjustX
-                  for (let j = 0; j < nextLine.length; j++) {
-                    nextLine[j].x -= adjustX
-                  }
-                  break
-                }
+        // If a non-whitespace character overflows the max width, we need to soft-wrap
+        if (canWrap && hasMaxWidth && !isWhitespace && glyphX + glyphWidth + lineXOffset > maxWidth && curLineGlyphs.length) {
+          // If it's the first char after a whitespace, start a new line
+          if (curLineGlyphs[curLineGlyphs.length - 1].isWhitespace) {
+            nextLineGlyphs = []
+            lineXOffset = -glyphX
+          } else {
+            // Back up looking for a whitespace character to wrap at
+            for (let i = curLineGlyphs.length; i--;) {
+              // If we got the start of the line there's no soft break point; make hard break if overflowWrap='break-word'
+              if (i === 0 && overflowWrap === 'break-word') {
+                nextLineGlyphs = []
+                lineXOffset = -glyphX
+                break
               }
-            }
-            if (nextLine) {
-              // Strip any trailing whitespace characters from the prior line so they don't affect line length
-              while (currentLine[currentLine.length - 1].isWhitespace) {
-                currentLine.pop()
+              // Found a soft break point; move all chars since it to a new line
+              else if (curLineGlyphs[i].isWhitespace) {
+                nextLineGlyphs = curLineGlyphs.splice(i + 1)
+                const adjustX = nextLineGlyphs[0].x
+                lineXOffset -= adjustX
+                for (let j = 0; j < nextLineGlyphs.length; j++) {
+                  nextLineGlyphs[j].x -= adjustX
+                }
+                break
               }
-              lines.push(currentLine = nextLine)
-              maxLineWidth = maxWidth
             }
           }
-
-          currentLine.push({
-            glyphObj,
-            x: glyphX + lineXOffset,
-            y: 0, //added later
-            width: glyphWidth,
-            char: char,
-            isWhitespace,
-            isEmpty: glyphObj.xMin === glyphObj.xMax || glyphObj.yMin === glyphObj.yMax,
-            atlasInfo: null //added later
-          })
-        })
-
-        // Find max block width after wrapping
-        for (let i = 0; i < lines.length && maxLineWidth < maxWidth; i++) {
-          const lineGlyphs = lines[i]
-          if (lineGlyphs.length) {
-            const lastChar = lineGlyphs[lineGlyphs.length - 1]
-            maxLineWidth = Math.max(maxLineWidth, lastChar.x + lastChar.width)
+          if (nextLineGlyphs) {
+            currentLine.isSoftWrapped = true
+            currentLine = {glyphs: nextLineGlyphs, width: 0}
+            lines.push(currentLine)
+            maxLineWidth = maxWidth //after soft wrapping use maxWidth as calculated width
           }
         }
-        lineCount += lines.length
 
-        return lines
+        currentLine.glyphs.push({
+          glyphObj,
+          x: glyphX + lineXOffset,
+          y: 0, //added later
+          width: glyphWidth,
+          char: char,
+          charIndex,
+          isWhitespace,
+          isEmpty: glyphObj.xMin === glyphObj.xMax || glyphObj.yMin === glyphObj.yMax,
+          atlasInfo: null //added later
+        })
+
+        // Handle hard line breaks
+        if (char === '\n') {
+          currentLine = {glyphs: [], width: 0}
+          lines.push(currentLine)
+          lineXOffset = -(glyphX + glyphWidth)
+        }
+      })
+
+      // Calculate width of each line (excluding trailing whitespace) and maximum block width
+      lines.forEach(line => {
+        const lineGlyphs = line.glyphs
+        for (let i = lineGlyphs.length; i--;) {
+          const lastChar = lineGlyphs[i]
+          if (!lastChar.isWhitespace) {
+            line.width = lastChar.x + lastChar.width
+            if (line.width > maxLineWidth) {
+              maxLineWidth = line.width
+            }
+            return
+          }
+        }
       })
 
       if (!metricsOnly) {
@@ -274,72 +288,102 @@ export default function createFontProcessor(fontParser, sdfGenerator, config) {
         // collecting all renderable glyphs into a single collection.
         const renderableGlyphs = []
         let lineYOffset = -(fontSize + halfLeading)
-        lineBlocks.forEach(lines => {
-          for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-            const lineGlyphs = lines[lineIndex]
+        if (includeCaretPositions) {
+          caretPositions = new Float32Array(text.length * 3)
+        }
+        let prevCharIndex = -1
+        lines.forEach(line => {
+          const {glyphs:lineGlyphs, width:lineWidth} = line
 
-            // Ignore empty lines
-            if (lineGlyphs.length) {
-              // Find x offset for horizontal alignment
-              let lineXOffset = 0
-              const lastChar = lineGlyphs[lineGlyphs.length - 1]
-              const thisLineWidth = lastChar.x + lastChar.width
-              let whitespaceCount = 0
-              if (textAlign === 'center') {
-                lineXOffset = (maxLineWidth - thisLineWidth) / 2
-              } else if (textAlign === 'right') {
-                lineXOffset = maxLineWidth - thisLineWidth
-              } else if (textAlign === 'justify') {
-                // just count the whitespace characters, and we'll adjust the offsets per character in the next loop
-                for (let i = 0, len = lineGlyphs.length; i < len; i++) {
-                  if (lineGlyphs[i].isWhitespace) {
-                    whitespaceCount++
-                  }
-                }
-              }
-
-              for (let i = 0, len = lineGlyphs.length; i < len; i++) {
-                const glyphInfo = lineGlyphs[i]
-                if (glyphInfo.isWhitespace && textAlign === 'justify' && lineIndex !== lines.length - 1) {
-                  lineXOffset += (maxLineWidth - thisLineWidth) / whitespaceCount
-                }
-
-                if (!glyphInfo.isWhitespace && !glyphInfo.isEmpty) {
-                  const glyphObj = glyphInfo.glyphObj
-
-                  // If we haven't seen this glyph yet, generate its SDF
-                  let glyphAtlasInfo = atlas.glyphs[glyphObj.index]
-                  if (!glyphAtlasInfo) {
-                    const glyphSDFData = sdfGenerator(glyphObj)
-
-                    // Assign this glyph the next available atlas index
-                    glyphSDFData.atlasIndex = atlas.glyphCount++
-
-                    // Queue it up in the response's newGlyphs list
-                    if (!newGlyphs) newGlyphs = []
-                    newGlyphs.push(glyphSDFData)
-
-                    // Store its metadata (not the texture) in our atlas info
-                    glyphAtlasInfo = atlas.glyphs[glyphObj.index] = {
-                      atlasIndex: glyphSDFData.atlasIndex,
-                      glyphObj: glyphObj,
-                      renderingBounds: glyphSDFData.renderingBounds
+          // Ignore empty lines
+          if (lineGlyphs.length) {
+            // Find x offset for horizontal alignment
+            let lineXOffset = 0
+            let whitespaceCount = 0
+            if (textAlign === 'center') {
+              lineXOffset = (maxLineWidth - lineWidth) / 2
+            } else if (textAlign === 'right') {
+              lineXOffset = maxLineWidth - lineWidth
+            } else if (textAlign === 'justify') {
+              // just count the non-trailing whitespace characters, and we'll adjust the offsets per
+              // character in the next loop
+              for (let i = lineGlyphs.length; i--;) {
+                if (!lineGlyphs[i].isWhitespace) {
+                  while (i--) {
+                    if (lineGlyphs[i].isWhitespace) {
+                      whitespaceCount++
                     }
                   }
-                  glyphInfo.atlasInfo = glyphAtlasInfo
-
-                  // Apply position adjustments
-                  if (lineXOffset) glyphInfo.x += lineXOffset
-                  glyphInfo.y = lineYOffset
-
-                  renderableGlyphs.push(glyphInfo)
+                  break
                 }
               }
             }
 
-            // Increment y offset for next line
-            lineYOffset -= lineHeight
+            for (let i = 0, len = lineGlyphs.length; i < len; i++) {
+              const glyphInfo = lineGlyphs[i]
+
+              // Apply position adjustments
+              if (lineXOffset) glyphInfo.x += lineXOffset
+              glyphInfo.y = lineYOffset
+
+              // Expand whitespaces for justify alignment
+              if (glyphInfo.isWhitespace && textAlign === 'justify' && line.isSoftWrapped) {
+                const adjust = (maxLineWidth - lineWidth) / whitespaceCount
+                lineXOffset += adjust
+                glyphInfo.width += adjust
+              }
+
+              // Add initial caret positions
+              if (includeCaretPositions) {
+                const {charIndex} = glyphInfo
+                caretPositions[charIndex * 3] = glyphInfo.x //left edge x
+                caretPositions[charIndex * 3 + 1] = glyphInfo.x + glyphInfo.width //right edge x
+                caretPositions[charIndex * 3 + 2] = glyphInfo.y + caretBottomOffset //common bottom y
+
+                // If we skipped any chars from the previous glyph (due to ligature subs), copy the
+                // previous glyph's info to those missing char indices. In the future we may try to
+                // use the font's LigatureCaretList table to get interior caret positions.
+                while (charIndex - prevCharIndex > 1) {
+                  caretPositions[(prevCharIndex + 1) * 3] = caretPositions[prevCharIndex * 3 + 1]
+                  caretPositions[(prevCharIndex + 1) * 3 + 1] = caretPositions[prevCharIndex * 3 + 1]
+                  caretPositions[(prevCharIndex + 1) * 3 + 2] = caretPositions[prevCharIndex * 3 + 2]
+                  prevCharIndex++
+                }
+                prevCharIndex = charIndex
+              }
+
+              // Get atlas data for renderable glyphs
+              if (!glyphInfo.isWhitespace && !glyphInfo.isEmpty) {
+                const glyphObj = glyphInfo.glyphObj
+
+                // If we haven't seen this glyph yet, generate its SDF
+                let glyphAtlasInfo = atlas.glyphs[glyphObj.index]
+                if (!glyphAtlasInfo) {
+                  const glyphSDFData = sdfGenerator(glyphObj)
+
+                  // Assign this glyph the next available atlas index
+                  glyphSDFData.atlasIndex = atlas.glyphCount++
+
+                  // Queue it up in the response's newGlyphs list
+                  if (!newGlyphs) newGlyphs = []
+                  newGlyphs.push(glyphSDFData)
+
+                  // Store its metadata (not the texture) in our atlas info
+                  glyphAtlasInfo = atlas.glyphs[glyphObj.index] = {
+                    atlasIndex: glyphSDFData.atlasIndex,
+                    glyphObj: glyphObj,
+                    renderingBounds: glyphSDFData.renderingBounds
+                  }
+                }
+                glyphInfo.atlasInfo = glyphAtlasInfo
+
+                renderableGlyphs.push(glyphInfo)
+              }
+            }
           }
+
+          // Increment y offset for next line
+          lineYOffset -= lineHeight
         })
 
         // Find overall position adjustments for anchoring
@@ -351,13 +395,22 @@ export default function createFontProcessor(fontParser, sdfGenerator, config) {
             anchorXOffset = -maxLineWidth * anchor[0]
           }
           if (anchor[1]) {
-            anchorYOffset = lineCount * lineHeight * anchor[1]
+            anchorYOffset = lines.length * lineHeight * anchor[1]
+          }
+        }
+
+        // Adjust caret positions by anchoring offsets
+        if (includeCaretPositions && (anchorXOffset || anchorYOffset)) {
+          for (let i = 0, len = caretPositions.length; i < len; i += 3) {
+            caretPositions[i] += anchorXOffset
+            caretPositions[i + 1] += anchorXOffset
+            caretPositions[i + 2] += anchorYOffset
           }
         }
 
         // Create the final output for the rendeable glyphs
         glyphBounds = new Float32Array(renderableGlyphs.length * 4)
-        glyphIndices = new Float32Array(renderableGlyphs.length)
+        glyphAtlasIndices = new Float32Array(renderableGlyphs.length)
         totalBounds = [INF, INF, -INF, -INF]
         renderableGlyphs.forEach((glyphInfo, i) => {
           const {renderingBounds, atlasIndex} = glyphInfo.atlasInfo
@@ -371,16 +424,18 @@ export default function createFontProcessor(fontParser, sdfGenerator, config) {
           if (x1 > totalBounds[2]) totalBounds[2] = x1
           if (y1 > totalBounds[3]) totalBounds[3] = y1
 
-          glyphIndices[i] = atlasIndex
+          glyphAtlasIndices[i] = atlasIndex
         })
       }
 
       callback({
-        glyphBounds,
-        glyphIndices,
-        totalBounds,
-        totalBlockSize: [maxLineWidth, lineCount * lineHeight],
-        newGlyphSDFs: newGlyphs
+        glyphBounds, //rendering quad bounds for each glyph [x1, y1, x2, y2]
+        glyphAtlasIndices, //atlas indices for each glyph
+        caretPositions, //x,y of bottom of cursor position before each char, plus one after last char
+        caretHeight, //height of cursor from bottom to top
+        totalBounds, //total rect including all glyphBounds; will be slightly larger than glyph edges due to SDF padding
+        totalBlockSize: [maxLineWidth, lines.length * lineHeight], //width and height of the text block; accurate for layout measurement
+        newGlyphSDFs: newGlyphs //if this request included any new SDFs for the atlas, they'll be included here
       })
     })
   }
@@ -398,7 +453,7 @@ export default function createFontProcessor(fontParser, sdfGenerator, config) {
         width: result.totalBlockSize[0],
         height: result.totalBlockSize[1]
       })
-    }, true)
+    }, {metricsOnly: true})
   }
 
   return {
