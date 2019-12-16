@@ -87,6 +87,14 @@ export default function EventRegistry() {
     return null
   }
 
+  function tryCall(func, scope, arg1, arg2) {
+    try {
+      func.call(scope, arg1, arg2)
+    } catch(err) {
+      console.error(err)
+    }
+  }
+
   this.forEachFacadeListenerOfType = (facade, type, callback, scope) => {
     const listenersOfType = byEventType[type]
     const facadeId = facade.$facadeId
@@ -94,10 +102,10 @@ export default function EventRegistry() {
     if (handlers) {
       if (Array.isArray(handlers)) {
         for (let i = 0; i < handlers.length; i++) {
-          callback.call(scope, handlers[i], facadeId)
+          tryCall(callback, scope, handlers[i], facadeId)
         }
       } else {
-        callback.call(scope, handlers, facadeId)
+        tryCall(callback, scope, handlers, facadeId)
       }
     }
   }
@@ -109,10 +117,10 @@ export default function EventRegistry() {
         const facadeListeners = listenersOfType.byFacadeId[facadeId]
         if (Array.isArray(facadeListeners)) {
           for (let i = 0; i < facadeListeners.length; i++) {
-            callback.call(scope, facadeListeners[i], facadeId)
+            tryCall(callback, scope, facadeListeners[i], facadeId)
           }
         } else {
-          callback.call(scope, facadeListeners, facadeId)
+          tryCall(callback, scope, facadeListeners, facadeId)
         }
       }
     }
