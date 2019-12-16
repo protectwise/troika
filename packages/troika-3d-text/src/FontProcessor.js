@@ -199,8 +199,8 @@ export default function createFontProcessor(fontParser, sdfGenerator, config) {
       // Determine line height and leading adjustments
       lineHeight = lineHeight * fontSize
       const halfLeading = (lineHeight - (ascender - descender) * fontSizeMult) / 2
-      const caretHeight = (ascender - descender) * fontSizeMult * 0.8
-      const caretBottomOffset = (descender * fontSizeMult) + ((ascender - descender) * fontSizeMult - caretHeight) / 2
+      const caretHeight = Math.min(lineHeight, (ascender - descender) * fontSizeMult)
+      const caretBottomOffset = (ascender + descender) / 2 * fontSizeMult - caretHeight / 2
 
       // Distribute glyphs into lines based on wrapping
       let lineXOffset = 0
