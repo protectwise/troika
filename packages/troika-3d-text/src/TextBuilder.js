@@ -66,12 +66,30 @@ const SDF_DISTANCE_PERCENT = 1 / 8
  */
 const atlases = Object.create(null)
 
+/**
+ * @typedef {object} TextRenderInfo - Format of the result from `getTextRenderInfo`.
+ * @property {DataTexture} sdfTexture
+ * @property {number} sdfGlyphSize
+ * @property {number} sdfMinDistancePercent
+ * @property {Float32Array} glyphBounds
+ * @property {Float32Array} glyphAtlasIndices
+ * @property {Float32Array} [caretPositions]
+ * @property {number} [caretHeight]
+ * @property {Array<number>} totalBounds
+ * @property {Array<number>} totalBlockSize
+ * @frozen
+ */
+
+/**
+ * @callback getTextRenderInfo~callback
+ * @param {TextRenderInfo} textRenderInfo
+ */
 
 /**
  * Main entry point for requesting the data needed to render a text string with given font parameters.
  * This is an asynchronous call, performing most of the logic in a web worker thread.
- * @param args
- * @param callback
+ * @param {object} args
+ * @param {getTextRenderInfo~callback} callback
  */
 export function getTextRenderInfo(args, callback) {
   args = assign({}, args)
@@ -136,7 +154,7 @@ export function getTextRenderInfo(args, callback) {
     }
 
     // Invoke callback with the text layout arrays and updated texture
-    callback({
+    callback(Object.freeze({
       sdfTexture: atlas.sdfTexture,
       sdfGlyphSize,
       sdfMinDistancePercent: SDF_DISTANCE_PERCENT,
@@ -146,7 +164,7 @@ export function getTextRenderInfo(args, callback) {
       caretHeight: result.caretHeight,
       totalBounds: result.totalBounds,
       totalBlockSize: result.totalBlockSize
-    })
+    }))
   })
 }
 
