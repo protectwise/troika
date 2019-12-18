@@ -77,6 +77,16 @@ export default function EventRegistry() {
     return byEventType[type] ? byEventType[type].count > 0 : false
   }
 
+  this.findBubblingEventTarget = (targetFacade, eventType) => {
+    while (targetFacade) {
+      if (this.hasFacadeListenersOfType(targetFacade, eventType)) {
+        return targetFacade
+      }
+      targetFacade = targetFacade.parent
+    }
+    return null
+  }
+
   this.forEachFacadeListenerOfType = (facade, type, callback, scope) => {
     const listenersOfType = byEventType[type]
     const facadeId = facade.$facadeId

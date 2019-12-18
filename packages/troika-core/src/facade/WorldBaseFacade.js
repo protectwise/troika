@@ -303,7 +303,7 @@ class WorldBaseFacade extends ParentFacade {
         this._firePointerEvent(pointerActionEventTypeMappings[e.type] || e.type, e, facade, null, hoverInfo)
 
         // touchstart/touchend could be start/end of a tap - map to click
-        if (this._hasEventHandlerInParentTree(facade, 'click') || this._hasEventHandlerInParentTree(facade, 'dblclick')) {
+        if (eventRegistry.findBubblingEventTarget(facade, 'click') || eventRegistry.findBubblingEventTarget(facade, 'dblclick')) {
           let tapInfo = eventState.tapInfo
           if (e.type === 'touchstart' && e.touches.length === 1) {
             eventState.tapInfo = {
@@ -328,15 +328,18 @@ class WorldBaseFacade extends ParentFacade {
         }
 
         // mousedown/touchstart could be prepping for drag gesture
-        if (facade.onDragStart && (e.type === 'mousedown' || e.type === 'touchstart')) {
-          let dragStartEvent = new SyntheticEvent(e, 'dragstart', facade, null, {intersection: hoverInfo})
-          eventState.dragInfo = {
-            draggedFacade: facade,
-            dragStartFired: false,
-            dragStartEvent: dragStartEvent
+        if (e.type === 'mousedown' || e.type === 'touchstart') {
+          const dragger = eventRegistry.findBubblingEventTarget(facade, 'dragstart')
+          if (dragger) {
+            let dragStartEvent = new SyntheticEvent(e, 'dragstart', dragger, null, {intersection: hoverInfo})
+            eventState.dragInfo = {
+              draggedFacade: dragger,
+              dragStartFired: false,
+              dragStartEvent: dragStartEvent
+            }
+            // handle release outside canvas
+            this._toggleDropListeners(true)
           }
-          // handle release outside canvas
-          this._toggleDropListeners(true)
         }
       }
       e.preventDefault() //prevent e.g. touch scroll
@@ -392,16 +395,6 @@ class WorldBaseFacade extends ParentFacade {
       states.set(eventSource, eventState = {})
     }
     return eventState
-  }
-
-  _hasEventHandlerInParentTree(targetFacade, eventType) {
-    while (targetFacade) {
-      if (this.eventRegistry.hasFacadeListenersOfType(eventType)) {
-        return true
-      }
-      targetFacade = targetFacade.parent
-    }
-    return false
   }
 
   _toggleDropListeners(on) {
