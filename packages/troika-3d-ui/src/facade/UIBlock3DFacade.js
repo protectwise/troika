@@ -1,4 +1,4 @@
-import { Mesh, Vector2, Vector4, PlaneBufferGeometry, Sphere, Matrix4 } from 'three'
+import { Mesh, Vector2, Vector3, Vector4, PlaneBufferGeometry, Sphere, Matrix4, Plane } from 'three'
 import { Group3DFacade } from 'troika-3d'
 import UITextNode3DFacade from './UITextNode3DFacade'
 import UIBlockLayer3DFacade from './UIBlockLayer3DFacade'
@@ -9,6 +9,7 @@ import ScrollbarsFacade from './ScrollbarsFacade'
 
 const raycastMesh = new Mesh(new PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0))
 const tempMat4 = new Matrix4()
+const tempPlane = new Plane()
 const DEFAULT_FONT_SIZE = 16
 const DEFAULT_LINE_HEIGHT = 'normal'
 
@@ -213,11 +214,12 @@ class UIBlock3DFacade extends Group3DFacade {
       }
     }
 
-    // Add mousewheel listener if scrollable
-    // TODO scroll via drag?
+    // Add mousewheel and drag listeners if scrollable
     if (canScroll !== this._couldScroll) {
       this._couldScroll = canScroll
       this[`${canScroll ? 'add' : 'remove'}EventListener`]('wheel', wheelHandler)
+      this[`${canScroll ? 'add' : 'remove'}EventListener`]('dragstart', dragHandler)
+      this[`${canScroll ? 'add' : 'remove'}EventListener`]('drag', dragHandler)
     }
 
     super.afterUpdate()
@@ -379,11 +381,11 @@ function wheelHandler(e) {
     // Only scroll if the major scroll direction would actually result in a scroll change
     const abs = Math.abs
     if (
-      (scrollLeft !== this.scrollLeft && abs(deltaX) > abs(deltaY)) ||
-      (scrollTop !== this.scrollTop && abs(deltaY) > abs(deltaX))
+      (scrollLeft !== facade.scrollLeft && abs(deltaX) > abs(deltaY)) ||
+      (scrollTop !== facade.scrollTop && abs(deltaY) > abs(deltaX))
     ) {
-      this.scrollLeft = scrollLeft
-      this.scrollTop = scrollTop
+      facade.scrollLeft = scrollLeft
+      facade.scrollTop = scrollTop
       facade.afterUpdate()
       facade.notifyWorld('needsRender')
       e._didScroll = true
@@ -391,6 +393,38 @@ function wheelHandler(e) {
     e.preventDefault()
   }
 }
+
+function dragHandler(e) {
+  if (!e._didScroll) {
+    const facade = e.currentTarget
+    const ray = e.ray.clone().applyMatrix4(tempMat4.getInverse(facade.threeObject.matrixWorld))
+    const localPos = ray.intersectPlane(tempPlane.setComponents(0, 0, 1, 0), new Vector3())
+    const prevPos = facade._prevDragPos
+    if (localPos && prevPos && e.type === 'drag') {
+      const deltaX = localPos.x - prevPos.x
+      const deltaY = localPos.y - prevPos.y
+      if (deltaX || deltaY) {
+        const scrollLeft = Math.max(0, Math.min(
+          facade.scrollWidth - facade.clientWidth,
+          facade.scrollLeft + deltaX
+        ))
+        const scrollTop = Math.max(0, Math.min(
+          facade.scrollHeight - facade.clientHeight,
+          facade.scrollTop + deltaY
+        ))
+        if (scrollLeft !== facade.scrollLeft || scrollTop !== facade.scrollTop) {
+          facade.scrollLeft = scrollLeft
+          facade.scrollTop = scrollTop
+          facade.afterUpdate()
+          facade.notifyWorld('needsRender')
+          e._didScroll = true
+        }
+      }
+    }
+    facade._prevDragPos = localPos
+  }
+}
+
 
 function isTextNodeChild(child) {
   return typeof child === 'string' || typeof child === 'number'
