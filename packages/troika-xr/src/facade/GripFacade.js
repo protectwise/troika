@@ -7,27 +7,28 @@ import { copyXRPoseToFacadeProps } from '../XRUtils'
 
 const PROFILE_MODELS = [
   {
-    match: /oculus-touch/,
+    match: xrInputSource => {
+      return /Oculus/.test(navigator.userAgent) || (
+        xrInputSource.profiles && xrInputSource.profiles.some(profile => /oculus-touch/.test(profile))
+      )
+    },
     facade: OculusTouchGrip
   },
   {
-    match: /.*/,
+    match: xrInputSource => true,
     facade: BasicGrip,
     space: 'targetRay'
   }
 ]
 
-function findModelConfig(profiles) {
+function findModelConfig(xrInputSource) {
   for (let i = 0; i < PROFILE_MODELS.length; i++) {
-    for (let j = 0; j < profiles.length; j++) {
-      if (PROFILE_MODELS[i].match.test(profiles[j])) {
-        const result = utils.assign({}, PROFILE_MODELS[i])
-        delete result.match
-        return result
-      }
+    if (PROFILE_MODELS[i].match(xrInputSource)) {
+      const result = utils.assign({}, PROFILE_MODELS[i])
+      delete result.match
+      return result
     }
   }
-  return null
 }
 
 
@@ -37,8 +38,10 @@ class GripFacade extends Group3DFacade {
     let modelConfig = this.modelConfig
     if (xrInputSource && xrInputSource !== this._lastSource) {
       this._lastSource = xrInputSource
-      modelConfig = this.modelConfig = findModelConfig(xrInputSource.profiles)
-      modelConfig.xrInputSource = xrInputSource
+      modelConfig = this.modelConfig = findModelConfig(xrInputSource)
+      if (modelConfig) {
+        modelConfig.xrInputSource = xrInputSource
+      }
     }
 
     // Update to match the appropriate pose
