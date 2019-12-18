@@ -47,7 +47,9 @@ class WorldXRFacade extends World3DFacade {
           const promise = gl.makeXRCompatible ? gl.makeXRCompatible() : Promise.resolve() //not always implemented?
           promise.then(() => {
             if (this.xrSession === xrSession) {
-              baseLayer = new XRWebGLLayer(xrSession, gl)
+              baseLayer = new XRWebGLLayer(xrSession, gl, {
+                antialias: !!renderer.getContextAttributes().antialias
+              })
               baseLayer._glContext = gl
               xrSession.updateRenderState({ baseLayer })
               renderer.setFramebuffer(baseLayer.framebuffer)
