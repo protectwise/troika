@@ -7,7 +7,7 @@ import GripFacade from './GripFacade'
 import { BUTTON_SQUEEZE, BUTTON_TRIGGER } from '../XRStandardGamepadMapping'
 
 const SCENE_EVENTS = ['mousemove', 'mouseover', 'mouseout', 'mousedown', 'mouseup', 'click']
-const XRSESSION_EVENTS = ['selectstart', 'select', 'selectend', 'squeezestart', 'squeeze', 'squeezeend']
+const XRSESSION_EVENTS = ['selectstart', 'selectend', 'squeezestart', 'squeezeend']
 const CLICK_MAX_DUR = 300
 
 const HAPTICS = { //TODO allow control
@@ -211,14 +211,28 @@ class XRInputSourceFacade extends Group3DFacade {
   }
 
   _onSessionEvent (e) {
-    // Redispatch select and squeeze events as standard pointer events to the world's event system.
-    // Note this is only used for non xr-standard gamepad inputs, otherwise it's handled in the
-    // gamepad button state tracking.
-    this.notifyWorld('rayPointerAction', {
-      ray: this._ray,
-      type: /start$/.test(e.type) ? 'mousedown' : /end$/.test(e.type) ? 'mouseup' : 'click',
-      button: /^squeeze/.test(e.type) ? BUTTON_SQUEEZE : BUTTON_TRIGGER
-    })
+    if (e.inputSource === this.xrInputSource) {
+      // Redispatch select and squeeze events as standard pointer events to the world's event system.
+      // Note this is only used for non xr-standard gamepad inputs, otherwise it's handled in the
+      // gamepad button state tracking.
+      const button = /^squeeze/.test(e.type) ? BUTTON_SQUEEZE : BUTTON_TRIGGER
+      this.notifyWorld('rayPointerAction', {
+        ray: this._ray,
+        type: /start$/.test(e.type) ? 'mousedown' : 'mouseup',
+        button
+      })
+      // If this was an "end" event, then we'll also want to fire a click event after the mouseup.
+      // This is a workaround for the fact that WebXR fires 'select' then 'selectend', which doesn't
+      // match with standard DOM mouse events which go 'mouseup' then 'click', and can lead to
+      // unexpected behaviors in downstram code that assumes the standard order.
+      if (/end$/.test(e.type)) {
+        this.notifyWorld('rayPointerAction', {
+          ray: this._ray,
+          type: 'click',
+          button
+        })
+      }
+    }
   }
 
   _onSceneRayEvent (e) {
