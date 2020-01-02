@@ -67,7 +67,7 @@ const SDF_DISTANCE_PERCENT = 1 / 8
 const atlases = Object.create(null)
 
 /**
- * @typedef {object} TextRenderInfo - Format of the result from `getTextRenderInfo`.
+ * @typedef {object} TroikaTextRenderInfo - Format of the result from `getTextRenderInfo`.
  * @property {DataTexture} sdfTexture
  * @property {number} sdfGlyphSize
  * @property {number} sdfMinDistancePercent
@@ -82,7 +82,7 @@ const atlases = Object.create(null)
 
 /**
  * @callback getTextRenderInfo~callback
- * @param {TextRenderInfo} textRenderInfo
+ * @param {TroikaTextRenderInfo} textRenderInfo
  */
 
 /**

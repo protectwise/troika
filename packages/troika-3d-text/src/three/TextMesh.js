@@ -231,6 +231,16 @@ class TextMesh extends Mesh {
     this.geometry.dispose()
   }
 
+  /**
+   * @property {TroikaTextRenderInfo|null} textRenderInfo
+   * @readonly
+   * The current processed rendering data for this TextMesh, returned by the TextBuilder after
+   * a `sync()` call. This will be `null` initially, and may be stale for a short period until
+   * the asynchrous `sync()` process completes.
+   */
+  get textRenderInfo() {
+    return this._textRenderInfo || null
+  }
 
   // Handler for automatically wrapping the base material with our upgrades. We do the wrapping
   // lazily on _read_ rather than write to avoid unnecessary wrapping on transient values.
@@ -280,7 +290,7 @@ class TextMesh extends Mesh {
   }
 
   _updateLayoutUniforms(material) {
-    const textInfo = this._textRenderInfo
+    const textInfo = this.textRenderInfo
     const uniforms = material.uniforms
     if (textInfo) {
       const {sdfTexture, totalBounds} = textInfo
@@ -310,7 +320,7 @@ class TextMesh extends Mesh {
    * TODO is there any reason to make this more granular, like within individual line or glyph rects?
    */
   raycast(raycaster, intersects) {
-    const textInfo = this._textRenderInfo
+    const textInfo = this.textRenderInfo
     if (textInfo) {
       const bounds = textInfo.totalBounds
       raycastMesh.matrixWorld.multiplyMatrices(

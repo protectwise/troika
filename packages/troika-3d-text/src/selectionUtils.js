@@ -11,7 +11,7 @@
 
 /**
  * Given a local x/y coordinate in the text block plane, find the nearest caret position.
- * @param {TextRenderInfo} textRenderInfo - a result object from TextBuilder#getTextRenderInfo
+ * @param {TroikaTextRenderInfo} textRenderInfo - a result object from TextBuilder#getTextRenderInfo
  * @param {number} x
  * @param {number} y
  * @return {TextCaret | null}
@@ -42,7 +42,7 @@ export function getCaretAtPoint(textRenderInfo, x, y) {
 /**
  * Given start and end character indexes, return a list of rectangles covering all the
  * characters within that selection.
- * @param {TextRenderInfo} textRenderInfo
+ * @param {TroikaTextRenderInfo} textRenderInfo
  * @param {number} start - index of the first char in the selection
  * @param {number} end - index of the first char after the selection
  * @return {Array<{left, top, right, bottom}> | null}
