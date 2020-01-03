@@ -39,6 +39,8 @@ export function getCaretAtPoint(textRenderInfo, x, y) {
 }
 
 
+const _rectsCache = new WeakMap()
+
 /**
  * Given start and end character indexes, return a list of rectangles covering all the
  * characters within that selection.
@@ -48,8 +50,14 @@ export function getCaretAtPoint(textRenderInfo, x, y) {
  * @return {Array<{left, top, right, bottom}> | null}
  */
 export function getSelectionRects(textRenderInfo, start, end) {
-  let rects = null
+  let rects
   if (textRenderInfo) {
+    // Check cache - textRenderInfo is frozen so it's safe to cache based on it
+    let prevResult = _rectsCache.get(textRenderInfo)
+    if (prevResult && prevResult.start === start && prevResult.end === end) {
+      return prevResult.rects
+    }
+
     const {caretPositions, caretHeight, totalBounds} = textRenderInfo
 
     // Normalize
@@ -80,6 +88,8 @@ export function getSelectionRects(textRenderInfo, start, end) {
     rows.forEach(rect => {
       rects.push(rect)
     })
+
+    _rectsCache.set(textRenderInfo, {start, end, rects})
   }
   return rects
 }
