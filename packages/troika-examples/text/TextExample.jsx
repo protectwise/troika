@@ -42,7 +42,7 @@ const TEXTS = {
   'Gettysburg': `  Four score and seven years ago our fathers brought forth on this continent, a new nation, conceived in Liberty, and dedicated to the proposition that all men are created equal.
 
   Now we are engaged in a great civil war, testing whether that nation, or any nation so conceived and so dedicated, can long endure. We are met on a great battle-field of that war. We have come to dedicate a portion of that field, as a final resting place for those who here gave their lives that that nation might live. It is altogether fitting and proper that we should do this.
-  
+
   But, in a larger sense, we can not dedicate — we can not consecrate — we can not hallow — this ground. The brave men, living and dead, who struggled here, have consecrated it, far above our poor power to add or detract. The world will little note, nor long remember what we say here, but it can never forget what they did here. It is for us the living, rather, to be dedicated here to the unfinished work which they who fought here have thus far so nobly advanced. It is rather for us to be here dedicated to the great task remaining before us — that from these honored dead we take increased devotion to that cause for which they gave the last full measure of devotion — that we here highly resolve that these dead shall not have died in vain — that this nation, under God, shall have a new birth of freedom — and that government of the people, by the people, for the people, shall not perish from the earth.
 
 Abraham Lincoln
@@ -92,6 +92,7 @@ class TextExample extends React.Component {
       material: 'MeshStandardMaterial',
       useTexture: false,
       shadows: false,
+      selectable: false,
       debugSDF: false
     }
 
@@ -123,8 +124,6 @@ class TextExample extends React.Component {
           camera={ {
             fov: 75,
             aspect: width / height,
-            near: 0.1,
-            far: 100,
             x: 0,
             y: 0,
             z: 2
@@ -168,6 +167,7 @@ class TextExample extends React.Component {
               lineHeight: state.lineHeight,
               letterSpacing: state.letterSpacing,
               anchor: [0.5, 0.5],
+              selectable: state.selectable,
               debugSDF: state.debugSDF,
               material: material,
               color: 0xffffff,
@@ -282,6 +282,8 @@ class TextExample extends React.Component {
           <DatBoolean path="shadows" label="Shadows" />
           <DatBoolean path="debugSDF" label="Show SDF" />
 
+          <DatBoolean path="selectable" label="Selectable (WIP)" />
+          <DatNumber path="fontSize" label="fontSize" min={0.01} max={0.2} step={0.01} />
           <DatNumber path="textScale" label="scale" min={0.1} max={10} step={0.1} />
           <DatNumber path="maxWidth" min={1} max={5} step={0.01} />
           <DatNumber path="lineHeight" min={1} max={2} step={0.01} />

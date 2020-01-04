@@ -1,6 +1,6 @@
 import { Object3DFacade } from 'troika-3d'
 import { TextMesh } from '../three/TextMesh.js'
-
+import SelectionManagerFacade from './SelectionManagerFacade'
 
 // Properties that will simply be forwarded to the TextMesh:
 const TEXT_MESH_PROPS = [
@@ -31,6 +31,23 @@ class Text3DFacade extends Object3DFacade {
     const mesh = new TextMesh()
     mesh.geometry.boundingSphere.version = 0
     super(parent, mesh)
+
+    /* TODO mirroring to DOM...?
+    const el = this._domEl = document.createElement('section')
+    el.style = 'position:fixed;left:-99px;overflow:hidden;width:10px;height:10px;'
+    document.body.appendChild(el) //should insert into local element
+    */
+
+    this.selectable = false
+    this.selectionStart = this.selectionEnd = -1
+
+    this._afterSync = () => {
+      if (!this.isDestroying) {
+        mesh.geometry.boundingSphere.version++
+        this.afterUpdate()
+        this.notifyWorld('needsRender')
+      }
+    }
   }
 
   afterUpdate() {
@@ -38,17 +55,71 @@ class Text3DFacade extends Object3DFacade {
     TEXT_MESH_PROPS.forEach(prop => {
       textMesh[prop] = this[prop]
     })
-    textMesh.sync(() => {
-      if (!this.isDestroying) {
-        textMesh.geometry.boundingSphere.version++
-        this.notifyWorld('needsRender')
-      }
-    })
+    textMesh.sync(this._afterSync)
+
     super.afterUpdate()
+
+    if (this.text !== this._prevText) {
+      // TODO mirror to DOM... this._domEl.textContent = this.text
+      // Clear selection when text changes
+      this.selectionStart = this.selectionEnd = -1
+      this._prevText = this.text
+    }
+
+    this._updateSelection()
+  }
+
+  _updateSelection() {
+    const {selectable, selectionStart, selectionEnd} = this
+    let selFacade = this._selectionFacade
+    if (selectable !== this._selectable) {
+      this._selectable = selectable
+      if (selectable) {
+        selFacade = this._selectionFacade = new SelectionManagerFacade(this, (start, end) => {
+          this.selectionStart = start
+          this.selectionEnd = end
+          this._updateSelection()
+          this.notifyWorld('needsRender')
+        })
+      } else {
+        if (selFacade) {
+          selFacade.destructor()
+          selFacade = this._selectionFacade = null
+        }
+        this.selectionStart = this.selectionEnd = -1
+      }
+    }
+    if (selFacade) {
+      selFacade.textRenderInfo = this.threeObject.textRenderInfo
+      selFacade.selectionStart = selectionStart
+      selFacade.selectionEnd = selectionEnd
+      selFacade.renderOrder = this.renderOrder
+      selFacade.afterUpdate()
+    }
+
+    /* TODO update selection in DOM...
+    const {selectionStart, selectionEnd} = this
+    if (selectionStart !== this._prevSelStart || selectionEnd !== this._prevSelEnd) {
+      this._prevSelStart = selectionStart
+      this._prevSelEnd = selectionEnd
+      const sel = document.getSelection()
+      sel.removeAllRanges()
+      if (this.selectable && selectionStart > -1 && selectionEnd > selectionStart) {
+        const range = document.createRange()
+        range.setStart(this._domEl.firstChild, this.selectionStart)
+        range.setEnd(this._domEl.firstChild, this.selectionEnd)
+        sel.addRange(range)
+      }
+    }
+    */
   }
 
   destructor() {
     this.threeObject.dispose()
+    //this._domEl.parentNode.removeChild(this._domEl)
+    if (this._selectionFacade) {
+      this._selectionFacade.destructor()
+    }
     super.destructor()
   }
 }
