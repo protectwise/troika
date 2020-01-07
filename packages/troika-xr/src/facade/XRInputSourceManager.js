@@ -142,13 +142,6 @@ export class XRInputSourceManager extends ParentFacade {
     super.afterUpdate()
   }
 
-  /**
-   * Override
-   */
-  updateMatrices() {
-
-  }
-
   destructor () {
     if (this.xrSession) {
       this.xrSession.removeEventListener('inputsourceschange', this._onInputSourcesChange)

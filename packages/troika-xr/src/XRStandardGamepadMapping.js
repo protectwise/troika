@@ -5,6 +5,7 @@ export const BUTTON_TRIGGER = 0
 export const BUTTON_SQUEEZE = 1
 export const BUTTON_TOUCHPAD = 2
 export const BUTTON_THUMBSTICK = 3
+export const BUTTON_DEFAULT_BACK = 5
 
 export const AXIS_TOUCHPAD_X = 0
 export const AXIS_TOUCHPAD_Y = 1

@@ -4,7 +4,7 @@ import { Matrix4, Ray } from 'three'
 import CursorFacade from './CursorFacade'
 import TargetRayFacade from './TargetRayFacade'
 import GripFacade from './GripFacade'
-import { BUTTON_SQUEEZE, BUTTON_TRIGGER } from '../XRStandardGamepadMapping'
+import { BUTTON_DEFAULT_BACK, BUTTON_SQUEEZE, BUTTON_TRIGGER } from '../XRStandardGamepadMapping'
 
 const SCENE_EVENTS = ['mousemove', 'mouseover', 'mouseout', 'mousedown', 'mouseup', 'click']
 const XRSESSION_EVENTS = ['selectstart', 'selectend', 'squeezestart', 'squeezeend']
@@ -47,6 +47,7 @@ const tempMat4 = new Matrix4()
 class XRInputSourceFacade extends Group3DFacade {
   constructor (parent) {
     super(parent)
+    this.isXRInputSource = true
 
     // Required props
     this.xrInputSource = null
@@ -238,29 +239,44 @@ class XRInputSourceFacade extends Group3DFacade {
   _onSceneRayEvent (e) {
     // Only handle events where this was the ray's source
     if (e.nativeEvent.eventSource === this) {
+      const {gamepad} = this.xrInputSource
+
       // Copy intersection info to local state and update subtree
       this.rayIntersection = e.intersection
       this.afterUpdate()
 
       // If haptics available, trigger a pulse
-      const isScene = e.target === e.currentTarget
-      const hapticPulse = e.type === 'click' ? HAPTICS.click
-        : (e.type === 'mouseover' && !isScene) ? HAPTICS.mouseover
-        : null
-      if (hapticPulse) {
-        const {gamepad} = this.xrInputSource
-        const hapticActuator = gamepad && gamepad.hapticActuators && gamepad.hapticActuators[0]
-        if (hapticActuator) {
-          hapticActuator.pulse(hapticPulse.value || 1, hapticPulse.duration || 100)
+      if (gamepad) {
+        const isScene = e.target === e.currentTarget
+        const hapticPulse = e.type === 'click' ? HAPTICS.click
+          : (e.type === 'mouseover' && !isScene) ? HAPTICS.mouseover
+          : null
+        if (hapticPulse) {
+          const hapticActuator = gamepad.hapticActuators && gamepad.hapticActuators[0]
+          if (hapticActuator) {
+            hapticActuator.pulse(hapticPulse.value || 1, hapticPulse.duration || 100)
+          }
         }
       }
 
-      // For certain events, dispatch an xr-specific event to the raycast target:
-      const xrTargetEvent = RAY_TARGET_EVENTS[e.button] && RAY_TARGET_EVENTS[e.button][e.type]
-      if (xrTargetEvent) {
-        const event = new Event(xrTargetEvent, {bubbles: true})
-        event.eventSource = this
-        e.target.dispatchEvent(event)
+      // For gamepad buttons and select/squeeze session events, dispatch custom xr-specific
+      // events to the raycasted target facade:
+      let defaultPrevented = e.defaultPrevented
+      const fireEvent = type => {
+        if (type) {
+          const customEvent = new Event(type, {bubbles: true})
+          customEvent.eventSource = this
+          e.target.dispatchEvent(customEvent)
+          defaultPrevented = defaultPrevented || customEvent.defaultPrevented
+        }
+      }
+      //TODO: fireEvent(RAY_TARGET_EVENTS.all[e.type]) //all buttons
+      fireEvent(RAY_TARGET_EVENTS[e.button] && RAY_TARGET_EVENTS[e.button][e.type]) //special select/squeeze
+
+      // Default gamepad button mapping to exit the XR session; authors can override this
+      // to use that button for other things by calling `preventDefault()`
+      if (!defaultPrevented && e.type === 'click' && e.button === BUTTON_DEFAULT_BACK) {
+        this.notifyWorld('endXRSession')
       }
     }
   }
@@ -299,7 +315,13 @@ const RAY_TARGET_EVENTS = {
     mousedown: 'xrsqueezestart',
     mouseup: 'xrsqueezeend',
     click: 'xrsqueeze'
-  }
+  },
+  // TODO decide on event names, and handle touching without press:
+  // all: {
+  //   mousedown: 'xrbuttondown',
+  //   mouseup: 'xrbuttonup',
+  //   click: 'xrbuttonclick'
+  // }
 }
 
 // ...and add shortcut event handler properties on Object3DFacade for those events:

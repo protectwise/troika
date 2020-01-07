@@ -142,5 +142,18 @@ class WorldXRFacade extends World3DFacade {
   }
 }
 
+WorldXRFacade.prototype._notifyWorldHandlers = Object.create(
+  World3DFacade.prototype._notifyWorldHandlers,
+  {
+    // notification to end the XR session
+    endXRSession: {
+      value: function(source, data) {
+        if (this.xrSession) {
+          this.xrSession.end()
+        }
+      }
+    }
+  }
+)
 
 export default WorldXRFacade
