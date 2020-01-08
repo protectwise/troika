@@ -66,6 +66,8 @@ class XRInputSourceFacade extends Group3DFacade {
 
     // Pointing - true for all inputs by default
     this.isPointing = true
+    
+    this.clickOnPoke = true
 
     this.children = [
       null, //cursor
@@ -239,7 +241,7 @@ class XRInputSourceFacade extends Group3DFacade {
   _onSceneRayEvent (e) {
     // Only handle events where this was the ray's source
     if (e.nativeEvent.eventSource === this) {
-      const {gamepad} = this.xrInputSource
+      const {gamepad, targetRayMode} = this.xrInputSource
 
       // Copy intersection info to local state and update subtree
       this.rayIntersection = e.intersection
@@ -278,7 +280,30 @@ class XRInputSourceFacade extends Group3DFacade {
       if (!defaultPrevented && e.type === 'click' && e.button === BUTTON_DEFAULT_BACK) {
         this.notifyWorld('endXRSession')
       }
+
+      // Check physical proximity to trigger a click when poking an object
+      if (targetRayMode === 'tracked-pointer' && this.clickOnPoke) {
+        this._checkPokeGesture(e)
+      }
     }
+  }
+
+  _checkPokeGesture(e) {
+    const DEBOUNCE = 500
+    const RAY_DISTANCE = 0.1 //slight buffer
+    const {intersection, target} = e
+    const pokeState = this._pokeState || (this._pokeState = {target: null, isPoking: false, time: 0})
+    const isPoking = !!intersection && intersection.distance < RAY_DISTANCE
+    if (isPoking && (!pokeState.isPoking || target !== pokeState.target) && Date.now() - pokeState.time > DEBOUNCE) {
+      pokeState.time = Date.now()
+      this.notifyWorld('rayPointerAction', {
+        ray: e.ray,
+        type: 'click',
+        button: BUTTON_TRIGGER
+      })
+    }
+    pokeState.isPoking = isPoking
+    pokeState.target = target
   }
 
   destructor () {
