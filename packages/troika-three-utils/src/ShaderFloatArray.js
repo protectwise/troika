@@ -21,6 +21,7 @@ import {
  * only allow texture lookups in fragment shaders.
  *
  * TODO:
+ *   - Fix texture to fill both dimensions so we don't easily hit max texture size limits
  *   - Use a float texture if the extension is available so we can skip the encoding process
  */
 export class ShaderFloatArray {

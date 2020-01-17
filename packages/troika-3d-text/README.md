@@ -2,7 +2,7 @@
 
 This package provides high quality text rendering in 3D scenes, using signed distance fields (SDF) and antialiasing using standard derivatives.
 
-Rather than relying on pre-generated SDF textures, this parses font files (.ttf, .otf, .woff) directly using [Typr.js](https://github.com/photopea/Typr.js), and generates the SDF atlas for glyphs on-the-fly as they are used. It also handles proper kerning and ligature glyph substitution. All font parsing, SDF generation, and glyph layout is performed in a web worker to prevent frame drops. 
+Rather than relying on pre-generated SDF textures, this parses font files (.ttf, .otf, .woff) directly using [Typr.js](https://github.com/photopea/Typr.js), and generates the SDF atlas for glyphs on-the-fly as they are used. It also handles proper kerning and ligature glyph substitution. All font parsing, SDF generation, and glyph layout is performed in a web worker to prevent frame drops.
 
 Once the SDFs are generated, it assembles a geometry that positions all the glyphs, and _patches_ any Three.js Material with the proper shader code for rendering the SDFs. This means you can still benefit from all the features of Three.js's built-in materials like lighting, physically-based rendering, shadows, and fog.
 
@@ -19,11 +19,20 @@ Here's [an online demo](https://troika-examples.netlify.com/#text).
 ![Font with ligatures](./screenshot3.png)
 
 ![Text with a texture](./screenshot4.png)
- 
+
+## Installation
+
+Get it from [NPM](https://www.npmjs.com/package/troika-3d-text):
+
+```sh
+npm install troika-3d-text
+```
+
+You will also need to install a compatible version of [Three.js](https://threejs.org); see the notes in the [Troika 3D Readme](../troika-3d/README.md#installation) for details.
 
 ## Usage
 
-### Using within the Troika 3D framework
+### Using within the Troika 3D scene management framework
 
 This library is built first and foremost to work within Troika 3D scenes, via the `Text3DFacade` class.
 
@@ -88,7 +97,7 @@ Some examples of using the standalone TextMesh within other frameworks:
 Both `Text3DFacade` and `TextMesh` support the following properties for controlling the text rendering:
 
 #### `text`
-  
+
 The string of text to be rendered. Newlines and repeating whitespace characters are honored.
 
 Default: _none_
@@ -169,7 +178,7 @@ Default: `Infinity`, meaning text will never wrap
 Defines how text wraps if the `whiteSpace` property is `'normal'`. Can be either `'normal'` to break at whitespace characters, or `'break-word'` to allow breaking within words.
 
 Default: `'normal'`
-     
+
 #### `textAlign`
 
 The horizontal alignment of each line of text within the overall text bounding box. Can be one of `'left'`, `'right'`, `'center'`, or `'justify'`.
@@ -178,7 +187,7 @@ Default: `'left'`
 
 #### `whiteSpace`
 
-Defines whether text should wrap when a line reaches the `maxWidth`. Can be either `'normal'`, to allow wrapping according to the `overflowWrap` property, or `'nowrap'` to prevent wrapping. 
+Defines whether text should wrap when a line reaches the `maxWidth`. Can be either `'normal'`, to allow wrapping according to the `overflowWrap` property, or `'nowrap'` to prevent wrapping.
 
 Note that `'normal'` in this context _does_ honor newline characters to manually break lines, making it behave more like `'pre-wrap'` does in CSS.
 
