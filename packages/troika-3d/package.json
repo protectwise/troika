@@ -19,6 +19,6 @@
     "troika-three-utils": "^0.16.0"
   },
   "peerDependencies": {
-    "three": "0.103.x - 0.110.x"
+    "three": "0.103.x - 0.112.x"
   }
 }

@@ -25,7 +25,9 @@ const customShaderMaterial = new ShaderMaterial({
 
 const derivedMaterial = createDerivedMaterial(
   new MeshStandardMaterial({
-    transparent: true
+    transparent: true,
+    roughness: 0.5,
+    metalness: 0.5
   }),
   // baseMaterial1,
   {

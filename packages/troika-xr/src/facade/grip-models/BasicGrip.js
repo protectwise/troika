@@ -12,7 +12,9 @@ let getGeometry = () => {
 let getMaterial = () => {
   const material = new MeshStandardMaterial({
     color: 0x666666,
-    emissive: 0x666666
+    emissive: 0x666666,
+    roughness: 0.5,
+    metalness: 0.5
   })
   getMaterial = () => material
   return material

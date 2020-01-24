@@ -5,7 +5,11 @@ export default class ShadowSurface extends Object3DFacade {
   constructor(parent) {
     super(parent, new Mesh(
       new PlaneBufferGeometry(),
-      new MeshStandardMaterial({color: 0x333333, roughness: 0.8})
+      new MeshStandardMaterial({
+        color: 0x333333,
+        roughness: 0.8,
+        metalness: 0.5
+      })
     ))
   }
 }

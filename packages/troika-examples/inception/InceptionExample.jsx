@@ -15,7 +15,9 @@ class WorldTexturedSphere extends Object3DFacade {
     super(parent, new Mesh(
       sphereGeom,
       new MeshStandardMaterial({
-        map: subWorldTexture
+        map: subWorldTexture,
+        roughness: 0.5,
+        metalness: 0.5
       })
     ))
   }
@@ -27,7 +29,9 @@ class WorldTexturedBox extends Object3DFacade {
     super(parent, new Mesh(
       boxGeom,
       new MeshStandardMaterial({
-        map: subWorldTexture
+        map: subWorldTexture,
+        roughness: 0.5,
+        metalness: 0.5
       })
     ))
   }

@@ -90,7 +90,9 @@ class Globe extends Object3DFacade {
       countryBordersGeometry,
       new MeshStandardMaterial({
         color: 0xffffff,
-        emissive: 0x999999
+        emissive: 0x999999,
+        roughness: 0.5,
+        metalness: 0.5
       })
     )
     const sphere = new Mesh(

@@ -54,8 +54,14 @@ November 19, 1863`,
 const TEXTURE = new TextureLoader().load('shader-anim/lava.jpg')
 const MATERIALS = {
   'MeshBasicMaterial': new MeshBasicMaterial(),
-  'MeshStandardMaterial': new MeshStandardMaterial(),
-  'Custom Vertex Shader': createDerivedMaterial(new MeshStandardMaterial(), {
+  'MeshStandardMaterial': new MeshStandardMaterial({
+    roughness: 0.5,
+    metalness: 0.5
+  }),
+  'Custom Vertex Shader': createDerivedMaterial(new MeshStandardMaterial({
+    roughness: 0.5,
+    metalness: 0.5
+  }), {
     timeUniform: 'elapsed',
     vertexTransform: `
       float waveAmplitude = 0.1;
@@ -305,7 +311,11 @@ class ShadowSurface extends Object3DFacade {
   constructor(parent) {
     super(parent, new Mesh(
       new PlaneBufferGeometry(),
-      new MeshStandardMaterial({color: 0x333333, roughness: 0.8})
+      new MeshStandardMaterial({
+        color: 0x333333,
+        roughness: 0.8,
+        metalness: 0.5
+      })
     ))
   }
 }

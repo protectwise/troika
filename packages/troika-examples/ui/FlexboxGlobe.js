@@ -8,7 +8,9 @@ class FlexboxGlobe extends Object3DFacade {
     super(parent, new Mesh(
       new SphereBufferGeometry(0.5, 64, 64),
       new MeshStandardMaterial({
-        map: new TextureLoader().load('globe/texture_day.jpg')
+        map: new TextureLoader().load('globe/texture_day.jpg'),
+        roughness: 0.5,
+        metalness: 0.5
       })
     ))
   }
