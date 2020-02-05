@@ -74,7 +74,7 @@ for (let entry of Object.keys(entries)) {
       },
       external: Object.keys(EXTERNAL_GLOBALS),
       plugins: [
-        buble()
+        //buble()
       ],
       onwarn
     },

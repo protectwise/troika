@@ -52,8 +52,8 @@ export default {
       }
     }),
     nodeResolve({
-      // Favor our custom "module:es2015" field which points to the ES6 source files
-      mainFields: ['module:es2015', 'module', 'jsnext:main', 'browser', 'main'],
+      // Prefer "browser" over "main" in resolution
+      mainFields: ['module', 'jsnext:main', 'browser', 'main'],
     }),
     START_SERVER ? serve({
       //open: true,
