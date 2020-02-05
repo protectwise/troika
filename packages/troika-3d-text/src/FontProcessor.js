@@ -174,6 +174,11 @@ export default function createFontProcessor(fontParser, sdfGenerator, config) {
       text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
     }
 
+    // Ensure we've got numbers not strings
+    fontSize = +fontSize
+    letterSpacing = +letterSpacing
+    maxWidth = +maxWidth
+
     getSdfAtlas(font, atlas => {
       const fontObj = atlas.fontObj
       const hasMaxWidth = isFinite(maxWidth)
