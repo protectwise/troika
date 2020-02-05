@@ -1,7 +1,7 @@
 //=== WebXR: ===//
 
 // Main entry point
-export {ReactXRAware, XRAwarePropTypes} from './react/XRAware.jsx'
+export {ReactXRAware, XRAwarePropTypes} from './react/XRAware.js'
 
 // Supporting facades
 export {default as WorldXRFacade} from './facade/WorldXRFacade.js'

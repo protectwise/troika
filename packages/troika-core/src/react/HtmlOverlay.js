@@ -22,9 +22,7 @@ class HtmlOverlayContent extends React.Component {
   render () {
     let html = this.props.html
     return typeof html === 'string'
-      ? <span>
-        {html}
-      </span>
+      ? React.createElement('span', null, html)
       : React.cloneElement(html)
   }
 }
@@ -62,25 +60,30 @@ class HtmlOverlay extends React.Component {
     let items = this.state.items
     let round = Math.round
     return items && items.length
-      ? <div className='troika_html_overlay' style={CT_STYLES}>
-        {items.map(({ key, html, x, y, z, exact }) => {
+      ? React.createElement(
+        'div',
+        {
+          className: 'troika_html_overlay',
+          style: CT_STYLES
+        },
+        items.map(({ key, html, x, y, z, exact }) => {
           if (!exact) {
             x = round(x)
             y = round(y)
           }
-          return (
-            <div
-              key={key}
-              style={{
+          return React.createElement(
+            'div',
+            {
+              key,
+              style: {
                 position: 'absolute',
                 transform: `translate3d(${x}px, ${y}px, ${-z}px)`
-              }}
-            >
-              <HtmlOverlayContent html={html} />
-            </div>
+              }
+            },
+            React.createElement(HtmlOverlayContent, {html})
           )
-        })}
-      </div>
+        })
+      )
       : null
   }
 }

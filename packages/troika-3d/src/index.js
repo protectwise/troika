@@ -13,7 +13,7 @@ export {default as InstancingManager} from './facade/instancing/InstancingManage
 export {default as Instanceable3DFacade} from './facade/instancing/Instanceable3DFacade.js'
 
 // React entry point
-export {default as Canvas3D} from './react/Canvas3D.jsx'
+export {default as Canvas3D} from './react/Canvas3D.js'
 
 // Convenience shortcuts for some common submodule exports
 export {Facade, ListFacade, ParentFacade} from 'troika-core'

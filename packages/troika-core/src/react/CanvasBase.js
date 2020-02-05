@@ -1,7 +1,7 @@
 import React from 'react'
 import T from 'prop-types'
-import HtmlOverlay from './HtmlOverlay.jsx'
-import Stats from './Stats.jsx'
+import HtmlOverlay from './HtmlOverlay.js'
+import Stats from './Stats.js'
 import {assign} from '../utils'
 
 
@@ -110,31 +110,30 @@ class CanvasBase extends React.Component {
   render() {
     let { props } = this
     return (
-      <div
-        className={`troika ${props.className || ''}`}
-        style={{
-          position: 'relative',
-          overflow: 'hidden',
-          width: props.width,
-          height: props.height,
-          cursor: props.cursor,
-          userSelect: 'none'
-        }}
-      >
-        {this._failedWorldInit ? this.props.children : (
-          <canvas
-            className="troika_canvas"
-            ref={this._bindCanvasRef}
-            style={props.canvasStyle || defaultCanvasStyle}
-          />
-        )}
-
-        <HtmlOverlay ref={this._bindHtmlOverlayRef} />
-
-        {props.stats ? (
-          <Stats ref={this._bindStatsRef} />
-        ) : null}
-      </div>
+      React.createElement(
+        'div',
+        {
+          className: `troika ${props.className || ''}`,
+          style: {
+            position: 'relative',
+            overflow: 'hidden',
+            width: props.width,
+            height: props.height,
+            cursor: props.cursor,
+            userSelect: 'none'
+          }
+        },
+        this._failedWorldInit ? this.props.children : React.createElement(
+          'canvas',
+          {
+            className: "troika_canvas",
+            ref: this._bindCanvasRef,
+            style: props.canvasStyle || defaultCanvasStyle
+          }
+        ),
+        React.createElement(HtmlOverlay, {ref: this._bindHtmlOverlayRef}),
+        props.stats ? React.createElement(Stats, {ref: this._bindStatsRef}) : null
+      )
     )
   }
 }

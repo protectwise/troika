@@ -13,10 +13,13 @@ export default class XRLauncher extends React.PureComponent {
 
   render() {
     const props = this.props
-    return (
-      <button onClick={this._onClick} disabled={!props.xrSupported}>
-        {props.xrSupported ? (props.xrSession ? 'Exit XR' : 'Enter XR') : 'XR Not Available'}
-      </button>
+    return React.createElement(
+      'button',
+      {
+        onClick: this._onClick,
+        disabled: !props.xrSupported
+      },
+      props.xrSupported ? (props.xrSession ? 'Exit XR' : 'Enter XR') : 'XR Not Available'
     )
   }
 }

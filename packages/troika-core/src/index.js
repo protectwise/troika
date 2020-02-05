@@ -8,7 +8,7 @@ export {default as PointerEventTarget} from './facade/PointerEventTarget.js'
 export {default as WorldBaseFacade} from './facade/WorldBaseFacade.js'
 
 // React entry points
-export {default as ReactCanvasBase} from './react/CanvasBase.jsx'
+export {default as ReactCanvasBase} from './react/CanvasBase.js'
 
 // Other
 import * as utils from './utils.js'

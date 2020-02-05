@@ -2,7 +2,7 @@ import React from 'react'
 import T from 'prop-types'
 import {utils} from 'troika-core'
 import {Canvas3D} from 'troika-3d'
-import XRLauncher from './XRLauncher.jsx'
+import XRLauncher from './XRLauncher.js'
 import WorldXRFacade from '../facade/WorldXRFacade.js'
 
 
@@ -208,13 +208,15 @@ export function ReactXRAware(ReactClass, options) {
       const {xrSupportedSessionModes, xrSession, xrSessionMode, xrReferenceSpace, xrReferenceSpaceType} = state
       const xrSupported = xrSupportedSessionModes.length > 0
 
-      const XrLauncherImpl = options.xrLauncherRenderer
-      const xrLauncher = <XrLauncherImpl
-        xrSupportedSessionModes={xrSupportedSessionModes}
-        xrSupported={xrSupported}
-        xrSession={xrSession}
-        onSelectSession={this._onLauncherSelect}
-      />
+      const xrLauncher = React.createElement(
+        options.xrLauncherRenderer,
+        {
+          xrSupportedSessionModes,
+          xrSupported,
+          xrSession,
+          onSelectSession: this._onLauncherSelect
+        }
+      )
 
       const contextValue = {
         worldFacade: WorldXRFacade,

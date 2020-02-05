@@ -22,11 +22,13 @@ class Stats extends React.Component {
   render() {
     let stats = this.state.stats
     return (
-      <div style={ style }>
-        { Object.keys(stats).sort().map(key => (
-          <div key={ key }>{ key }: { stats[key] }</div>
-        ))}
-      </div>
+      React.createElement(
+        'div',
+        {style},
+        Object.keys(stats).sort().map(key =>
+          React.createElement('div', {key}, `${ key }: ${ stats[key] }`)
+        )
+      )
     )
   }
 }

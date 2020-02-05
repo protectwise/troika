@@ -8,7 +8,7 @@ export {default as Text2DFacade} from './facade/Text2DFacade.js'
 export {default as World2DFacade} from './facade/World2DFacade.js'
 
 // React entry point
-export {default as Canvas2D} from './react/Canvas2D.jsx'
+export {default as Canvas2D} from './react/Canvas2D.js'
 
 // Convenience shortcuts for some common troika-core exports
 export {Facade, ListFacade, ParentFacade} from 'troika-core'

@@ -12,7 +12,7 @@ class HtmlOverlay2DFacade extends Object2DFacade {
 
     /**
      * Defines the HTML content to be rendered. The type/format of this value is dependent
-     * on the wrapping implementation; for example the Canvas2D.jsx React-based wrapper will
+     * on the wrapping implementation; for example the Canvas2D.js React-based wrapper will
      * expect a React element descriptor, while other wrappers might expect a HTML string.
      *
      * When using the React-based wrapper, the rendered React component will not be updated
