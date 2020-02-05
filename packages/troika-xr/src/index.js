@@ -1,19 +1,3 @@
-
-/* DEPRECATED
-//=== WebVR: ===//
-
-// Main entry point
-export {makeVrAware} from './webvr-deprecated/react/VrAware.jsx'
-
-// Supporting facades
-export {default as WorldVrFacade} from './webvr-deprecated/facade/WorldVrFacade.js'
-
-// Controller models
-export {default as OculusTouchModelFacade} from './webvr-deprecated/facade/controllers/OculusTouchModelFacade.js'
-export {default as BasicModelFacade} from './webvr-deprecated/facade/controllers/BasicModelFacade.js'
-*/
-
-
 //=== WebXR: ===//
 
 // Main entry point
