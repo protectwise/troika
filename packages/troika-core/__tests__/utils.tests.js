@@ -1,4 +1,4 @@
-import {_assign, assign, assignIf, forOwn, getIdForObject, createClassExtender, isReactElement} from '../src/utils'
+import {_assign, assign, assignIf, forOwn, getIdForObject, createClassExtender, isReactElement} from '../src/utils.js'
 import React from 'react'
 
 

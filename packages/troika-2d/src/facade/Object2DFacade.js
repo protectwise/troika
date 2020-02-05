@@ -1,5 +1,5 @@
 import { PointerEventTarget } from 'troika-core'
-import hitTestContext from '../HitTestContext'
+import hitTestContext from '../HitTestContext.js'
 
 
 

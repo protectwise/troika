@@ -1,5 +1,5 @@
 const promisesAplusTests = require('promises-aplus-tests')
-import Thenable, {BespokeThenable, NativePromiseThenable} from '../src/Thenable'
+import Thenable, {BespokeThenable, NativePromiseThenable} from '../src/Thenable.js'
 
 // simple bridge from mocha `specify` to jest's equivalent
 global.specify = test

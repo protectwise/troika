@@ -1,7 +1,7 @@
 import { World3DFacade } from 'troika-3d'
 import { setAnimationScheduler } from 'troika-animation'
-import { XRInputSourceManager } from './XRInputSourceManager'
-import { extendAsXRCamera } from './XRCameraFacade'
+import { XRInputSourceManager } from './XRInputSourceManager.js'
+import { extendAsXRCamera } from './XRCameraFacade.js'
 import { Vector2 } from 'three'
 
 const emptyArray = []

@@ -1,4 +1,4 @@
-import { requestFlexLayout } from './FlexLayoutProcessor'
+import { requestFlexLayout } from './FlexLayoutProcessor.js'
 import { utils } from 'troika-core'
 const { assign, createClassExtender } = utils
 

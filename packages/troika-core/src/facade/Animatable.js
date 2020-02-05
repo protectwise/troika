@@ -1,6 +1,5 @@
-import { assignIf } from '../utils'
+import { assignIf, createClassExtender } from '../utils.js'
 import { Tween, MultiTween, Runner } from 'troika-animation'
-import { createClassExtender } from '../utils'
 
 const DEFAULT_DURATION = 750
 const DEFAULT_EASING = 'easeOutCubic'

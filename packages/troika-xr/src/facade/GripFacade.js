@@ -1,8 +1,8 @@
 import { Group3DFacade } from 'troika-3d'
 import { utils } from 'troika-core'
-import BasicGrip from './grip-models/BasicGrip'
-import OculusTouchGrip from './grip-models/OculusTouchGrip'
-import { copyXRPoseToFacadeProps } from '../XRUtils'
+import BasicGrip from './grip-models/BasicGrip.js'
+import OculusTouchGrip from './grip-models/OculusTouchGrip.js'
+import { copyXRPoseToFacadeProps } from '../XRUtils.js'
 
 
 const PROFILE_MODELS = [

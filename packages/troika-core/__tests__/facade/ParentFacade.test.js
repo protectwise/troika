@@ -1,7 +1,7 @@
-import Facade from '../../src/facade/Facade'
-import ParentFacade from '../../src/facade/ParentFacade'
-import { extendAsAnimatable } from '../../src/facade/Animatable'
-import { extendAsPointerStatesAware } from '../../src/facade/PointerStates'
+import Facade from '../../src/facade/Facade.js'
+import ParentFacade from '../../src/facade/ParentFacade.js'
+import { extendAsAnimatable } from '../../src/facade/Animatable.js'
+import { extendAsPointerStatesAware } from '../../src/facade/PointerStates.js'
 import React from 'react'
 
 

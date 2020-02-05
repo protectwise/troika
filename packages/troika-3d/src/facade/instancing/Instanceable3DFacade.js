@@ -1,6 +1,6 @@
 import { utils } from 'troika-core'
 import { Object3D } from 'three'
-import Object3DFacade from '../Object3DFacade'
+import Object3DFacade from '../Object3DFacade.js'
 
 /**
  * Instanceable3DFacade is a specialized Object3DFacade that renders using GPU

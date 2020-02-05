@@ -1,5 +1,5 @@
 import { CylinderBufferGeometry, DoubleSide, Mesh, MeshStandardMaterial, Vector2, Vector3 } from 'three'
-import { createBezierMeshMaterial } from './BezierMeshMaterial'
+import { createBezierMeshMaterial } from './BezierMeshMaterial.js'
 
 let geometry = null
 

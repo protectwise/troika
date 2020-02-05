@@ -1,4 +1,4 @@
-import ShaderFloatArray, {encodeFloatToFourInts, decodeFloatFromFourInts } from '../src/ShaderFloatArray'
+import { encodeFloatToFourInts, decodeFloatFromFourInts } from '../src/ShaderFloatArray.js'
 
 
 

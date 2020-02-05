@@ -1,4 +1,4 @@
-import { extendAsFlexNode } from '../flex-layout/FlexNode'
+import { extendAsFlexNode } from '../flex-layout/FlexNode.js'
 import { Mesh, MeshBasicMaterial, PlaneBufferGeometry, TextureLoader } from 'three'
 import { Object3DFacade } from 'troika-3d'
 

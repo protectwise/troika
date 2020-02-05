@@ -1,5 +1,5 @@
 import {utils, ParentFacade} from 'troika-core'
-import XRInputSourceFacade from './XRInputSourceFacade'
+import XRInputSourceFacade from './XRInputSourceFacade.js'
 
 
 /*

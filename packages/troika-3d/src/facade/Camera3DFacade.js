@@ -1,5 +1,5 @@
 import {PerspectiveCamera, OrthographicCamera, Frustum, Matrix4, Raycaster, Ray, Vector2} from 'three'
-import Object3DFacade from './Object3DFacade'
+import Object3DFacade from './Object3DFacade.js'
 
 const noop = function() {}
 const tempRaycaster = new Raycaster()

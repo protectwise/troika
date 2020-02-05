@@ -1,7 +1,7 @@
-import ParentFacade from './ParentFacade'
-import EventRegistry from './EventRegistry'
-import {pointerActionEventTypes, pointerMotionEventTypes} from './PointerEventTarget'
-import {assign} from '../utils'
+import ParentFacade from './ParentFacade.js'
+import EventRegistry from './EventRegistry.js'
+import {pointerActionEventTypes, pointerMotionEventTypes} from './PointerEventTarget.js'
+import {assign} from '../utils.js'
 
 const TAP_DISTANCE_THRESHOLD = 10
 const TAP_GESTURE_MAX_DUR = 300

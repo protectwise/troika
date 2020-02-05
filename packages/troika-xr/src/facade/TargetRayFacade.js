@@ -1,5 +1,5 @@
 import { Object3DFacade } from 'troika-3d'
-import { copyXRPoseToFacadeProps } from '../XRUtils'
+import { copyXRPoseToFacadeProps } from '../XRUtils.js'
 import { Group, Mesh, MeshBasicMaterial, CylinderBufferGeometry } from 'three'
 
 

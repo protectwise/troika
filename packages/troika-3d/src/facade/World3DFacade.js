@@ -1,8 +1,8 @@
 import { WorldBaseFacade, utils } from 'troika-core'
 import {WebGLRenderer, Raycaster, Color, Vector2, Vector3} from 'three'
-import Scene3DFacade from './Scene3DFacade'
-import {PerspectiveCamera3DFacade} from './Camera3DFacade'
-import {BoundingSphereOctree} from '../BoundingSphereOctree'
+import Scene3DFacade from './Scene3DFacade.js'
+import {PerspectiveCamera3DFacade} from './Camera3DFacade.js'
+import {BoundingSphereOctree} from '../BoundingSphereOctree.js'
 
 const { assign, assignIf } = utils
 const tmpVec2 = new Vector2()

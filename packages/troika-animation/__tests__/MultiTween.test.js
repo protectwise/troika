@@ -1,5 +1,5 @@
-import MultiTween from '../src/MultiTween'
-import Tween from '../src/Tween'
+import MultiTween from '../src/MultiTween.js'
+import Tween from '../src/Tween.js'
 
 
 describe('child tweens', () => {

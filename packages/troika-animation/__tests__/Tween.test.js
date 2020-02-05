@@ -1,4 +1,4 @@
-import Tween from '../src/Tween'
+import Tween from '../src/Tween.js'
 
 
 describe('callback function', () => {

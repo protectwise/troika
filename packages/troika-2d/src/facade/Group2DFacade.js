@@ -1,4 +1,4 @@
-import Object2DFacade from './Object2DFacade'
+import Object2DFacade from './Object2DFacade.js'
 
 class Group2DFacade extends Object2DFacade {
 

@@ -1,11 +1,11 @@
 import { Mesh, Vector2, Vector3, Vector4, PlaneBufferGeometry, Sphere, Matrix4, Plane } from 'three'
 import { Group3DFacade } from 'troika-3d'
-import UITextNode3DFacade from './UITextNode3DFacade'
-import UIBlockLayer3DFacade from './UIBlockLayer3DFacade'
-import { extendAsFlexNode } from '../flex-layout/FlexNode'
-import { getComputedFontSize, getInheritable } from '../uiUtils'
+import UITextNode3DFacade from './UITextNode3DFacade.js'
+import UIBlockLayer3DFacade from './UIBlockLayer3DFacade.js'
+import { extendAsFlexNode } from '../flex-layout/FlexNode.js'
+import { getComputedFontSize, getInheritable } from '../uiUtils.js'
 import { utils } from 'troika-core'
-import ScrollbarsFacade from './ScrollbarsFacade'
+import ScrollbarsFacade from './ScrollbarsFacade.js'
 
 const raycastMesh = new Mesh(new PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0))
 const tempMat4 = new Matrix4()

@@ -1,6 +1,6 @@
 import { Object3DFacade } from 'troika-3d'
 import { TextMesh } from '../three/TextMesh.js'
-import SelectionManagerFacade from './SelectionManagerFacade'
+import SelectionManagerFacade from './SelectionManagerFacade.js'
 
 // Properties that will simply be forwarded to the TextMesh:
 const TEXT_MESH_PROPS = [

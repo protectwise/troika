@@ -1,5 +1,5 @@
 import {Ray, Sphere, Vector3} from 'three'
-import {BoundingSphereOctree} from '../src/BoundingSphereOctree'
+import {BoundingSphereOctree} from '../src/BoundingSphereOctree.js'
 
 
 let octree, skipTreeValidation
@@ -30,7 +30,7 @@ afterEach(() => {
 
 describe('Single sphere', () => {
   let singleSphere
-  
+
   beforeEach(() => {
     singleSphere = createSphere(0, 0, 0, 1)
     octree.putSphere('s0', singleSphere)
@@ -61,7 +61,7 @@ describe('Single sphere', () => {
 
 describe('Two coincident spheres', () => {
   let spheres
-  
+
   beforeEach(() => {
     spheres = {
       sphere1: createSphere(0, 0, 0, 1),
@@ -104,7 +104,7 @@ describe('Two coincident spheres', () => {
 
 describe('Two non-coincident non-overlapping spheres', () => {
   let spheres
-  
+
   beforeEach(() => {
     spheres = {
       sphere1: createSphere(2, 0, 0, 1.1),
@@ -236,7 +236,7 @@ describe('Tree expansion', () => {
     const rootSize3 = octree.root.cr
     expect(rootSize3).toBeGreaterThan(rootSize2)
   })
-  
+
   test('sets maxRadius correctly after expansion', () => {
     const sphere1 = createSphere(0.5, 0, 0, 0.8)
     const sphere2 = createSphere(-0.5, 0, 0, 0.9)

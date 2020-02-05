@@ -1,6 +1,6 @@
-import { extendAsFlexNode } from '../flex-layout/FlexNode'
+import { extendAsFlexNode } from '../flex-layout/FlexNode.js'
 import { Text3DFacade } from 'troika-3d-text'
-import { getInheritable } from '../uiUtils'
+import { getInheritable } from '../uiUtils.js'
 
 const flexLayoutTextProps = ['text', 'font', 'fontSize', 'lineHeight', 'letterSpacing', 'whiteSpace', 'overflowWrap']
 

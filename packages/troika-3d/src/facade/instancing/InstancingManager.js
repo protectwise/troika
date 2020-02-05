@@ -8,8 +8,8 @@ import {
   ShaderLib,
   Vector3
 } from 'three'
-import Group3DFacade from '../Group3DFacade'
-import { upgradeShaders } from './InstancingShaderUpgrades'
+import Group3DFacade from '../Group3DFacade.js'
+import { upgradeShaders } from './InstancingShaderUpgrades.js'
 import { getShadersForMaterial, getShaderUniformTypes, expandShaderIncludes } from 'troika-three-utils'
 
 const { assign, assignIf } = utils
@@ -318,7 +318,7 @@ class InstancingManager extends Group3DFacade {
     // NOTE other props are inherited so don't need to copy them
     return batchObject
   }
-  
+
   _teardownBatchObjects(renderer, scene, camera) {
     // Release geometries to the pool for next time
     this._batchGeometryPool.releaseAll()

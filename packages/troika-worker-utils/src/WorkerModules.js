@@ -1,4 +1,4 @@
-import Thenable from './Thenable'
+import Thenable from './Thenable.js'
 
 let _workerModuleId = 0
 let _messageId = 0

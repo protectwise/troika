@@ -1,4 +1,4 @@
-import {assign} from '../utils'
+import {assign} from '../utils.js'
 
 /**
  * The base class for all Facade classes.

@@ -1,6 +1,6 @@
 import { Object3DFacade } from 'troika-3d'
 import { Group, Ray, Vector3 } from 'three'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
 const MODEL_GEN = 'gen2'
 

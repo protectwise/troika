@@ -1,4 +1,4 @@
-import { assign, createClassExtender } from '../utils'
+import { assign, createClassExtender } from '../utils.js'
 
 /**
  * Allows a facade to be configured with an optional `pointerStates` property, which defines

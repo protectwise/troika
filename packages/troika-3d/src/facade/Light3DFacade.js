@@ -4,7 +4,7 @@ import {
   SpotLight,
   PointLight
 } from 'three'
-import Object3DFacade from './Object3DFacade'
+import Object3DFacade from './Object3DFacade.js'
 import { utils } from 'troika-core'
 //import {ShadowMapViewer} from 'three/examples/jsm/utils/ShadowMapViewer.js'
 

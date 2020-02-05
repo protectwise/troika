@@ -1,5 +1,5 @@
 import { WorldBaseFacade } from 'troika-core'
-import Object2DFacade from './Object2DFacade'
+import Object2DFacade from './Object2DFacade.js'
 
 function byZ(a, b) {
   return a.z - b.z

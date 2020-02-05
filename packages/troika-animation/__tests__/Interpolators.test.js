@@ -1,4 +1,4 @@
-import {number, color} from '../src/Interpolators'
+import {number, color} from '../src/Interpolators.js'
 
 test('number interpolator', () => {
   expect(number(1, 99, 0)).toBe(1)

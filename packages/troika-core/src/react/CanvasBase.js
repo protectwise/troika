@@ -2,7 +2,7 @@ import React from 'react'
 import T from 'prop-types'
 import HtmlOverlay from './HtmlOverlay.js'
 import Stats from './Stats.js'
-import {assign} from '../utils'
+import {assign} from '../utils.js'
 
 
 const defaultCanvasStyle = {width: '100%', height: '100%'}

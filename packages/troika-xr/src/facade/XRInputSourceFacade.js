@@ -1,10 +1,10 @@
 import { Group3DFacade, Object3DFacade } from 'troika-3d'
 import { Facade, utils } from 'troika-core'
 import { Matrix4, Ray } from 'three'
-import CursorFacade from './CursorFacade'
-import TargetRayFacade from './TargetRayFacade'
-import GripFacade from './GripFacade'
-import { BUTTON_DEFAULT_BACK, BUTTON_SQUEEZE, BUTTON_TRIGGER } from '../XRStandardGamepadMapping'
+import CursorFacade from './CursorFacade.js'
+import TargetRayFacade from './TargetRayFacade.js'
+import GripFacade from './GripFacade.js'
+import { BUTTON_DEFAULT_BACK, BUTTON_SQUEEZE, BUTTON_TRIGGER } from '../XRStandardGamepadMapping.js'
 
 const SCENE_EVENTS = ['mousemove', 'mouseover', 'mouseout', 'mousedown', 'mouseup', 'click']
 const XRSESSION_EVENTS = ['selectstart', 'selectend', 'squeezestart', 'squeezeend']
@@ -66,7 +66,7 @@ class XRInputSourceFacade extends Group3DFacade {
 
     // Pointing - true for all inputs by default
     this.isPointing = true
-    
+
     this.clickOnPoke = true
 
     this.children = [

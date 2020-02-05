@@ -1,6 +1,6 @@
-import Facade from './Facade'
-import { extendAsAnimatable } from './Animatable'
-import { extendAsPointerStatesAware } from './PointerStates'
+import Facade from './Facade.js'
+import { extendAsAnimatable } from './Animatable.js'
+import { extendAsPointerStatesAware } from './PointerStates.js'
 
 
 /**

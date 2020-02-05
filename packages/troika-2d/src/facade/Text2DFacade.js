@@ -1,5 +1,5 @@
 import { utils } from 'troika-core'
-import Object2DFacade from './Object2DFacade'
+import Object2DFacade from './Object2DFacade.js'
 
 class Text2DFacade extends Object2DFacade {
   render(context) {

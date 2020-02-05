@@ -1,5 +1,5 @@
-import * as Easings from './Easings'
-import * as Interpolators from './Interpolators'
+import * as Easings from './Easings.js'
+import * as Interpolators from './Interpolators.js'
 
 const linear = v => v
 const maxSafeInteger = 0x1fffffffffffff

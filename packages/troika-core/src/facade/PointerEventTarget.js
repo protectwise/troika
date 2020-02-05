@@ -1,5 +1,5 @@
-import ParentFacade from './ParentFacade'
-import Facade from './Facade'
+import ParentFacade from './ParentFacade.js'
+import Facade from './Facade.js'
 
 
 

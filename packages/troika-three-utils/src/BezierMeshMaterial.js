@@ -1,4 +1,4 @@
-import { createDerivedMaterial } from './DerivedMaterial'
+import { createDerivedMaterial } from './DerivedMaterial.js'
 import { Vector2, Vector3 } from 'three'
 
 /*

@@ -1,5 +1,5 @@
-import Thenable from './Thenable'
-import {defineWorkerModule} from './WorkerModules'
+import Thenable from './Thenable.js'
+import {defineWorkerModule} from './WorkerModules.js'
 
 /**
  * Just the {@link Thenable} function wrapped as a worker module. If another worker

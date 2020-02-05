@@ -1,4 +1,4 @@
-import Facade from '../../src/facade/Facade'
+import Facade from '../../src/facade/Facade.js'
 
 
 

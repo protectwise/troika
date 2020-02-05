@@ -1,7 +1,7 @@
 import React from 'react'
 import T from 'prop-types'
 import { ReactCanvasBase, utils } from 'troika-core'
-import World3DFacade from '../facade/World3DFacade'
+import World3DFacade from '../facade/World3DFacade.js'
 
 
 class Canvas3D extends ReactCanvasBase {

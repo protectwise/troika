@@ -1,4 +1,4 @@
-import Tween from './Tween'
+import Tween from './Tween.js'
 
 
 /**

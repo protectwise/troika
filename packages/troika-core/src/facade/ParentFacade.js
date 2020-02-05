@@ -1,7 +1,7 @@
-import Facade from './Facade'
-import {extendAsAnimatable} from './Animatable'
-import {isReactElement} from '../utils'
-import { extendAsPointerStatesAware } from './PointerStates'
+import Facade from './Facade.js'
+import {extendAsAnimatable} from './Animatable.js'
+import {isReactElement} from '../utils.js'
+import { extendAsPointerStatesAware } from './PointerStates.js'
 
 const TEMP_ARRAY = [null]
 

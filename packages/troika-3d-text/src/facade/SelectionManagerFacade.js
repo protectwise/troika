@@ -1,7 +1,7 @@
 import { Group3DFacade } from 'troika-3d'
 import { Matrix4, Plane, Vector3 } from 'three'
-import { getCaretAtPoint, getSelectionRects } from '../selectionUtils'
-import SelectionRangeRect from './SelectionRangeRect'
+import { getCaretAtPoint, getSelectionRects } from '../selectionUtils.js'
+import SelectionRangeRect from './SelectionRangeRect.js'
 
 const THICKNESS = 0.25 //rect depth as percentage of height
 
