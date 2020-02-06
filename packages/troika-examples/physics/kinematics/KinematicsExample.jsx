@@ -50,6 +50,7 @@ export default class KinematicsExample extends React.Component {
     return {
       config: {
         physicsActive: true,
+        debugPhysics: false,
         bladeSpinning: true,
         bladeHeight: 1,
         bladeSpeed: 0.3,
@@ -84,7 +85,6 @@ export default class KinematicsExample extends React.Component {
           width={width}
           shadows
           height={height}
-          continuousRender={config.physicsActive}
           lights={[
             { type: 'ambient', color: 0x666666 },
             {
@@ -119,6 +119,7 @@ export default class KinematicsExample extends React.Component {
               y: 0,
               x: 0,
               simulationEnabled: config.physicsActive,
+              debug: config.debugPhysics,
               children: [
                 {
                   key: 'system',
@@ -155,7 +156,6 @@ export default class KinematicsExample extends React.Component {
                           iterations: Infinity
                         }
                       ],
-                      radius: 1,
                       color: 0x000000,
                       opacity: 1,
                       physics: {
@@ -202,6 +202,7 @@ export default class KinematicsExample extends React.Component {
 
         <DatGui data={state.config} onUpdate={this.handleConfigUpdate}>
           <DatBoolean path='physicsActive' label='Physics Running' />
+          <DatBoolean path='debugPhysics' label='Debug Colliders' />
 
           <DatNumber path='bladeHeight' label='Blade Height' min={0} max={5} step={0.5} />
           <DatNumber path='bladeSpeed' label='Blade Spin Rate' min={0.1} max={10} step={0.1} />

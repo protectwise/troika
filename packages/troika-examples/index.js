@@ -21,6 +21,7 @@ import RigidBodyExample from './physics/rigidBody/RigidBodyExample'
 import SoftBodyExample from './physics/softBody/SoftBodyExample'
 import KinematicsExample from './physics/kinematics/KinematicsExample'
 import CollisionEventExample from './physics/collisionEvents/CollisionEventExample'
+import MouseInteractionExample from './physics/mouse-interaction/MouseInteractionExample'
 
 import 'react-dat-gui/dist/index.css'
 import './index.css'
@@ -46,7 +47,8 @@ const EXAMPLES = [
   {id: 'physics-rigid-body', name: 'Physics / Rigid Body', component: RigidBodyExample},
   {id: 'physics-soft-body', name: 'Physics / Soft Body', component: SoftBodyExample},
   {id: 'physics-kinematics', name: 'Physics / Kinematics', component: KinematicsExample},
-  {id: 'physics-collisions', name: 'Physics / Collision Events', component: CollisionEventExample}
+  {id: 'physics-collisions', name: 'Physics / Collision Events', component: CollisionEventExample},
+  {id: 'physics-mouse-interaction', name: 'Physics / Mouse Interaction', component: MouseInteractionExample}
 ]
 
 class ExamplesApp extends React.Component {

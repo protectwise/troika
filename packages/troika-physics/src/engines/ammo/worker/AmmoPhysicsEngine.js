@@ -1,30 +1,75 @@
 /* eslint-env worker */
 /* eslint-disable new-cap */
 
-export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, shapeManager) {
+export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, shapeManager, AmmoDebugDrawer) {
+  const {
+    MSG_HDR_SZ,
+    MSG_TYPES,
+    MSG_ITEM_SIZES
+  } = CONSTANTS
+
+  const _sharedTransform = new Ammo.btTransform()
+  const _sharedVec3A = new Ammo.btVector3()
+  const _sharedVec3B = new Ammo.btVector3()
+  const _sharedQuat = new Ammo.btQuaternion()
+  let _sharedVecRef = null
+
   return class AmmoPhysicsEngine {
-    constructor (params) {
-      this._nextBodyId = 0 // numeric index ID
-      this._rigidBodies = {}
-      this._softBodies = {}
+    constructor (options = {}) {
+      // Transferrable objects resized in chunkSize steps
+      this._chunkSz = options.chunkSize || 50 // options.reportsize || 50;
+
+      // Initialize Transferable output arrays at initial chunk sized
+      // [<message id>, <number of items in payload>, ...payload]
+      this._rigidOutput = new Float32Array(MSG_HDR_SZ + this._chunkSz * MSG_ITEM_SIZES.RIGID)
+      this._collisionOutput = new Float32Array(MSG_HDR_SZ + this._chunkSz * MSG_ITEM_SIZES.COLLISION)
+      this._vehicleOutput = new Float32Array(MSG_HDR_SZ + this._chunkSz * MSG_ITEM_SIZES.VEHICLE)
+      this._constraintOutput = new Float32Array(MSG_HDR_SZ + this._chunkSz * MSG_ITEM_SIZES.CONSTRAINT)
+      this._softOutput = new Float32Array(MSG_HDR_SZ + this._chunkSz * MSG_ITEM_SIZES.SOFT)
+
+      this._rigidOutput[0] = MSG_TYPES.RIGID_OUTPUT
+      this._collisionOutput[0] = MSG_TYPES.COLLISION_OUTPUT
+      this._vehicleOutput[0] = MSG_TYPES.VEHICLE_OUTPUT
+      this._constraintOutput[0] = MSG_TYPES.CONSTRAINT_OUTPUT
+      this._softOutput[0] = MSG_TYPES.SOFT_OUTPUT
+
+      // this._nextBodyId = 0 // numeric index ID
+      this._bodies = {
+        rigid: {},
+        soft: {},
+        collisionObj: {} // More generic collisionObjects
+      }
+      this._bodyCounts = {
+        rigid: 0,
+        soft: 0,
+        collisionObj: 0
+      }
       this._bodyIdsToFacadeIds = {}
       this._facadeIdsToBodyIds = {}
+      this._facadeIdsToBodyTypes = {}
       this._facadeIdsToPhysicsConfigs = Object.create(null)
 
       this.softBodyHelpers = null
       this.physicsWorld = null
 
-      this._sharedTransform = null
-
       if (!shapeManager) {
         throw new Error('AmmoPhysicsEngine requires a shapeManager')
       }
 
+      this._publicMethods = {
+        updatePhysicsWorld: this.updatePhysicsWorld.bind(this),
+        updateDebugOptions: this.updateDebugOptions.bind(this)
+      }
+
       this._init()
+
+      if (options.enableDebugger) {
+        this._initDebug()
+      }
     }
 
     _init () {
-    // Physics configuration
+      // Physics configuration
       const collisionConfiguration = new Ammo.btSoftBodyRigidBodyCollisionConfiguration()
       const dispatcher = new Ammo.btCollisionDispatcher(collisionConfiguration)
       const broadphase = new Ammo.btDbvtBroadphase()
@@ -33,37 +78,83 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
 
       this.physicsWorld = new Ammo.btSoftRigidDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration, softBodySolver)
 
-      this.physicsWorld.setGravity(new Ammo.btVector3(0, CONSTANTS.DEFAULT_GRAVITY, 0))
-      this.physicsWorld.getWorldInfo().set_m_gravity(new Ammo.btVector3(0, CONSTANTS.DEFAULT_GRAVITY, 0))
-
-      this._sharedTransform = new Ammo.btTransform()
+      _sharedVec3A.setValue(0, CONSTANTS.DEFAULT_GRAVITY, 0)
+      // this.physicsWorld.setGravity(new Ammo.btVector3(0, CONSTANTS.DEFAULT_GRAVITY, 0))
+      this.physicsWorld.setGravity(_sharedVec3A)
+      // this.physicsWorld.getWorldInfo().set_m_gravity(new Ammo.btVector3(0, CONSTANTS.DEFAULT_GRAVITY, 0))
+      this.physicsWorld.getWorldInfo().set_m_gravity(_sharedVec3A)
 
       this.softBodyHelpers = new Ammo.btSoftBodyHelpers()
     }
 
-    _addBodyToIndices (facadeId, physicsBody, isSoftBody) {
-    // Set indexes/keys
-      const bodyId = this._nextBodyId++
-      physicsBody.setUserIndex(bodyId)
+    _initDebug () {
+      this.debugDrawer = new AmmoDebugDrawer(this.physicsWorld)
+      this.debugDrawer.enabled = true
 
-      // physicsBody.setUserPointer({facadeId})
-      this._bodyIdsToFacadeIds[bodyId] = facadeId
-      this._facadeIdsToBodyIds[facadeId] = bodyId
+      // this.debugDrawer.setDebugMode(128)
+      // setInterval(() => {
+      //   var mode = (this.debugDrawer.getDebugMode() + 1) % 3
+      //   // console.log(`~~ cycle to mode`, mode)
 
-      if (isSoftBody) {
-        this._softBodies[facadeId] = physicsBody
-      } else {
-        this._rigidBodies[facadeId] = physicsBody
-      }
+      //   this.debugDrawer.setDebugMode(mode)
+      // }, 1000)
     }
 
-    // https://pybullet.org/Bullet/BulletFull/classbtRigidBody.html
-    _addRigidBody (facadeId, bodyConfig) {
+    _addBodyToIndices (facadeId, physicsBodyId, physicsBody, bodyType) {
+      if (!bodyType) {
+        throw new Error('bodyType is required')
+      }
+      // Set indexes/keys
+      // const bodyId = this._nextBodyId++
+      physicsBody.setUserIndex(physicsBodyId)
+
+      // physicsBody.setUserPointer({facadeId})
+      this._bodyIdsToFacadeIds[physicsBodyId] = facadeId
+      this._facadeIdsToBodyIds[facadeId] = physicsBodyId
+      this._facadeIdsToBodyTypes[facadeId] = bodyType
+
+      this._bodies[bodyType][facadeId] = physicsBody
+      this._bodyCounts[bodyType] += 1
+    }
+
+    // https://pybullet.org/Bullet/BulletFull/classbtCollisionObject.html
+    // Add a generic collision object. Only used initially to
+    // handle static/kinematic bvhTriangleMesh objects
+    _addCollisionObject (facadeId, bodyId, bodyConfig) {
       const {
         shapeConfig,
         physicsConfig,
-        initialPos,
-        initialQuat
+        initialMatrixWorld
+      } = bodyConfig
+
+      const physicsShape = shapeManager.getShape(shapeConfig)
+
+      // var transform = new Ammo.btTransform()
+      // transform.setIdentity()
+      _sharedTransform.setFromOpenGLMatrix(initialMatrixWorld)
+      // transform.setOrigin(new Ammo.btVector3(initialPos.x, initialPos.y, initialPos.z))
+      // transform.setRotation(new Ammo.btQuaternion(initialQuat.x, initialQuat.y, initialQuat.z, initialQuat.w))
+
+      var collisionObject = new Ammo.btBvhTriangleMeshShape()
+      collisionObject.setCollisionShape(physicsShape)
+
+      // if (isKinematic) {
+      //   utils.setKinematic(collisionObject, true)
+      // }
+
+      this._addBodyToIndices(facadeId, bodyId, collisionObject, 'collisionObj')
+
+      this.physicsWorld.addCollisionObject(collisionObject)
+    }
+
+    // https://pybullet.org/Bullet/BulletFull/classbtRigidBody.html
+    _addRigidBody (facadeId, bodyId, bodyConfig) {
+      const {
+        shapeConfig,
+        physicsConfig,
+        initialMatrixWorld
+        // initialPos,
+        // initialQuat
       } = bodyConfig
       const {
         friction,
@@ -81,16 +172,22 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
 
       const physicsShape = shapeManager.getShape(shapeConfig)
 
-      var transform = new Ammo.btTransform()
-      transform.setIdentity()
-      transform.setOrigin(new Ammo.btVector3(initialPos.x, initialPos.y, initialPos.z))
-      transform.setRotation(new Ammo.btQuaternion(initialQuat.x, initialQuat.y, initialQuat.z, initialQuat.w))
+      // var transform = new Ammo.btTransform()
+      // transform.setIdentity()
+      // transform.setOrigin(new Ammo.btVector3(initialPos.x, initialPos.y, initialPos.z))
+      // transform.setRotation(new Ammo.btQuaternion(initialQuat.x, initialQuat.y, initialQuat.z, initialQuat.w))
 
-      var motionState = new Ammo.btDefaultMotionState(transform)
+      // var transform = new Ammo.btTransform()
+      // transform.setIdentity()
+      _sharedTransform.setFromOpenGLMatrix(initialMatrixWorld)
+      // transform.setOrigin(new Ammo.btVector3(initialPos.x, initialPos.y, initialPos.z))
+      // transform.setRotation(new Ammo.btQuaternion(initialQuat.x, initialQuat.y, initialQuat.z, initialQuat.w))
 
-      var localInertia = new Ammo.btVector3(0, 0, 0)
-      physicsShape.calculateLocalInertia(mass, localInertia)
-      var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, physicsShape, localInertia)
+      var motionState = new Ammo.btDefaultMotionState(_sharedTransform)
+
+      _sharedVec3A.setValue(0, 0, 0) // localInertia
+      physicsShape.calculateLocalInertia(mass, _sharedVec3A)
+      var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, physicsShape, _sharedVec3A)
       var rigidBody = new Ammo.btRigidBody(rbInfo)
 
       if (isKinematic) {
@@ -112,20 +209,22 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
         rigidBody.setRestitution(restitution)
       }
 
-      this._addBodyToIndices(facadeId, rigidBody, false)
+      this._addBodyToIndices(facadeId, bodyId, rigidBody, 'rigid')
 
       this.physicsWorld.addRigidBody(rigidBody)
+
+      // rigidBody.activate()
     }
 
-    _addSoftBody (facadeId, bodyConfig) {
+    _addSoftBody (facadeId, bodyId, bodyConfig) {
       const {
         shapeConfig,
         physicsConfig
       } = bodyConfig
       const {
-        volumeVertices,
-        volumeIndices
-      // numNodes
+        vertices,
+        indices,
+        numTris
       } = shapeConfig
       const {
         mass = 1,
@@ -136,9 +235,9 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
 
       const softBody = this.softBodyHelpers.CreateFromTriMesh(
         this.physicsWorld.getWorldInfo(),
-        volumeVertices, // vertices
-        volumeIndices, // triangles
-        volumeIndices.length / 3, // nTriangles
+        vertices, // vertices
+        indices, // triangles
+        numTris, // nTriangles
         true // randomizeConstraints
       )
 
@@ -181,7 +280,7 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
 
       Ammo.castObject(softBody, Ammo.btCollisionObject).getCollisionShape().setMargin(CONSTANTS.DEFAULT_MARGIN)
 
-      this._addBodyToIndices(facadeId, softBody, true)
+      this._addBodyToIndices(facadeId, bodyId, softBody, 'soft')
 
       // Disable deactivation
       softBody.setActivationState(4)
@@ -190,28 +289,36 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
     }
 
     add (facadeId, bodyConfig) {
+      const bodyId = bodyConfig.bodyId
       const {
         isSoftBody = false
       } = bodyConfig.physicsConfig
 
-      if (isSoftBody) {
-        this._addSoftBody(facadeId, bodyConfig)
+      // BVH tri-mesh (static or kinematic only) may be a concave mesh, and
+      // are incompatible with RigidBody's dynamic extensions.
+      const isGenericCollisionObject = bodyConfig.shapeConfig.type === 'bvh-tri-mesh'
+
+      if (isGenericCollisionObject) {
+        this._addCollisionObject(facadeId, bodyId, bodyConfig)
+      } else if (isSoftBody) {
+        this._addSoftBody(facadeId, bodyId, bodyConfig)
       } else {
-        this._addRigidBody(facadeId, bodyConfig)
+        this._addRigidBody(facadeId, bodyId, bodyConfig)
       }
 
       this._facadeIdsToPhysicsConfigs[facadeId] = bodyConfig.physicsConfig
     }
 
     remove (facadeId) {
-      const isSoftBody = !!this._softBodies[facadeId]
-      const body = isSoftBody ? this._softBodies[facadeId] : this._rigidBodies[facadeId]
+      const bodyType = this._facadeIdsToBodyTypes[facadeId]
+      const body = this._bodies[bodyType][facadeId]
+      this._bodyCounts[bodyType] -= 1
 
-      // const bodyShape = body.getCollisionShape()
-
-      if (isSoftBody) {
+      if (bodyType === 'collisionObj') {
+        this.physicsWorld.removeCollisionObject(body)
+      } else if (bodyType === 'soft') {
         this.physicsWorld.removeSoftBody(body)
-      } else {
+      } else if (bodyType === 'rigid') {
         this.physicsWorld.removeRigidBody(body)
       }
 
@@ -219,14 +326,44 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
       const bodyId = this._facadeIdsToBodyIds[facadeId]
       delete this._bodyIdsToFacadeIds[bodyId]
       delete this._facadeIdsToBodyIds[facadeId]
+      delete this._facadeIdsToBodyTypes[facadeId]
       delete this._facadeIdsToPhysicsConfigs[facadeId]
-      delete this._softBodies[facadeId]
-      delete this._rigidBodies[facadeId]
+      delete this._bodies[bodyType][facadeId]
+    }
+
+    update (facadeId, updateData) {
+      const bodyType = this._facadeIdsToBodyTypes[facadeId]
+      const body = this._bodies[bodyType][facadeId]
+
+      if (!body) {
+        console.warn('update: body not found:', facadeId, bodyId, bodyType)
+        return
+      }
+
+      // Note that these updates are applied in deliberate order
+      if (updateData.scale) {
+        utils.rescaleCollisionShape(body, updateData.scale)
+      }
+      if (updateData.matrix) {
+        if (bodyType === 'soft') {
+          console.log('~~ TODO handle troika matrix change for soft body.')
+          // TODO, just setWorldTransform on SoftBody? will that clear out vertex motion states?
+        } else if (bodyType === 'rigid') {
+          utils.updateRigidBodyMatrix(body, updateData.matrix)
+        } else if (bodyType === 'collisionObj') {
+          console.warn('Generic collisionObjects do not have a motion state. Parent matrix changes may produce undesirable results.')
+        }
+      }
+      if (updateData.physicsConfig) {
+        const prevConfig = this._facadeIdsToPhysicsConfigs[facadeId]
+        utils.updatePhysicsConfig(body, updateData.physicsConfig, prevConfig)
+      }
     }
 
     setActivationState (facadeId, isPaused) {
       const forceSleep = true // If true, will still passively collide with other bodies
-      const body = this._rigidBodies[facadeId]
+      const bodyType = this._facadeIdsToBodyTypes[facadeId]
+      const body = this._bodies[bodyType][facadeId]
       const deactivatedState = forceSleep ? CONSTANTS.ACTIVATION_STATES.ISLAND_SLEEPING : CONSTANTS.ACTIVATION_STATES.DISABLE_SIMULATION
       const newActivationState = isPaused
         ? deactivatedState
@@ -254,43 +391,6 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
     //   //   //   physicsWorld.updateSingleAABB(body)
     //   //   // }
     // }
-
-    batchedUpdate (updateSet) {
-      for (const facadeId in updateSet) {
-        const facadeUpdates = updateSet[facadeId]
-        const isSoftBody = !!this._softBodies[facadeId]
-        const body = isSoftBody ? this._softBodies[facadeId] : this._rigidBodies[facadeId]
-        if (!body) {
-          console.warn('batchedUpdate: body not found:', facadeId, this._rigidBodies, this._softBodies)
-          return
-        }
-        for (const updateType in facadeUpdates) {
-          const updateArgs = facadeUpdates[updateType]
-
-          switch (updateType) {
-            case 'rescale':
-              utils.rescaleCollisionShape(body, updateArgs)
-              break
-            case 'worldMatrixChange':
-              if (isSoftBody) {
-                console.log('~~ TODO handle troika matrix change for soft body.')
-              // TODO, just setWorldTransform on SoftBody? will that clear out vertext motion states?
-              } else {
-                utils.updateRigidBodyMatrix(body, updateArgs)
-              }
-              break
-            case 'configChange': {
-              const prevConfig = this._facadeIdsToPhysicsConfigs[facadeId]
-              utils.updatePhysicsConfig(body, updateArgs, prevConfig)
-              break
-            }
-            default:
-              console.warn('Unsupported batchBodyUpdate updateType', updateType)
-              break
-          }
-        }
-      }
-    }
 
     _getCollisions (deltaTimeSec) {
       const output = []
@@ -340,44 +440,137 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
       return output
     }
 
-    updatePhysicsWorld (deltaTimeSec) {
-      this.physicsWorld.stepSimulation(deltaTimeSec, 10)
+    sendDebugInfo () {
+      const didUpdate = this.debugDrawer.update()
+      if (didUpdate) {
+        // Only transfer if the drawer had control of the payload and wrote to it
+        this._transfer(this.debugDrawer.getTxOutput())
+      }
+    }
 
-      const rigidBodyOutput = [] // new Float32Array()
-      let facadeOutput
+    sendRigidBodies () {
+      const numRigidBodies = this._bodyCounts.rigid
 
-      // Update rigid bodies
-      for (const facadeId in this._rigidBodies) {
-        const physicsBody = this._rigidBodies[facadeId]
+      // Resize transferrable array if required
+      if (this._rigidOutput.length < 2 + numRigidBodies * MSG_ITEM_SIZES.RIGID) {
+        this._rigidOutput = new Float32Array(MSG_HDR_SZ + (Math.ceil(numRigidBodies / this._chunkSz) * this._chunkSz) * MSG_ITEM_SIZES.RIGID)
+        this._rigidOutput[0] = MSG_TYPES.RIGID_OUTPUT
+      }
+
+      this._rigidOutput[1] = numRigidBodies // Update payload size
+
+      let i = 0
+      for (const facadeId in this._bodies.rigid) {
+        const physicsBody = this._bodies.rigid[facadeId]
+        const bodyId = this._facadeIdsToBodyIds[facadeId]
 
         // Only update motionState for active (activationState) bodies
         if (physicsBody.isActive()) {
           const motionState = physicsBody.getMotionState()
 
           if (motionState) {
-            facadeOutput = new Array(8)
-            facadeOutput[0] = facadeId
-            motionState.getWorldTransform(this._sharedTransform)
-            var pos = this._sharedTransform.getOrigin()
-            facadeOutput[1] = pos.x()
-            facadeOutput[2] = pos.y()
-            facadeOutput[3] = pos.z()
-            var quat = this._sharedTransform.getRotation()
-            facadeOutput[4] = quat.x()
-            facadeOutput[5] = quat.y()
-            facadeOutput[6] = quat.z()
-            facadeOutput[7] = quat.w()
+            const offset = MSG_HDR_SZ + (i++) * MSG_ITEM_SIZES.RIGID
+            // facadeOutput = new Array(8)
+            this._rigidOutput[offset + 0] = bodyId // facadeId
+            motionState.getWorldTransform(_sharedTransform)
+            var pos = _sharedTransform.getOrigin()
+            this._rigidOutput[offset + 1] = pos.x()
+            this._rigidOutput[offset + 2] = pos.y()
+            this._rigidOutput[offset + 3] = pos.z()
+            var quat = _sharedTransform.getRotation()
+            this._rigidOutput[offset + 4] = quat.x()
+            this._rigidOutput[offset + 5] = quat.y()
+            this._rigidOutput[offset + 6] = quat.z()
+            this._rigidOutput[offset + 7] = quat.w()
 
-            rigidBodyOutput.push(facadeOutput)
+            _sharedVecRef = physicsBody.getLinearVelocity()
+            this._rigidOutput[offset + 8] = _sharedVecRef.x()
+            this._rigidOutput[offset + 9] = _sharedVecRef.y()
+            this._rigidOutput[offset + 10] = _sharedVecRef.z()
+
+            _sharedVecRef = physicsBody.getAngularVelocity()
+            this._rigidOutput[offset + 11] = _sharedVecRef.x()
+            this._rigidOutput[offset + 12] = _sharedVecRef.y()
+            this._rigidOutput[offset + 13] = _sharedVecRef.z()
           }
         }
       }
 
+      // console.log(`> Rigid`)
+      
+      this._transfer(this._rigidOutput)
+    }
+
+    _transfer (payload /* Float32Array */) {
+      if (!payload.buffer) {
+        throw new Error('_transfer is only for Transferable Typed Arrays')
+      }
+      if (payload.buffer.byteLength === 0) {
+        // throw new Error('PhysicsManager: Transferable Array has zero byte length')
+        console.warn('AmmoPhysicsEngine: Transferable array has zero byte length, it may still be in-use in the main thread.')
+        return
+      }
+      self.postMessage(payload.buffer, [payload.buffer])
+    }
+
+    handleChanges (payload) {
+      if (payload.remove) {
+        payload.remove.forEach(facadeId => {
+          this.remove(facadeId)
+        })
+      }
+      if (payload.add) {
+        payload.add.forEach(facadeCfg => {
+          this.add(facadeCfg.facadeId, facadeCfg)
+        })
+      }
+      if (payload.update) {
+        payload.update.forEach(facadeCfg => {
+          this.update(facadeCfg.facadeId, facadeCfg)
+        })
+      }
+    }
+
+    updateDebugOptions (debugOptions) {
+      if (this.debugDrawer) {
+        this.debugDrawer.enabled = debugOptions.enabled || false
+        // TODO support switching to other debugger modes
+      }
+    }
+
+    updatePhysicsWorld (deltaTimeSec, changes) {
+      if (changes) {
+        this.handleChanges(changes)
+      }
+
+      this.physicsWorld.stepSimulation(deltaTimeSec, 10)
+
+      // if (_vehicles.length > 0) {
+      //   reportVehicles()
+      // }
+      // reportCollisions();
+      // if (_constraints.length > 0) {
+      //   reportConstraints()
+      // }
+      this.sendRigidBodies()
+      
+      // if (_softbody_enabled) {
+      //   reportWorld_softbodies()
+      // }
+
+      if (this.debugDrawer) {
+        this.sendDebugInfo()
+      }
+
+      return
+
+      // const debugDrawerOutput = this.debugDrawer ? this._getDebugDrawerOutput() : null
+
       const softBodyOutput = [] // new Float32Array()
 
       // Update soft volumes
-      for (const facadeId in this._softBodies) {
-        const physicsBody = this._softBodies[facadeId]
+      for (const facadeId in this._bodies.soft) {
+        const physicsBody = this._bodies.soft[facadeId]
 
         // Only update motionState for active (activationState) bodies
         if (physicsBody.isActive()) {
@@ -412,38 +605,53 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
       return {
         rigidBodies: rigidBodyOutput,
         softBodies: softBodyOutput,
-        collisions: collisionsOutput
+        collisions: collisionsOutput,
+        debugDrawerOutput: debugDrawerOutput
       }
     }
 
-    handleBodyChanges (bodyChanges) {
-      if (bodyChanges.remove) {
-        bodyChanges.remove.forEach(facadeId => {
-          this.remove(facadeId)
-        })
-      }
-      if (bodyChanges.add) {
-        bodyChanges.add.forEach(facadeCfg => {
-          this.add(facadeCfg.facadeId, facadeCfg)
-        })
-      }
-      if (bodyChanges.update) {
-        this.batchedUpdate(bodyChanges.update)
-      }
-    }
+    receiveMessage (event) {
+      let { data } = event
 
-    update (requestPayload, callback) {
-      const { updateDeltaTime, bodyChanges } = requestPayload
-      let response = null
-      if (bodyChanges) {
-        // Changes performed synchronously
-        this.handleBodyChanges(bodyChanges)
-      }
-      if (updateDeltaTime) {
-        response = this.updatePhysicsWorld(updateDeltaTime)
+      if (data instanceof ArrayBuffer) {
+        data = new Float32Array(data)
       }
 
-      callback(response)
+      if (data instanceof Float32Array) {
+        // Transferable object returned from main thread
+        switch (data[0]) {
+          case MSG_TYPES.RIGID_OUTPUT:
+            this._rigidOutput = data // new Float32Array(data)
+            break
+          // case MSG_TYPES.COLLISION_OUTPUT:
+          //   this._collisionOutput = new Float32Array(data)
+          //   break
+          // case MSG_TYPES.VEHICLE_OUTPUT:
+          //   this._vehicleOutput = new Float32Array(data)
+          //   break
+          // case MSG_TYPES.CONSTRAINT_OUTPUT:
+          //   this._constraintOutput = new Float32Array(data)
+          //   break
+          // case MSG_TYPES.SOFT_OUTPUT:
+          //   this._softOutput = new Float32Array(data)
+          //   break
+          case MSG_TYPES.DEBUG_OUTPUT:
+            this.debugDrawer.handleTxReturn(data)
+            break
+          default:
+            console.error('UNRECOGNIZED returned transferable payload')
+            break
+        }
+      } else if (data.method) {
+        const { method, args = [] } = data
+        if (this._publicMethods[method]) {
+          this._publicMethods[method](...(args || []))
+        } else {
+          console.error(`Invalid method passed: ${method}`)
+        }
+      } else {
+        console.error('Unknown message received', event)
+      }
     }
   }
 }

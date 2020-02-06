@@ -39,7 +39,7 @@ export const extendAsPhysical = createClassExtender('physical', BaseFacadeClass 
     constructor (parent, threeObject) {
       super(parent, threeObject)
 
-      this.$isControlledByDynamicsWorld = false // Managed by PhysicsManager
+      this.$isPhysicsControlled = false // Managed by PhysicsManager
 
       this._prevScaleX = this.scaleX
       this._prevScaleY = this.scaleY
@@ -49,20 +49,12 @@ export const extendAsPhysical = createClassExtender('physical', BaseFacadeClass 
     }
 
     set physics (desc = {}) {
-      const newId = JSON.stringify(desc)
-      const descChangedAfterInit = this.physics$cfgId && this.physics$cfgId !== newId
-      if (descChangedAfterInit) {
-        if (this.physics$descriptor && desc.isDisabled !== this.physics$descriptor.isDisabled) {
-          this.notifyWorld('physicsObjectDisabledChange', !!desc.isDisabled)
-        }
-        this.notifyWorld('physicsObjectConfigChange', desc)
-      }
-      this.physics$cfgId = newId
-      this.physics$descriptor = desc
+      this._physicsConfigId = JSON.stringify(desc)
+      this._physicsConfig = desc
     }
 
     get physics () {
-      return this.physics$descriptor
+      return this._physicsConfig
     }
 
     afterUpdate () {
@@ -70,13 +62,17 @@ export const extendAsPhysical = createClassExtender('physical', BaseFacadeClass 
 
       super.afterUpdate()
 
+      let _needsPhysicsUpdate = false
       if (this._worldMatrixVersion !== _prevWorldMatrixVersion) {
         const scaleChanged = this._prevScaleX !== this.scaleX || this._prevScaleY !== this.scaleY || this._prevScaleZ !== this.scaleZ
         // Dynamic objects (controlled by the dynamicsWorld) need to receive troika-managed scale changes
-        if (this.$isControlledByDynamicsWorld && scaleChanged) {
+        // if (this.$isPhysicsControlled && scaleChanged) {
+        if (scaleChanged) {
           // https://pybullet.org/Bullet/BulletFull/classbtCollisionShape.html
           // NOTE: btSphereShape does NOT support non-uniform scaling (scaleX/Y/Z must be identical)
-          this.notifyWorld('physicsObjectScaleChange', [this.scaleX, this.scaleY, this.scaleZ])
+          _needsPhysicsUpdate = true
+          this.$physicsDirty_Scale = true
+
           this._prevScaleX = this.scaleX
           this._prevScaleY = this.scaleY
           this._prevScaleZ = this.scaleZ
@@ -84,9 +80,22 @@ export const extendAsPhysical = createClassExtender('physical', BaseFacadeClass 
         // Kinematic or Static objects that exist in the dynamicsWorld (OR dynamic objects that have yet to be registered within the dynamicsWorld)
         // but are not controlled/influenced by it (they _do_ influence dynamic objects)
         // need their full position/orientation/scale matrix updated
-        if (!this.$isControlledByDynamicsWorld) {
-          this.notifyWorld('physicsObjectMatrixChange', this.threeObject.matrixWorld.elements)
+        if (!this.$isPhysicsControlled) {
+          _needsPhysicsUpdate = true
+          this.$physicsDirty_Matrix = true
         }
+      }
+
+      if (this._physicsConfigId) {
+        if (this._physicsConfigIdPrev && this._physicsConfigId !== this._physicsConfigIdPrev) {
+          this.$physicsDirty_Config = true
+          _needsPhysicsUpdate = true
+        }
+        this._physicsConfigIdPrev = this._physicsConfigId
+      }
+
+      if (_needsPhysicsUpdate) {
+        this.notifyWorld('physicsObjectNeedsUpdate')
       }
     }
 
@@ -108,7 +117,7 @@ export const extendAsPhysical = createClassExtender('physical', BaseFacadeClass 
         return Reflect.get(BaseFacadeClass.prototype, controlledProp, this)
       },
       set: function (value) {
-        if (this.$isControlledByDynamicsWorld) return // dynamicsWorld is driving this property, user/troika-set updates are ignored
+        if (this.$isPhysicsControlled) return // dynamicsWorld is driving this property, user/troika-set updates are ignored
         Reflect.set(BaseFacadeClass.prototype, controlledProp, value, this)
       }
     })

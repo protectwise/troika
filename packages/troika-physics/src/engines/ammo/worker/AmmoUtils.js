@@ -2,14 +2,11 @@
 /* eslint-disable new-cap */
 
 export default function getAmmoUtils (Ammo, CONSTANTS) {
+  const _sharedTransform = new Ammo.btTransform()
+  const _sharedVec3A = new Ammo.btVector3()
+  const _zeroedVec3 = new Ammo.btVector3(0, 0, 0)
+
   return class AmmoUtils {
-    constructor () {
-      this._singletonTransform = new Ammo.btTransform()
-      this._singletonTransform.setIdentity() // Reset
-
-      this._zeroedVec3 = new Ammo.btVector3(0, 0, 0)
-    }
-
     recurComposeArgs (args = []) {
       const output = []
 
@@ -46,10 +43,8 @@ export default function getAmmoUtils (Ammo, CONSTANTS) {
       if (!collisionShape || !collisionShape.setLocalScaling) {
         throw new Error('Collision shape: not found or does not support the setLocalScaling method.')
       }
-      collisionShape.setLocalScaling(new Ammo.btVector3(scaleX, scaleY, scaleZ))
-
-      // FIXME copy motion state? seems to lose motion when rescaling an object that is moving
-
+      _sharedVec3A.setValue(scaleX, scaleY, scaleZ)
+      collisionShape.setLocalScaling(_sharedVec3A)
       if (!body.isActive()) {
         body.activate() // If this body was sleeping, activate it
       }
@@ -63,11 +58,11 @@ export default function getAmmoUtils (Ammo, CONSTANTS) {
      */
     updateRigidBodyMatrix (body, worldMatrixElements) {
       // Update the transform
-      // this._singletonTransform.setIdentity() // TODO need to reset this?
-      this._singletonTransform.setFromOpenGLMatrix(worldMatrixElements)
+      // _sharedTransform.setIdentity() // TODO need to reset this?
+      _sharedTransform.setFromOpenGLMatrix(worldMatrixElements)
 
       // Apply transform to the body's motionState so Bullet keeps track of its velocity etc.
-      body.getMotionState().setWorldTransform(this._singletonTransform) // Apply back to the body's motionState
+      body.getMotionState().setWorldTransform(_sharedTransform) // Apply back to the body's motionState
     }
 
     /**
@@ -99,9 +94,11 @@ export default function getAmmoUtils (Ammo, CONSTANTS) {
       if (isSoftBody) {
         body.setTotalMass(newMass, false)
       } else {
-        const inertia = new Ammo.btVector3() // Inertia will be calculated "into" this Vec3
-        body.getCollisionShape().calculateLocalInertia(newMass, inertia)
-        body.setMassProps(newMass, inertia)
+        // const inertia = new Ammo.btVector3() 
+        _sharedVec3A.setValue(0, 0, 0) // Inertia will be calculated "into" this Vec3
+        body.getCollisionShape().calculateLocalInertia(newMass, _sharedVec3A)
+        body.setMassProps(newMass, _sharedVec3A)
+        body.updateInertiaTensor() // Inertia Tensor must be updated when mass or localScaling is changed https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=2925
       }
     }
 
@@ -112,16 +109,16 @@ export default function getAmmoUtils (Ammo, CONSTANTS) {
      * @param {boolean} isSoftBody
      */
     clearDynamics (body, isSoftBody) {
-      this.setMass(body, 0, isSoftBody, this._zeroedVec3)
+      this.setMass(body, 0, isSoftBody, _zeroedVec3)
 
       if (isSoftBody) {
         // FIXME test soft static bodies, what else needs to be zeroed here? Vertex velocities?
         console.warn('Experimental feature: Handle static soft bodies')
-        body.setVelocity(this._zeroedVec3)
+        body.setVelocity(_zeroedVec3)
       } else {
         // https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=7772
-        body.setLinearVelocity(this._zeroedVec3)
-        body.setAngularVelocity(this._zeroedVec3)
+        body.setLinearVelocity(_zeroedVec3)
+        body.setAngularVelocity(_zeroedVec3)
         body.updateInertiaTensor()
       }
     }

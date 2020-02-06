@@ -2,8 +2,9 @@ import { ThenableWorkerModule } from 'troika-worker-utils'
 import ammoLoader from '../../../../libs/troika-ammo.wasm.js'
 import getAmmoShapeManager from './AmmoShapeManager'
 import getAmmoUtils from './AmmoUtils'
-import ammoConstants from './ammoConstants'
+import CONSTANTS from '../constants'
 import getAmmoPhysicsEngine from './AmmoPhysicsEngine'
+import getAmmoDebugDrawer from './AmmoDebugDrawer'
 
 export const WORKER_ID = 'physics-worker-ammo'
 
@@ -27,12 +28,13 @@ export const physicsWorldAmmoModule = {
     ThenableWorkerModule,
     supportsWasm,
     ammoLoader,
-    ammoConstants,
+    CONSTANTS,
     getAmmoUtils,
     getAmmoPhysicsEngine,
-    getAmmoShapeManager
+    getAmmoShapeManager,
+    getAmmoDebugDrawer
   ],
-  init (Thenable, _supportsWasm, getAmmo, CONSTANTS, _getAmmoUtils, _getAmmoPhysicsEngine, _getAmmoShapeManager) {
+  init (Thenable, _supportsWasm, getAmmo, _CONSTANTS, _getAmmoUtils, _getAmmoPhysicsEngine, _getAmmoShapeManager, _getAmmoDebugDrawer) {
     /* eslint-env worker */
     let physicsWorld = null
 
@@ -43,20 +45,28 @@ export const physicsWorldAmmoModule = {
 
       if (!physicsWorld) {
         getAmmo().then(Ammo => {
-          const AmmoUtils = _getAmmoUtils(Ammo, CONSTANTS)
+          const AmmoUtils = _getAmmoUtils(Ammo, _CONSTANTS)
           const utils = new AmmoUtils()
           const AmmoShapeManager = _getAmmoShapeManager(Ammo, utils)
           const shapeManager = new AmmoShapeManager()
-          const AmmoPhysicsEngine = _getAmmoPhysicsEngine(Thenable, Ammo, CONSTANTS, utils, shapeManager)
+          const AmmoDebugDrawer = _getAmmoDebugDrawer(Thenable, Ammo, _CONSTANTS)
+          const AmmoPhysicsEngine = _getAmmoPhysicsEngine(Thenable, Ammo, _CONSTANTS, utils, shapeManager, AmmoDebugDrawer)
 
-          physicsWorld = new AmmoPhysicsEngine()
+          console.log(`~~ init ~~~~~`,callArgs )
+          
+          physicsWorld = new AmmoPhysicsEngine({
+            enableDebugger: callArgs.enableDebugger
+          })
 
-          response.resolve({ ready: true })
+          self.addEventListener('message', physicsWorld.receiveMessage.bind(physicsWorld))
+
+          response.resolve({ physicsReady: true })
         })
       } else {
-        physicsWorld.update(callArgs, result => {
-          response.resolve(result)
-        })
+        console.error('PhysicsWorldAmmo already initialized')
+        // physicsWorld.update(callArgs, result => {
+        //   response.resolve(result)
+        // })
       }
       return response
     }

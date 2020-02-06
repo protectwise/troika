@@ -64,11 +64,12 @@ export default class RigidBodyExample extends React.Component {
       hoveredThing: null,
       config: {
         physicsActive: true,
-        useInstanced: 'Instanced',
-        numToAdd: 5,
+        debugPhysics: true,
+        useInstanced: 'Non-Instanced',
+        numToAdd: 1,
         tableRestitution: 0.5
       },
-      things: this._getThings(25)
+      things: this._getThings(1)
     }
   }
 
@@ -113,7 +114,6 @@ export default class RigidBodyExample extends React.Component {
           width={width}
           shadows
           height={height}
-          continuousRender={config.physicsActive} // for PhysicsManager
           lights={[
             { type: 'ambient', color: 0x666666 },
             {
@@ -148,6 +148,7 @@ export default class RigidBodyExample extends React.Component {
               y: 0,
               x: 0,
               simulationEnabled: config.physicsActive,
+              debug: config.debugPhysics,
               children: [
                 {
                   key: 'system',
@@ -156,7 +157,7 @@ export default class RigidBodyExample extends React.Component {
                     {
                       key: 'ground',
                       facade: PhysicsGround,
-                      x: 0,
+                      x: 5,
                       y: 0,
                       z: 0,
                       opacity: 0.2 + config.tableRestitution * 0.8,
@@ -216,6 +217,7 @@ export default class RigidBodyExample extends React.Component {
 
         <DatGui data={state.config} onUpdate={this.handleConfigUpdate}>
           <DatBoolean path='physicsActive' label='Physics Running' />
+          <DatBoolean path='debugPhysics' label='Debug Colliders' />
           <DatSelect path='useInstanced' label='Instanced Objects' options={['Instanced', 'Non-Instanced']} />
 
           <DatNumber path='tableRestitution' label='Table Bounciness' min={0} max={1} step={0.1} />

@@ -117,7 +117,7 @@ function stringifyFunction(fn) {
 }
 
 
-function getWorker(workerId) {
+export function getWorker(workerId) {
   let worker = workers[workerId]
   if (!worker) {
     // Bootstrap the worker's content

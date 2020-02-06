@@ -51,6 +51,7 @@ export default class SoftBodyExample extends React.Component {
     return {
       config: {
         physicsActive: true,
+        debugPhysics: false,
         numToAdd: 5,
         spherePressure: 150,
         cubePressure: 500
@@ -84,7 +85,6 @@ export default class SoftBodyExample extends React.Component {
           width={width}
           shadows
           height={height}
-          continuousRender={config.physicsActive} // for PhysicsManager
           lights={[
             { type: 'ambient', color: 0x666666 },
             {
@@ -119,6 +119,7 @@ export default class SoftBodyExample extends React.Component {
               y: 0,
               x: 0,
               simulationEnabled: config.physicsActive,
+              debug: config.debugPhysics,
               children: [
                 {
                   key: 'system',
@@ -217,6 +218,7 @@ export default class SoftBodyExample extends React.Component {
 
         <DatGui data={state.config} onUpdate={this.handleConfigUpdate}>
           <DatBoolean path='physicsActive' label='Physics Running' />
+          <DatBoolean path='debugPhysics' label='Debug Colliders' />
 
           <DatNumber path='spherePressure' label='Sphere Pressure' min={1} max={1000} step={1} />
           <DatNumber path='cubePressure' label='Cube Pressure' min={1} max={1000} step={1} />

@@ -86,6 +86,7 @@ export default class CollisionEventExample extends React.Component {
       collisions: [],
       config: {
         physicsActive: true,
+        debugPhysics: false,
         numToAdd: 20
       },
       things: this._getThings(5)
@@ -143,8 +144,7 @@ export default class CollisionEventExample extends React.Component {
           stats={this.props.stats}
           width={width}
           shadows
-          height={height}
-          continuousRender={config.physicsActive} // for PhysicsManager
+          height={height}          
           lights={[
             { type: 'ambient', color: 0x666666 },
             {
@@ -193,6 +193,7 @@ export default class CollisionEventExample extends React.Component {
                   x: 0,
                   // gravity: {x: 0, y: DEFAULT_GRAVITY, z: 0},
                   simulationEnabled: config.physicsActive,
+                  debug: config.debugPhysics,
                   children: [
                     {
                       key: 'system',
@@ -265,6 +266,7 @@ export default class CollisionEventExample extends React.Component {
 
         <DatGui data={state.config} onUpdate={this.handleConfigUpdate}>
           <DatBoolean path='physicsActive' label='Physics Running' />
+          <DatBoolean path='debugPhysics' label='Debug Colliders' />
 
           <DatNumber path='numToAdd' label='Number of objects to spawn' min={1} max={1000} step={1} />
           <DatButton onClick={this.handleSpawnThings} label='Spawn objects' />
