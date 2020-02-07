@@ -1,6 +1,6 @@
 {
   "name": "troika-3d-ui",
-  "version": "0.16.0",
+  "version": "0.17.0",
   "description": "Troika 3D User Interface Toolkit",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "repository": {
@@ -15,10 +15,10 @@
   "module": "dist/troika-3d-ui.esm.js",
   "module:es2015": "src/index.js",
   "dependencies": {
-    "troika-3d": "^0.16.0",
-    "troika-3d-text": "^0.16.0",
-    "troika-core": "^0.16.0",
-    "troika-worker-utils": "^0.16.0"
+    "troika-3d": "^0.17.0",
+    "troika-3d-text": "^0.17.0",
+    "troika-core": "^0.17.0",
+    "troika-worker-utils": "^0.17.0"
   },
   "devDependencies": {
     "terser": "^4.2.0",
