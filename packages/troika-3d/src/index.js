@@ -4,7 +4,7 @@
 export {PerspectiveCamera3DFacade, OrthographicCamera3DFacade} from './facade/Camera3DFacade.js'
 export {default as Group3DFacade} from './facade/Group3DFacade.js'
 export {default as HtmlOverlay3DFacade} from './facade/HtmlOverlay3DFacade.js'
-export {AmbientLight3DFacade, DirectionalLight3DFacade, PointLight3DFacade, SpotLight3DFacade} from './facade/Light3DFacade.js'
+export {AmbientLight3DFacade, DirectionalLight3DFacade, PointLight3DFacade, SpotLight3DFacade, HemisphereLight3DFacade, RectAreaLight3DFacade} from './facade/Light3DFacade.js'
 export {default as Object3DFacade} from './facade/Object3DFacade.js'
 export {default as Scene3DFacade} from './facade/Scene3DFacade.js'
 export {default as World3DFacade} from './facade/World3DFacade.js'

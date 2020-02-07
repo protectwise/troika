@@ -2,14 +2,15 @@ import { utils } from 'troika-core'
 import { Scene, Fog, FogExp2, Sphere } from 'three'
 import Object3DFacade from './Object3DFacade.js'
 import InstancingManager from './instancing/InstancingManager.js'
-import { AmbientLight3DFacade, SpotLight3DFacade, DirectionalLight3DFacade, PointLight3DFacade } from './Light3DFacade.js'
+import { AmbientLight3DFacade, SpotLight3DFacade, DirectionalLight3DFacade, PointLight3DFacade, HemisphereLight3DFacade } from './Light3DFacade.js'
 
 
 const LIGHT_TYPES = {
   ambient: AmbientLight3DFacade,
   directional: DirectionalLight3DFacade,
   spot: SpotLight3DFacade,
-  point: PointLight3DFacade
+  point: PointLight3DFacade,
+  hemisphere: HemisphereLight3DFacade
 }
 
 const RAY_INTERSECTION = [{distance: Infinity}]

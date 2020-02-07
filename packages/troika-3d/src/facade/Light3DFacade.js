@@ -2,7 +2,13 @@ import {
   AmbientLight,
   DirectionalLight,
   SpotLight,
-  PointLight
+  PointLight,
+  HemisphereLight,
+  RectAreaLight,
+  DirectionalLightHelper,
+  HemisphereLightHelper,
+  PointLightHelper,
+  SpotLightHelper
 } from 'three'
 import Object3DFacade from './Object3DFacade.js'
 import { utils } from 'troika-core'
@@ -14,6 +20,9 @@ class Light3DFacade extends Object3DFacade {
   set color(c) {
     this.threeObject.color.set(c)
   }
+  get color() {
+    return this.threeObject.color.getHex()
+  }
 
   // Shadow map configurable by deep object copy:
   get shadow() {
@@ -24,7 +33,7 @@ class Light3DFacade extends Object3DFacade {
   }
 }
 // Setters for simple properties to be copied
-['intensity', 'distance', 'angle', 'penumbra', 'decay', 'castShadow'].forEach(propName => {
+['intensity', 'distance', 'angle', 'penumbra', 'decay', 'castShadow', 'width', 'height'].forEach(propName => {
   Object.defineProperty(Light3DFacade.prototype, propName, {
     get() {
       return this.threeObject[propName]
@@ -36,19 +45,48 @@ class Light3DFacade extends Object3DFacade {
 })
 
 
-export function createLightFacade(ThreeJsLightClass) {
-  return class extends Light3DFacade {
+export function createLightFacade(ThreeJsLightClass, HelperClass, customProtoDefs) {
+  const Cls = class extends Light3DFacade {
     constructor(parent) {
       super(parent, new ThreeJsLightClass())
-      // const helper = new ShadowMapViewer(this.threeObject)
-      // this.addEventListener('afterrender', (renderer) => {
-      //   helper.render(renderer)
-      // })
+    }
+    set showHelper(showHelper) {
+      let helper = this._helper
+      if (!!showHelper !== !!helper) {
+        if (showHelper) {
+          this.threeObject.add(this._helper = new HelperClass(this.threeObject))
+        } else if (helper) {
+          helper.dispose()
+          this.threeObject.remove(helper)
+          this._helper = null
+        }
+      }
+    }
+    afterUpdate () {
+      super.afterUpdate()
+      if (this._helper) {
+        this._helper.update()
+      }
     }
   }
+  if (customProtoDefs) {
+    Object.defineProperties(Cls.prototype, customProtoDefs)
+  }
+  return Cls
 }
 
 export const AmbientLight3DFacade = createLightFacade(AmbientLight)
-export const DirectionalLight3DFacade = createLightFacade(DirectionalLight)
-export const SpotLight3DFacade = createLightFacade(SpotLight)
-export const PointLight3DFacade = createLightFacade(PointLight)
+export const DirectionalLight3DFacade = createLightFacade(DirectionalLight, DirectionalLightHelper)
+export const SpotLight3DFacade = createLightFacade(SpotLight, SpotLightHelper)
+export const PointLight3DFacade = createLightFacade(PointLight, PointLightHelper)
+export const HemisphereLight3DFacade = createLightFacade(HemisphereLight, HemisphereLightHelper, {
+  groundColor: {
+    set(c) {
+      this.threeObject.groundColor.set(c)
+    },
+    get() {
+      return this.threeObject.groundColor.getHex()
+    }
+  }
+})
+export const RectAreaLight3DFacade = createLightFacade(RectAreaLight)
