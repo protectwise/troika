@@ -173,9 +173,9 @@ class TextMesh extends Mesh {
         getTextRenderInfo({
           text: this.text,
           font: this.font,
-          fontSize: this.fontSize,
-          letterSpacing: this.letterSpacing,
-          lineHeight: this.lineHeight,
+          fontSize: this.fontSize || 0.1,
+          letterSpacing: this.letterSpacing || 0,
+          lineHeight: this.lineHeight || 'normal',
           maxWidth: this.maxWidth,
           textAlign: this.textAlign,
           whiteSpace: this.whiteSpace,

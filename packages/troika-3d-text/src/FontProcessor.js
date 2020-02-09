@@ -178,6 +178,7 @@ export default function createFontProcessor(fontParser, sdfGenerator, config) {
     fontSize = +fontSize
     letterSpacing = +letterSpacing
     maxWidth = +maxWidth
+    lineHeight = lineHeight || 'normal'
 
     getSdfAtlas(font, atlas => {
       const fontObj = atlas.fontObj
