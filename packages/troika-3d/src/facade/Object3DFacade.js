@@ -1,11 +1,8 @@
 import { PointerEventTarget, Facade, utils } from 'troika-core'
-import { Vector3, Matrix4, Quaternion, Object3D, Sphere } from 'three'
+import { Vector3, Sphere } from 'three'
 
 const {assign, forOwn} = utils
 const singletonVec3 = new Vector3()
-const singletonMat4 = new Matrix4()
-const singletonQuat = new Quaternion()
-const lookAtUp = new Vector3(0, 1, 0)
 const notifyWorldGetter = (function() {
   const obj = {
     callback: function(pos) {
@@ -65,19 +62,6 @@ class Object3DFacade extends PointerEventTarget {
   }
 
   afterUpdate() {
-    // Apply lookAt+up as a final transform - applied as individual quaternion
-    // properties so they can selectively trigger updates, be transitioned, etc.
-    if (this.lookAt) {
-      singletonVec3.copy(this.lookAt)
-      lookAtUp.copy(this.up || Object3D.DefaultUp)
-      singletonMat4.lookAt(this.threeObject.position, singletonVec3, lookAtUp)
-      singletonQuat.setFromRotationMatrix(singletonMat4)
-      this.quaternionX = singletonQuat.x
-      this.quaternionY = singletonQuat.y
-      this.quaternionZ = singletonQuat.z
-      this.quaternionW = singletonQuat.w
-    }
-
     // Update matrix and worldMatrix before processing children
     this.updateMatrices()
     this._checkBoundsChange()
@@ -499,7 +483,6 @@ Object.defineProperty(Object3DFacade.prototype, 'isObject3DFacade', {value: true
 
 // Predefine shape to facilitate JS engine optimization
 assign(Object3DFacade.prototype, {
-  lookAt: null,
   threeObject: null,
   _parentObject3DFacade: null,
   _removeChildIds: null,

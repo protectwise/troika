@@ -1,9 +1,24 @@
-import {PerspectiveCamera, OrthographicCamera, Frustum, Matrix4, Raycaster, Ray, Vector2} from 'three'
+import {
+  PerspectiveCamera,
+  OrthographicCamera,
+  Frustum,
+  Matrix4,
+  Raycaster,
+  Ray,
+  Vector2,
+  Vector3,
+  Object3D,
+  Quaternion
+} from 'three'
 import Object3DFacade from './Object3DFacade.js'
 
 const noop = function() {}
 const tempRaycaster = new Raycaster()
 const tempVec2 = new Vector2()
+const tempVec3 = new Vector3()
+const tempMat4 = new Matrix4()
+const tempQuat = new Quaternion()
+const lookAtUp = new Vector3(0, 1, 0)
 
 let _projectionMatrixVersion = 0
 
@@ -12,6 +27,7 @@ export function createCameraFacade(threeJsCameraClass, projectionProps, otherPro
     constructor(parent) {
       const camera = new threeJsCameraClass()
       super(parent, camera)
+      this.lookAt = this.up = null
       this._projectionChanged = false
       this._frustum = new Frustum()
 
@@ -20,6 +36,22 @@ export function createCameraFacade(threeJsCameraClass, projectionProps, otherPro
       // our optimized `updateMatrices` handling and any custom adjustments it may make.
       // TODO consider doing this at the Object3DFacade level?
       camera.updateMatrixWorld = noop
+    }
+
+    afterUpdate() {
+      // Apply lookAt+up as a final transform - applied as individual quaternion
+      // properties so they can selectively trigger updates, be transitioned, etc.
+      if (this.lookAt) {
+        tempVec3.copy(this.lookAt)
+        lookAtUp.copy(this.up || Object3D.DefaultUp)
+        tempMat4.lookAt(this.threeObject.position, tempVec3, lookAtUp)
+        tempQuat.setFromRotationMatrix(tempMat4)
+        this.quaternionX = tempQuat.x
+        this.quaternionY = tempQuat.y
+        this.quaternionZ = tempQuat.z
+        this.quaternionW = tempQuat.w
+      }
+      super.afterUpdate()
     }
 
     updateMatrices() {
