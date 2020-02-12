@@ -21,24 +21,24 @@ const COLLISION_FLAGS = Object.freeze({
   CF_HAS_COLLISION_SOUND_TRIGGER: 1024
 })
 
-const MSG_TYPES = {
+const MSG_TYPES = Object.freeze({
   RIGID_OUTPUT: 0,
   COLLISION_OUTPUT: 1,
   VEHICLE_OUTPUT: 2,
   CONSTRAINT_OUTPUT: 3,
   SOFT_OUTPUT: 4,
   DEBUG_OUTPUT: 5
-}
+})
 
 const DEBUG_MAX_BUFFER_SIZE = 1000000 // Max buffer size for color and position arrays (3 dimensional) within the debug transferrable payload
-const DEBUG_MSG = {
+const DEBUG_MSG = Object.freeze({
   NEEDS_UPDATE: 0,
   DRAW_ON_TOP: 1,
   GEOM_DRAW_RANGE_IDX_START: 2,
   GEOM_DRAW_RANGE_IDX_END: 3,
   POSITIONS_BASE: 4,
   COLORS_BASE: 5 + (DEBUG_MAX_BUFFER_SIZE * 3)
-}
+})
 const DEBUG_OUTPUT_SIZE = 0 +
   1 + // Bool (1|0) needsUpdate
   1 + // Bool (1|0) DRAW_ON_TOP
@@ -46,7 +46,7 @@ const DEBUG_OUTPUT_SIZE = 0 +
   (DEBUG_MAX_BUFFER_SIZE * 3) + // 3D positionBuffer
   (DEBUG_MAX_BUFFER_SIZE * 3) // 3D colorBuffer
 
-const MSG_ITEM_SIZES = {
+const MSG_ITEM_SIZES = Object.freeze({
   RIGID: 14,
   // [
   //   facadeId,
@@ -60,15 +60,28 @@ const MSG_ITEM_SIZES = {
   CONSTRAINT: 6,
   SOFT: 4, // FIXME update
   DEBUG: DEBUG_OUTPUT_SIZE
-}
+})
 
-const CONSTRAINT_TYPES = {
+const CONSTRAINT_TYPES = Object.freeze({
   POINT_TO_POINT: 0,
   HINGE: 1,
   SLIDER: 2,
   CONE_TWIST: 3,
   SIX_DOF: 4
-}
+})
+
+const SOFT_BODY_TYPE = Object.freeze({
+  TRIMESH: 3,
+  CLOTH: 2,
+  ROPE: 1
+})
+
+const SOFT_BODY_MSG_SIZES = Object.freeze({
+  HDR: 3, // [bodyId, bodyType, updateSize (number of data points for this body), ...updateData]
+  TRIMESH: 6, // [vertX, vertY, vertZ, normalX, normalY, normalZ] // NOTE will change if we update to Bullet 3 and use `m_faces`
+  CLOTH: 6, // [vertX, vertY, vertZ, normalX, normalY, normalZ]
+  ROPE: 3 // [vertX, vertY, vertZ]
+})
 
 export default Object.freeze({
   DEFAULT_MARGIN: 0.05,
@@ -85,5 +98,7 @@ export default Object.freeze({
   MSG_ITEM_SIZES,
   DEBUG_MAX_BUFFER_SIZE,
   DEBUG_MSG,
-  CONSTRAINT_TYPES
+  CONSTRAINT_TYPES,
+  SOFT_BODY_TYPE,
+  SOFT_BODY_MSG_SIZES
 })

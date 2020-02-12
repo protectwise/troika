@@ -11,6 +11,7 @@ import {
 import { Group3DFacade } from 'troika-3d'
 import CollisionEvent from '../events/CollisionEvent'
 import { inferPhysicsShape } from '../utils/inferPhysicsShape'
+import CONSTANTS from '../../engines/ammo/constants'
 
 const sharedVec3 = new Vector3()
 const DEFAULT_PHYSICS_OFF_CFG = { isDisabled: true, mass: 0 }
@@ -18,7 +19,16 @@ const DEFAULT_PHYSICS_OFF_CFG = { isDisabled: true, mass: 0 }
 const PHYSICS_FRAMERATE_HZ = 90 // Physics "frames" per second cap
 const _PHYSICS_FRAMERATE_INTERVAL = 1 / PHYSICS_FRAMERATE_HZ // Seconds
 
-const DEBUG_MAX_BUFFER_SIZE = 1000000 // mirrored in ammo constants
+// TODO move non-ammo constants to a common file used by all engines
+const {
+  MSG_HDR_SZ,
+  // MSG_TYPES,
+  // MSG_ITEM_SIZES,
+  // DEBUG_MSG,
+  DEBUG_MAX_BUFFER_SIZE,
+  SOFT_BODY_TYPE,
+  SOFT_BODY_MSG_SIZES
+} = CONSTANTS
 
 export default class PhysicsManagerBase extends Group3DFacade {
   constructor (parent) {
@@ -41,6 +51,7 @@ export default class PhysicsManagerBase extends Group3DFacade {
     this.initPhysics = this.initPhysics.bind(this)
     this.updatePhysicsWorld = this.updatePhysicsWorld.bind(this)
     this.updateDebugOptions = this.updateDebugOptions.bind(this)
+    // this.handleSoftBodiesUpdate = this.handleSoftBodiesUpdate.bind(this)
     this.handleInit = this.handleInit.bind(this)
     this.getQueuedChanges = this.getQueuedChanges.bind(this)
 
@@ -130,7 +141,7 @@ export default class PhysicsManagerBase extends Group3DFacade {
   //     this.handleRigidBodiesUpdated(update.rigidBodies)
   //   }
   //   if (update.softBodies) {
-  //     this.handleSoftBodiesUpdated(update.softBodies)
+  //     this.handleSoftBodiesUpdate(update.softBodies)
   //   }
   //   if (update.collisions) {
   //     this.handleCollisionsUpdated(update.collisions)
@@ -350,6 +361,185 @@ export default class PhysicsManagerBase extends Group3DFacade {
     // }
   }
 
+  handleSoftBodiesUpdate (bodyUpdate, numBodies) {
+    let index = numBodies
+    let offset = MSG_HDR_SZ
+
+    while (index--) {
+      const bodyId = bodyUpdate[offset] // SOFT_BODY_MSG_SIZES.HDR[0]
+      const softBodyType = bodyUpdate[offset + 1] // SOFT_BODY_MSG_SIZES.HDR[1]
+      const bodyUpdateSize = bodyUpdate[offset + 2] // SOFT_BODY_MSG_SIZES.HDR[2] Will vary based on number of mesh vertices
+      if (bodyId === 0) {
+        continue
+      }
+      const facadeId = this._bodyIdsToFacadeIds[bodyId]
+      const facade = this._physicsObjectFacadesById[facadeId]
+
+      if (facade && !facade.physics.isKinematic) {
+        facade.$isPhysicsControlled = true
+
+        const geom = facade.threeObject.geometry
+        const volumePositions = geom.attributes.position.array
+        const association = geom.$physicsIndexAssociation
+
+        const offsetVert = offset + SOFT_BODY_MSG_SIZES.HDR
+
+        // if (!data.isSoftBodyReset) {
+        //   object.position.set(0, 0, 0);
+        //   object.quaternion.set(0, 0, 0, 0);
+
+        //   data.isSoftBodyReset = true;
+        // }
+
+        switch (softBodyType) {
+          case SOFT_BODY_TYPE.TRIMESH: // TODO if we update to Bullet 3+, use `m_faces` for triangle meshes. Currently it uses the same strategy as a 2d cloth
+          case SOFT_BODY_TYPE.CLOTH: {
+            const volumeNormals = geom.attributes.normal.array
+
+            for (let assocVertexI = 0, numAssocVertices = association.length; assocVertexI < numAssocVertices; assocVertexI++) {
+              const assocVertex = association[assocVertexI]
+              const offs = offsetVert + (assocVertexI * SOFT_BODY_MSG_SIZES.TRIMESH)
+
+              let x = bodyUpdate[offs + 0]
+              let y = bodyUpdate[offs + 1]
+              let z = bodyUpdate[offs + 2]
+              const nx = bodyUpdate[offs + 3]
+              const ny = bodyUpdate[offs + 4]
+              const nz = bodyUpdate[offs + 5]
+
+              // Translate world-space coords back to local
+              sharedVec3.set(x, y, z)
+              facade.threeObject.worldToLocal(sharedVec3)
+              x = sharedVec3.x
+              y = sharedVec3.y
+              z = sharedVec3.z
+
+              for (let k = 0, kl = assocVertex.length; k < kl; k++) {
+                let indexVertex = assocVertex[k]
+
+                volumePositions[indexVertex] = x
+                volumeNormals[indexVertex] = nx
+                indexVertex++
+                volumePositions[indexVertex] = y
+                volumeNormals[indexVertex] = ny
+                indexVertex++
+                volumePositions[indexVertex] = z
+                volumeNormals[indexVertex] = nz
+              }
+            }
+
+            geom.attributes.normal.needsUpdate = true
+            offset += SOFT_BODY_MSG_SIZES.HDR + (bodyUpdateSize * SOFT_BODY_MSG_SIZES.TRIMESH)
+
+            break
+          }
+          case SOFT_BODY_TYPE.ROPE: {
+            for (let assocVertexI = 0, numAssocVertices = association.length; assocVertexI < numAssocVertices; assocVertexI++) {
+              const assocVertex = association[assocVertexI]
+              const offs = offsetVert + (assocVertexI * SOFT_BODY_MSG_SIZES.ROPE)
+
+              // if (isNaN(bodyUpdate[offs + 0])) {
+              //   return
+              // }
+
+              let x = bodyUpdate[offs + 0]
+              let y = bodyUpdate[offs + 1]
+              let z = bodyUpdate[offs + 2]
+
+              // Translate world-space coords back to local
+              sharedVec3.set(x, y, z)
+              facade.threeObject.worldToLocal(sharedVec3)
+              x = sharedVec3.x
+              y = sharedVec3.y
+              z = sharedVec3.z
+
+              for (let k = 0, kl = assocVertex.length; k < kl; k++) {
+                let indexVertex = assocVertex[k]
+
+                volumePositions[indexVertex] = x
+                indexVertex++
+                volumePositions[indexVertex] = y
+                indexVertex++
+                volumePositions[indexVertex] = z
+              }
+            }
+
+            offset += SOFT_BODY_MSG_SIZES.HDR + (bodyUpdateSize * SOFT_BODY_MSG_SIZES.ROPE)
+
+            break
+          }
+          default:
+            console.error(`Unknown Soft Body Type: ${softBodyType}`)
+            break
+        }
+
+        geom.attributes.position.needsUpdate = true
+
+        if (!facade._matrixChanged) {
+          facade._matrixChanged = true
+        }
+        facade.afterUpdate()
+      }
+    }
+  }
+
+  // handleSoftBodiesUpdatedOLD (softBodies) {
+  //   for (let i = 0, iLen = softBodies.length; i < iLen; i++) {
+  //     const [facadeId, nodes] = softBodies[i]
+  //     const facade = this._physicsObjectFacadesById[facadeId]
+
+  //     if (facade && !facade.physics.isKinematic) {
+  //       facade.$isPhysicsControlled = true
+
+  //       const geom = facade.threeObject.geometry
+  //       const volumePositions = geom.attributes.position.array
+  //       const volumeNormals = geom.attributes.normal.array
+  //       const association = geom.$physicsIndexAssociation
+
+  //       var numVerts = association.length
+  //       const flattenedDims = 6
+  //       for (let j = 0; j < numVerts; j++) {
+  //         var assocVertex = association[j]
+  //         const dj = j * flattenedDims
+  //         let x = nodes[dj + 0]
+  //         let y = nodes[dj + 1]
+  //         let z = nodes[dj + 2]
+  //         const nx = nodes[dj + 3]
+  //         const ny = nodes[dj + 4]
+  //         const nz = nodes[dj + 5]
+
+  //         sharedVec3.set(x, y, z)
+  //         facade.threeObject.worldToLocal(sharedVec3) // Translate world-space coords back to local
+
+  //         x = sharedVec3.x
+  //         y = sharedVec3.y
+  //         z = sharedVec3.z
+
+  //         for (var k = 0, kl = assocVertex.length; k < kl; k++) {
+  //           var indexVertex = assocVertex[k]
+
+  //           volumePositions[indexVertex] = x
+  //           volumeNormals[indexVertex] = nx
+  //           indexVertex++
+  //           volumePositions[indexVertex] = y
+  //           volumeNormals[indexVertex] = ny
+  //           indexVertex++
+  //           volumePositions[indexVertex] = z
+  //           volumeNormals[indexVertex] = nz
+  //         }
+  //       }
+
+  //       geom.attributes.position.needsUpdate = true
+  //       geom.attributes.normal.needsUpdate = true
+
+  //       if (!facade._matrixChanged) {
+  //         facade._matrixChanged = true
+  //       }
+  //       facade.afterUpdate()
+  //     }
+  //   }
+  // }
+
   handleDebugUpdate (debugData, drawOnTop, startIndex, endIndex, positionOffset, colorOffset) {
     if (!this._debuggerMesh) {
       return
@@ -372,63 +562,6 @@ export default class PhysicsManagerBase extends Group3DFacade {
 
     if (drawOnTop) {
       this._debuggerMesh.renderOrder = 999
-    }
-  }
-
-  handleSoftBodiesUpdated (softBodies) {
-    for (let i = 0, iLen = softBodies.length; i < iLen; i++) {
-      const [facadeId, nodes] = softBodies[i]
-      const facade = this._physicsObjectFacadesById[facadeId]
-
-      if (facade && !facade.physics.isKinematic) {
-        facade.$isPhysicsControlled = true
-
-        const geom = facade.threeObject.geometry
-        const volumePositions = geom.attributes.position.array
-        const volumeNormals = geom.attributes.normal.array
-        const association = geom.$physicsIndexAssociation
-
-        var numVerts = association.length
-        const flattenedDims = 6
-        for (let j = 0; j < numVerts; j++) {
-          var assocVertex = association[j]
-          const dj = j * flattenedDims
-          let x = nodes[dj + 0]
-          let y = nodes[dj + 1]
-          let z = nodes[dj + 2]
-          const nx = nodes[dj + 3]
-          const ny = nodes[dj + 4]
-          const nz = nodes[dj + 5]
-
-          sharedVec3.set(x, y, z)
-          facade.threeObject.worldToLocal(sharedVec3) // Translate world-space coords back to local
-
-          x = sharedVec3.x
-          y = sharedVec3.y
-          z = sharedVec3.z
-
-          for (var k = 0, kl = assocVertex.length; k < kl; k++) {
-            var indexVertex = assocVertex[k]
-
-            volumePositions[indexVertex] = x
-            volumeNormals[indexVertex] = nx
-            indexVertex++
-            volumePositions[indexVertex] = y
-            volumeNormals[indexVertex] = ny
-            indexVertex++
-            volumePositions[indexVertex] = z
-            volumeNormals[indexVertex] = nz
-          }
-        }
-
-        geom.attributes.position.needsUpdate = true
-        geom.attributes.normal.needsUpdate = true
-
-        if (!facade._matrixChanged) {
-          facade._matrixChanged = true
-        }
-        facade.afterUpdate()
-      }
     }
   }
 
@@ -503,6 +636,9 @@ export default class PhysicsManagerBase extends Group3DFacade {
         this._facadeIdsToBodyIds[facade.$facadeId] = bodyId
         this._physicsObjectFacadesById[facade.$facadeId] = facade
 
+        console.log('~~ add body', bodyId, facade)
+
+
         facade.$physicsBodyId = bodyId
         map[facade.$facadeId] = facade
         break
@@ -538,18 +674,6 @@ export default class PhysicsManagerBase extends Group3DFacade {
               shapeConfig: facade.$physicsShapeConfig,
               physicsConfig: facade.physics,
               initialMatrixWorld: facade.threeObject.matrixWorld.elements
-              // FIXME need to get matrixWorld offsets for initial pos
-              // initialPos: {
-              //   x: pos.x,
-              //   y: pos.y,
-              //   z: pos.z
-              // },
-              // initialQuat: {
-              //   x: quat.x,
-              //   y: quat.y,
-              //   z: quat.z,
-              //   w: quat.w
-              // }
             }
           }
         })

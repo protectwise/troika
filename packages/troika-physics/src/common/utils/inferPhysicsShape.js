@@ -1,6 +1,7 @@
 import { Vector3, BufferGeometry, Quaternion, Matrix4 } from 'three'
 import processGeometry from './processGeometryForPhysics'
 import { CSG } from '@hi-level/three-csg'
+import CONSTANTS from '../../engines/ammo/constants'
 
 function getThreeObject (facade) {
   if (facade.instancedThreeObject) {
@@ -213,7 +214,6 @@ function inferPhysicsGroup (facade, threeObject) {
 export function inferPhysicsShape (facade) {
   const threeObject = getThreeObject(facade)
 
-  console.log(`~~ inferring`, threeObject)
   if (threeObject.type === 'Group') {
     return inferPhysicsGroup(facade, threeObject)
   }
@@ -224,6 +224,10 @@ export function inferPhysicsShape (facade) {
     if (!geometry.isBufferGeometry) {
       console.error('troika-physics soft volumes only support threeJS BufferGeometry instances')
       return { vertices: [], indices: [], numTris: 0 }
+    }
+    const isRope = threeObject.type === 'LineSegments' || threeObject.type === 'Line'
+    if (isRope) {
+      facade.physics.softBodyType = CONSTANTS.SOFT_BODY_TYPE.ROPE
     }
     return getWorldVertices(geometry, threeObject)
   } else {
