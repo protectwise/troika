@@ -62,24 +62,18 @@ class SelectionManagerFacade extends Group3DFacade {
     }
   }
 
-  afterUpdate() {
+  describeChildren() {
     const rects = getSelectionRects(this.textRenderInfo, this.selectionStart, this.selectionEnd)
-
-    if (rects) {
-      // TODO make the rects into a single draw call, either by instancing or updating a single geometry
-      this.children = rects.map(({top, right, bottom, left}, i) => ({
-        key: `rect${i}`,
-        facade: SelectionRangeRect,
-        top, right, bottom, left,
-        z: (top - bottom) * THICKNESS / 2,
-        scaleZ: (top - bottom) * THICKNESS,
-        color: this.rangeColor,
-        renderOrder: this.renderOrder || 0
-      }))
-    } else {
-      this.children = null
-    }
-    super.afterUpdate()
+    // TODO make the rects into a single draw call, either by instancing or updating a single geometry
+    return rects ? rects.map(({top, right, bottom, left}, i) => ({
+      key: `rect${i}`,
+      facade: SelectionRangeRect,
+      top, right, bottom, left,
+      z: (top - bottom) * THICKNESS / 2,
+      scaleZ: (top - bottom) * THICKNESS,
+      color: this.rangeColor,
+      renderOrder: this.renderOrder || 0
+    })) : null
   }
 
   destructor () {

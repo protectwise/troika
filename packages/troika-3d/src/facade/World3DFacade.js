@@ -53,15 +53,17 @@ class World3DFacade extends WorldBaseFacade {
       this._bgColor = backgroundColor
     }
 
-    this.children = [
-      this._getCameraDef(),
-      this._getSceneDef()
-    ]
-
     // Update render canvas size
     this._updateDrawingBufferSize(width, height, this.pixelRatio || window.devicePixelRatio || 1)
 
     super.afterUpdate()
+  }
+
+  describeChildren() {
+    return [
+      this._getCameraDef(),
+      this._getSceneDef()
+    ]
   }
 
   /**

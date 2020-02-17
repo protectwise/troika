@@ -15,6 +15,7 @@ const LIGHT_TYPES = {
 
 const RAY_INTERSECTION = [{distance: Infinity}]
 const INFINITE_SPHERE = new Sphere(undefined, Infinity)
+const tempArr = [null]
 
 class Scene3DFacade extends Object3DFacade {
   constructor(parent) {
@@ -25,7 +26,8 @@ class Scene3DFacade extends Object3DFacade {
     super(parent, scene)
   }
 
-  afterUpdate() {
+  describeChildren() {
+    // Add root instancing manager
     let children = {
       key: 'instancingMgr',
       facade: InstancingManager,
@@ -33,19 +35,26 @@ class Scene3DFacade extends Object3DFacade {
     }
 
     // Map light definitions to their appropriate classes
-    if (this.lights && this.lights.length) {
-      let lights = this.lights.map((def, i) => {
-        let realDef = utils.assign({}, def)
-        delete realDef.type
-        realDef.key = `$$$light_${ i }`
-        realDef.facade = realDef.facade || LIGHT_TYPES[def.type]
-        return realDef.facade ? realDef : null
+    let {lights} = this
+    if (lights) {
+      children = [children]
+      if (!Array.isArray(lights)) {
+        tempArr[0] = lights
+        lights = tempArr
+      }
+      lights.forEach((def, i) => {
+        let facade = def.facade || LIGHT_TYPES[def.type]
+        if (typeof facade === 'function') {
+          let realDef = utils.assign({}, def)
+          delete realDef.type
+          realDef.key = def.key || `light${ i }`
+          realDef.facade = facade
+          children.push(realDef)
+        }
       })
-      children = lights.concat(children)
     }
-    this.children = children
 
-    super.afterUpdate()
+    return children
   }
 
   set fog(def) {

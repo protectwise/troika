@@ -68,9 +68,9 @@ class ScrollbarsFacade extends ParentFacade {
     return targets.get(this)
   }
 
-  afterUpdate () {
+  describeChildren() {
     const {target} = this
-    const children = this.children || (this.children = [])
+    const children = this._childArr || (this._childArr = [])
     children.length = 0
     if (target) {
       const {
@@ -113,7 +113,7 @@ class ScrollbarsFacade extends ParentFacade {
         children.push(vScrollbar)
       }
     }
-    super.afterUpdate()
+    return children
   }
 
   destructor () {

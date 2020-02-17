@@ -51,8 +51,8 @@ class World2DFacade extends WorldBaseFacade {
     this._onBgClick = this._onBgClick.bind(this)
   }
 
-  afterUpdate() {
-    this.children = {
+  describeChildren() {
+    return {
       key: 'bg',
       facade: BackgroundFacade,
       color: this.backgroundColor,
@@ -61,10 +61,7 @@ class World2DFacade extends WorldBaseFacade {
       onClick: this.onBackgroundClick ? this._onBgClick : null,
       children: this.objects
     }
-
-    super.afterUpdate()
   }
-
 
   doRender() {
     let canvas = this._element

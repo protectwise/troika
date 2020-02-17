@@ -6,6 +6,15 @@ import { extendAsPointerStatesAware } from './PointerStates.js'
 const TEMP_ARRAY = [null]
 
 /**
+ * @typedef {object} FacadeDescriptor
+ * An object describing the type and properties of a child facade to be created and managed by
+ * its parent. See the detailed description in the docs for {@link Facade.js}.
+ * @property {class} facade
+ * @property {string|number} [key]
+ */
+
+
+/**
  * Base facade class for objects that have `children`. Manages creating and destroying child
  * facade instances as needed as its `children` array changes.
  *
@@ -16,15 +25,34 @@ const TEMP_ARRAY = [null]
 export default class ParentFacade extends Facade {
   constructor(parent) {
     super(parent)
+
+    /**
+     * @member {FacadeDescriptor | Array<FacadeDescriptor>} children
+     * Descriptors for one or more child facades.
+     */
     this.children = null
+
     this._orderedChildKeys = []
   }
 
   afterUpdate() {
     if (this.shouldUpdateChildren()) {
-      this.updateChildren(this.children)
+      this.updateChildren(this.describeChildren())
     }
     super.afterUpdate()
+  }
+
+  /**
+   * Return the descriptor(s) for the actual children to be created and managed. By default
+   * this simply returns the value of the `children` property set by the parent, but you can
+   * override it to customize how the child content should be structured, for instance to wrap
+   * the `children` within a deeper structure, add in anonymous child siblings, or modify the
+   * `children` configurations.
+   * @protected
+   * @return {FacadeDescriptor | Array<FacadeDescriptor>}
+   */
+  describeChildren() {
+    return this.children
   }
 
   /**
