@@ -52,8 +52,8 @@ export default {
       }
     }),
     nodeResolve({
-      // Prefer "browser" over "main" in resolution
-      mainFields: ['module', 'jsnext:main', 'browser', 'main'],
+      // Favor local sources via our custom "module:src" field, and "browser" over "main" in resolution
+      mainFields: ['module:src', 'module', 'jsnext:main', 'browser', 'main']
     }),
     START_SERVER ? serve({
       //open: true,

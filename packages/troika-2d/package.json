@@ -13,7 +13,7 @@
   "browser": "dist/troika-2d.umd.js",
   "jsnext:main": "dist/troika-2d.esm.js",
   "module": "dist/troika-2d.esm.js",
-  "module:es2015": "src/index.js",
+  "module:src": "src/index.js",
   "dependencies": {
     "troika-core": "^0.17.0"
   }

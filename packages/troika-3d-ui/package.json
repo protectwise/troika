@@ -13,7 +13,7 @@
   "browser": "dist/troika-3d-ui.umd.js",
   "jsnext:main": "dist/troika-3d-ui.esm.js",
   "module": "dist/troika-3d-ui.esm.js",
-  "module:es2015": "src/index.js",
+  "module:src": "src/index.js",
   "dependencies": {
     "troika-3d": "^0.17.0",
     "troika-3d-text": "^0.17.0",

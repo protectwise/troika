@@ -13,7 +13,7 @@
   "browser": "dist/troika-core.umd.js",
   "jsnext:main": "dist/troika-core.esm.js",
   "module": "dist/troika-core.esm.js",
-  "module:es2015": "src/index.js",
+  "module:src": "src/index.js",
   "dependencies": {
     "prop-types": "^15.6.2",
     "troika-animation": "^0.17.0"
