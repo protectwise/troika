@@ -3,6 +3,7 @@ import { Vector3, Sphere } from 'three'
 
 const {assign, forOwn} = utils
 const singletonVec3 = new Vector3()
+const singletonVec3b = new Vector3()
 const notifyWorldGetter = (function() {
   const obj = {
     callback: function(pos) {
@@ -173,24 +174,25 @@ class Object3DFacade extends PointerEventTarget {
 
   /**
    * Get this object's current position in world space
-   * @param {Vector3} vec3 - optional Vector3 object to populate with the position;
+   * @param {Vector3} [vec3] - optional Vector3 object to populate with the position;
    *                  if not passed in a new one will be created.
    * @returns {Vector3}
    */
-  getWorldPosition(vec3 = new Vector3()) {
+  getWorldPosition(vec3 ) {
     this.updateMatrices()
-    vec3.setFromMatrixPosition(this.threeObject.matrixWorld)
-    return vec3
+    return (vec3 || new Vector3()).setFromMatrixPosition(this.threeObject.matrixWorld)
   }
 
   /**
    * Get the current position vector of the world's camera.
+   * @param {Vector3} [vec3] - optional Vector3 object to populate with the position;
+   *                  if not passed in a new one will be created.
    * @returns {Vector3}
    */
-  getCameraPosition() {
-    notifyWorldGetter.value = null
-    this.notifyWorld('getCameraPosition', notifyWorldGetter)
-    return notifyWorldGetter.value
+  getCameraPosition(vec3 ) {
+    vec3 = vec3 || new Vector3()
+    this.notifyWorld('getCameraPosition', vec3)
+    return vec3
   }
 
   /**
@@ -210,7 +212,7 @@ class Object3DFacade extends PointerEventTarget {
    * @returns {Number}
    */
   getCameraDistance() {
-    let cameraPos = this.getCameraPosition()
+    let cameraPos = this.getCameraPosition(singletonVec3b)
     let objectPos = this.getWorldPosition(singletonVec3)
     return cameraPos.distanceTo(objectPos)
   }
