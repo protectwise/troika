@@ -106,6 +106,34 @@ export const getIdForObject = (() => {
 
 
 /**
+ * Create a function that memoizes the result of another function based on the most
+ * recent call's arguments and `this`. The arguments are compared using strict shallow equality.
+ * @param {function} fn
+ * @return {function}
+ */
+export function memoize(fn) {
+  let prevArgs, prevThis, prevResult
+  return function() {
+    let changed = !prevArgs || this !== prevThis || arguments.length !== prevArgs.length
+    if (!changed) {
+      for (let i = 0, len = arguments.length; i < len; i++) {
+        if (arguments[i] !== prevArgs[i]) {
+          changed = true
+          break
+        }
+      }
+    }
+    if (changed) {
+      prevArgs = Array.prototype.slice.call(arguments)
+      prevThis = this
+      prevResult = fn.apply(this, arguments)
+    }
+    return prevResult
+  }
+}
+
+
+/**
  * Utility for the "extend-as" pattern used in several places to decorate facade
  * classes with extra capabilities.
  * @param {string} name - unique identifier for this class extension
