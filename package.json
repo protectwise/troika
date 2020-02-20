@@ -13,8 +13,11 @@
     "@babel/core": "^7.6.2",
     "@babel/preset-env": "^7.6.2",
     "@babel/preset-react": "^7.0.0",
+    "@commitlint/cli": "^8.3.5",
+    "@commitlint/config-conventional": "^8.3.4",
     "acorn": "^6.0.0",
     "babel-jest": "^24.9.0",
+    "husky": "^4.2.3",
     "jest": "^24.9.0",
     "jsdom-worker": "^0.1.0",
     "lerna": "^3.18.4",
@@ -46,5 +49,10 @@
     "serve-docs": "cd website && npm start",
     "clean": "lerna exec -- rm -rf dist",
     "lint": "lerna exec -- standard src/**/*.js src/**/*.jsx"
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
   }
 }
