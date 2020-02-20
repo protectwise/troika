@@ -12,6 +12,13 @@ export {makeWorldTextureProvider} from './facade/WorldTextureProvider.js'
 export {default as InstancingManager} from './facade/instancing/InstancingManager.js'
 export {default as Instanceable3DFacade} from './facade/instancing/Instanceable3DFacade.js'
 
+// Primitives
+export {BoxFacade} from './facade/primitives/BoxFacade.js'
+export {CubeFacade} from './facade/primitives/CubeFacade.js'
+export {MeshFacade} from './facade/primitives/MeshFacade.js'
+export {PlaneFacade} from './facade/primitives/PlaneFacade.js'
+export {SphereFacade} from './facade/primitives/SphereFacade.js'
+
 // React entry point
 export {default as Canvas3D} from './react/Canvas3D.js'
 
