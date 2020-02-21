@@ -2,21 +2,16 @@ import { utils } from 'troika-core'
 import { SphereBufferGeometry } from 'three'
 import { MeshFacade } from './MeshFacade.js'
 
-function createGeometry(widthSegments, heightSegments) {
-  return new SphereBufferGeometry(1, widthSegments, heightSegments)
-}
-
-const geometries = Object.create(null, {
-  low: {
-    get: utils.memoize(() => createGeometry(16, 12))
-  },
-  medium: {
-    get: utils.memoize(() => createGeometry(32, 24))
-  },
-  high: {
-    get: utils.memoize(() => createGeometry(64, 48))
+const geometries = Object.create(null, [
+  ['low', 16, 12],
+  ['medium', 32, 24],
+  ['high', 64, 48]
+].reduce((descr, [name, wSegs, hSegs]) => {
+  descr[name] = {
+    get: utils.memoize(() => new SphereBufferGeometry(1, wSegs, hSegs))
   }
-})
+  return descr
+}, {}))
 
 export function getSphereGeometry(detail) {
   return geometries[detail] || geometries.medium

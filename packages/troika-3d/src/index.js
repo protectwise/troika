@@ -14,6 +14,7 @@ export {default as Instanceable3DFacade} from './facade/instancing/Instanceable3
 
 // Primitives
 export {BoxFacade} from './facade/primitives/BoxFacade.js'
+export {CircleFacade} from './facade/primitives/CircleFacade.js'
 export {CubeFacade} from './facade/primitives/CubeFacade.js'
 export {MeshFacade} from './facade/primitives/MeshFacade.js'
 export {PlaneFacade} from './facade/primitives/PlaneFacade.js'
