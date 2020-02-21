@@ -40,7 +40,7 @@ export const MESH_MATERIALS = {
  * @member {boolean} autoDisposeMaterial - Whether the material's shader program should be automatically disposed
  *         when this mesh is removed from the scene. Defaults to `false`. You can set it to `true` as a memory
  *         optimization if the material uses a custom shader that is not expected to be used again, but this is
- *         not generally needed.
+ *         not generally needed. Note that this will _not_ dispose any textures assigned to the material.
  *
  * Also, for convenience, properties of the material can be set via `material.*` shortcut properties. For example,
  * passing `{"material.transparent": true, "material.opacity": 0.5}` will set the material to half-opaque
@@ -58,7 +58,12 @@ export class MeshFacade extends Object3DFacade {
   afterUpdate() {
     let {geometry, material, threeObject} = this
 
-    threeObject.geometry = geometry || dummyGeometry
+    if ((geometry || dummyGeometry) !== threeObject.geometry) {
+      if (this.autoDisposeGeometry) {
+        threeObject.geometry.dispose()
+      }
+      threeObject.geometry = geometry || dummyGeometry
+    }
 
     // Resolve `material` prop to a Material instance
     if (material !== this._lastMtl) {
@@ -75,7 +80,12 @@ export class MeshFacade extends Object3DFacade {
       else {
         material = new MeshStandardMaterial()
       }
-      threeObject.material = material
+      if (threeObject.material !== material) {
+        if (this.autoDisposeMaterial) {
+          threeObject.material.dispose()
+        }
+        threeObject.material = material
+      }
     }
 
     // If any of the material setters were called, sync the dirty values to the material
