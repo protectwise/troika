@@ -1,4 +1,4 @@
-import Icon from './MaterialIconFacade'
+import Icon from '../widgets/MaterialIconFacade.js'
 
 class DatBooleanFacade extends Icon {
   constructor(parent) {

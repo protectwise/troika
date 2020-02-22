@@ -1,6 +1,6 @@
 import { ListFacade } from 'troika-core'
-import { UIBlock3DFacade } from 'troika-3d-ui'
-import Icon from './MaterialIconFacade'
+import UIBlock3DFacade from '../UIBlock3DFacade.js'
+import Icon from '../widgets/MaterialIconFacade.js'
 import PopupOwner from './PopupOwner'
 
 

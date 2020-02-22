@@ -1,5 +1,5 @@
-import { UIBlock3DFacade } from 'troika-3d-ui'
-import ColorPickerFacade from './ColorPickerFacade'
+import UIBlock3DFacade from '../UIBlock3DFacade.js'
+import ColorPickerFacade from '../widgets/ColorPickerFacade.js'
 import { Color } from 'three'
 import PopupOwner from './PopupOwner'
 
@@ -46,7 +46,7 @@ class DatButtonFacade extends PopupOwner {
 
   afterUpdate () {
     const {swatchDef, labelDef, pickerDef, value, offsetWidth, offsetHeight} = this
-    
+
     const hasColor = value != null
     if (hasColor) {
       tempColor.set(value)

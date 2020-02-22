@@ -1,4 +1,4 @@
-import {UIBlock3DFacade} from 'troika-3d-ui'
+import UIBlock3DFacade from '../UIBlock3DFacade.js'
 
 /**
  * Convenience class for displaying icons using the Material Icons library. See https://material.io/icons/

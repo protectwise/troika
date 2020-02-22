@@ -1,5 +1,5 @@
 import { ParentFacade } from 'troika-core'
-import { UIBlock3DFacade } from 'troika-3d-ui'
+import UIBlock3DFacade from '../UIBlock3DFacade.js'
 
 const sceneCloserEvents = ['mousedown', 'wheel']
 

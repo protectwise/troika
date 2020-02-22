@@ -1,5 +1,5 @@
-import { UIBlock3DFacade } from 'troika-3d-ui'
-import SliderFacade from './SliderFacade'
+import UIBlock3DFacade from '../UIBlock3DFacade.js'
+import SliderFacade from '../widgets/SliderFacade.js'
 
 
 class DatNumberFacade extends UIBlock3DFacade {

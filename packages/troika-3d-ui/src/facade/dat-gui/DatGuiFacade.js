@@ -1,5 +1,5 @@
 import { utils } from 'troika-core'
-import { UIBlock3DFacade } from 'troika-3d-ui'
+import UIBlock3DFacade from '../UIBlock3DFacade.js'
 import objectPath from 'object-path'
 
 import DatBooleanFacade from './DatBooleanFacade'
@@ -22,7 +22,32 @@ const TYPE_FACADES = {
   // string: DatStringFacade
 }
 
+/**
+ * @typedef {object} DatGuiItemDefinition
+ * @property {('boolean'|'button'|'color'|'number'|'select')} type - The datatype of this value item.
+ * @property {string} path - A string defining where in the `data` object this item's value lives.
+ * @property {string} [label] - A label for the item. Defaults to the `path`.
+ * @property {number} [height] - A custom height for this item
+ * Additional properties can also be added and will be passed down to their implementation facade.
+ */
 
+/**
+ * THIS IS A WORK-IN-PROGRESS.
+ *
+ * `DatGuiFacade` creates a UI panel for tweaking a set of values, along the lines of
+ * the well-known [dat.GUI](https://workshop.chromeexperiments.com/examples/gui) or
+ * [react-dat-gui]([react-dat-gui](https://github.com/claus/react-dat-gui), for use within
+ * WebGL environments. This is particularly useful in WebXR, where overlaid HTML cannot be
+ * used. It is interactable via both screen mouse/touch input and WebXR pointer inputs.
+ *
+ * @member {DatGuiItemDefinition[]} items - Defines the list of values to be presented.
+ * @member {object} data - An object containing the current values for each of the `items`.
+ * @member {function(object)} onUpdate - A function that gets called when the user changes any
+ *         values. It is passed the modified `data` object.
+ * @member {number} [itemHeight] - Default height for the items.
+ *
+ * This extends {@link UIBlock3DFacade} so any of its supported properties can also be set.
+ */
 class DatGuiFacade extends UIBlock3DFacade {
   constructor(parent) {
     super(parent)
@@ -42,8 +67,8 @@ class DatGuiFacade extends UIBlock3DFacade {
     }
   }
 
-  afterUpdate () {
-    this.children = [
+  describeChildren () {
+    return [
       // Labels
       {
         facade: UIBlock3DFacade,
@@ -84,10 +109,7 @@ class DatGuiFacade extends UIBlock3DFacade {
         })
       }
     ]
-
-    super.afterUpdate()
   }
 }
 
-
-export default DatGuiFacade
+export {DatGuiFacade}

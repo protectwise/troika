@@ -10,7 +10,7 @@ import {
   Mesh
 } from 'three'
 import DatGui, {DatBoolean, DatSelect, DatNumber} from 'react-dat-gui'
-import DatGuiFacade from '../troika-dat-gui/DatGuiFacade'
+import { DatGuiFacade } from 'troika-3d-ui'
 
 
 const FONTS = {
