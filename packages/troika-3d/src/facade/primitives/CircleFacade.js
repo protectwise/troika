@@ -8,7 +8,9 @@ const geometries = Object.create(null, [
   ['high', 128]
 ].reduce((descr, [name, segments]) => {
   descr[name] = {
-    get: utils.memoize(() => new CircleBufferGeometry(1, segments))
+    get: utils.memoize(() =>
+      new CircleBufferGeometry(1, segments).rotateX(-Math.PI / 2)
+    )
   }
   return descr
 }, {}))
