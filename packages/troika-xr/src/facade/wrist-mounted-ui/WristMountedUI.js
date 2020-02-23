@@ -27,6 +27,9 @@ export class WristMountedUI extends Group3DFacade {
     this.active = false
     this.activeUpAngle = Math.PI / 7
     this.preferredHand = 'left'
+    this.platformRadius = 0.25
+    this.platformColor = 0x333333
+    this.projectionColor = 0x3399ff
 
     this.addEventListener('xrframe', this.onXRFrame.bind(this))
   }
@@ -51,6 +54,9 @@ export class WristMountedUI extends Group3DFacade {
     let [wristbandDef, contentDef] = children
     wristbandDef.active = contentDef.active = this.active
     wristbandDef.gripPose = contentDef.gripPose = this.gripPose
+    contentDef.platformRadius = this.platformRadius
+    contentDef.platformColor = this.platformColor
+    contentDef.projectionColor = this.projectionColor
     contentDef.children = this.children
 
     return children

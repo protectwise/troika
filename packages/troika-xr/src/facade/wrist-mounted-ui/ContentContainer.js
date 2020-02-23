@@ -1,4 +1,4 @@
-import { Object3DFacade, PlaneFacade } from 'troika-3d'
+import { Object3DFacade, CircleFacade } from 'troika-3d'
 import { Group, Matrix4, Vector3 } from 'three'
 import { Projection } from './Projection.js'
 
@@ -13,6 +13,8 @@ export class ContentContainer extends Object3DFacade {
     this.distancePastGrip = 0.25 //distance past grip in camera-to-grip direction
     this.minDistanceFromCamera = 0.5
     this.heightAboveGrip = 0.15
+    this.platformRadius = 0.25
+    this.projectionColor = null
     this.gripPose = null
     this.active = false
   }
@@ -59,37 +61,46 @@ export class ContentContainer extends Object3DFacade {
   // }
 
   describeChildren() {
-    let radiusX = 0.5 / 2
-    let radiusZ = 0.3 / 2
     let kids = this._kidsTpl || (this._kidsTpl = [
       {
         key: '$platform',
-        facade: PlaneFacade,
-        width: radiusX * 2,
-        depth: radiusZ * 2,
-        'material.color': 0x666666,
-        'material.metalness': 0.8,
-        'material.roughness': 0.3
+        facade: CircleFacade,
+        radius: 1,
+        material: 'lambert',
+        castShadow: true,
+        receiveShadow: true,
+        'material.color': 0x333333
       },
       {
         key: '$projection',
         facade: Projection,
-        from: new Vector3(),
-        to1: new Vector3(),
-        to2: new Vector3(),
-        to3: new Vector3(),
-        to4: new Vector3()
+        sourceWorldPosition: new Vector3(),
+        targetVertices: Object.freeze(function () {
+          // trace circular path
+          let verts = []
+          for (let i = 0; i < 32; i++) {
+            let angle = Math.PI * 2 * (i / 32)
+            verts.push(Math.cos(angle), 0, Math.sin(angle))
+          }
+          return verts
+        }())
       }
     ])
-    if (this.gripPose && this.visible) {
-      kids[1].from.set(0.027, 0.056, 0.056).applyMatrix4(tempMat4.fromArray(this.gripPose.transform.matrix))
 
-      let mtx = this.threeObject.matrixWorld
-      kids[1].to1.set(-radiusX, 0, -radiusZ).applyMatrix4(mtx)
-      kids[1].to2.set(radiusX, 0, -radiusZ).applyMatrix4(mtx)
-      kids[1].to3.set(radiusX, 0, radiusZ).applyMatrix4(mtx)
-      kids[1].to4.set(-radiusX, 0, radiusZ).applyMatrix4(mtx)
+    // Update platform size
+    kids[0].scale = kids[1].scale = this.platformRadius
+
+    // Update projection source
+    if (this.gripPose && this.visible) {
+      kids[1].sourceWorldPosition.set(0.027, 0.056, 0.056).applyMatrix4(
+        tempMat4.fromArray(this.gripPose.transform.matrix)
+      )
     }
+
+    // Colors
+    kids[0]['material.color'] = this.platformColor
+    kids[1].color = this.projectionColor
+
     return kids.concat(this.children)
   }
 }
