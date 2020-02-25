@@ -28,6 +28,7 @@ class SliderFacade extends UIBlock3DFacade {
         val = Math.round(val / step) * step
         val = +val.toFixed((step + '').replace(/^-?\d+\.?/, '').length) //trim precision errors
         this.onChange(val)
+        e.stopPropagation()
       }
     }
   }
