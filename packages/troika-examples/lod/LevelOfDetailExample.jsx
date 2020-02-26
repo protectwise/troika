@@ -2,6 +2,7 @@ import React from 'react'
 import T from 'prop-types'
 import {Canvas3D} from 'troika-3d'
 import Sphere from './Sphere'
+import { ExampleConfigurator } from '../_shared/ExampleConfigurator.js'
 
 const ANIM_DUR = 5000
 
@@ -57,15 +58,22 @@ class LevelOfDetailExample extends React.Component {
                 delay: repeatableRandoms[i] * ANIM_DUR * -2
               }
             }
-          )) }
+          )).concat(
+            {
+              key: 'config',
+              isXR: !!this.props.vr,
+              facade: ExampleConfigurator,
+              data: state,
+              onUpdate: this.setState.bind(this),
+              items: [
+                {type: 'boolean', path: 'wireframe', label: 'Wireframe'}
+              ]
+            }
+          ) }
         />
 
         <div className="example_desc">
           <p>Dynamic level-of-detail based on distance from the camera. Simple logic in <code>afterUpdate</code> calls <code>this.getCameraDistance()</code> and chooses an appropriate geometry based on the result. This could also be done based on other parameters such as object size, object velocity, or frame rate.</p>
-        </div>
-
-        <div className="example_controls">
-          <button onClick={ this.toggleWireframe }>Wireframe {state.wireframe ? 'On' : 'Off'}</button>
         </div>
       </div>
     )

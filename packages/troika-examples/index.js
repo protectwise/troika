@@ -137,6 +137,7 @@ class ExamplesApp extends React.Component {
             /> : null) :
             `Unknown example: ${selectedExampleId}`
           }
+          <div id="react-dat-gui-portal"></div>
         </section>
       </div>
     )

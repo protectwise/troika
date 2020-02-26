@@ -243,9 +243,6 @@ class Canvas2DExample extends React.Component {
           for animations and mouse interaction, but instead of managing Three.JS objects each Object2DFacade implements
           a <code>render(ctx)</code> method which draws to the context using the Canvas 2D API.
         </div>
-
-        <div className="example_controls">
-        </div>
       </div>
     )
   }

@@ -3,6 +3,7 @@ import T from 'prop-types'
 import {Canvas3D} from 'troika-3d'
 import {LavaCube, WaterCube} from './Cube'
 import {Fireball} from './Fireball'
+import { ExampleConfigurator } from '../_shared/ExampleConfigurator.js'
 
 const TRANS = {
   duration: 700,
@@ -106,6 +107,16 @@ class ShaderAnim extends React.Component {
                 rotateY: TRANS,
                 rotateZ: TRANS
               }
+            },
+            {
+              key: 'config',
+              isXR: !!this.props.vr,
+              facade: ExampleConfigurator,
+              data: state,
+              onUpdate: this.setState.bind(this),
+              items: [
+                {type: 'button', onClick: this._randomRotate, label: 'Rotate Items'}
+              ]
             }
           ] }
         />
@@ -113,10 +124,6 @@ class ShaderAnim extends React.Component {
         <div className="example_desc">
           <p>Demonstration of shaders using an animated 'time' uniform.</p>
           <p>Based off Lee Stemkoski's <a href="https://stemkoski.github.io/Three.js/Shader-Animate.html">Shader - Animated Materials</a> and <a href="https://stemkoski.github.io/Three.js/Shader-Fireball.html">Shader - Animated Fireball</a> examples.</p>
-        </div>
-
-        <div className="example_controls">
-          <button onClick={ this._randomRotate }>Rotate Items</button>
         </div>
       </div>
     )

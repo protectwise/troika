@@ -5,6 +5,7 @@ import {Plane, Vector3, Matrix4} from 'three'
 import Planet from './Planet'
 import Sun from './Sun'
 import Orbit from './Orbit'
+import { ExampleConfigurator } from '../_shared/ExampleConfigurator.js'
 
 
 function find(arr, testFn) {
@@ -146,7 +147,7 @@ class DragDropExample extends React.Component {
             z: 4,
             ref: this._onCameraRef
           } }
-          objects={ {
+          objects={ [{
             key: 'system',
             facade: Group3DFacade,
             rotateX: ORBITAL_PLANE_ROTATEX,
@@ -205,15 +206,20 @@ class DragDropExample extends React.Component {
               key: 'sun',
               facade: Sun
             })
-          } }
+          }, {
+            key: 'config',
+            isXR: !!this.props.vr,
+            facade: ExampleConfigurator,
+            data: state,
+            onUpdate: this.setState.bind(this),
+            items: [
+              {type: 'button', onClick: this._reset, label: 'Reset'}
+            ]
+          }] }
         />
 
         <div className="example_desc">
           <p>This example demonstrates use of drag-and-drop events. Drag planets to different orbits, or merge them by dropping on one another.</p>
-        </div>
-
-        <div className="example_controls">
-          <button onClick={ this._reset }>Reset</button>
         </div>
       </div>
     )

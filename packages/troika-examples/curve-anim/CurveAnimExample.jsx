@@ -2,6 +2,7 @@ import React from 'react'
 import T from 'prop-types'
 import { Canvas3D, OrthographicCamera3DFacade } from 'troika-3d'
 import Curve from './Curve'
+import { ExampleConfigurator } from '../_shared/ExampleConfigurator.js'
 
 const RAND_STRATEGIES = ['absolute', 'distance']
 const PATH_SHAPES = ['curve', 'step']
@@ -131,7 +132,7 @@ class CurveAnimExample extends React.Component {
               },
             ]
           }}
-          objects={{
+          objects={[{
             key: 'curve',
             facade: Curve,
             width: width,
@@ -156,7 +157,26 @@ class CurveAnimExample extends React.Component {
               }
             },
             animation: COLOR_ANIMATION
-          }}
+          },
+          {
+            key: 'config',
+            isXR: !!this.props.vr,
+            facade: ExampleConfigurator,
+            data: state,
+            onUpdate: this.setState.bind(this),
+            items: [
+              {type: 'select', path: 'cameraType', label: 'Camera', options: ['Orthographic', 'Perspective']},
+              {type: 'select', path: 'randomStrategy', label: 'Randomize', options: RAND_STRATEGIES},
+              {type: 'select', path: 'pathShape', label: 'Path Shape', options: PATH_SHAPES},
+              {type: 'select', path: 'fillGradientScale', label: 'Gradient Scale', options: GRADIENT_SCALES},
+              {type: 'number', path: 'valueCount', label: 'Value Count', min: 10, max: 50, step: 1},
+              {type: 'number', path: 'strokeWidth', label: 'Stroke Width', min: 0, max: 20, step: 1},
+              {type: 'number', path: 'strokeOpacity', label: 'Stroke Opacity', min: 0, max: 1, step: 0.1},
+              {type: 'number', path: 'fillOpacity', label: 'Fill Opacity', min: 0, max: 1, step: 0.1},
+              {type: 'number', path: 'fillGradientPercent', label: 'Gradient Height', min: 0, max: 1, step: 0.1},
+              {type: 'number', path: 'fillGradientExp', label: 'Gradient Exponent', min: 0, max: 10, step: 1},
+            ]
+          }]}
         />
 
         <div className="example_desc">
@@ -170,129 +190,6 @@ class CurveAnimExample extends React.Component {
           </p>
         </div>
 
-        <div className="example_controls">
-          <div>
-            <select name="cameraType" onChange={this._onDropdownChange}>
-              {['Orthographic', 'Perspective'].map(name =>
-                <option
-                  value={name}
-                  selected={name === this.state.cameraType}
-                >
-                  Camera: {name}
-                </option>
-              )}
-            </select>
-          </div>
-          <div>
-            <select name="randomStrategy" onChange={this._onDropdownChange}>
-              {RAND_STRATEGIES.map(name =>
-                <option
-                  value={name}
-                  selected={name === this.state.randomStrategy}
-                >
-                  Randomize: {name}
-                </option>
-              )}
-            </select>
-          </div>
-          <div>
-            <select name="pathShape" onChange={this._onDropdownChange}>
-              {PATH_SHAPES.map(name =>
-                <option value={name} selected={name === this.state.pathShape}>
-                  Path shape: {name}
-                </option>
-              )}
-            </select>
-          </div>
-          <div>
-            <select name="fillGradientScale" onChange={this._onDropdownChange}>
-              {GRADIENT_SCALES.map(name =>
-                <option
-                  value={name}
-                  selected={name === this.state.fillGradientScale}
-                >
-                  Gradient scale: {name}
-                </option>
-              )}
-            </select>
-          </div>
-          <div>
-            Value count:{' '}
-            <input
-              type="range"
-              name="valueCount"
-              onChange={this._onSliderChange}
-              value={state.valueCount}
-              min="10"
-              max="500"
-            />{' '}
-            {state.valueCount}
-          </div>
-          <div>
-            Stroke width:{' '}
-            <input
-              type="range"
-              name="strokeWidth"
-              onChange={this._onSliderChange}
-              value={state.strokeWidth}
-              min="0"
-              max="20"
-            />{' '}
-            {state.strokeWidth}
-          </div>
-          <div>
-            Stroke opacity:{' '}
-            <input
-              type="range"
-              name="strokeOpacity"
-              onChange={this._onSliderChange}
-              value={state.strokeOpacity}
-              min="0"
-              max="1"
-              step="0.1"
-            />{' '}
-            {state.strokeOpacity}
-          </div>
-          <div>
-            Fill opacity:{' '}
-            <input
-              type="range"
-              name="fillOpacity"
-              onChange={this._onSliderChange}
-              value={state.fillOpacity}
-              min="0"
-              max="1"
-              step="0.1"
-            />{' '}
-            {state.fillOpacity}
-          </div>
-          <div>
-            Fill gradient height:{' '}
-            <input
-              type="range"
-              name="fillGradientPercent"
-              onChange={this._onSliderChange}
-              value={state.fillGradientPercent}
-              min="0"
-              max="1"
-              step="0.1"
-            />{' '}
-            {state.fillGradientPercent}
-          </div>
-          <div>
-            Fill gradient exponent:{' '}
-            <input
-              type="range"
-              name="fillGradientExp"
-              onChange={this._onSliderChange}
-              value={state.fillGradientExp}
-              min="1"
-              max="10"
-              step="1"
-            />{' '}
-            {state.fillGradientExp}
-          </div>
-        </div>
       </div>
     )
   }

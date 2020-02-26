@@ -506,12 +506,7 @@ class UIExample extends React.Component {
           }
         />
 
-        <div className="example_desc">
-
-        </div>
-
-        <div className="example_controls">
-        </div>
+        <div className="example_desc"></div>
       </div>
     )
   }

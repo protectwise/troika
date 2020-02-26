@@ -3,6 +3,7 @@ import T from 'prop-types'
 import ReactDOM from 'react-dom'
 import {Canvas3D} from 'troika-3d'
 import Earth from './Earth'
+import { ExampleConfigurator } from '../_shared/ExampleConfigurator.js'
 
 
 class GlobeExample extends React.Component {
@@ -17,9 +18,6 @@ class GlobeExample extends React.Component {
       colorScheme: 'technicolor'
     }
     this._onMouseMove = this._onMouseMove.bind(this)
-    this._toggleWireframe = this._toggleWireframe.bind(this)
-    this._toggleTrackMouse = this._toggleTrackMouse.bind(this)
-    this._changeColorScheme = this._changeColorScheme.bind(this)
     this._onCountryMouseOver = this._onCountryMouseOver.bind(this)
     this._onCountryMouseOut = this._onCountryMouseOut.bind(this)
     this._getOceanColor = this._getOceanColor.bind(this)
@@ -38,18 +36,6 @@ class GlobeExample extends React.Component {
         rotateY: Math.PI * (x / rect.width * 2 - 1)
       })
     }
-  }
-
-  _toggleWireframe() {
-    this.setState({wireframe: !this.state.wireframe})
-  }
-
-  _toggleTrackMouse() {
-    this.setState({trackMouse: !this.state.trackMouse})
-  }
-
-  _changeColorScheme(e) {
-    this.setState({colorScheme: e.target.options[e.target.selectedIndex].value})
   }
 
   _onCountryMouseOver(id) {
@@ -176,25 +162,31 @@ class GlobeExample extends React.Component {
               transition: {
                 scaleY: true
               }
+            },
+            {
+              key: 'config',
+              isXR: !!this.props.vr,
+              facade: ExampleConfigurator,
+              data: state,
+              onUpdate: this.setState.bind(this),
+              items: [
+                {type: 'boolean', path: 'trackMouse', label: 'Track Mouse'},
+                {type: 'boolean', path: 'wireframe', label: 'Wireframe'},
+                {type: 'select', path: 'colorScheme', label: 'Color Scheme', options: [
+                  {value: 'technicolor', label: 'Technicolor'},
+                  {value: 'greyscale', label: 'Greyscale'},
+                  {value: 'satellite', label: 'Satellite'},
+                  {value: 'bluemarble', label: 'Blue Marble'},
+                  {value: 'night', label: 'Night Lights'},
+                  {value: 'pumpkin', label: 'Pumpkin'}
+                ]}
+              ]
             }
           ] }
         />
 
         <div className="example_desc">
           <p></p>
-        </div>
-
-        <div className="example_controls">
-          <button onClick={ this._toggleTrackMouse }>Track Mouse: { `${!!state.trackMouse}` }</button>
-          <button onClick={ this._toggleWireframe }>Wireframe: { `${!!state.wireframe}` }</button>
-          <select onChange={ this._changeColorScheme }>
-            <option value="technicolor">Technicolor</option>
-            <option value="greyscale">Greyscale</option>
-            <option value="satellite">Satellite</option>
-            <option value="bluemarble">Blue Marble</option>
-            <option value="night">Night Lights</option>
-            <option value="pumpkin">Pumpkin</option>
-          </select>
         </div>
       </div>
     )

@@ -5,6 +5,7 @@ import {TwoDeeScene} from '../canvas2d/Canvas2DExample'
 import React from 'react'
 import ArcsFacade from '../arcs/ArcsFacade'
 import {refreshArcsData} from '../arcs/arcsData'
+import { ExampleConfigurator } from '../_shared/ExampleConfigurator.js'
 
 
 const sphereGeom = new SphereBufferGeometry(0.5, 32, 32)
@@ -141,7 +142,7 @@ export default class InceptionExample extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      subWorldConfig: subWorldConfigs[0]
+      subWorldIndex: 0
     }
   }
 
@@ -167,7 +168,7 @@ export default class InceptionExample extends React.Component {
               key: '2d',
               facade: WorldTexturedSphere,
               x: -1,
-              textureWorld: this.state.subWorldConfig,
+              textureWorld: subWorldConfigs[this.state.subWorldIndex],
               animation: {
                 from: {rotateY: 0},
                 to: {rotateY: Math.PI * 2},
@@ -179,13 +180,27 @@ export default class InceptionExample extends React.Component {
               key: '3d',
               facade: WorldTexturedBox,
               x: 1,
-              textureWorld: this.state.subWorldConfig,
+              textureWorld: subWorldConfigs[this.state.subWorldIndex],
               animation: {
                 from: {rotateY: 0},
                 to: {rotateY: Math.PI * 2},
                 duration: 20000,
                 iterations: Infinity
               }
+            },
+            {
+              key: 'config',
+              isXR: !!this.props.vr,
+              facade: ExampleConfigurator,
+              data: this.state,
+              onUpdate: this.setState.bind(this),
+              items: [
+                {type: 'select', path: 'subWorldIndex', label: 'Sub World Type',
+                  options: subWorldConfigs.map((cfg, i) => {
+                    return {value: i, label: cfg.label}
+                  })
+                }
+              ]
             }
           ] }
         />
@@ -196,20 +211,6 @@ export default class InceptionExample extends React.Component {
           Pointer events are forwarded through to the sub-world so the texture's contents are fully interactive.</p>
         </div>
 
-        <div className="example_controls">
-          <div>
-            Sub World Type:
-            <select onChange={e => {
-              this.setState({subWorldConfig: subWorldConfigs[e.target.selectedIndex]})
-            }}>
-              {
-                subWorldConfigs.map((cfg, i) =>
-                  <option key={i}>{cfg.label}</option>
-                )
-              }
-            </select>
-          </div>
-        </div>
       </div>
     )
   }

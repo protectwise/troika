@@ -11,6 +11,7 @@ import {
 } from 'three'
 import DatGui, {DatBoolean, DatSelect, DatNumber} from 'react-dat-gui'
 import { DatGuiFacade } from 'troika-3d-ui'
+import { ExampleConfigurator } from '../_shared/ExampleConfigurator.js'
 
 
 const FONTS = {
@@ -48,7 +49,9 @@ const TEXTS = {
 Abraham Lincoln
 November 19, 1863`,
   'ABC123': 'abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ !"§ $%& /() =?* \'<> #|; ²³~ @`´ ©«» ¤¼× {} abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ !"§ $%& /() =?* \'<> #|; ²³~ @`´ ©«» ¤¼× {} abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ !"§ $%& /() =?* \'<> #|; ²³~ @`´ ©«» ¤¼× {} abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ !"§ $%& /() =?* \'<> #|; ²³~ @`´ ©«» ¤¼× {} abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ !"§ $%& /() =?* \'<> #|; ²³~ @`´ ©«» ¤¼× {} abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ !"§ $%& /() =?* \'<> #|; ²³~ @`´ ©«» ¤¼× {}',
-  [CUSTOM_LBL]: 'Edit me!'
+
+  // TODO bring back custom text, but need to figure it out for XR:
+  // [CUSTOM_LBL]: 'Edit me!'
 }
 
 const TEXTURE = new TextureLoader().load('shader-anim/lava.jpg')
@@ -228,22 +231,17 @@ class TextExample extends React.Component {
               rotateX: Math.PI / -6,
               z: -1
             } : null,
-            /*{
-              key: 'dat',
-              facade: DatGuiFacade,
-              x: -1,
-              y: .5,
-              z: 1,
-              rotateY: Math.PI / 16,
-              //height: 0.4,
-              overflow: 'scroll',
+            {
+              key: 'config',
+              isXR: !!this.props.vr,
+              facade: ExampleConfigurator,
               data: state,
               onUpdate: this._onConfigUpdate,
               items: [
+                {type: 'select', path: 'text', options: Object.keys(TEXTS)},
                 {type: 'select', path: 'font', options: Object.keys(FONTS).sort()},
                 {type: 'select', path: 'textAlign', options: ['left', 'right', 'center', 'justify']},
                 {type: 'select', path: "material", options: MATERIAL_OPTS},
-
                 {type: 'boolean', path: "useTexture", label: "Texture"},
                 {type: 'boolean', path: "animTextColor", label: "Cycle Colors"},
                 {type: 'boolean', path: "animTilt", label: "Tilt"},
@@ -251,19 +249,18 @@ class TextExample extends React.Component {
                 {type: 'boolean', path: "fog", label: "Fog"},
                 {type: 'boolean', path: "shadows", label: "Shadows"},
                 {type: 'boolean', path: "debugSDF", label: "Show SDF"},
-
+                {type: 'boolean', path: "selectable", label: "Selectable (WIP)"},
+                {type: 'number', path: "fontSize", label: "fontSize", min: 0.01, max: 0.2, step: 0.01},
                 {type: 'number', path: "textScale", label: "scale", min: 0.1, max: 10, step: 0.1},
                 {type: 'number', path: "maxWidth", min: 1, max: 5, step: 0.01},
                 {type: 'number', path: "lineHeight", min: 1, max: 2, step: 0.01},
-                {type: 'number', path: "letterSpacing", min: -0.1, max: 0.5, step: 0.01},
-
-                {type: 'button', label: 'Hello', onClick: e => this.setState({textScale: Math.random() * 5})}
+                {type: 'number', path: "letterSpacing", min: -0.1, max: 0.5, step: 0.01}
               ]
-            }*/
+            }
           ] }
         />
 
-        <DatGui data={state} onUpdate={this._onConfigUpdate}>
+        {/*<DatGui data={state} onUpdate={this._onConfigUpdate}>
           <DatSelect path='text' options={Object.keys(TEXTS)} />
           { state.text === CUSTOM_LBL ? (
             <textarea
@@ -294,7 +291,7 @@ class TextExample extends React.Component {
           <DatNumber path="maxWidth" min={1} max={5} step={0.01} />
           <DatNumber path="lineHeight" min={1} max={2} step={0.01} />
           <DatNumber path="letterSpacing" min={-0.1} max={0.5} step={0.01} />
-        </DatGui>
+        </DatGui>*/}
 
 
         <div className="example_desc">

@@ -6,6 +6,7 @@ import NonInstanceableSphere from './NonInstanceableSphere'
 import InstanceableSphere from './InstanceableSphere'
 import InstanceableSphereNoMatrix from './InstanceableSphereNoMatrix'
 import {Color} from 'three'
+import { ExampleConfigurator } from '../_shared/ExampleConfigurator.js'
 
 const ORIGIN = {x:0, y:0, z:0}
 const BOX_SIZE = 1
@@ -127,7 +128,7 @@ class InstanceableExample extends React.Component {
               paused: !!state.hoveredId
             }]
           } }
-          objects={ {
+          objects={ [{
             key: 'main',
             facade: Group3DFacade,
             x: BOX_SIZE / -2,
@@ -178,45 +179,30 @@ class InstanceableExample extends React.Component {
                 }) : null
               }
             }
-          } }
+          }, {
+            key: 'config',
+            isXR: !!this.props.vr,
+            facade: ExampleConfigurator,
+            data: state,
+            onUpdate: this.setState.bind(this),
+            items: [
+              {type: 'number', path: 'objectCount', label: 'Number of objects', min: 100, max: 100000, step: 1},
+              state.objectCount !== state.data.length ?
+                {type: 'button', onClick: this._generateData, label: 'Regenerate'} : null,
+              {type: 'boolean', path: 'useInstancing', label: 'Use Instancing'},
+              state.useInstancing ?
+                {type: 'select', path: 'radiusMethod', label: 'Radius set via', options: [
+                  {value: 'uniform', label: 'Custom shader uniform'},
+                  {value: 'matrix', label: 'Scaled transform matrix'}
+                ]} : null,
+              {type: 'boolean', path: 'animateRadius', label: 'Animate Sizes'},
+              {type: 'boolean', path: 'animateColor', label: 'Animate Colors'}
+            ]
+          }] }
         />
 
         <div className="example_desc">
           <p>Demonstrates the usage of Instanceable3DFacade for fast rendering of thousands of similar objects.</p>
-        </div>
-
-        <div className="example_controls">
-          <div>
-            Number of objects: <input
-              type="range"
-              name="objectCount"
-              onChange={ this._onSliderChange }
-              value={ state.objectCount }
-              min="100"
-              max="100000"
-            /> { state.objectCount } {
-              state.objectCount !== state.data.length ? (
-                <button onClick={ this._generateData } >Regenerate</button>
-              ) : null
-            }
-          </div>
-          <div>
-            Use instancing: <input type="checkbox" checked={ state.useInstancing } name="useInstancing" onChange={ this._onCheckboxToggle } />
-          </div>
-          { state.useInstancing ? (
-            <div>
-              Radius set via: <select name="radiusMethod" onChange={ this._onDropdownChange }>
-                <option value="uniform">Custom shader uniform</option>
-                <option value="matrix">Scaled transform matrix</option>
-              </select>
-            </div>
-          ) : null }
-          <div>
-            Animate Sizes: <input type="checkbox" checked={ state.animateRadius } name="animateRadius" onChange={ this._onCheckboxToggle } />
-          </div>
-          <div>
-            Animate Colors: <input type="checkbox" checked={ state.animateColor } name="animateColor" onChange={ this._onCheckboxToggle } />
-          </div>
         </div>
       </div>
     )

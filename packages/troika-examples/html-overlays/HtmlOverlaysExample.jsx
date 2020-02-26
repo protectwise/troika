@@ -138,9 +138,6 @@ class HtmlOverlaysExample extends React.Component {
         <div className="example_desc">
           <p>This example uses the <b>HtmlOverlay</b> facade to define tooltips that are anchored to a corner of each box. Their HTML contents are rendered into the DOM, fully styleable, and synchronized to the position of their anchor point in the 3D world as projected to the camera. Also demonstrated: nested animations with pausing and a glow effect on hover.</p>
         </div>
-
-        <div className="example_controls">
-        </div>
       </div>
     )
   }

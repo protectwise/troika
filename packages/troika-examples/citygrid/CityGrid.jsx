@@ -7,6 +7,7 @@ import Ground from './Ground'
 import Host from './Host'
 import Zone from './Zone'
 import Camera from './Camera'
+import { ExampleConfigurator } from '../_shared/ExampleConfigurator.js'
 
 function clone(obj) {
   const newObj = {}
@@ -54,10 +55,6 @@ class CityGrid extends React.Component {
     this._changeThreatLevels = this._changeThreatLevels.bind(this)
     this._onMouseWheel = this._onMouseWheel.bind(this)
     this._gotoRandomCameraPos = this._gotoRandomCameraPos.bind(this)
-    this._toggleRotation = this._toggleRotation.bind(this)
-    this._toggleTransitions = this._toggleTransitions.bind(this)
-    this._toggleZoneLabels = this._toggleZoneLabels.bind(this)
-    this._tickCameraRotation = this._tickCameraRotation.bind(this)
     this._onHostMouseOver = this._onHostMouseOver.bind(this)
     this._onHostMouseOut = this._onHostMouseOut.bind(this)
     this._onHostClick = this._onHostClick.bind(this)
@@ -66,10 +63,6 @@ class CityGrid extends React.Component {
 
   componentWillMount () {
     this._generateData()
-  }
-
-  componentWillUnmount () {
-    window.cancelAnimationFrame(this._cameraRotateRAF)
   }
 
   _generateData () {
@@ -156,33 +149,6 @@ class CityGrid extends React.Component {
     })
   }
 
-  _toggleRotation () {
-    let rotating = this.state.rotatingCamera
-    rotating = !rotating ? 'state' : rotating === 'state' ? 'animation' : null
-    this._lastRotationTime = null
-    this.setState({rotatingCamera: rotating}, this._tickCameraRotation)
-  }
-
-  _toggleTransitions () {
-    this.setState({enableTransitions: !this.state.enableTransitions})
-  }
-
-  _toggleZoneLabels () {
-    this.setState({showZoneLabels: !this.state.showZoneLabels})
-  }
-
-  _tickCameraRotation () {
-    if (this.state.rotatingCamera === 'state') {
-      let now = Date.now()
-      if (this._lastRotationTime) {
-        let dur = now - this._lastRotationTime
-        this.setState({cameraAngle: this.state.cameraAngle + (Math.PI * 2 * (dur / 30000))}) // 30s around
-      }
-      this._lastRotationTime = now
-      this._cameraRotateRAF = window.requestAnimationFrame(this._tickCameraRotation)
-    }
-  }
-
   _onHostMouseOver (e) {
     this._hostsChanged = true
     this.setState({hoveredHostIp: e.target.ip})
@@ -211,16 +177,6 @@ class CityGrid extends React.Component {
 
     return (
       <div className='the_grid' onWheel={this._onMouseWheel}>
-        <div className='example_controls'>
-          <button onClick={this._changeHeights}>Change Heights</button>
-          <button onClick={this._changeThreatLevels}>Change Threats</button>
-          <button onClick={this._generateData}>Regen Full</button>
-          <button onClick={this._gotoRandomCameraPos}>Random Camera Pos</button>
-          <button onClick={this._toggleRotation}>Rotate: { state.rotatingCamera || 'off' }</button>
-          <button onClick={this._toggleTransitions}>Transitions: { state.enableTransitions ? 'on' : 'off' }</button>
-          <button onClick={this._toggleZoneLabels}>Zone Labels: { state.showZoneLabels ? 'on' : 'off' }</button>
-        </div>
-
         { state.data ? (
           <Canvas3D
             stats={ this.props.stats }
@@ -256,7 +212,7 @@ class CityGrid extends React.Component {
                 distance: 1,
                 elevation: 1
               } : null,
-              animation: state.rotatingCamera === 'animation' ? {
+              animation: state.rotatingCamera ? {
                 0: {angle: state.cameraAngle},
                 100: {angle: state.cameraAngle + Math.PI * 2},
                 duration: 30000,
@@ -366,6 +322,22 @@ class CityGrid extends React.Component {
                       } : null
                     }
                   }
+                ]
+              },
+              {
+                key: 'config',
+                isXR: !!this.props.vr,
+                facade: ExampleConfigurator,
+                data: state,
+                onUpdate: this.setState.bind(this),
+                items: [
+                  {type: 'button', onClick: this._changeHeights, label: 'Change Heights'},
+                  {type: 'button', onClick: this._changeThreatLevels, label: 'Change Threats'},
+                  {type: 'button', onClick: this._generateData, label: 'Regen Full'},
+                  {type: 'button', onClick: this._gotoRandomCameraPos, label: 'Random Camera Pos'},
+                  {type: 'boolean', path: 'rotatingCamera', label: 'Rotate'},
+                  {type: 'boolean', path: 'enableTransitions', label: 'Transitions'},
+                  {type: 'boolean', path: 'showZoneLabels', label: 'Zone Labels'}
                 ]
               }
             ]}

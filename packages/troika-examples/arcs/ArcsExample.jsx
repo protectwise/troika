@@ -3,6 +3,7 @@ import T from 'prop-types'
 import {Canvas3D} from 'troika-3d'
 import ArcsFacade from './ArcsFacade'
 import {refreshArcsData} from './arcsData'
+import { ExampleConfigurator } from '../_shared/ExampleConfigurator.js'
 
 
 const TRANS = {
@@ -24,21 +25,10 @@ class ArcsExample extends React.Component {
     }
 
     this._updateData = this._updateData.bind(this)
-    this._toggleCheckbox = this._toggleCheckbox.bind(this)
-    this._setDerived = this._setDerived.bind(this)
   }
 
   _updateData() {
     this.setState({data: refreshArcsData(this.state.data)})
-  }
-
-  _toggleCheckbox(e) {
-    const name = e.target.name
-    this.setState({[name]: !this.state[name]})
-  }
-
-  _setDerived(e) {
-    this.setState({derivedLevel: +e.target.value})
   }
 
   render() {
@@ -76,7 +66,7 @@ class ArcsExample extends React.Component {
               z: TRANS
             }
           } }
-          objects={ {
+          objects={ [{
             key: 'arcs',
             facade: ArcsFacade,
             angled: state.angled,
@@ -91,21 +81,27 @@ class ArcsExample extends React.Component {
               duration: 10000,
               iterations: Infinity
             } : {}
-          } }
+          },
+          {
+            key: 'config',
+            isXR: !!this.props.vr,
+            facade: ExampleConfigurator,
+            data: state,
+            onUpdate: this.setState.bind(this),
+            items: [
+              {type: 'button', label: 'Randomize Data', onClick: this._updateData},
+              {type: 'boolean', label: 'Angled', path: 'angled'},
+              {type: 'boolean', label: 'Deep', path: 'deep'},
+              {type: 'boolean', label: 'Rotate', path: 'rotate'},
+              {type: 'boolean', label: 'Wireframe', path: 'wireframe'},
+              {type: 'select', label: 'Shader', path: 'derivedLevel', options: [
+                {value: 0, label: 'Fully Custom'},
+                {value: 1, label: 'Derived'},
+                {value: 2, label: 'Double-Derived'}
+              ]}
+            ]
+          }]}
         />
-
-        <div className="example_controls">
-          <button onClick={ this._updateData }>Randomize Data</button>
-          <label><input type="checkbox" name="angled" checked={state.angled} onChange={ this._toggleCheckbox } /> Angled</label>
-          <label><input type="checkbox" name="deep" checked={state.deep} onChange={ this._toggleCheckbox } /> Deep</label>
-          <label><input type="checkbox" name="rotate" checked={state.rotate} onChange={ this._toggleCheckbox } /> Rotate</label>
-          <label><input type="checkbox" name="wireframe" checked={state.wireframe} onChange={ this._toggleCheckbox } /> Wireframe</label>
-          <select onChange={ this._setDerived }>
-            <option value={0}>Shader: Fully Custom</option>
-            <option value={1}>Shader: Derived</option>
-            <option value={2}>Shader: Double-Derived</option>
-          </select>
-        </div>
 
         <div className="example_desc">
           <p>Each arc is defined and animated using four logical properties: start/end angle and start/end radius.</p>
