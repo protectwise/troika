@@ -1,7 +1,10 @@
 import { Group3DFacade } from 'troika-3d'
 import { Strap } from './Strap.js'
 import { Cog } from './Cog.js'
+import { copyXRPoseToFacadeProps } from '../../XRUtils.js'
+import { Vector3 } from 'three'
 
+const tempVec3 = new Vector3()
 
 const cogActiveAnim = {
   from: {rotateX: 0},
@@ -22,8 +25,7 @@ export class Wristband extends Group3DFacade {
   set gripPose(gripPose) {
     if (gripPose) {
       this.visible = true
-      this.threeObject.matrixWorld.fromArray(gripPose.transform.matrix)
-      this.markWorldMatrixDirty()
+      copyXRPoseToFacadeProps(gripPose, this)
     } else {
       this.visible = false
     }
@@ -40,13 +42,18 @@ export class Wristband extends Group3DFacade {
       z: gripOffsetDist * Math.sin(gripOffsetAngle),
       children: [
         {
+          key: 'strap',
           facade: Strap,
           smallRadius,
           largeRadius,
           width: strapWidth
         },
         {
+          key: 'cog',
           facade: Cog,
+          ref: f => {
+            this._cogFacade = f
+          },
           rotateY: Math.PI / 2,
           x: smallRadius,
           animation: null,
@@ -69,5 +76,12 @@ export class Wristband extends Group3DFacade {
     cogDef.animation = active ? cogActiveAnim : null
 
     return groupDef
+  }
+
+  afterUpdate() {
+    super.afterUpdate()
+    if (this.onCogMove && this._cogFacade) {
+      this.onCogMove(this._cogFacade.getWorldPosition(tempVec3))
+    }
   }
 }

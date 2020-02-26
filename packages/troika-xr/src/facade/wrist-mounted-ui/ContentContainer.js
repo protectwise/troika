@@ -5,7 +5,6 @@ import { Projection } from './Projection.js'
 const tempMat4 = new Matrix4()
 const targetPos = new Vector3()
 const camPos = new Vector3()
-const curPos = new Vector3()
 
 export class ContentContainer extends Object3DFacade {
   constructor (parent) {
@@ -15,6 +14,7 @@ export class ContentContainer extends Object3DFacade {
     this.heightAboveGrip = 0.15
     this.platformRadius = 0.25
     this.projectionColor = null
+    this.projectionSourcePosition = null //worldspace vec3
     this.gripPose = null
     this.active = false
   }
@@ -22,7 +22,10 @@ export class ContentContainer extends Object3DFacade {
   afterUpdate() {
     const {gripPose} = this
     if (gripPose) {
-      this.getCameraPosition(camPos)
+      // Get current posed camera position, relative to the parent
+      let cam = this.getCameraFacade().threeObject
+      camPos.setFromMatrixPosition(cam.matrixWorld)
+        .applyMatrix4(tempMat4.getInverse(this.threeObject.parent.matrixWorld))
 
       // Find target position
       let targetScale
@@ -41,14 +44,13 @@ export class ContentContainer extends Object3DFacade {
       }
 
       // Pull partway toward target position and scale, like a spring
-      this.getWorldPosition(curPos)
-      curPos.lerp(targetPos, 0.05) //move by 5% of distance each frame)
-      curPos.copy.call(this, curPos) //sets x,y,z
+      let pos = this.threeObject.position
+      pos.lerp(targetPos, 0.05) //move by 5% of distance each frame)
       this.scale += (targetScale - this.scale) * 0.3
       this.visible = this.scale > 0.01 //hide below a certain size
 
       // Rotate to face camera
-      this.rotateY = Math.atan2(camPos.x - curPos.x, camPos.z - curPos.z)
+      this.rotateY = Math.atan2(camPos.x - pos.x, camPos.z - pos.z)
     } else {
       this.visible = false
     }
@@ -92,9 +94,7 @@ export class ContentContainer extends Object3DFacade {
 
     // Update projection source
     if (this.gripPose && this.visible) {
-      kids[1].sourceWorldPosition.set(0.027, 0.056, 0.056).applyMatrix4(
-        tempMat4.fromArray(this.gripPose.transform.matrix)
-      )
+      kids[1].sourceWorldPosition = this.projectionSourcePosition
     }
 
     // Colors

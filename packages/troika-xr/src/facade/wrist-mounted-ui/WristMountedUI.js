@@ -31,6 +31,7 @@ export class WristMountedUI extends Group3DFacade {
     this.platformColor = 0x333333
     this.projectionColor = 0x3399ff
 
+    this._cogPos = new Vector3()
     this.addEventListener('xrframe', this.onXRFrame.bind(this))
   }
 
@@ -40,7 +41,10 @@ export class WristMountedUI extends Group3DFacade {
         key: 'wristband',
         facade: Wristband,
         active: false,
-        gripPose: null
+        gripPose: null,
+        onCogMove: (worldPos) => {
+          this._cogPos.copy(worldPos)
+        }
       },
       {
         key: 'content',
@@ -57,9 +61,16 @@ export class WristMountedUI extends Group3DFacade {
     contentDef.platformRadius = this.platformRadius
     contentDef.platformColor = this.platformColor
     contentDef.projectionColor = this.projectionColor
+    contentDef.projectionSourcePosition = this._cogPos
     contentDef.children = this.children
 
     return children
+  }
+
+  updateMatrices() {
+    // Force matrix to match that of the camera's pre-pose transform
+    this.threeObject.matrixWorld.copy(this.getCameraFacade().threeObject.matrix)
+    this.markWorldMatrixDirty()
   }
 
   onXRFrame (time, xrFrame) {
@@ -75,7 +86,11 @@ export class WristMountedUI extends Group3DFacade {
       }
       if (gripSpace) {
         // Calculate grip pose so we can pass it down to the Wristband
-        gripPose = xrFrame.getPose(gripSpace, this.getCameraFacade().offsetReferenceSpace)
+        // Note: the gripPose will be relative to this object's matrix, which is synced to the
+        // camera's base position. This simplifies child transform calculations because you can
+        // treat them always as relative to default position/orientation.
+        let cam = this.getCameraFacade()
+        gripPose = xrFrame.getPose(gripSpace, cam.xrReferenceSpace)
 
         // If turned to upward angle, set to active
         // TODO: needs debouncing!
