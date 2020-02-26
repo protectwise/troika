@@ -1,23 +1,15 @@
 import React from 'react'
 import { Canvas3D, Group3DFacade } from 'troika-3d'
 import { PhysicsManager } from 'troika-physics'
-import DatGui, { DatBoolean, DatButton, DatSelect, DatNumber } from 'react-dat-gui'
+import DatGui, { DatBoolean, DatButton, DatNumber } from 'react-dat-gui'
 import PhysicsGround from '../_shared/facades/PhysicsGround'
 import PhysicsSphere from '../_shared/facades/PhysicsSphere'
 import PhysicsSphereInstanceable from '../_shared/facades/PhysicsSphereInstanceable'
 import PhysicsCube from '../_shared/facades/PhysicsCube'
 import PhysicsCubeInstanceable from '../_shared/facades/PhysicsCubeInstanceable'
+import PhysicsRope from '../_shared/facades/PhysicsRope'
 
-function find (arr, testFn) {
-  for (let i = 0, len = arr.length; i < len; i++) {
-    if (testFn(arr[i])) {
-      return arr[i]
-    }
-  }
-  return null
-}
-
-export default class RigidBodyExample extends React.Component {
+export default class SoftBodyExample extends React.Component {
   constructor (props) {
     super(props)
 
@@ -25,9 +17,6 @@ export default class RigidBodyExample extends React.Component {
     this._getThings = this._getThings.bind(this)
     this.handleClear = this.handleClear.bind(this)
     this.handleAddThings = this.handleAddThings.bind(this)
-    this._onThingMouseOver = this._onThingMouseOver.bind(this)
-    this._onThingMouseOut = this._onThingMouseOut.bind(this)
-    this._onThingMouseUp = this._onThingMouseUp.bind(this)
 
     this.state = this._getInitialState()
 
@@ -61,15 +50,14 @@ export default class RigidBodyExample extends React.Component {
 
   _getInitialState () {
     return {
-      hoveredThing: null,
       config: {
         physicsActive: true,
         debugPhysics: false,
-        useInstanced: 'Instanced',
-        numToAdd: 20,
-        tableRestitution: 0.5
+        numToAdd: 5,
+        spherePressure: 150,
+        cubePressure: 500
       },
-      things: this._getThings(20)
+      things: this._getThings(0)
     }
   }
 
@@ -81,24 +69,8 @@ export default class RigidBodyExample extends React.Component {
 
   handleClear () {
     this.setState({
-      hoveredThing: null,
       things: []
     })
-  }
-
-  _onThingMouseOver (e) {
-    this.setState({ hoveredThing: e.target.id })
-  }
-
-  _onThingMouseOut () {
-    this.setState({ hoveredThing: null })
-  }
-
-  _onThingMouseUp (e) {
-    const clickedThing = find(this.state.things, d => d.id === e.target.id)
-    clickedThing.radius *= 1.5
-    clickedThing.mass *= 10
-    this.forceUpdate()
   }
 
   render () {
@@ -121,8 +93,8 @@ export default class RigidBodyExample extends React.Component {
               color: 0xffffff,
               castShadow: true,
               x: 30,
-              y: 30,
-              z: 30
+              y: 50,
+              z: 50
             }
           ]}
           camera={{
@@ -157,25 +129,89 @@ export default class RigidBodyExample extends React.Component {
                     {
                       key: 'ground',
                       facade: PhysicsGround,
-                      x: 5,
+                      x: 0,
                       y: 0,
                       z: 0,
-                      opacity: 0.2 + config.tableRestitution * 0.8,
+                      opacity: 0.8,
                       color: 0xCCCCCC,
                       castShadow: true,
                       receiveShadow: true,
                       physics: {
                         isStatic: true,
-                        restitution: config.tableRestitution
+                        restitution: 0.5
                       }
                     },
+                    // {
+                    //   key: 'softSphere',
+                    //   facade: PhysicsSphere,
+                    //   x: -1,
+                    //   y: 3,
+                    //   z: 0,
+                    //   radius: 1.5,
+                    //   color: 0xAAAAAA,
+                    //   physics: {
+                    //     isSoftBody: true,
+                    //     pressure: config.spherePressure, // kPa?
+                    //     // friction: 0.9,
+                    //     mass: 15
+                    //   },
+                    //   castShadow: true,
+                    //   receiveShadow: true
+                    // },
+                    // {
+                    //   key: 'softCube',
+                    //   facade: PhysicsCube,
+                    //   x: 2,
+                    //   y: 3,
+                    //   z: 0,
+                    //   radius: 2.5,
+                    //   color: 0xDDDDDD,
+                    //   physics: {
+                    //     isSoftBody: true,
+                    //     pressure: config.cubePressure, // kPa?
+                    //     // friction: 0.9,
+                    //     mass: 15
+                    //   },
+                    //   castShadow: true,
+                    //   receiveShadow: true
+                    // },
+                    {
+                      key: 'fixedCube',
+                      facade: PhysicsCube,
+                      x: 0,
+                      y: 5,
+                      z: 0,
+                      radius: 0.5,
+                      color: 0xFFFF00,
+                      physics: {
+                        // isKinematic: true,
+                        mass: 1,
+                        friction: 0.5,
+                        restitution: 0.7
+                      },
+                      castShadow: true,
+                      receiveShadow: true
+                    },
+                    {
+                      key: 'softRope',
+                      facade: PhysicsRope,
+                      x: 0,
+                      y: 0.5,
+                      z: 0,
+                      color: 0x333333,
+                      physics: {
+                        isSoftBody: true,
+                        ropeFixed: 'start', // start|end|both
+                        // rope: {}
+                        // pressure: config.cubePressure, // kPa?
+                        // friction: 0.9,
+                        mass: 1
+                      },
+                      castShadow: true,
+                      receiveShadow: true
+                    },
                     ...state.things.map((thing, i) => {
-                      const isHoveredThing = state.hoveredThing === thing.id
-                      const _facade = config.useInstanced === 'Instanced' ? (
-                        thing.isCube ? PhysicsCubeInstanceable : PhysicsSphereInstanceable
-                      ) : (
-                        thing.isCube ? PhysicsCube : PhysicsSphere
-                      )
+                      const _facade = thing.isCube ? PhysicsCubeInstanceable : PhysicsSphereInstanceable
 
                       return {
                         key: thing.id,
@@ -188,7 +224,7 @@ export default class RigidBodyExample extends React.Component {
                         rotateY: thing.rotateY,
                         rotateZ: thing.rotateZ,
                         radius: thing.radius,
-                        color: isHoveredThing ? 0x222222 : thing.color,
+                        color: thing.color,
                         opacity: 1,
 
                         physics: {
@@ -218,9 +254,9 @@ export default class RigidBodyExample extends React.Component {
         <DatGui data={state.config} onUpdate={this.handleConfigUpdate}>
           <DatBoolean path='physicsActive' label='Physics Running' />
           <DatBoolean path='debugPhysics' label='Debug Colliders' />
-          <DatSelect path='useInstanced' label='Instanced Objects' options={['Instanced', 'Non-Instanced']} />
 
-          <DatNumber path='tableRestitution' label='Table Bounciness' min={0} max={1} step={0.1} />
+          <DatNumber path='spherePressure' label='Sphere Pressure' min={1} max={1000} step={1} />
+          <DatNumber path='cubePressure' label='Cube Pressure' min={1} max={1000} step={1} />
 
           <DatNumber path='numToAdd' label='Spawn Count' min={1} max={1000} step={1} />
           <DatButton onClick={this.handleAddThings} label='Spawn Objects' />
@@ -229,7 +265,7 @@ export default class RigidBodyExample extends React.Component {
 
         <div className='example_desc dark'>
           <p>
-            Demonstration of basic rigid body physics and seamless compatibility with `troika` events. Click on physical objects to enlarge them and multiply their mass dramatically.
+            Demonstration of soft body physics and collisions with rigid bodies.
             Dynamic Objects: {state.things.length.toLocaleString()}
           </p>
         </div>

@@ -11,7 +11,7 @@ import {
 import { Group3DFacade } from 'troika-3d'
 import CollisionEvent from '../events/CollisionEvent'
 import { inferPhysicsShape } from '../utils/inferPhysicsShape'
-import CONSTANTS from '../../engines/ammo/constants'
+import CONSTANTS from '../constants'
 
 const sharedVec3 = new Vector3()
 const DEFAULT_PHYSICS_OFF_CFG = { isDisabled: true, mass: 0 }
@@ -19,15 +19,15 @@ const DEFAULT_PHYSICS_OFF_CFG = { isDisabled: true, mass: 0 }
 const PHYSICS_FRAMERATE_HZ = 90 // Physics "frames" per second cap
 const _PHYSICS_FRAMERATE_INTERVAL = 1 / PHYSICS_FRAMERATE_HZ // Seconds
 
-// TODO move non-ammo constants to a common file used by all engines
 const {
   MSG_HDR_SZ,
-  // MSG_TYPES,
-  // MSG_ITEM_SIZES,
-  // DEBUG_MSG,
+  RIGID_MSG_SIZE,
+  DEBUG_MSG,
   DEBUG_MAX_BUFFER_SIZE,
   SOFT_BODY_TYPE,
-  SOFT_BODY_MSG_SIZES
+  SOFT_BODY_MSG_SIZES,
+  COLLISION_SIZE,
+  CONTACT_SIZE
 } = CONSTANTS
 
 export default class PhysicsManagerBase extends Group3DFacade {
@@ -37,21 +37,16 @@ export default class PhysicsManagerBase extends Group3DFacade {
     this._debugging = false
     this.clock = new Clock()
     this.physicsWorldReady = false
-    // this.hasBodyChanges = true
 
-    // Separate cache of only physics-enabled facades
-    // TODO use the prototype/parent's _object3DFacadesById cache and filter after?
     this._physicsObjectFacadesById = Object.create(null)
     this._nextBodyId = 1 // numeric index ID
     this._bodyIdsToFacadeIds = {}
     this._facadeIdsToBodyIds = {}
 
-    // Bind events
     this.tick = this.tick.bind(this)
     this.initPhysics = this.initPhysics.bind(this)
     this.updatePhysicsWorld = this.updatePhysicsWorld.bind(this)
     this.updateDebugOptions = this.updateDebugOptions.bind(this)
-    // this.handleSoftBodiesUpdate = this.handleSoftBodiesUpdate.bind(this)
     this.handleInit = this.handleInit.bind(this)
     this.getQueuedChanges = this.getQueuedChanges.bind(this)
 
@@ -71,7 +66,6 @@ export default class PhysicsManagerBase extends Group3DFacade {
     const renderDelta = elapsed - this._lastUpdateTime
     // Cap physics framerate to fixed target
     if (renderDelta > _PHYSICS_FRAMERATE_INTERVAL) {
-      // console.log(`~~ Tick!`, renderDelta, ' millis:', renderDelta * 1000)
       // this.requestPhysicsUpdate(renderDelta)
       const doTick = this.physicsWorldReady && this.simulationEnabled
       if (doTick) {
@@ -91,10 +85,6 @@ export default class PhysicsManagerBase extends Group3DFacade {
       this.physicsWorldReady = true
       this.clock.start()
       this._lastUpdateTime = 0
-      // if (this._physicsBodyChangeset) {
-      //   console.log(`~~ SENDING queued changeset`)
-      //   this.tryRequestBodyChanges()
-      // }
     }
   }
 
@@ -122,131 +112,25 @@ export default class PhysicsManagerBase extends Group3DFacade {
     throw new Error('PhysicsManager extensions must implement the `updateDebugOptions` method')
   }
 
-  // updateBodies () {
-  //   throw new Error('PhysicsManager extensions must implement the `updateBodies` method')
-  // }
-
-  // receive (update) {
-  //   if (!update) {
-  //     return
-  //   }
-  //   if (update.physicsReady) {
-  //     this.physicsWorldReady = true
-  //     if (this._physicsBodyChangeset) {
-  //       console.log(`~~ SENDING queued changeset`)
-  //       this.tryRequestBodyChanges()
-  //     }
-  //   }
-  //   if (update.rigidBodies) {
-  //     this.handleRigidBodiesUpdated(update.rigidBodies)
-  //   }
-  //   if (update.softBodies) {
-  //     this.handleSoftBodiesUpdate(update.softBodies)
-  //   }
-  //   if (update.collisions) {
-  //     this.handleCollisionsUpdated(update.collisions)
-  //   }
-  //   this._latestDebugData = null
-  //   if (update.debugDrawerOutput) {
-  //     // console.log(`~~ YES DOOT` )
-
-  //     this._latestDebugData = update.debugDrawerOutput
-  //     // this.afterUpdate()
-  //     // this.notifyWorld('needsRender')
-  //     // this.handleDebugDrawerUpdated(update.debugDrawerOutput)
-  //   } else {
-  //     // console.log(`~~ NO DOOT` )
-
-  //   }
-  //   this.notifyWorld('needsRender')
-  // }
-
-  // requestPhysicsUpdate (deltaSec) {
-  //   if (!this.physicsWorldReady) {
-  //     return
-  //   }
-
-  //   const payload = Object.create(null)
-  //   let _needsUpdate = false
-
-  //   if (this.simulationEnabled) {
-  //     _needsUpdate = true
-  //     payload.updateDeltaTime = this.clock.getDelta() // Instruct the worker to advance the physics simulation
-  //   }
-
-  //   // update worker physics world with any changed physics-enabled descendant facades
-  //   if (this.hasBodyChanges && this._physicsBodyChangeset) {
-  //     _needsUpdate = true
-  //     const {
-  //       add,
-  //       remove,
-  //       update
-  //     } = this._physicsBodyChangeset
-
-  //     payload.bodyChanges = Object.create(null)
-  //     if (add) {
-  //       payload.bodyChanges.add = Object.keys(add).map(facadeId => {
-  //         // Check for add requests for objects that are now obsolete
-  //         const facade = this._physicsObjectFacadesById[facadeId]
-  //         if (facade && !facade.isDestroying && !(remove && remove[facadeId])) {
-  //           const pos = facade.threeObject.position
-  //           const quat = facade.threeObject.quaternion
-  //           facade.physics = facade.physics || DEFAULT_PHYSICS_OFF_CFG
-  //           if (!facade.$physicsShapeConfig) {
-  //             // Auto-generate physics shape from ThreeJS geometry if not provided
-  //             facade.$physicsShapeConfig = inferPhysicsShape(facade)
-  //           }
-
-  //           // FIXME need to get matrixWorld offsets for initial pos
-  //           return {
-  //             facadeId,
-  //             shapeConfig: facade.$physicsShapeConfig,
-  //             physicsConfig: facade.physics,
-  //             initialPos: {
-  //               x: pos.x,
-  //               y: pos.y,
-  //               z: pos.z
-  //             },
-  //             initialQuat: {
-  //               x: quat.x,
-  //               y: quat.y,
-  //               z: quat.z,
-  //               w: quat.w
-  //             }
-  //           }
-  //         }
-  //       })
-  //     }
-  //     if (update) {
-  //       // Single batched update request
-  //       payload.bodyChanges.update = update
-  //     }
-  //     if (remove) {
-  //       payload.bodyChanges.remove = Object.keys(remove)
-  //     }
-  //     this._physicsBodyChangeset = null
-  //   }
-
-  //   if (_needsUpdate) {
-  //     // Submit the update payload to the Physics World
-  //     this.request(payload)
-  //   }
-  // }
-
   /**
    * Intercept child `notifyWorld` calls,
    * forwarding unhandled messages up to parents
    */
   onNotifyWorld (source, message, data) {
     const handler = this._notifyWorldHandlers[message]
+    const listener = this._notifyWorldListeners[message] // "Soft" handler that does not intercept "event" bubbling up to parents
     if (handler) {
       handler.call(this, source, data)
-    } else if (this.parent) {
+      return
+    }
+    if (listener) {
+      listener.call(this, source, data)
+    }
+    if (this.parent) {
       this.parent.onNotifyWorld(source, message, data)
     }
   }
 
-  // // Manager props
   // get simulationEnabled () {
   //   return this._simulationEnabled
   // }
@@ -254,8 +138,6 @@ export default class PhysicsManagerBase extends Group3DFacade {
   // set simulationEnabled (isEnabled) {
   //   this._simulationEnabled = isEnabled
   //   if (isEnabled) {
-  //     console.log(`~~ NEED RENDER`)
-
   //     this.notifyWorld('needsRender')
   //   }
   // }
@@ -303,11 +185,11 @@ export default class PhysicsManagerBase extends Group3DFacade {
     return this._debugging
   }
 
-  handleRigidBodiesUpdate (rigidBodies, numBodies, baseOffset, itemSize) {
+  handleRigidBodiesUpdate (rigidBodies, numBodies) {
     let index = numBodies
 
     while (index--) {
-      const offset = baseOffset + index * itemSize
+      const offset = MSG_HDR_SZ + index * RIGID_MSG_SIZE
       const bodyId = rigidBodies[offset + 0]
       if (bodyId === 0) {
         continue
@@ -316,7 +198,6 @@ export default class PhysicsManagerBase extends Group3DFacade {
       const facade = this._physicsObjectFacadesById[facadeId]
 
       if (facade && !facade.physics.isKinematic) {
-        // console.log(`~~ UPDATE RIGID @(${offset}):`, bodyId, facadeId)
         facade.$isPhysicsControlled = true
 
         facade.threeObject.position.set(
@@ -339,26 +220,6 @@ export default class PhysicsManagerBase extends Group3DFacade {
         facade.afterUpdate()
       }
     }
-
-    // this.notifyWorld('needsRender')
-
-    // for (let i = 0, iLen = rigidBodies.length; i < iLen; i++) {
-    //   const [facadeId, px, py, pz, qx, qy, qz, qw] = rigidBodies[i]
-    //   const facade = this._physicsObjectFacadesById[facadeId]
-    //   if (facade && !facade.physics.isKinematic) {
-    //     facade.$isPhysicsControlled = true
-
-    //     facade.threeObject.position.set(px, py, pz)
-    //     facade.threeObject.quaternion.set(qx, qy, qz, qw)
-
-    //     // TODO pass down linearVelocity and angularVelocity data
-
-    //     if (!facade._matrixChanged) {
-    //       facade._matrixChanged = true
-    //     }
-    //     facade.afterUpdate()
-    //   }
-    // }
   }
 
   handleSoftBodiesUpdate (bodyUpdate, numBodies) {
@@ -483,67 +344,17 @@ export default class PhysicsManagerBase extends Group3DFacade {
     }
   }
 
-  // handleSoftBodiesUpdatedOLD (softBodies) {
-  //   for (let i = 0, iLen = softBodies.length; i < iLen; i++) {
-  //     const [facadeId, nodes] = softBodies[i]
-  //     const facade = this._physicsObjectFacadesById[facadeId]
-
-  //     if (facade && !facade.physics.isKinematic) {
-  //       facade.$isPhysicsControlled = true
-
-  //       const geom = facade.threeObject.geometry
-  //       const volumePositions = geom.attributes.position.array
-  //       const volumeNormals = geom.attributes.normal.array
-  //       const association = geom.$physicsIndexAssociation
-
-  //       var numVerts = association.length
-  //       const flattenedDims = 6
-  //       for (let j = 0; j < numVerts; j++) {
-  //         var assocVertex = association[j]
-  //         const dj = j * flattenedDims
-  //         let x = nodes[dj + 0]
-  //         let y = nodes[dj + 1]
-  //         let z = nodes[dj + 2]
-  //         const nx = nodes[dj + 3]
-  //         const ny = nodes[dj + 4]
-  //         const nz = nodes[dj + 5]
-
-  //         sharedVec3.set(x, y, z)
-  //         facade.threeObject.worldToLocal(sharedVec3) // Translate world-space coords back to local
-
-  //         x = sharedVec3.x
-  //         y = sharedVec3.y
-  //         z = sharedVec3.z
-
-  //         for (var k = 0, kl = assocVertex.length; k < kl; k++) {
-  //           var indexVertex = assocVertex[k]
-
-  //           volumePositions[indexVertex] = x
-  //           volumeNormals[indexVertex] = nx
-  //           indexVertex++
-  //           volumePositions[indexVertex] = y
-  //           volumeNormals[indexVertex] = ny
-  //           indexVertex++
-  //           volumePositions[indexVertex] = z
-  //           volumeNormals[indexVertex] = nz
-  //         }
-  //       }
-
-  //       geom.attributes.position.needsUpdate = true
-  //       geom.attributes.normal.needsUpdate = true
-
-  //       if (!facade._matrixChanged) {
-  //         facade._matrixChanged = true
-  //       }
-  //       facade.afterUpdate()
-  //     }
-  //   }
-  // }
-
-  handleDebugUpdate (debugData, drawOnTop, startIndex, endIndex, positionOffset, colorOffset) {
-    if (!this._debuggerMesh) {
+  handleDebugUpdate (debugData) {
+    const needsUpdate = Boolean(debugData[MSG_HDR_SZ + DEBUG_MSG.NEEDS_UPDATE])
+    if (!this._debuggerMesh || !needsUpdate) {
       return
     }
+
+    const drawOnTop = Boolean(debugData[MSG_HDR_SZ + DEBUG_MSG.DRAW_ON_TOP])
+    const startIndex = debugData[MSG_HDR_SZ + DEBUG_MSG.GEOM_DRAW_RANGE_IDX_START]
+    const endIndex = debugData[MSG_HDR_SZ + DEBUG_MSG.GEOM_DRAW_RANGE_IDX_END]
+    const positionOffset = MSG_HDR_SZ + DEBUG_MSG.POSITIONS_BASE
+    const colorOffset = MSG_HDR_SZ + DEBUG_MSG.COLORS_BASE
 
     const _p = this._debuggerMesh.geometry.attributes.position.array
     const _c = this._debuggerMesh.geometry.attributes.color.array
@@ -565,15 +376,17 @@ export default class PhysicsManagerBase extends Group3DFacade {
     }
   }
 
-  _fireCollisionEvent (facadeId, otherFacadeId, contacts) {
+  _fireCollisionEvent (bodyId, otherBodyId, contacts) {
     // Fire onCollision event for each facade that registered for the event
+    const facadeId = this._bodyIdsToFacadeIds[bodyId]
+    const otherFacadeId = this._bodyIdsToFacadeIds[otherBodyId]
     const targetFacade = this._physicsObjectFacadesById[facadeId]
     const collisionFacade = this._physicsObjectFacadesById[otherFacadeId]
     if (!targetFacade || !collisionFacade) {
       return
     }
     const newEvent = new CollisionEvent(
-      'collision', // eventType
+      'collision',
       targetFacade,
       collisionFacade,
       contacts
@@ -588,12 +401,47 @@ export default class PhysicsManagerBase extends Group3DFacade {
     })
   }
 
-  handleCollisionsUpdated (collisions) {
-    collisions.forEach(collision => {
-      const [facadeIdA, facadeIdB, contacts] = collision
-      this._fireCollisionEvent(facadeIdA, facadeIdB, contacts)
-      this._fireCollisionEvent(facadeIdB, facadeIdA, contacts)
-    })
+  handleCollisionsUpdate (data, numCollisions) {
+    let index = numCollisions
+
+    while (index--) {
+      const offset = MSG_HDR_SZ + (index * COLLISION_SIZE)
+      const bodyAId = data[offset + 0]
+      const bodyBId = data[offset + 1]
+      const numContacts = data[offset + 2]
+      const contacts = new Array(numContacts)
+      for (let contactIdx = 0; contactIdx < numContacts; contactIdx++) {
+        const contactOffset = offset + 3 + (CONTACT_SIZE * contactIdx)
+        contacts[contactIdx] = {
+          // World-space position of contact on the receiving object (Object A)
+          targetXYZ: [
+            data[contactOffset + 0],
+            data[contactOffset + 1],
+            data[contactOffset + 2]
+          ],
+          // World-space position of contact on the colliding object (Object B)
+          sourceXYZ: [
+            data[contactOffset + 3],
+            data[contactOffset + 4],
+            data[contactOffset + 5]
+          ],
+          // World-space normal vector.
+          // The normal is pointing from Object B towards Object A.
+          // https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=6620
+          normalXYZ: [
+            data[contactOffset + 6],
+            data[contactOffset + 7],
+            data[contactOffset + 8]
+          ],
+          impulse: data[contactOffset + 9], // N•s
+          force: data[contactOffset + 10] // N
+        }
+      }
+
+      // Fire a collision event for both participants
+      this._fireCollisionEvent(bodyAId, bodyBId, contacts)
+      this._fireCollisionEvent(bodyBId, bodyAId, contacts)
+    }
   }
 
   /**
@@ -605,17 +453,12 @@ export default class PhysicsManagerBase extends Group3DFacade {
    * @template
    */
   queuePhysicsWorldChange (changeType, facade, args) {
-    // if (!facade.physics$descriptor) {
-    //   console.log(`~~ no physics for facade:`, facade)
-
-    //   return
-    // }
     const changes = this._physicsBodyChangeset || (this._physicsBodyChangeset = {})
-    const map = changes[changeType] || (changes[changeType] = Object.create(null))
+    const changeSet = changes[changeType] || (changes[changeType] = Object.create(null))
 
     switch (changeType) {
       case 'update': {
-        map[facade.$facadeId] = facade
+        changeSet[facade.$facadeId] = facade
         break
       }
       case 'remove': {
@@ -626,7 +469,7 @@ export default class PhysicsManagerBase extends Group3DFacade {
         delete this._physicsObjectFacadesById[facade.$facadeId]
         delete this._bodyIdsToFacadeIds[facade.$physicsBodyId]
 
-        map[facade.$facadeId] = facade
+        changeSet[facade.$facadeId] = facade
         break
       }
       case 'add': {
@@ -636,12 +479,20 @@ export default class PhysicsManagerBase extends Group3DFacade {
         this._facadeIdsToBodyIds[facade.$facadeId] = bodyId
         this._physicsObjectFacadesById[facade.$facadeId] = facade
 
-        console.log('~~ add body', bodyId, facade)
-
-
         facade.$physicsBodyId = bodyId
-        map[facade.$facadeId] = facade
+        changeSet[facade.$facadeId] = facade
         break
+      }
+      case 'listenerAdd': {
+        changeSet[facade.$facadeId] = facade
+        break
+      }
+      case 'listenerRemove': {
+        changeSet[facade.$facadeId] = facade
+        break
+      }
+      default: {
+        console.error(`Unrecognized changeType: ${changeType}`)
       }
     }
   }
@@ -652,19 +503,17 @@ export default class PhysicsManagerBase extends Group3DFacade {
       const {
         add,
         remove,
-        update
+        update,
+        listenerAdd,
+        listenerRemove
       } = this._physicsBodyChangeset
 
       if (add) {
         payload.add = Object.keys(add).map(facadeId => {
-          // Check for add requests for objects that are now obsolete
           const facade = this._physicsObjectFacadesById[facadeId]
           if (facade && !facade.isDestroying && !(remove && remove[facadeId])) {
-            // const pos = facade.threeObject.position
-            // const quat = facade.threeObject.quaternion
             facade.physics = facade.physics || DEFAULT_PHYSICS_OFF_CFG
             if (!facade.$physicsShapeConfig) {
-              // Auto-generate physics shape from ThreeJS geometry if not provided
               facade.$physicsShapeConfig = inferPhysicsShape(facade)
             }
 
@@ -705,8 +554,13 @@ export default class PhysicsManagerBase extends Group3DFacade {
       if (remove) {
         payload.remove = Object.keys(remove)
       }
+      if (listenerAdd) {
+        payload.listenerAdd = Object.keys(listenerAdd)
+      }
+      if (listenerRemove) {
+        payload.listenerRemove = Object.keys(listenerRemove)
+      }
 
-      // this.updateBodies(payload)
       this._physicsBodyChangeset = null
       return payload
     }
@@ -729,6 +583,22 @@ export default class PhysicsManagerBase extends Group3DFacade {
   }
 }
 
+PhysicsManagerBase.prototype._notifyWorldListeners = {
+  addEventListener (source, data) {
+    if (data.type === 'collision') {
+      this.queuePhysicsWorldChange('listenerAdd', source)
+    }
+  },
+  removeEventListener (source, data) {
+    if (data.type === 'collision') {
+      this.queuePhysicsWorldChange('listenerRemove', source)
+    }
+  },
+  removeAllEventListeners (source) {
+    this.queuePhysicsWorldChange('listenerRemove', source)
+  }
+}
+
 PhysicsManagerBase.prototype._notifyWorldHandlers = {
   physicsObjectAdded (source) {
     this.queuePhysicsWorldChange('add', source)
@@ -739,26 +609,6 @@ PhysicsManagerBase.prototype._notifyWorldHandlers = {
   physicsObjectNeedsUpdate (source) {
     this.queuePhysicsWorldChange('update', source)
   }
-  // physicsObjectScaleChange (source, args) {
-  //   this.queuePhysicsWorldChange('update', source, ['rescale', args])
-  // },
-  // physicsObjectMatrixChange (source, args) {
-  //   // Handle troika-provided matrix (position and orientation) changes.
-  //   // Applies to physics objects with zero mass (Kinematics-only objects),
-  //   // and those that may not be under control of the dynamics world yet
-  //   this.queuePhysicsWorldChange('update', source, ['worldMatrixChange', args])
-  // },
-  // physicsObjectDisabledChange (source, isDisabled) {
-  //   if (isDisabled) {
-  //     this.queuePhysicsWorldChange('remove', source)
-  //   } else {
-  //     this.queuePhysicsWorldChange('add', source)
-  //   }
-  // },
-  // physicsObjectConfigChange (source, args) {
-  //   this.queuePhysicsWorldChange('update', source, ['configChange', args])
-  // }
-
   // updatePhysicsShape (source, shapeMethodConfig) {
   //   const facadeId = source.$facadeIdå
   //   this.request('updatePhysicsShape', [facadeId, shapeMethodConfig])

@@ -1,51 +1,55 @@
-import { CubicBezierCurve } from '../../../../../../node_modules/three/src/Three'
-
 /* eslint-env worker */
 /* eslint-disable new-cap */
 
-export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, shapeManager, AmmoDebugDrawer) {
+export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, AMMO_CONSTANTS, utils, shapeManager, AmmoDebugDrawer) {
+  const {
+    ACTIVATION_STATES,
+    DEFAULT_ACTIVATION_STATE
+  } = AMMO_CONSTANTS
   const {
     MSG_HDR_SZ,
     MSG_TYPES,
-    MSG_ITEM_SIZES,
+    RIGID_MSG_SIZE,
     SOFT_BODY_TYPE,
-    SOFT_BODY_MSG_SIZES
+    SOFT_BODY_MSG_SIZES,
+    CONTACT_SIZE,
+    COLLISION_SIZE
   } = CONSTANTS
-
   const DEFAULT_SOFT_BODY_TYPE = SOFT_BODY_TYPE.TRIMESH
 
   const _sharedTransform = new Ammo.btTransform()
   const _sharedVec3A = new Ammo.btVector3()
-  const _sharedVec3B = new Ammo.btVector3()
-  const _sharedQuat = new Ammo.btQuaternion()
+  // const _sharedVec3B = new Ammo.btVector3()
+  // const _sharedQuat = new Ammo.btQuaternion()
   let _sharedVecRef = null
+  let _tempArr = []
+  let _handledCollisionKeys = []
 
   return class AmmoPhysicsEngine {
     constructor (options = {}) {
       // Transferrable objects resized in chunkSize steps
-      this._chunkSz = options.chunkSize || 50 // options.reportsize || 50;
+      this._chunkSz = options.chunkSize || 50
 
       // Initialize Transferable output arrays at initial chunk sized
       // [<message id>, <number of items in payload>, ...payload]
-      this._rigidOutput = new Float32Array(MSG_HDR_SZ + this._chunkSz * MSG_ITEM_SIZES.RIGID)
-      this._collisionOutput = new Float32Array(MSG_HDR_SZ + this._chunkSz * MSG_ITEM_SIZES.COLLISION)
-      this._vehicleOutput = new Float32Array(MSG_HDR_SZ + this._chunkSz * MSG_ITEM_SIZES.VEHICLE)
-      this._constraintOutput = new Float32Array(MSG_HDR_SZ + this._chunkSz * MSG_ITEM_SIZES.CONSTRAINT)
-      this._softOutput = new Float32Array(MSG_HDR_SZ + this._chunkSz * MSG_ITEM_SIZES.SOFT)
+      this._rigidOutput = new Float32Array(MSG_HDR_SZ)
+      this._softOutput = new Float32Array(MSG_HDR_SZ)
+      this._collisionOutput = new Float32Array(MSG_HDR_SZ)
+      this._constraintOutput = new Float32Array(MSG_HDR_SZ)
+      this._vehicleOutput = new Float32Array(MSG_HDR_SZ)
 
       this._rigidOutput[0] = MSG_TYPES.RIGID_OUTPUT
-      this._collisionOutput[0] = MSG_TYPES.COLLISION_OUTPUT
-      this._vehicleOutput[0] = MSG_TYPES.VEHICLE_OUTPUT
-      this._constraintOutput[0] = MSG_TYPES.CONSTRAINT_OUTPUT
       this._softOutput[0] = MSG_TYPES.SOFT_OUTPUT
+      this._collisionOutput[0] = MSG_TYPES.COLLISION_OUTPUT
+      this._constraintOutput[0] = MSG_TYPES.CONSTRAINT_OUTPUT
+      this._vehicleOutput[0] = MSG_TYPES.VEHICLE_OUTPUT
 
       this._softOutputMsgSize = 0
 
-      // this._nextBodyId = 0 // numeric index ID
       this._bodies = {
         rigid: {},
         soft: {},
-        collisionObj: {} // More generic collisionObjects
+        collisionObj: {}
       }
       this._bodyCounts = {
         rigid: 0,
@@ -56,6 +60,10 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
       this._facadeIdsToBodyIds = {}
       this._facadeIdsToBodyTypes = {}
       this._facadeIdsToPhysicsConfigs = Object.create(null)
+      this._bodiesWithListeners = []
+
+      this._vehicles = []
+      this._constraints = []
 
       this.softBodyHelpers = null
       this.physicsWorld = null
@@ -77,7 +85,6 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
     }
 
     _init () {
-      // Physics configuration
       const collisionConfiguration = new Ammo.btSoftBodyRigidBodyCollisionConfiguration()
       const dispatcher = new Ammo.btCollisionDispatcher(collisionConfiguration)
       const broadphase = new Ammo.btDbvtBroadphase()
@@ -87,9 +94,7 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
       this.physicsWorld = new Ammo.btSoftRigidDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration, softBodySolver)
 
       _sharedVec3A.setValue(0, CONSTANTS.DEFAULT_GRAVITY, 0)
-      // this.physicsWorld.setGravity(new Ammo.btVector3(0, CONSTANTS.DEFAULT_GRAVITY, 0))
       this.physicsWorld.setGravity(_sharedVec3A)
-      // this.physicsWorld.getWorldInfo().set_m_gravity(new Ammo.btVector3(0, CONSTANTS.DEFAULT_GRAVITY, 0))
       this.physicsWorld.getWorldInfo().set_m_gravity(_sharedVec3A)
 
       this.softBodyHelpers = new Ammo.btSoftBodyHelpers()
@@ -112,11 +117,8 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
       if (!bodyType) {
         throw new Error('bodyType is required')
       }
-      // Set indexes/keys
-      // const bodyId = this._nextBodyId++
       physicsBody.setUserIndex(physicsBodyId)
 
-      // physicsBody.setUserPointer({facadeId})
       this._bodyIdsToFacadeIds[physicsBodyId] = facadeId
       this._facadeIdsToBodyIds[facadeId] = physicsBodyId
       this._facadeIdsToBodyTypes[facadeId] = bodyType
@@ -131,17 +133,12 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
     _addCollisionObject (facadeId, bodyId, bodyConfig) {
       const {
         shapeConfig,
-        physicsConfig,
         initialMatrixWorld
       } = bodyConfig
 
       const physicsShape = shapeManager.getShape(shapeConfig)
 
-      // var transform = new Ammo.btTransform()
-      // transform.setIdentity()
       _sharedTransform.setFromOpenGLMatrix(initialMatrixWorld)
-      // transform.setOrigin(new Ammo.btVector3(initialPos.x, initialPos.y, initialPos.z))
-      // transform.setRotation(new Ammo.btQuaternion(initialQuat.x, initialQuat.y, initialQuat.z, initialQuat.w))
 
       var collisionObject = new Ammo.btBvhTriangleMeshShape()
       collisionObject.setCollisionShape(physicsShape)
@@ -161,13 +158,10 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
         shapeConfig,
         physicsConfig,
         initialMatrixWorld
-        // initialPos,
-        // initialQuat
       } = bodyConfig
       const {
         friction,
         restitution,
-        // isDisabled = false,
         isKinematic = false,
         isStatic = false
       } = physicsConfig
@@ -180,35 +174,23 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
 
       const physicsShape = shapeManager.getShape(shapeConfig)
 
-      // var transform = new Ammo.btTransform()
-      // transform.setIdentity()
-      // transform.setOrigin(new Ammo.btVector3(initialPos.x, initialPos.y, initialPos.z))
-      // transform.setRotation(new Ammo.btQuaternion(initialQuat.x, initialQuat.y, initialQuat.z, initialQuat.w))
-
-      // var transform = new Ammo.btTransform()
-      // transform.setIdentity()
       _sharedTransform.setFromOpenGLMatrix(initialMatrixWorld)
-      // transform.setOrigin(new Ammo.btVector3(initialPos.x, initialPos.y, initialPos.z))
-      // transform.setRotation(new Ammo.btQuaternion(initialQuat.x, initialQuat.y, initialQuat.z, initialQuat.w))
 
-      var motionState = new Ammo.btDefaultMotionState(_sharedTransform)
+      const motionState = new Ammo.btDefaultMotionState(_sharedTransform)
 
       _sharedVec3A.setValue(0, 0, 0) // localInertia
       physicsShape.calculateLocalInertia(mass, _sharedVec3A)
-      var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, physicsShape, _sharedVec3A)
-      var rigidBody = new Ammo.btRigidBody(rbInfo)
+      const rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, physicsShape, _sharedVec3A)
+      const rigidBody = new Ammo.btRigidBody(rbInfo)
 
       if (isKinematic) {
         utils.setKinematic(rigidBody, true)
       }
 
-      /*
-    // TODO evaluate if we need this. Expose `initialActivationState` with default?
-    if (mass > 0) {
-      Disable deactivation
-      utils.disableDeactivation(rigidBody)
-    }
-    */
+      // TODO evaluate if we need this. Expose `initialActivationState` with default?
+      // if (mass > 0) {
+      //   utils.disableDeactivation(rigidBody)
+      // }
 
       if (friction) {
         rigidBody.setFriction(friction)
@@ -254,7 +236,7 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
           )
           break
         case SOFT_BODY_TYPE.CLOTH:
-          console.warn('~~ TODO cloth', vertices)
+          console.warn('TODO cloth', vertices)
           break
         case SOFT_BODY_TYPE.ROPE: {
           const numVerts = vertices.length / 3
@@ -274,8 +256,7 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
               vertices[lastIdxBase + 2]
             ),
             middleNodeCt,
-            // numBetweenNodes // Number of nodes between start & and
-            0 // FIXEDS 1: First node is fixed, 2: Last node Fixed, 3: Both are fixed
+            0 // FIXEDs 1: First node is fixed, 2: Last node Fixed, 3: Both are fixed
           )
           break
         }
@@ -291,32 +272,28 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
       sbConfig.set_piterations(40)
 
       sbConfig.set_collisions(0x11) // Soft-soft and soft-rigid collisions
-      
+
       if (softBodyType !== SOFT_BODY_TYPE.ROPE) {
-                
-        
-  
         sbConfig.set_kDF(friction) // Dynamic friction coefficient [0,1]
         sbConfig.set_kDP(damping) // Damping coefficient [0,1]
         sbConfig.set_kPR(pressure) // Pressure coefficient [-inf,+inf]
-  
+
         // sbConfig.set_kCHR(0.99) // Rigid contacts hardness [0,1]
         // sbConfig.set_kKHR(0.99) // Kinetic contacts hardness [0,1]
         // sbConfig.set_kSHR(0.99) // Soft contacts hardness [0,1]
-  
+
         // sbConfig.set_kSRHR_CL(0.99) // Soft vs rigid hardness [0,1] (cluster only)
         // sbConfig.set_kSKHR_CL(0.99) // Soft vs kinetic hardness [0,1] (cluster only)
         // sbConfig.set_kSSHR_CL(0.99) // Soft vs soft hardness [0,1] (cluster only)
-  
+
         // Stiffness
         softBody.get_m_materials().at(0).set_m_kLST(0.9) // Linear stiffness coefficient [0,1]
         softBody.get_m_materials().at(0).set_m_kAST(0.9) // Area/Angular stiffness coefficient [0,1]
         // softBody.get_m_materials().at(0).set_m_kVST(0.9) // Volume stiffness coefficient [0,1]
       } else {
-        // TODO custom settings for ropes? 
+        // TODO custom settings for rope?
         // sbConfig.set_viterations(10)
         // sbConfig.set_piterations(10)
-  
       }
 
       softBody.setTotalMass(mass, false)
@@ -341,7 +318,6 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
 
       switch (softBodyType) {
         case SOFT_BODY_TYPE.TRIMESH:
-          // this._softOutputMsgSize += softBody.get_m_faces().size() * 3 // faces are in Bullet 3+
           this._softOutputMsgSize += SOFT_BODY_MSG_SIZES.HDR + (softBody.get_m_nodes().size() * SOFT_BODY_MSG_SIZES.TRIMESH)
           break
         case SOFT_BODY_TYPE.CLOTH:
@@ -387,7 +363,6 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
       } else if (bodyType === 'soft') {
         switch (cfg.softBodyType || DEFAULT_SOFT_BODY_TYPE) {
           case SOFT_BODY_TYPE.TRIMESH:
-            // this._softOutputMsgSize += softBody.get_m_faces().size() * 3 // faces are in Bullet 3+
             this._softOutputMsgSize -= SOFT_BODY_MSG_SIZES.HDR + (body.get_m_nodes().size() * SOFT_BODY_MSG_SIZES.TRIMESH)
             break
           case SOFT_BODY_TYPE.CLOTH:
@@ -418,7 +393,7 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
       const body = this._bodies[bodyType][facadeId]
 
       if (!body) {
-        console.warn('update: body not found:', facadeId, bodyId, bodyType)
+        console.warn('update: body not found:', facadeId, bodyType)
         return
       }
 
@@ -446,96 +421,146 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
       const forceSleep = true // If true, will still passively collide with other bodies
       const bodyType = this._facadeIdsToBodyTypes[facadeId]
       const body = this._bodies[bodyType][facadeId]
-      const deactivatedState = forceSleep ? CONSTANTS.ACTIVATION_STATES.ISLAND_SLEEPING : CONSTANTS.ACTIVATION_STATES.DISABLE_SIMULATION
+      const deactivatedState = forceSleep ? ACTIVATION_STATES.ISLAND_SLEEPING : ACTIVATION_STATES.DISABLE_SIMULATION
       const newActivationState = isPaused
         ? deactivatedState
-        : CONSTANTS.DEFAULT_ACTIVATION_STATE
+        : DEFAULT_ACTIVATION_STATE
       body.forceActivationState(newActivationState)
     }
 
     // updatePhysicsShape (facadeId, shapeMethodConfig) {
-    //   console.log(`~~ TODO still need this?`)
+    //   const body = this._rigidBodies[facadeId]
+    //   if (!body) {
+    //     return
+    //   }
+    //   const collisionShape = body.getCollisionShape()
 
-    //   //   const body = this._rigidBodies[facadeId]
-    //   //   if (!body) {
-    //   //     console.warn(`updatePhysicsShape: body not found`, facadeId, _rigidBodies)
-    //   //     return
-    //   //   }
-    //   //   const collisionShape = body.getCollisionShape()
+    //   const { method, args } = shapeMethodConfig
+    //   const composedArgs = utils.recurComposeArgs(args || [])
+    //   collisionShape[method](...composedArgs)
 
-    //   //   const { method, args } = shapeMethodConfig
-    //   //   const composedArgs = utils.recurComposeArgs(args || [])
-    //   //   collisionShape[method](...composedArgs)
+    //   body.setCollisionShape(collisionShape)
 
-    //   //   // body.setCollisionShape(collisionShape)
-
-    //   //   // if (method === 'setLocalScaling') {
-    //   //   //   physicsWorld.updateSingleAABB(body)
-    //   //   // }
+    //   if (method === 'setLocalScaling') {
+    //     physicsWorld.updateSingleAABB(body)
+    //   }
     // }
 
-    _getCollisions (deltaTimeSec) {
-      const output = []
-      let collisionArr
-      let contactsArr
+    sendVehicles () {
+      // TODO
+    }
 
-      // https://pybullet.org/Bullet/phpBB3/viewtopic.php?f=9&t=1691&start=0
+    /**
+     * Send information about body collisions
+     * Helpful threads:
+     * - https://pybullet.org/Bullet/phpBB3/viewtopic.php?f=9&t=1691&start=0     *
+     * - https://pybullet.org/Bullet/phpBB3/viewtopic.php?f=9&t=3997&start=15
+     *   > It seems if you want to detect collisions between 'real' bodies -- do the contact manifold iteration. If you want to know about the amount of intrusion into a given space, then use an explicit collision query, possibly accelerated through use of a ghost object.
+     *   > Only use btGhost acceleration if the query location is the same for at least a few frames, otherwise its pair caching isn't helping much.
+     * 
+     * - Iterating over all contact pairs is best for "real" (rendered) objects.
+     * - Use `ghostObjects` (trigger volumes?) to improve performance for collisions with "static" things (like power-ups in a game)
+     *
+     * Note that the newer callback-based API (contactTest, contactPairTest) is in 2.76+
+     * and not available in our Ammo/Bullet version (~2.73)
+     * "Bullet 2.76 onwards let you perform an instant query on the world (btCollisionWorld or btDiscreteDynamicsWorld) using the contactTest query. The contactTest query will perform a collision test against all overlapping objects in the world, and produces the results using a callback."
+     */
+    sendCollisions (deltaTimeSec) {
+      _handledCollisionKeys = [] // only output one collision between a given pair, since we emit the event for both anyway
+
+      _tempArr = []
+
       const numManifolds = this.physicsWorld.getDispatcher().getNumManifolds()
+
+      let offset = MSG_HDR_SZ
+
       for (let i = 0; i < numManifolds; i++) {
         const contactManifold = this.physicsWorld.getDispatcher().getManifoldByIndexInternal(i)
         const bodyA = contactManifold.getBody0() // btCollisionObject
         const bodyB = contactManifold.getBody1() // btCollisionObject
+        const bodyAId = bodyA.getUserIndex() // bodyA physicsBodyId
+        const bodyBId = bodyB.getUserIndex() // bodyB physicsBodyId
 
-        // TODO only output for events involving a body that has an onCollision event handler
-        // FIXME use preallocated arrays or transferrables
-        collisionArr = [
-          this._bodyIdsToFacadeIds[bodyA.getUserIndex()], // bodyA facadeId
-          this._bodyIdsToFacadeIds[bodyB.getUserIndex()] // bodyB facadeId
-        // [] contactPoints
-        ]
+        const collisionKey = `${bodyAId}-${bodyBId}`
 
-        // TODO only compute/return contact points if required?
-        const numContacts = contactManifold.getNumContacts()
-        contactsArr = []
-        for (let j = 0; j < numContacts; j++) {
-          const pt = contactManifold.getContactPoint(j) // btManifoldPoint
-          const ptImpulse = pt.getAppliedImpulse() // N⋅s (Newton seconds)
-          const ptForce = ptImpulse / deltaTimeSec // N (Newtons)
-          const ptObA = pt.getPositionWorldOnA() // btVector3
-          const psObB = pt.getPositionWorldOnB() // btVector3
-          const ptNorm = pt.m_normalWorldOnB
+        const emitCollision = !_handledCollisionKeys[collisionKey] && (
+          this._bodiesWithListeners.indexOf(bodyAId) !== -1 ||
+          this._bodiesWithListeners.indexOf(bodyBId) !== -1
+        )
 
-          contactsArr.push([
-            [ptObA.x(), ptObA.y(), ptObA.z()],
-            [psObB.x(), psObB.y(), psObB.z()],
-            [ptNorm.x(), ptNorm.y(), ptNorm.z()],
-            ptImpulse,
-            ptForce
-          ])
+        // TODO future optimization: only compute/return contact points if required.
+        // - Add new event listener signature? i.e. `onCollisionContact`, or add options to `onCollision` somehow?
+        const computeContacts = true // (this._bodiesWithListeners[bodyAId] === 2 || this._bodiesWithListeners[bodyAId] === 2)
+
+        if (emitCollision) {
+          _handledCollisionKeys.push(collisionKey)
+
+          // Pre-fill with zeroes to eliminate NaNs in the transferrable output
+          // TODO won't need this if we can preallocate a Float32Array with the right size up front
+          _tempArr.length += COLLISION_SIZE
+          _tempArr.fill(0, offset, offset + COLLISION_SIZE)
+
+          _tempArr[offset + 0] = bodyAId
+          _tempArr[offset + 1] = bodyBId
+          _tempArr[offset + 2] = 0
+
+          if (computeContacts) {
+            /*
+            * https://pybullet.org/Bullet/phpBB3/viewtopic.php?f=9&t=1691&start=0
+            * > the contact points are available, each overlapping pair of objects has up to 4 points in a btPersistentContactManifold (=contact cache).
+            */
+            const numContacts = contactManifold.getNumContacts()
+            _tempArr[offset + 2] = numContacts
+
+            for (let j = 0; j < numContacts; j++) {
+              const pt = contactManifold.getContactPoint(j) // btManifoldPoint
+              const pointImpulse = pt.getAppliedImpulse() // N⋅s (Newton seconds)
+              const pointForce = pointImpulse / deltaTimeSec // N (Newtons)
+              const pointA = pt.getPositionWorldOnA() // btVector3
+              const pointB = pt.getPositionWorldOnB() // btVector3
+              const pointNormal = pt.m_normalWorldOnB
+
+              const contactOffset = offset + 3 + (CONTACT_SIZE * j)
+              _tempArr[contactOffset + 0] = pointA.x()
+              _tempArr[contactOffset + 1] = pointA.y()
+              _tempArr[contactOffset + 2] = pointA.z()
+
+              _tempArr[contactOffset + 3] = pointB.x()
+              _tempArr[contactOffset + 4] = pointB.y()
+              _tempArr[contactOffset + 5] = pointB.z()
+
+              _tempArr[contactOffset + 6] = pointNormal.x()
+              _tempArr[contactOffset + 7] = pointNormal.y()
+              _tempArr[contactOffset + 8] = pointNormal.z()
+
+              _tempArr[contactOffset + 9] = pointImpulse
+              _tempArr[contactOffset + 10] = pointForce
+            }
+          }
+
+          offset += COLLISION_SIZE
         }
-        if (contactsArr.length > 0) {
-          collisionArr.push(contactsArr)
-        }
-        output.push(collisionArr)
       }
 
-      return output
+      _tempArr[0] = MSG_TYPES.COLLISION_OUTPUT
+      _tempArr[1] = _handledCollisionKeys.length // Update payload size
+
+      // TODO find a way to preallocate a size for this so we don't have to recreate it each time (or use a temporary output array)
+      this._collisionOutput = new Float32Array(_tempArr)
+
+      this._transfer(this._collisionOutput)
     }
 
-    sendDebugInfo () {
-      const didUpdate = this.debugDrawer.update()
-      if (didUpdate) {
-        // Only transfer if the drawer had control of the payload and wrote to it
-        this._transfer(this.debugDrawer.getTxOutput())
-      }
+    sendConstraints () {
+      // TODO
     }
 
     sendRigidBodies () {
       const numRigidBodies = this._bodyCounts.rigid
 
-      // Resize transferrable array if required
-      if (this._rigidOutput.length < MSG_HDR_SZ + numRigidBodies * MSG_ITEM_SIZES.RIGID) {
-        this._rigidOutput = new Float32Array(MSG_HDR_SZ + (Math.ceil(numRigidBodies / this._chunkSz) * this._chunkSz) * MSG_ITEM_SIZES.RIGID)
+      const needsResize = this._rigidOutput.length < MSG_HDR_SZ + numRigidBodies * RIGID_MSG_SIZE
+      if (needsResize) {
+        this._rigidOutput = new Float32Array(MSG_HDR_SZ + (Math.ceil(numRigidBodies / this._chunkSz) * this._chunkSz) * RIGID_MSG_SIZE)
         this._rigidOutput[0] = MSG_TYPES.RIGID_OUTPUT
       }
 
@@ -551,8 +576,7 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
           const motionState = physicsBody.getMotionState()
 
           if (motionState) {
-            const offset = MSG_HDR_SZ + (i++) * MSG_ITEM_SIZES.RIGID
-            // facadeOutput = new Array(8)
+            const offset = MSG_HDR_SZ + (i++) * RIGID_MSG_SIZE
             this._rigidOutput[offset + 0] = bodyId // facadeId
             motionState.getWorldTransform(_sharedTransform)
             var pos = _sharedTransform.getOrigin()
@@ -631,54 +655,6 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
               }
 
               offset += SOFT_BODY_MSG_SIZES.HDR + (size * SOFT_BODY_MSG_SIZES.TRIMESH)
-
-              // const faces = physicsBody.get_m_faces()
-              // const size = faces.size()
-              // this._softOutput[offset + 2] = size // SOFT_BODY_MSG_SIZES.HDR[2]
-
-              // for (let i = 0; i < size; i++) {
-              //   const face = faces.at(i)
-
-              //   const node1 = face.get_m_n(0)
-              //   const node2 = face.get_m_n(1)
-              //   const node3 = face.get_m_n(2)
-
-              //   const vert1 = node1.get_m_x()
-              //   const vert2 = node2.get_m_x()
-              //   const vert3 = node3.get_m_x()
-
-              //   const normal1 = node1.get_m_n()
-              //   const normal2 = node2.get_m_n()
-              //   const normal3 = node3.get_m_n()
-
-              //   const off = offsetVert + i * 18
-
-              //   this._softOutput[off] = vert1.x()
-              //   this._softOutput[off + 1] = vert1.y()
-              //   this._softOutput[off + 2] = vert1.z()
-
-              //   this._softOutput[off + 3] = normal1.x()
-              //   this._softOutput[off + 4] = normal1.y()
-              //   this._softOutput[off + 5] = normal1.z()
-
-              //   this._softOutput[off + 6] = vert2.x()
-              //   this._softOutput[off + 7] = vert2.y()
-              //   this._softOutput[off + 8] = vert2.z()
-
-              //   this._softOutput[off + 9] = normal2.x()
-              //   this._softOutput[off + 10] = normal2.y()
-              //   this._softOutput[off + 11] = normal2.z()
-
-              //   this._softOutput[off + 12] = vert3.x()
-              //   this._softOutput[off + 13] = vert3.y()
-              //   this._softOutput[off + 14] = vert3.z()
-
-              //   this._softOutput[off + 15] = normal3.x()
-              //   this._softOutput[off + 16] = normal3.y()
-              //   this._softOutput[off + 17] = normal3.z()
-              // }
-
-              // offset += SOFT_BODY_MSG_SIZES.HDR + (size * SOFT_BODY_MSG_SIZES.TRIMESH)
               break
             }
             case SOFT_BODY_TYPE.ROPE: {
@@ -709,12 +685,19 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
       this._transfer(this._softOutput)
     }
 
+    sendDebugInfo () {
+      const didUpdate = this.debugDrawer.update()
+      if (didUpdate) {
+        // Only transfer if the drawer had control of the payload and wrote to it
+        this._transfer(this.debugDrawer.getTxOutput())
+      }
+    }
+
     _transfer (payload /* Float32Array */) {
       if (!payload.buffer) {
         throw new Error('_transfer is only for Transferable Typed Arrays')
       }
       if (payload.buffer.byteLength === 0) {
-        // throw new Error('PhysicsManager: Transferable Array has zero byte length')
         console.warn('AmmoPhysicsEngine: Transferable array has zero byte length, it may still be in-use in the main thread.')
         return
       }
@@ -722,6 +705,15 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
     }
 
     handleChanges (payload) {
+      if (payload.listenerRemove) {
+        payload.listenerRemove.forEach(facadeId => {
+          const bodyId = this._facadeIdsToBodyIds[facadeId]
+          const idx = this._bodiesWithListeners.indexOf(bodyId)
+          if (idx !== -1) {
+            this._bodiesWithListeners.splice(idx, 1)
+          }
+        })
+      }
       if (payload.remove) {
         payload.remove.forEach(facadeId => {
           this.remove(facadeId)
@@ -732,18 +724,25 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
           this.add(facadeCfg.facadeId, facadeCfg)
         })
 
-        // TEMP
-        // if (Object.values(this._bodies.soft).length === 1 && !this._hasAnch) {
+        // TEMP test soft body anchors. these should be a part of the generic "constraints" this engine exposes
+        // if (Object.values(this._bodies.soft).length === 1 && !this._hasAnchorsTest) {
         //   const rope = Object.values(this._bodies.soft)[0]
         //   const floor = Object.values(this._bodies.rigid)[0]
         //   const block = Object.values(this._bodies.rigid)[1]
         //   var influence = 1
         //   const last = rope.get_m_nodes().size()
-        //   console.log('~~ ANCHOR ADDED')
         //   rope.appendAnchor(0, block, true, influence)
         //   rope.appendAnchor(last - 1, floor, true, influence)
-        //   this._hasAnch = true
+        //   this._hasAnchorsTest = true
         // }
+      }
+      if (payload.listenerAdd) {
+        payload.listenerAdd.forEach(facadeId => {
+          const bodyId = this._facadeIdsToBodyIds[facadeId]
+
+          // TODO store collision listener params/options: `1` is a basic onCollision listener, `2` could be one with contactPoints in addition
+          this._bodiesWithListeners.push(bodyId)
+        })
       }
       if (payload.update) {
         payload.update.forEach(facadeCfg => {
@@ -766,68 +765,20 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
 
       this.physicsWorld.stepSimulation(deltaTimeSec, 10)
 
-      // if (_vehicles.length > 0) {
-      //   reportVehicles()
-      // }
-      // reportCollisions();
-      // if (_constraints.length > 0) {
-      //   reportConstraints()
-      // }
+      if (this._vehicles.length > 0) {
+        this.sendVehicles()
+      }
+      if (this._bodiesWithListeners.length > 0) {
+        this.sendCollisions(deltaTimeSec) // TODO only send if we know there are collision listeners?
+      }
+      if (this._constraints.length > 0) {
+        this.sendConstraints()
+      }
       this.sendRigidBodies()
       this.sendSoftBodies()
-      // if (_softbody_enabled) {
-      //   reportWorld_softbodies()
-      // }
 
       if (this.debugDrawer) {
         this.sendDebugInfo()
-      }
-
-      return
-
-      // const debugDrawerOutput = this.debugDrawer ? this._getDebugDrawerOutput() : null
-
-      // const softBodyOutput = [] // new Float32Array()
-
-      // // Update soft volumes
-      // for (const facadeId in this._bodies.soft) {
-      //   const physicsBody = this._bodies.soft[facadeId]
-
-      //   // Only update motionState for active (activationState) bodies
-      //   if (physicsBody.isActive()) {
-      //     facadeOutput = new Array(2) // [facadeId, [x1,y1,z1,nx1,ny1,nz1, x2,y2,z2,nx2,ny2,nz2, ...etc ]]
-      //     facadeOutput[0] = facadeId
-      //     const softBodyNodes = physicsBody.get_m_nodes()
-      //     const numNodes = softBodyNodes.size()
-      //     const flattenedDims = 6
-      //     const nodesOutput = new Array(numNodes * flattenedDims)
-
-      //     for (let i = 0; i < numNodes; i++) {
-      //       const node = softBodyNodes.at(i)
-      //       const nodePos = node.get_m_x()
-      //       const di = flattenedDims * i
-      //       nodesOutput[di + 0] = nodePos.x()
-      //       nodesOutput[di + 1] = nodePos.y()
-      //       nodesOutput[di + 2] = nodePos.z()
-      //       const nodeNormal = node.get_m_n()
-      //       nodesOutput[di + 3] = nodeNormal.x()
-      //       nodesOutput[di + 4] = nodeNormal.y()
-      //       nodesOutput[di + 5] = nodeNormal.z()
-      //     }
-      //     facadeOutput[1] = nodesOutput
-
-      //     softBodyOutput.push(facadeOutput)
-      //   }
-      // }
-
-      // Get collision pairs
-      const collisionsOutput = this._getCollisions(deltaTimeSec)
-
-      return {
-        rigidBodies: rigidBodyOutput,
-        softBodies: softBodyOutput,
-        collisions: collisionsOutput,
-        debugDrawerOutput: debugDrawerOutput
       }
     }
 
@@ -842,19 +793,19 @@ export default function getAmmoPhysicsEngine (Thenable, Ammo, CONSTANTS, utils, 
         // Transferable object returned from main thread
         switch (data[0]) {
           case MSG_TYPES.RIGID_OUTPUT:
-            this._rigidOutput = data // new Float32Array(data)
+            this._rigidOutput = data
             break
-          // case MSG_TYPES.COLLISION_OUTPUT:
-          //   this._collisionOutput = data
-          //   break
-          // case MSG_TYPES.VEHICLE_OUTPUT:
-          //   this._vehicleOutput = data
-          //   break
-          // case MSG_TYPES.CONSTRAINT_OUTPUT:
-          //   this._constraintOutput = data
-          //   break
           case MSG_TYPES.SOFT_OUTPUT:
             this._softOutput = data
+            break
+          case MSG_TYPES.COLLISION_OUTPUT:
+            this._collisionOutput = data
+            break
+          case MSG_TYPES.CONSTRAINT_OUTPUT:
+            this._constraintOutput = data
+            break
+          case MSG_TYPES.VEHICLE_OUTPUT:
+            this._vehicleOutput = data
             break
           case MSG_TYPES.DEBUG_OUTPUT:
             this.debugDrawer.handleTxReturn(data)

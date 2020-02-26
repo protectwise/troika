@@ -7,7 +7,6 @@ import PhysicsSphere from '../_shared/facades/PhysicsSphere'
 import PhysicsSphereInstanceable from '../_shared/facades/PhysicsSphereInstanceable'
 import PhysicsCube from '../_shared/facades/PhysicsCube'
 import PhysicsCubeInstanceable from '../_shared/facades/PhysicsCubeInstanceable'
-import PhysicsRope from '../_shared/facades/PhysicsRope'
 
 export default class SoftBodyExample extends React.Component {
   constructor (props) {
@@ -55,9 +54,11 @@ export default class SoftBodyExample extends React.Component {
         debugPhysics: false,
         numToAdd: 5,
         spherePressure: 150,
-        cubePressure: 500
+        cubePressure: 500,
+        softSphere: true,
+        softCube: false
       },
-      things: this._getThings(0)
+      things: this._getThings(5)
     }
   }
 
@@ -141,71 +142,36 @@ export default class SoftBodyExample extends React.Component {
                         restitution: 0.5
                       }
                     },
-                    // {
-                    //   key: 'softSphere',
-                    //   facade: PhysicsSphere,
-                    //   x: -1,
-                    //   y: 3,
-                    //   z: 0,
-                    //   radius: 1.5,
-                    //   color: 0xAAAAAA,
-                    //   physics: {
-                    //     isSoftBody: true,
-                    //     pressure: config.spherePressure, // kPa?
-                    //     // friction: 0.9,
-                    //     mass: 15
-                    //   },
-                    //   castShadow: true,
-                    //   receiveShadow: true
-                    // },
-                    // {
-                    //   key: 'softCube',
-                    //   facade: PhysicsCube,
-                    //   x: 2,
-                    //   y: 3,
-                    //   z: 0,
-                    //   radius: 2.5,
-                    //   color: 0xDDDDDD,
-                    //   physics: {
-                    //     isSoftBody: true,
-                    //     pressure: config.cubePressure, // kPa?
-                    //     // friction: 0.9,
-                    //     mass: 15
-                    //   },
-                    //   castShadow: true,
-                    //   receiveShadow: true
-                    // },
-                    {
-                      key: 'fixedCube',
-                      facade: PhysicsCube,
+                    config.softSphere && {
+                      key: 'softSphere',
+                      facade: PhysicsSphere,
                       x: 0,
-                      y: 5,
+                      y: 3,
                       z: 0,
-                      radius: 0.5,
-                      color: 0xFFFF00,
+                      radius: 1.5,
+                      color: 0xAAAAAA,
                       physics: {
-                        // isKinematic: true,
-                        mass: 1,
-                        friction: 0.5,
-                        restitution: 0.7
+                        isSoftBody: true,
+                        pressure: config.spherePressure, // kPa?
+                        // friction: 0.9,
+                        mass: 15
                       },
                       castShadow: true,
                       receiveShadow: true
                     },
-                    {
-                      key: 'softRope',
-                      facade: PhysicsRope,
+                    config.softCube && {
+                      key: 'softCube',
+                      facade: PhysicsCube,
                       x: 0,
-                      y: 0.5,
+                      y: 10,
                       z: 0,
-                      color: 0x333333,
+                      radius: 5,
+                      color: 0xDDDDDD,
                       physics: {
                         isSoftBody: true,
-                        ropeFixed: 'start', // start|end|both
-                        // rope: {}
-                        // pressure: config.cubePressure, // kPa?
+                        pressure: config.cubePressure, // kPa?
                         // friction: 0.9,
-                        mass: 1
+                        mass: 15
                       },
                       castShadow: true,
                       receiveShadow: true
@@ -254,6 +220,9 @@ export default class SoftBodyExample extends React.Component {
         <DatGui data={state.config} onUpdate={this.handleConfigUpdate}>
           <DatBoolean path='physicsActive' label='Physics Running' />
           <DatBoolean path='debugPhysics' label='Debug Colliders' />
+
+          <DatBoolean path='softSphere' label='Soft Sphere' />
+          <DatBoolean path='softCube' label='Soft Cube' />
 
           <DatNumber path='spherePressure' label='Sphere Pressure' min={1} max={1000} step={1} />
           <DatNumber path='cubePressure' label='Cube Pressure' min={1} max={1000} step={1} />

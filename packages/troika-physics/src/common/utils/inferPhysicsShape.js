@@ -1,7 +1,7 @@
-import { Vector3, BufferGeometry, Quaternion, Matrix4 } from 'three'
+import { Vector3, BufferGeometry } from 'three'
 import processGeometry from './processGeometryForPhysics'
 import { CSG } from '@hi-level/three-csg'
-import CONSTANTS from '../../engines/ammo/constants'
+import CONSTANTS from '../constants'
 
 function getThreeObject (facade) {
   if (facade.instancedThreeObject) {
@@ -73,10 +73,10 @@ function inferRigidBodyShape (geometry, threeObject) {
       }
     default:
       console.warn(`Unable to infer physics shape for type "${type}", falling back to convex hull.`)
-      // Fallback to convex hull. Note that this will "cover" any concave portions of a mesh, 
+      // Fallback to convex hull. Note that this will "cover" any concave portions of a mesh,
       // possibly resulting in a less than desirable collision shape.
       return {
-        shape: 'convex-hull', 
+        shape: 'convex-hull',
         args: [
           getWorldVertices(geometry, threeObject)
         ]
@@ -84,16 +84,13 @@ function inferRigidBodyShape (geometry, threeObject) {
   }
 }
 
-
 function getWorldVertices (geometry, threeObject) {
   if (!geometry.isBufferGeometry) {
     geometry = new BufferGeometry().fromGeometry(geometry)
   }
   processGeometry(geometry)
 
-  // threeObject.updateMatrixWorld()
   const sharedVec = new Vector3()
-
   const verts = geometry.$physicsVertices
 
   // Apply world transformation to all vertices
@@ -113,58 +110,54 @@ function getWorldVertices (geometry, threeObject) {
   return {
     vertices: verts, // Float32Array
     indices: geometry.$physicsIndices, // Uint16Array
-    numTris: geometry.$physicsIndices.length / 3,
+    numTris: geometry.$physicsIndices.length / 3
     // associations: geometry.$physicsIndexAssociation
   }
 }
 
 function unifyChildGeometries (groupFacade, threeObject) {
-  // threeObject.updateMatrix()
-  // threeObject.updateMatrixWorld(true) // TODO if needed
-
-  // const first = threeObject.children[0]
-  // return getWorldVertices(first.geometry, first)
-
-  // console.log(`~~ verts no merge`, getWorldVertices(threeObject.children[0].geometry, threeObject.children[0]))
-  
   let combinedBSP
-  let outputMatrix = threeObject.matrixWorld
+  const outputMatrix = threeObject.matrixWorld
 
-  // threeObject.updateMatrix() // TODO if needed
+  for (let i = 0, numChildren = groupFacade._orderedChildKeys.length; i < numChildren; i++) {
+    const childKey = groupFacade._orderedChildKeys[i]
+    const child = groupFacade._childrenDict[childKey]
+    let childBSP = null
 
-  threeObject.children.forEach(child => {
-    // child.updateMatrix() // TODO if needed
-    // child.updateMatrixWorld(true) // TODO if needed
-    const childBSP = CSG.fromMesh(child)
+    if (child.instancedThreeObject) {
+      const origMatrix = child.instancedThreeObject.matrix
+      const origMatrixWorld = child.instancedThreeObject.matrixWorld
+      child.instancedThreeObject.matrix = child.threeObject.matrix
+      child.instancedThreeObject.matrixWorld = child.threeObject.matrixWorld
+      childBSP = CSG.fromMesh(child.instancedThreeObject)
+      child.instancedThreeObject.matrixWorld = origMatrix
+      child.instancedThreeObject.matrixWorld = origMatrixWorld
+    } else {
+      childBSP = CSG.fromMesh(child.threeObject)
+    }
+
     if (!combinedBSP) {
       combinedBSP = childBSP
       // outputMatrix = child.matrixWorld // Result object will use the transformation matrix of the first child
     } else {
-      // Add child (union) to output shape
       combinedBSP = combinedBSP.union(childBSP)
     }
-  })
+  }
+
   const outputMesh = CSG.toMesh(combinedBSP, outputMatrix)
-  
-  // return
-  const out = getWorldVertices(outputMesh.geometry, threeObject)
-  console.log(`~~ verts merged`, out.vertices)
-  return out
+
+  return getWorldVertices(outputMesh.geometry, threeObject)
 }
 
 const DEFAULT_COMPOUND_CHILD_MASS = 1
 
 function inferPhysicsGroup (facade, threeObject) {
   if (facade.physics && facade.physics.isStatic) {
-  // if (false) {
     // Static groups perform better as a merged btBvhTriangleMeshShape instead of a compound collision shape
-    console.log(`~~ generating trimesh`)
-
     const combinedGeometry = unifyChildGeometries(facade, threeObject)
 
     return {
-      // shape: 'bvh-tri-mesh',
-      shape: 'convex-hull',
+      shape: 'bvh-tri-mesh',
       args: [combinedGeometry]
     }
   } else {
@@ -182,12 +175,8 @@ function inferPhysicsGroup (facade, threeObject) {
         // const rot = new Quaternion()
         // const scale = new Vector3()
         // child.matrixWorld.decompose(trans, rot, scale)
-        // console.log(`~~ child`, trans, rot, scale)
-        // console.log(`~~ child elems`, child.matrix.elements)
-        
         // const zeroScale = new Vector3(0, 0, 0)
         // const t = new Matrix4().compose(trans, rot, zeroScale)
-        // console.log(`~~ child elems`, t.elements)
 
         return [
           inferPhysicsShape(child.$facade),
@@ -197,7 +186,7 @@ function inferPhysicsGroup (facade, threeObject) {
           (child.physics && child.physics.mass) || DEFAULT_COMPOUND_CHILD_MASS
         ]
       })
-  
+
       return {
         shape: 'compound',
         args: args
@@ -217,7 +206,7 @@ export function inferPhysicsShape (facade) {
   if (threeObject.type === 'Group') {
     return inferPhysicsGroup(facade, threeObject)
   }
-  
+
   const geometry = threeObject.geometry
 
   if (facade.physics && facade.physics.isSoftBody) {

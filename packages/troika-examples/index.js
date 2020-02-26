@@ -19,6 +19,7 @@ import InstanceableExample from './instanceable/InstanceableExample'
 import InceptionExample from './inception/InceptionExample'
 import RigidBodyExample from './physics/rigidBody/RigidBodyExample'
 import SoftBodyExample from './physics/softBody/SoftBodyExample'
+import SoftRopeExample from './physics/softBody/SoftRopeExample'
 import KinematicsExample from './physics/kinematics/KinematicsExample'
 import CollisionEventExample from './physics/collisionEvents/CollisionEventExample'
 import MouseInteractionExample from './physics/mouse-interaction/MouseInteractionExample'
@@ -46,6 +47,7 @@ const EXAMPLES = [
   {id: 'inception', name: 'Inception', component: InceptionExample},
   {id: 'physics-rigid-body', name: 'Physics / Rigid Body', component: RigidBodyExample},
   {id: 'physics-soft-body', name: 'Physics / Soft Body', component: SoftBodyExample},
+  {id: 'physics-soft-rope', name: 'Physics / Soft Rope', component: SoftRopeExample},
   {id: 'physics-kinematics', name: 'Physics / Kinematics', component: KinematicsExample},
   {id: 'physics-collisions', name: 'Physics / Collision Events', component: CollisionEventExample},
   {id: 'physics-mouse-interaction', name: 'Physics / Mouse Interaction', component: MouseInteractionExample}

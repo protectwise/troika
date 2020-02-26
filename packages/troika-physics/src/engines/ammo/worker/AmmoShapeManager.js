@@ -26,10 +26,11 @@ export default function getAmmoShapeManager (Ammo, utils) {
             numTris,
             associations
           } = args[0]
-          console.log('~~ worker making bvh-tri-mesh', vertices, indices, numTris, associations)
+
+          // console.log('~~ worker making bvh-tri-mesh', vertices, indices, numTris, associations)
+
           // TODO investigate using for btTriangleIndexVertexArray as an alternative to btTriangleMesh. Improved performance?
           const triMesh = new Ammo.btTriangleMesh()
-
 
           // // triMesh.preallocateVertices()
           for (let i = 0; i < indices.length; i += 3) {
@@ -56,7 +57,6 @@ export default function getAmmoShapeManager (Ammo, utils) {
           break
         }
         case 'convex-hull': {
-          console.log('~~ convex-hull', args)
           const { vertices } = args[0]
           ammoShape = new Ammo.btConvexHullShape()
 

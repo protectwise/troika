@@ -18,7 +18,8 @@
     "ammo.js": "github:kripken/ammo.js",
     "troika-3d": "^0.15.1",
     "troika-core": "^0.15.0",
-    "troika-worker-utils": "^0.15.0"
+    "troika-worker-utils": "^0.15.0",
+    "@hi-level/three-csg": "^1.0.6"
   },
   "scripts": {
     "build-ammo": "node --max-old-space-size=4096 ./build-ammo.js"

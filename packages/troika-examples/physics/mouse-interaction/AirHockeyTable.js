@@ -1,31 +1,25 @@
 import {
   BoxGeometry,
-  PlaneBufferGeometry,
+  BoxBufferGeometry,
   Mesh,
   MeshPhongMaterial,
-  Vector3
+  MeshBasicMaterial,
+  Color
 } from 'three'
-import { Object3DFacade, Group3DFacade } from 'troika-3d'
+import { Object3DFacade, Group3DFacade, Instanceable3DFacade } from 'troika-3d'
 import { extendAsPhysical } from 'troika-physics'
-import { CSG } from '@hi-level/three-csg'
 
-const sx = 10
-const sy = 1
-const sz = 10
-
-const floorgeom = new BoxGeometry(10, 1, 10) //, 10, 10, 10)
-const wallgeom = new BoxGeometry(1, 3, 10) //, 10, 10, 10)
-const planegeom = new PlaneBufferGeometry(15, 15) //, 10, 10, 10)
-const material = new MeshPhongMaterial({
+const floorGeometry = new BoxGeometry(1, 1, 1) //, 10, 10, 10)
+const wallMaterial = new MeshPhongMaterial({
   transparent: true,
-  opacity: 0.5,
+  opacity: 0.8,
   color: 0xFFFFFF,
   refractionRatio: 0.8
 })
 
 class Box extends Object3DFacade {
   constructor (parent) {
-    const ground = new Mesh(floorgeom, material.clone())
+    const ground = new Mesh(floorGeometry, wallMaterial.clone())
     super(parent, ground)
   }
 
@@ -42,140 +36,136 @@ class Box extends Object3DFacade {
   }
 }
 
-class Wall extends Object3DFacade {
-  constructor (parent) {
-    const ground = new Mesh(wallgeom, material.clone())
-    super(parent, ground)
-  }
+const wallBufferGeometry = new BoxBufferGeometry(1, 1, 1)
+const wallMesh = new Mesh(wallBufferGeometry, wallMaterial)
+wallMaterial.instanceUniforms = ['diffuse']
 
-  set opacity (o) {
-    this.threeObject.material.opacity = o
-  }
-
-  set color (c) {
-    this.threeObject.material.color.set(c)
-  }
-
-  set environmentMap (envMapTexture) {
-    this.threeObject.material.envMap = envMapTexture
-  }
-}
-
-class Unioned extends Object3DFacade {
-  constructor(parent) {
-    // Make 2 box meshes..
-    const meshA = new Mesh(new BoxGeometry(5,1,10));
-    const meshB = new Mesh(new BoxGeometry(2,10,1));
-    
-    // Offset one of the boxes by half its width..
-    meshB.position.add(new Vector3(0.5, 0.5, 0.5))
-    
-    // Make sure the .matrix of each mesh is current
-    meshA.updateMatrix();
-    meshB.updateMatrix();
-    
-    // Create a bsp tree from each of the meshes
-    const bspA = CSG.fromMesh(meshA);                        
-    const bspB = CSG.fromMesh(meshB);
-    
-    // Subtract one bsp from the other via .subtract... other supported modes are .union and .intersect
-    const bspResult = bspA.union(bspB);
-    
-    const obj = CSG.toMesh(bspResult, meshA.matrix)
-    obj.material = material.clone()
-
-    super(parent, obj)
-  }
-}
-
-class AirHockeyTable extends Group3DFacade {
+class Wall extends Instanceable3DFacade {
   constructor (parent) {
     super(parent)
+    this.instancedThreeObject = wallMesh
   }
 
-  // set opacity (o) {
-  //   this.threeObject.material.opacity = o
-  // }
+  set color (c) {
+    if (!this._color !== c) {
+      this.setInstanceUniform('diffuse', new Color(c))
+    }
+    this._color = c
+  }
+}
 
-  // set color (c) {
-  //   this.threeObject.material.color.set(c)
-  // }
+class _AirHockeyTable extends Group3DFacade {
+  afterUpdate () {
+    if (!this._hasChildren) {
+      this._hasChildren = true
+      const targetSize = this.width / 3 // Near/far wall divided into this for a center target
 
-  // set environmentMap (envMapTexture) {
-  //   this.threeObject.material.envMap = envMapTexture
-  // }
+      this.children = [
+        {
+          key: 'ground',
+          facade: Box,
+          x: 0,
+          y: -(this.wallThickness * 3) / 2,
+          z: 0,
+          scaleX: this.width,
+          scaleY: this.wallThickness * 3,
+          scaleZ: this.length,
+          color: 0xFFFFFF,
+          castShadow: true,
+          receiveShadow: true
+        },
+        {
+          key: 'wall_left',
+          facade: Wall,
+          x: -this.width / 2,
+          y: this.height / 2,
+          scaleX: this.wallThickness,
+          scaleY: this.height,
+          scaleZ: this.length,
+          color: 0xEEEEEE,
+          castShadow: true,
+          receiveShadow: true
+        },
+        {
+          key: 'wall_right',
+          facade: Wall,
+          x: this.width / 2,
+          y: this.height / 2,
+          scaleX: this.wallThickness,
+          scaleY: this.height,
+          scaleZ: this.length,
+          color: 0xEEEEEE,
+          castShadow: true,
+          receiveShadow: true
+        },
+        {
+          key: 'wall_near_right',
+          facade: Wall,
+          x: this.width / 2 - targetSize / 2,
+          y: this.height / 2,
+          z: this.length / 2,
+          scaleX: targetSize,
+          scaleY: this.height,
+          scaleZ: this.wallThickness,
+          color: 0xDDDDDD,
+          castShadow: true,
+          receiveShadow: true
+        },
+        {
+          key: 'wall_near_left',
+          facade: Wall,
+          x: -this.width / 2 + targetSize / 2,
+          y: this.height / 2,
+          z: this.length / 2,
+          scaleX: targetSize,
+          scaleY: this.height,
+          scaleZ: this.wallThickness,
+          color: 0xDDDDDD,
+          castShadow: true,
+          receiveShadow: true
+        },
+        {
+          key: 'wall_far_right',
+          facade: Wall,
+          x: this.width / 2 - targetSize / 2,
+          y: this.height / 2,
+          z: -this.length / 2,
+          scaleX: targetSize,
+          scaleY: this.height,
+          scaleZ: this.wallThickness,
+          color: 0xDDDDDD,
+          castShadow: true,
+          receiveShadow: true
+        },
+        {
+          key: 'wall_far_left',
+          facade: Wall,
+          x: -this.width / 2 + targetSize / 2,
+          y: this.height / 2,
+          z: -this.length / 2,
+          scaleX: targetSize,
+          scaleY: this.height,
+          scaleZ: this.wallThickness,
+          color: 0xDDDDDD,
+          castShadow: true,
+          receiveShadow: true
+        }
+      ]
+    }
 
-  afterUpdate () {    
-    this.children = [
-      {
-        key: 'ground',
-        facade: Box,
-        x: 6,
-        y: -2,
-        z: 0,
-        // x: -this.width / 2,
-        // z: -this.length / 2,
-        scaleX: 2, //this.width,
-        // scaleY: 2,
-        scaleZ: 2,
-        // rotateX: -Math.PI / 6,
-        color: 0xFF0000,
-        castShadow: true,
-        receiveShadow: true,
-      },
-      {
-        key: 'ground2',
-        facade: Box,
-        x: -6,
-        y: 0,
-        z: 0,
-        // x: -this.width / 2,
-        // z: -this.length / 2,
-        // scaleX: 2, //this.width,
-        // scaleY: 2,
-        // scaleZ: 2,
-        // rotateX: -Math.PI / 2,
-        color: 0x00FF00,
-        castShadow: true,
-        receiveShadow: true,
-      },
-      
-      // {
-      //   key: 'wall_left',
-      //   facade: Wall,
-      //   x: -5,
-      //   // x: -this.width / 2,
-      //   // scaleX: this.wallThickness,
-      //   // scaleY: this.height,
-      //   // scaleZ: this.length,
-      //   color: 0x00FF00,
-      //   castShadow: true,
-      //   receiveShadow: true,
-      // },
-      // {
-      //   key: 'wall_right',
-      //   facade: Wall,
-      //   x: 5,
-      //   // x: this.width / 2,
-      //   // scaleX: this.wallThickness,
-      //   // scaleY: this.height,
-      //   // scaleZ: this.length,
-      //   color: 0x00FFFF,
-      //   castShadow: true,
-      //   receiveShadow: true,
-      // },
-      {
-        key: 'union',
-        facade: Unioned,
-        color: 0x00FF00,
-        castShadow: true,
-        receiveShadow: true,
-      }
-    ]
     super.afterUpdate()
   }
 }
 
-// export default AirHockeyTable
+export const AirHockeyTable = extendAsPhysical(_AirHockeyTable)
 
-export default extendAsPhysical(AirHockeyTable)
+class _TableSurface extends Object3DFacade {
+  constructor (parent) {
+    const geometry = new BoxBufferGeometry(1, 1, 1, 1, 1, 1)
+    const material = new MeshBasicMaterial({ color: 0xFF0000 })
+    const mesh = new Mesh(geometry, material.clone())
+    super(parent, mesh)
+  }
+}
+
+export const TableSurface = extendAsPhysical(_TableSurface)

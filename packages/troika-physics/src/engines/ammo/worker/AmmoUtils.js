@@ -1,7 +1,14 @@
 /* eslint-env worker */
 /* eslint-disable new-cap */
 
-export default function getAmmoUtils (Ammo, CONSTANTS) {
+export default function getAmmoUtils (Ammo, CONSTANTS, AMMO_CONSTANTS) {
+  const {
+    COLLISION_FLAGS,
+    METHODS_TO_AMMO,
+    ACTIVATION_STATES,
+    DEFAULT_ACTIVATION_STATE
+  } = AMMO_CONSTANTS
+
   const _sharedTransform = new Ammo.btTransform()
   const _sharedVec3A = new Ammo.btVector3()
   const _zeroedVec3 = new Ammo.btVector3(0, 0, 0)
@@ -15,7 +22,7 @@ export default function getAmmoUtils (Ammo, CONSTANTS) {
         let _method = arg.method
         if (_method) {
           // arg is an Ammo constructor
-          _method = CONSTANTS.METHODS_TO_AMMO[_method] || _method
+          _method = METHODS_TO_AMMO[_method] || _method
           const argArgs = this.recurComposeArgs(arg.args || [])
           if (!Object.prototype.hasOwnProperty.call(Ammo, _method)) {
             throw new Error(`Ammo missing specified constructor: ${_method}`)
@@ -73,7 +80,7 @@ export default function getAmmoUtils (Ammo, CONSTANTS) {
      * @param {boolean} [force=false]
      */
     disableDeactivation (body, force = false) {
-      const targetActivationState = CONSTANTS.ACTIVATION_STATES.DISABLE_DEACTIVATION
+      const targetActivationState = ACTIVATION_STATES.DISABLE_DEACTIVATION
 
       if (force) {
         body.forceActivationState(targetActivationState)
@@ -94,7 +101,6 @@ export default function getAmmoUtils (Ammo, CONSTANTS) {
       if (isSoftBody) {
         body.setTotalMass(newMass, false)
       } else {
-        // const inertia = new Ammo.btVector3() 
         _sharedVec3A.setValue(0, 0, 0) // Inertia will be calculated "into" this Vec3
         body.getCollisionShape().calculateLocalInertia(newMass, _sharedVec3A)
         body.setMassProps(newMass, _sharedVec3A)
@@ -132,12 +138,12 @@ export default function getAmmoUtils (Ammo, CONSTANTS) {
      */
     setKinematic (body, isKinematic, isSoftBody) {
       if (isKinematic) {
-        body.setCollisionFlags(CONSTANTS.COLLISION_FLAGS.CF_KINEMATIC_OBJECT)
+        body.setCollisionFlags(COLLISION_FLAGS.CF_KINEMATIC_OBJECT)
         this.disableDeactivation(body)
         this.clearDynamics(body, isSoftBody)
       } else {
         body.setCollisionFlags(0) // Clear?
-        body.setActivationState(CONSTANTS.DEFAULT_ACTIVATION_STATE)
+        body.setActivationState(DEFAULT_ACTIVATION_STATE)
       }
     }
 
@@ -150,12 +156,12 @@ export default function getAmmoUtils (Ammo, CONSTANTS) {
      */
     setStatic (body, isStatic, isSoftBody) {
       if (isStatic) {
-        body.setCollisionFlags(CONSTANTS.COLLISION_FLAGS.CF_STATIC_OBJECT)
+        body.setCollisionFlags(COLLISION_FLAGS.CF_STATIC_OBJECT)
         this.disableDeactivation(body)
         this.clearDynamics(body, isSoftBody)
       } else {
         body.setCollisionFlags(0) // Clear?
-        body.setActivationState(CONSTANTS.DEFAULT_ACTIVATION_STATE)
+        body.setActivationState(DEFAULT_ACTIVATION_STATE)
       }
     }
 

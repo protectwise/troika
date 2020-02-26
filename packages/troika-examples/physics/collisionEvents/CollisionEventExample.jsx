@@ -89,7 +89,7 @@ export default class CollisionEventExample extends React.Component {
         debugPhysics: false,
         numToAdd: 20
       },
-      things: this._getThings(5)
+      things: this._getThings(1)
     }
   }
 
@@ -114,7 +114,7 @@ export default class CollisionEventExample extends React.Component {
     const newState = {
       groundColor: collidedThingColor
     }
-    if (e.collisionContacts) {
+    if (e.collisionContacts && e.collisionContacts.length > 0) {
       const firstContact = e.collisionContacts[0]
       const scaledForce = forceScale(firstContact.force)
       if (scaledForce >= MIN_FORCE) {

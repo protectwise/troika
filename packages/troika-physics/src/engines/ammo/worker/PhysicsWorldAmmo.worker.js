@@ -2,7 +2,9 @@ import { ThenableWorkerModule } from 'troika-worker-utils'
 import ammoLoader from '../../../../libs/troika-ammo.wasm.js'
 import getAmmoShapeManager from './AmmoShapeManager'
 import getAmmoUtils from './AmmoUtils'
-import CONSTANTS from '../constants'
+import CONSTANTS from '../../../common/constants'
+import AMMO_CONSTANTS from '../ammoConstants'
+
 import getAmmoPhysicsEngine from './AmmoPhysicsEngine'
 import getAmmoDebugDrawer from './AmmoDebugDrawer'
 
@@ -29,12 +31,13 @@ export const physicsWorldAmmoModule = {
     supportsWasm,
     ammoLoader,
     CONSTANTS,
+    AMMO_CONSTANTS,
     getAmmoUtils,
     getAmmoPhysicsEngine,
     getAmmoShapeManager,
     getAmmoDebugDrawer
   ],
-  init (Thenable, _supportsWasm, getAmmo, _CONSTANTS, _getAmmoUtils, _getAmmoPhysicsEngine, _getAmmoShapeManager, _getAmmoDebugDrawer) {
+  init (Thenable, _supportsWasm, getAmmo, _CONSTANTS, _AMMO_CONSTANTS, _getAmmoUtils, _getAmmoPhysicsEngine, _getAmmoShapeManager, _getAmmoDebugDrawer) {
     /* eslint-env worker */
     let physicsWorld = null
 
@@ -45,15 +48,13 @@ export const physicsWorldAmmoModule = {
 
       if (!physicsWorld) {
         getAmmo().then(Ammo => {
-          const AmmoUtils = _getAmmoUtils(Ammo, _CONSTANTS)
+          const AmmoUtils = _getAmmoUtils(Ammo, _CONSTANTS, _AMMO_CONSTANTS)
           const utils = new AmmoUtils()
           const AmmoShapeManager = _getAmmoShapeManager(Ammo, utils)
           const shapeManager = new AmmoShapeManager()
-          const AmmoDebugDrawer = _getAmmoDebugDrawer(Thenable, Ammo, _CONSTANTS)
-          const AmmoPhysicsEngine = _getAmmoPhysicsEngine(Thenable, Ammo, _CONSTANTS, utils, shapeManager, AmmoDebugDrawer)
+          const AmmoDebugDrawer = _getAmmoDebugDrawer(Thenable, Ammo, _CONSTANTS, _AMMO_CONSTANTS)
+          const AmmoPhysicsEngine = _getAmmoPhysicsEngine(Thenable, Ammo, _CONSTANTS, _AMMO_CONSTANTS, utils, shapeManager, AmmoDebugDrawer)
 
-          console.log(`~~ init ~~~~~`,callArgs )
-          
           physicsWorld = new AmmoPhysicsEngine({
             enableDebugger: callArgs.enableDebugger
           })
@@ -64,9 +65,6 @@ export const physicsWorldAmmoModule = {
         })
       } else {
         console.error('PhysicsWorldAmmo already initialized')
-        // physicsWorld.update(callArgs, result => {
-        //   response.resolve(result)
-        // })
       }
       return response
     }

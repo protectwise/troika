@@ -1,26 +1,14 @@
 import React from 'react'
-import { Plane, Vector3, Matrix4 } from 'three'
+import { Plane, Vector3 } from 'three'
 import { Canvas3D, Group3DFacade } from 'troika-3d'
 import { PhysicsManager } from 'troika-physics'
 import DatGui, { DatBoolean, DatButton, DatNumber } from 'react-dat-gui'
-import PhysicsGround from '../_shared/facades/PhysicsGround'
 import Puck from './Puck'
 import Paddle from './Paddle'
-import AirHockeyTable from './AirHockeyTable'
+import { AirHockeyTable, TableSurface } from './AirHockeyTable'
 
-function find (arr, testFn) {
-  for (let i = 0, len = arr.length; i < len; i++) {
-    if (testFn(arr[i])) {
-      return arr[i]
-    }
-  }
-  return null
-}
-
-const TRANS = {
-  duration: 700,
-  easing: 'easeOutExpo'
-}
+const WIDTH = 20
+const LENGTH = 42
 
 export default class KinematicsExample extends React.Component {
   constructor (props) {
@@ -31,13 +19,13 @@ export default class KinematicsExample extends React.Component {
     this.handleClear = this.handleClear.bind(this)
     this.handleSpawnObjects = this.handleSpawnObjects.bind(this)
 
-    this._onPlanetMouseOver = this._onPlanetMouseOver.bind(this)
-    this._onPlanetMouseOut = this._onPlanetMouseOut.bind(this)
-    this._onPlanetDragStart = this._onPlanetDragStart.bind(this)
-    this._onPlanetDrag = this._onPlanetDrag.bind(this)
-    this._onPlanetDragEnd = this._onPlanetDragEnd.bind(this)
-    // this._onPlanetDragEnter = this._onPlanetDragEnter.bind(this)
-    // this._onPlanetDragLeave = this._onPlanetDragLeave.bind(this)
+    this._onPaddleMouseOver = this._onPaddleMouseOver.bind(this)
+    this._onPaddleMouseOut = this._onPaddleMouseOut.bind(this)
+    this._onPaddleDragStart = this._onPaddleDragStart.bind(this)
+    this._onPaddleDrag = this._onPaddleDrag.bind(this)
+    this._onPaddleDragEnd = this._onPaddleDragEnd.bind(this)
+    // this._onPaddleDragEnter = this._onPaddleDragEnter.bind(this)
+    // this._onPaddleDragLeave = this._onPaddleDragLeave.bind(this)
 
     this.state = this._getInitialState()
 
@@ -81,8 +69,8 @@ export default class KinematicsExample extends React.Component {
         numToAdd: 5
       },
       things: this._getThings(3),
-      dragX: -5,
-      dragZ: -5
+      dragX: 0,
+      dragZ: 0
     }
   }
 
@@ -98,34 +86,23 @@ export default class KinematicsExample extends React.Component {
     })
   }
 
-  _onPlanetMouseOver (e) {
-    this.setState({ hoveredPlanet: e.target.id })
+  _onPaddleMouseOver (e) {
+    this.setState({ hoveredPaddle: e.target.id })
   }
 
-  _onPlanetMouseOut () {
-    this.setState({ hoveredPlanet: null })
+  _onPaddleMouseOut () {
+    this.setState({ hoveredPaddle: null })
   }
 
-  _onPlanetDragStart (e) {
-    this.setState({ draggedPlanet: e.target.id })
+  _onPaddleDragStart (e) {
+    this.setState({ draggedPaddle: e.target.id })
   }
 
-  _onPlanetDrag (e) {
-    // Determine event's point on the orbital plane
-    // let systemTransformMatrix = new Matrix4().makeRotationX(ORBITAL_PLANE_ROTATEX)
-    const systemPlane = new Plane().setComponents(0, 1, 0, 0)// .applyMatrix4(systemTransformMatrix)
+  _onPaddleDrag (e) {
+    const tablePlane = new Plane().setComponents(0, 1, 0, 0)// .applyMatrix4(systemTransformMatrix)
     const ray = e.ray // all pointer events in a 3D world are guaranteed to have a `ray`
-    const posVec3 = ray.intersectPlane(systemPlane, new Vector3())
+    const posVec3 = ray.intersectPlane(tablePlane, new Vector3())
     if (posVec3) {
-      // Update paddle or puck position
-      // let objData = find(this.state.planets, d => d.id === e.target.id)
-      // let objData = this.getChildByKey('paddle')
-      // objData.x = posVec3.x
-      // objData.y = posVec3.y
-      // objData.z = posVec3.z
-      // planetData.initialAngle = posVec3.x === 0 ? 0 : Math.atan(posVec3.y / posVec3.x) + (posVec3.x < 0 ? Math.PI : 0)
-      // planetData.distance = Math.sqrt(posVec3.x * posVec3.x + posVec3.y * posVec3.y)
-      // this.forceUpdate()
       this.setState({
         dragX: posVec3.x,
         dragZ: posVec3.z
@@ -133,20 +110,20 @@ export default class KinematicsExample extends React.Component {
     }
   }
 
-  _onPlanetDragEnd (e) {
+  _onPaddleDragEnd (e) {
     this.setState({
-      draggedPlanet: null
-      // droppablePlanet: null
+      draggedPaddle: null
+      // droppablePaddle: null
     })
   }
 
-  // _onPlanetDragEnter(e) {
-  //   this.setState({droppablePlanet: e.target.id})
-  // }
+  _onPaddleDragEnter (e) {
+    this.setState({ droppablePaddle: e.target.id })
+  }
 
-  // _onPlanetDragLeave(e) {
-  //   this.setState({droppablePlanet: null})
-  // }
+  _onPaddleDragLeave (e) {
+    this.setState({ droppablePaddle: null })
+  }
 
   render () {
     const state = this.state
@@ -174,9 +151,10 @@ export default class KinematicsExample extends React.Component {
             }
           ]}
           camera={{
-            x: 0,
-            z: 25,
+            x: 15,
+            z: 35,
             y: 10,
+            // lookAt: state.things.length > 0 ? state.things[0] : { x: 0, y: 0, z: 0 }
             lookAt: { x: 0, y: 0, z: 0 }
           }}
           objects={[
@@ -189,9 +167,30 @@ export default class KinematicsExample extends React.Component {
               debug: config.debugPhysics,
               children: [
                 {
-                  key: 'system',
+                  key: 'table-hockey',
                   facade: Group3DFacade,
                   children: [
+                    {
+                      key: 'tableSurface',
+                      facade: TableSurface,
+                      onDragStart: this._onPaddleDragStart,
+                      onDrag: this._onPaddleDrag,
+                      onDragEnd: this._onPaddleDragEnd,
+                      pointerEvents: true,
+                      x: 0,
+                      y: 0.01,
+                      z: 0,
+                      scaleX: WIDTH,
+                      scaleY: 0.1,
+                      scaleZ: LENGTH,
+                      physics: {
+                        restitution: 0.001,
+                        friction: config.tableFriction,
+                        // mass: 999,
+                        isStatic: true // Will produce a combined triangle mesh optimized for Static bodies
+                        // isKinematic: true
+                      }
+                    },
                     {
                       key: 'table',
                       facade: AirHockeyTable,
@@ -199,56 +198,25 @@ export default class KinematicsExample extends React.Component {
                       y: 0,
                       z: 0,
                       height: 2,
-                      width: 10,
-                      length: 30,
+                      width: WIDTH,
+                      length: LENGTH,
                       wallThickness: 0.2,
                       color: 0xFF0000,
                       physics: {
                         restitution: 0.01,
                         friction: config.tableFriction,
                         // mass: 999,
-                        isStatic: true
+                        isStatic: true // Will produce a combined triangle mesh optimized for Static bodies
                         // isKinematic: true
                       }
                     },
-                    // {
-                    //   key: 'ground',
-                    //   facade: PhysicsGround,
-                    //   x: 0,
-                    //   y: -0.5,
-                    //   z: 0,
-                    //   scaleZ: 3,
-                    //   opacity: 0.2,
-                    //   color: 0xCCCCCC,
-                    //   castShadow: true,
-                    //   receiveShadow: true,
-                    //   animation: [
-                    //     // {
-                    //     //   0: { 
-                    //     //     // rotateZ: Math.PI / 6 
-                    //     //     scaleZ: 1
-                    //     //   },
-                    //     //   100: { 
-                    //     //     // rotateZ: -Math.PI / 6 
-                    //     //     scaleZ: 5
-                    //     //   },
-                    //     //   duration: 10000,
-                    //     //   iterations: Infinity,
-                    //     //   direction: 'alternate'
-                    //     // }
-                    //   ],
-                    //   physics: {
-                    //     restitution: 0.01,
-                    //     friction: config.tableFriction,
-                    //     isStatic: true
-                    //     // isKinematic: true
-                    //   }
-                    // },
                     {
                       key: 'paddle',
                       facade: Paddle,
+                      height: 1,
+                      radius: 3,
                       x: state.dragX,
-                      y: 1,
+                      y: 0,
                       z: state.dragZ,
                       // animation: [
                       //   {
@@ -260,25 +228,20 @@ export default class KinematicsExample extends React.Component {
                       //     direction: 'alternate'
                       //   }
                       // ],
-                      color: 0xCCCCCC,
                       opacity: 1,
                       physics: {
                         isKinematic: true,
                         friction: config.paddleFriction,
-                        mass: config.paddleMass,
+                        mass: config.paddleMass
                         // restitution: 0.01
                       },
                       castShadow: true,
                       receiveShadow: true,
 
-                      pointerEvents: true, //! isDraggedPlanet,
+                      pointerEvents: true, //! isDraggedPaddle,
 
-                      onMouseOver: this._onPlanetMouseOver,
-                      onMouseOut: this._onPlanetMouseOut,
-
-                      onDragStart: this._onPlanetDragStart,
-                      onDrag: this._onPlanetDrag,
-                      onDragEnd: this._onPlanetDragEnd,
+                      onMouseOver: this._onPaddleMouseOver,
+                      onMouseOut: this._onPaddleMouseOut
 
                       // transition: {
                       //   x: TRANS,
@@ -286,9 +249,9 @@ export default class KinematicsExample extends React.Component {
                       //   z: TRANS
                       // }
 
-                      // onDragEnter: !isDraggedPlanet && this._onPlanetDragEnter,
-                      // onDragLeave: !isDraggedPlanet && this._onPlanetDragLeave,
-                      // onDrop: !isDraggedPlanet && this._onPlanetDrop,
+                      // onDragEnter: !isDraggedPaddle && this._onPaddleDragEnter,
+                      // onDragLeave: !isDraggedPaddle && this._onPaddleDragLeave,
+                      // onDrop: !isDraggedPaddle && this._onPlanetDrop,
                     },
                     ...state.things.map((thing, i) => {
                       return {
@@ -302,8 +265,8 @@ export default class KinematicsExample extends React.Component {
                         color: thing.color,
                         opacity: 1,
                         physics: {
-                          mass: config.puckMass, //thing.mass,
-                          friction: config.puckFriction, //thing.friction,
+                          mass: config.puckMass, // thing.mass,
+                          friction: config.puckFriction // thing.friction,
                           // restitution: 0.01 thing.restitution
                         },
                         castShadow: true,

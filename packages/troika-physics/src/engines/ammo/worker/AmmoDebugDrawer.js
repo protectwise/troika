@@ -12,11 +12,11 @@
  * @param {*} Thenable
  * @param {*} Ammo
  */
-export default function getAmmoDebugDrawer (Thenable, Ammo, CONSTANTS) {
+export default function getAmmoDebugDrawer (Thenable, Ammo, CONSTANTS, AMMO_CONSTANTS) {
   const {
     MSG_HDR_SZ,
     MSG_TYPES,
-    MSG_ITEM_SIZES,
+    DEBUG_MSG_SIZE,
     DEBUG_MAX_BUFFER_SIZE,
     DEBUG_MSG
   } = CONSTANTS
@@ -55,9 +55,9 @@ export default function getAmmoDebugDrawer (Thenable, Ammo, CONSTANTS) {
     this.debugDrawMode = options.debugDrawMode || AMMO_DEBUG_CONSTANTS.DrawWireframe
     var drawOnTop = this.debugDrawMode & AMMO_DEBUG_CONSTANTS.DrawOnTop || false
 
-    this._debugOutput = new Float32Array(MSG_HDR_SZ + MSG_ITEM_SIZES.DEBUG) // There's only one "item" for debug drawer data, that contains all debug output geometry
+    this._debugOutput = new Float32Array(MSG_HDR_SZ + DEBUG_MSG_SIZE) // There's only one "item" for debug drawer data, that contains all debug output geometry
     this._debugOutput[0] = MSG_TYPES.DEBUG_OUTPUT // Message type
-    this._debugOutput[1] = 0 // MSG_ITEM_SIZES.DEBUG // Message length
+    this._debugOutput[1] = 0 // Message length
 
     // Set initial values
     this._debugOutput[MSG_HDR_SZ + DEBUG_MSG.NEEDS_UPDATE] = 0 // false
@@ -108,7 +108,7 @@ export default function getAmmoDebugDrawer (Thenable, Ammo, CONSTANTS) {
     this._debugOutput[MSG_HDR_SZ + DEBUG_MSG.GEOM_DRAW_RANGE_IDX_END] = this.index
 
     if (this.index > DEBUG_MAX_BUFFER_SIZE) {
-      console.warn(`AmmoDebugDrawer: Max buffer size exceeded (${this.index} > ${DEBUG_MAX_BUFFER_SIZE}), viausl artifacts will be present in debug wireframes (missing geometry, etc.)`)
+      console.warn(`AmmoDebugDrawer: Max buffer size exceeded (${this.index} > ${DEBUG_MAX_BUFFER_SIZE}), visual artifacts will be present in debug wireframes (missing geometry, etc.)`)
     }
 
     return true
@@ -187,7 +187,7 @@ export default function getAmmoDebugDrawer (Thenable, Ammo, CONSTANTS) {
   }
 
   AmmoDebugDrawer.prototype.reportErrorWarning = function (warningString) {
-    if (Ammo.hasOwnProperty('Pointer_stringify')) {
+    if (Object.prototype.hasOwnProperty.call(Ammo, 'Pointer_stringify')) {
       console.warn(Ammo.Pointer_stringify(warningString))
     } else if (!this.warnedOnce) {
       this.warnedOnce = true
