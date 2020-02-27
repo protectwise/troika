@@ -1,4 +1,4 @@
-import { Object3DFacade } from 'troika-3d'
+import { Object3DFacade, createDerivedMaterial } from 'troika-3d'
 import { copyXRPoseToFacadeProps } from '../XRUtils.js'
 import { Group, Mesh, MeshBasicMaterial, CylinderBufferGeometry } from 'three'
 
@@ -13,11 +13,18 @@ let getGeometry = () => {
 }
 
 let getMaterial = () => {
-  const material = new MeshBasicMaterial({
-    transparent: true,
-    opacity: 0.5,
-    color: 0xffffff
-  })
+  const material = createDerivedMaterial(
+    new MeshBasicMaterial({
+      transparent: true,
+      opacity: 0.5,
+      color: 0xffffff
+    }), {
+      vertexDefs: `varying float dist;`,
+      vertexMainIntro: `dist = -position.z;`,
+      fragmentDefs: `varying float dist;`,
+      fragmentColorTransform: `gl_FragColor.a *= smoothstep(1.0, 0.7, dist);`
+    }
+  )
   getMaterial = () => material
   return material
 }
@@ -32,7 +39,7 @@ class TargetRayFacade extends Object3DFacade {
 
     this.radius = 0.003
     this.startDistance = 0.05
-    this.maxLength = 5
+    this.maxLength = 0.4
   }
 
   afterUpdate() {
