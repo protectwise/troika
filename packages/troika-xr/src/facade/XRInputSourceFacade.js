@@ -67,7 +67,7 @@ class XRInputSourceFacade extends Group3DFacade {
     // Pointing - true for all inputs by default
     this.isPointing = true
 
-    this.clickOnPoke = true
+    this.clickOnPoke = false
 
     this.children = [
       null, //cursor
