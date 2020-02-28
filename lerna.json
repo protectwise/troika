@@ -5,8 +5,7 @@
   "version": "0.19.0-alpha.0",
   "command": {
     "version": {
-      "conventionalCommits": true,
-      "conventionalGraduate": true
+      "conventionalCommits": true
     },
     "publish": {
       "allowBranch": "master"
