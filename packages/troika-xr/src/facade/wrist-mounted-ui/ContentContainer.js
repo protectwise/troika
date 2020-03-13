@@ -58,9 +58,9 @@ export class ContentContainer extends Object3DFacade {
     super.afterUpdate()
   }
 
-  // shouldUpdateChildren () {
-  //   return !!this.active
-  // }
+  shouldUpdateChildren () {
+    return !!this.visible
+  }
 
   describeChildren() {
     let kids = this._kidsTpl || (this._kidsTpl = [
