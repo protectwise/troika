@@ -53,7 +53,8 @@ class UIBlock3DFacade extends Group3DFacade {
    * TODO this doesn't work so well when descendants are absolutely positioned or overflow outside our bounds
    */
   updateChildren(children) {
-    if (!this.isFullyClipped) {
+    if (!this.isFullyClipped || !this._wasFullyClipped) {
+      this._wasFullyClipped = this.isFullyClipped
       super.updateChildren(children)
     }
   }
