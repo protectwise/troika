@@ -203,8 +203,22 @@ export const extendAsFlexNode = createClassExtender('flexNode', BaseFacadeClass 
             facade.scrollHeight = facade.scrollWidth = 0
             const parent = facade.parentFlexNode
             if (parent) {
-              parent.scrollWidth = Math.max(parent.scrollWidth, left + width - parent.clientLeft)
-              parent.scrollHeight = Math.max(parent.scrollHeight, top + height - parent.clientTop)
+              let w = left + width - parent.clientLeft
+              let h = top + height - parent.clientTop
+              // Note: allowing a small tolerance here between scrollWidth/Height and clientWidth/Height,
+              // to account for very slight overflows due to floating point math errors
+              if (w > parent.scrollWidth) {
+                if (Math.abs(w - parent.clientWidth) < w / 10000) {
+                  w = parent.clientWidth
+                }
+                parent.scrollWidth = w
+              }
+              if (h > parent.scrollHeight) {
+                if (Math.abs(h - parent.clientHeight) < h / 10000) {
+                  h = parent.clientHeight
+                }
+                parent.scrollHeight = h
+              }
             }
           }
         }
