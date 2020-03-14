@@ -5,6 +5,19 @@ const geometry = new PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0)
 const defaultBgMaterial = new MeshBasicMaterial({color: 0})
 const noclip = Object.freeze(new Vector4())
 
+const shadowMaterialPropDefs = {
+  // Create and update materials for shadows upon request:
+  customDepthMaterial: {
+    get() {
+      return this.$facade._updateLayoutUniforms(this.material.getDepthMaterial())
+    }
+  },
+  customDistanceMaterial: {
+    get() {
+      return this.$facade._updateLayoutUniforms(this.material.getDistanceMaterial())
+    }
+  }
+}
 
 /**
  * A single layer in a UI Block's rendering, e.g. background or border. All layers honor
@@ -18,6 +31,8 @@ class UIBlockLayer3DFacade extends Object3DFacade {
   constructor(parent) {
     const mesh = new Mesh(geometry, defaultBgMaterial)
     mesh.frustumCulled = false //TODO moot if we make this an Instanceable, otherwise need to fix culling by transformed size
+    Object.defineProperties(mesh, shadowMaterialPropDefs)
+
     super(parent, mesh)
 
     this._colorObj = new Color()
@@ -41,6 +56,16 @@ class UIBlockLayer3DFacade extends Object3DFacade {
     layerMaterial.polygonOffsetFactor = layerMaterial.polygonOffsetUnits = this.depthOffset || 0
 
     // Set material uniform values
+    this._updateLayoutUniforms(layerMaterial)
+    if (color !== this._lastColor) {
+      this._colorObj.set(color)
+      this._lastColor = color
+    }
+
+    super.afterUpdate()
+  }
+
+  _updateLayoutUniforms(layerMaterial) {
     const uniforms = layerMaterial.uniforms
     uniforms.uTroikaBlockSize.value = this.size
     uniforms.uTroikaCornerRadii.value = this.borderRadius
@@ -48,12 +73,7 @@ class UIBlockLayer3DFacade extends Object3DFacade {
     if (this.isBorder) {
       uniforms.uTroikaBorderWidth.value = this.borderWidth
     }
-    if (color !== this._lastColor) {
-      this._colorObj.set(color)
-      this._lastColor = color
-    }
-
-    super.afterUpdate()
+    return layerMaterial
   }
 
   getBoundingSphere() {

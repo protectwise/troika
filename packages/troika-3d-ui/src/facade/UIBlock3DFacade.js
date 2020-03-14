@@ -130,8 +130,8 @@ class UIBlock3DFacade extends Group3DFacade {
         bgLayer.clipRect = _clipRectVec4
         bgLayer.depthOffset = -flexNodeDepth
         bgLayer.renderOrder = flexNodeDepth //TODO how can we make this play with the rest of the scene?
-        // bgLayer.castShadow = this.castShadow
-        // bgLayer.receiveShadow = this.receiveShadow
+        bgLayer.castShadow = this.castShadow
+        bgLayer.receiveShadow = this.receiveShadow
       }
       layers.children[0] = bgLayer
 
@@ -150,8 +150,8 @@ class UIBlock3DFacade extends Group3DFacade {
         borderLayer.clipRect = _clipRectVec4
         borderLayer.depthOffset = -flexNodeDepth - 1
         borderLayer.renderOrder = flexNodeDepth + 0.1 //TODO how can we make this play with the rest of the scene?
-        // borderLayer.castShadow = this.castShadow
-        // borderLayer.receiveShadow = this.receiveShadow
+        borderLayer.castShadow = this.castShadow
+        borderLayer.receiveShadow = this.receiveShadow
       }
       layers.children[1] = borderLayer
 
@@ -189,8 +189,8 @@ class UIBlock3DFacade extends Group3DFacade {
         textChild.material = this.textMaterial
         textChild.depthOffset = -flexNodeDepth - 1
         textChild.renderOrder = flexNodeDepth + 0.2
-        // textChild.castShadow = this.castShadow
-        // textChild.receiveShadow = this.receiveShadow
+        textChild.castShadow = this.castShadow
+        textChild.receiveShadow = this.receiveShadow
         this.children = textChild //NOTE: text content will clobber any other defined children
       } else {
         // Convert any children specified as plain strings to nested text blocks; handy for JSX style

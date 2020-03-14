@@ -133,6 +133,13 @@ export function createUIBlockLayerDerivedMaterial(baseMaterial, isBorder) {
     fragmentColorTransform: FRAGMENT_COLOR_TRANSFORM
   })
 
+  // WebGLShadowMap reverses the side of the shadow material by default, which fails
+  // for planes, so here we force the `shadowSide` to always match the main side.
+  Object.defineProperty(material, 'shadowSide', {
+    get() {
+      return this.side
+    }
+  })
 
   //force transparency - TODO is this reasonable?
   material.transparent = true
