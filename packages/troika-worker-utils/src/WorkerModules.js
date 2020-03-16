@@ -92,7 +92,7 @@ export function defineWorkerModule(options) {
  * Stringifies a function into a form that can be deserialized in the worker
  * @param fn
  */
-function stringifyFunction(fn) {
+export function stringifyFunction(fn) {
   let str = fn.toString()
   // If it was defined in object method/property format, it needs to be modified
   if (!/^function/.test(str) && /^\w+\s*\(/.test(str)) {
