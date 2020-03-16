@@ -80,7 +80,7 @@ class DatSelectFacade extends PopupOwner {
       animation: {
         from: {scale: 0.01},
         to: {scale: 1},
-        duration: 500,
+        duration: 300,
         easing: 'easeOutExpo'
       },
       // exitAnimation: {

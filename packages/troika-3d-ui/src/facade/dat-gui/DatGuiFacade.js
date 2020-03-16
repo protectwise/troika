@@ -28,6 +28,8 @@ const TYPE_FACADES = {
  * @property {string} path - A string defining where in the `data` object this item's value lives.
  * @property {string} [label] - A label for the item. Defaults to the `path`.
  * @property {number} [height] - A custom height for this item
+ * @property {function} [onUpdate] - A function that will be called when the item's value changes, in
+ *           addition to the main `DatGuiFacade`'s onUpdate function.
  * Additional properties can also be added and will be passed down to their implementation facade.
  */
 
@@ -61,10 +63,11 @@ class DatGuiFacade extends UIBlock3DFacade {
     this.alignItems = 'flex-start'
 
     this.data = {}
-    this._onItemUpdate = (path, value) => {
-      objectPath.set(this.data, path, value)
-      this.onUpdate(this.data)
-    }
+  }
+
+  _onItemUpdate(item, value) {
+    objectPath.set(this.data, item.path, value)
+    this.onUpdate(this.data)
   }
 
   describeChildren () {
@@ -99,9 +102,15 @@ class DatGuiFacade extends UIBlock3DFacade {
               facade,
               height: item.height || this.itemHeight,
               margin: [i ? 0 : 0.02, 0, 0.02],
-              value: objectPath.get(this.data, item.path),
-              onUpdate: this._onItemUpdate.bind(this, item.path)
-            }, item) :
+              value: objectPath.get(this.data, item.path)
+            }, item, {
+              onUpdate: (value) => {
+                if (item.onUpdate) {
+                  item.onUpdate.call(item, value)
+                }
+                this._onItemUpdate(item, value)
+              }
+            }) :
             {
               facade: UIBlock3DFacade,
               text: `Unknown Type: ${item.type}`
