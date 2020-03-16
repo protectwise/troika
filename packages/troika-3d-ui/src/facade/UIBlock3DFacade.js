@@ -44,6 +44,7 @@ class UIBlock3DFacade extends Group3DFacade {
     this._borderWidthVec4 = new Vector4()
     this._borderRadiiVec4 = new Vector4()
     ;(this._geomBoundingSphere = new Sphere()).version = 0
+    this._wasFullyClipped = true
   }
 
   /**
@@ -191,14 +192,14 @@ class UIBlock3DFacade extends Group3DFacade {
         textChild.renderOrder = flexNodeDepth + 0.2
         textChild.castShadow = this.castShadow
         textChild.receiveShadow = this.receiveShadow
-        this.children = textChild //NOTE: text content will clobber any other defined children
+        this._actualChildren = textChild //NOTE: text content will clobber any other defined children
       } else {
         // Convert any children specified as plain strings to nested text blocks; handy for JSX style
         let children = this.children
         if (Array.isArray(children)) {
           for (let i = 0, len = children.length; i < len; i++) {
             if (isTextNodeChild(children[i])) {
-              children = this.children = children.slice()
+              children = children.slice()
               for (; i < len; i++) { //continue from here
                 if (isTextNodeChild(children[i])) {
                   children[i] = {
@@ -212,6 +213,7 @@ class UIBlock3DFacade extends Group3DFacade {
             }
           }
         }
+        this._actualChildren = children
       }
     }
 
@@ -227,6 +229,10 @@ class UIBlock3DFacade extends Group3DFacade {
     if (!isFullyClipped) {
       layers.afterUpdate()
     }
+  }
+
+  describeChildren () {
+    return this._actualChildren
   }
 
   getComputedFontSize() {
