@@ -9,12 +9,12 @@ const shadowMaterialPropDefs = {
   // Create and update materials for shadows upon request:
   customDepthMaterial: {
     get() {
-      return this.$facade._updateLayoutUniforms(this.material.getDepthMaterial())
+      return this.material.getDepthMaterial()
     }
   },
   customDistanceMaterial: {
     get() {
-      return this.$facade._updateLayoutUniforms(this.material.getDistanceMaterial())
+      return this.material.getDistanceMaterial()
     }
   }
 }
@@ -56,16 +56,6 @@ class UIBlockLayer3DFacade extends Object3DFacade {
     layerMaterial.polygonOffsetFactor = layerMaterial.polygonOffsetUnits = this.depthOffset || 0
 
     // Set material uniform values
-    this._updateLayoutUniforms(layerMaterial)
-    if (color !== this._lastColor) {
-      this._colorObj.set(color)
-      this._lastColor = color
-    }
-
-    super.afterUpdate()
-  }
-
-  _updateLayoutUniforms(layerMaterial) {
     const uniforms = layerMaterial.uniforms
     uniforms.uTroikaBlockSize.value = this.size
     uniforms.uTroikaCornerRadii.value = this.borderRadius
@@ -73,7 +63,12 @@ class UIBlockLayer3DFacade extends Object3DFacade {
     if (this.isBorder) {
       uniforms.uTroikaBorderWidth.value = this.borderWidth
     }
-    return layerMaterial
+    if (color !== this._lastColor) {
+      this._colorObj.set(color)
+      this._lastColor = color
+    }
+
+    super.afterUpdate()
   }
 
   getBoundingSphere() {

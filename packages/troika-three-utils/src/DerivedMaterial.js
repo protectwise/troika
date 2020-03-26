@@ -175,6 +175,7 @@ export function createDerivedMaterial(baseMaterial, options) {
           depthMaterialTpl.defines.IS_DEPTH_MATERIAL = ''
         }
         depthMaterial = this._depthMaterial = depthMaterialTpl.clone()
+        depthMaterial.uniforms = this.uniforms //automatically recieve same uniform values
       }
       return depthMaterial
     }},
@@ -196,6 +197,7 @@ export function createDerivedMaterial(baseMaterial, options) {
           distanceMaterialTpl.defines.IS_DISTANCE_MATERIAL = ''
         }
         distanceMaterial = this._distanceMaterial = distanceMaterialTpl.clone()
+        distanceMaterial.uniforms = this.uniforms //automatically recieve same uniform values
       }
       return distanceMaterial
     }},

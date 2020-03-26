@@ -79,18 +79,14 @@ class BezierMesh extends Mesh {
 
   // Create and update material for shadows upon request:
   get customDepthMaterial() {
-    return this._updateBezierUniforms(this.material.getDepthMaterial())
+    return this.material.getDepthMaterial()
   }
   get customDistanceMaterial() {
-    return this._updateBezierUniforms(this.material.getDistanceMaterial())
+    return this.material.getDistanceMaterial()
   }
 
   onBeforeRender(shaderInfo) {
-    this._updateBezierUniforms(this.material)
-  }
-
-  _updateBezierUniforms(material) {
-    const {uniforms} = material
+    const {uniforms} = this.material
     const {pointA, controlA, controlB, pointB, radius, dashArray, dashOffset} = this
     uniforms.pointA.value.copy(pointA)
     uniforms.controlA.value.copy(controlA)
@@ -98,7 +94,6 @@ class BezierMesh extends Mesh {
     uniforms.pointB.value.copy(pointB)
     uniforms.radius.value = radius
     uniforms.dashing.value.set(dashArray.x, dashArray.y, dashOffset || 0)
-    return material
   }
 
   raycast(raycaster, intersects) {

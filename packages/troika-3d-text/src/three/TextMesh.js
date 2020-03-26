@@ -266,32 +266,16 @@ class TextMesh extends Mesh {
 
   // Create and update material for shadows upon request:
   get customDepthMaterial() {
-    return this._updateLayoutUniforms(this.material.getDepthMaterial())
+    return this.material.getDepthMaterial()
   }
   get customDistanceMaterial() {
-    return this._updateLayoutUniforms(this.material.getDistanceMaterial())
+    return this.material.getDistanceMaterial()
   }
 
   _prepareMaterial() {
     const material = this._derivedMaterial
-    this._updateLayoutUniforms(material)
-
-    // presentation uniforms:
     const uniforms = material.uniforms
-    uniforms.uTroikaSDFDebug.value = !!this.debugSDF
-    material.polygonOffset = !!this.depthOffset
-    material.polygonOffsetFactor = material.polygonOffsetUnits = this.depthOffset || 0
-
-    // shortcut for setting material color via facade prop:
-    const color = this.color
-    if (color != null && material.color && material.color.isColor && color !== material._troikaColor) {
-      material.color.set(material._troikaColor = color)
-    }
-  }
-
-  _updateLayoutUniforms(material) {
     const textInfo = this.textRenderInfo
-    const uniforms = material.uniforms
     if (textInfo) {
       const {sdfTexture, totalBounds} = textInfo
       uniforms.uTroikaSDFTexture.value = sdfTexture
@@ -312,7 +296,15 @@ class TextMesh extends Mesh {
         )
       }
     }
-    return material
+    uniforms.uTroikaSDFDebug.value = !!this.debugSDF
+    material.polygonOffset = !!this.depthOffset
+    material.polygonOffsetFactor = material.polygonOffsetUnits = this.depthOffset || 0
+
+    // shortcut for setting material color via facade prop:
+    const color = this.color
+    if (color != null && material.color && material.color.isColor && color !== material._troikaColor) {
+      material.color.set(material._troikaColor = color)
+    }
   }
 
   /**
