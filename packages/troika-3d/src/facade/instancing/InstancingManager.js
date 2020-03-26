@@ -14,7 +14,7 @@ import { getShadersForMaterial, getShaderUniformTypes, expandShaderIncludes } fr
 
 const { assign, assignIf } = utils
 
-const INSTANCE_BATCH_SIZE = 1024 //TODO make this an option?
+const INSTANCE_BATCH_SIZE = 128 //TODO make this an option?
 const DYNAMIC_DRAW = 0x88E8 //can't import DynamicDrawUsage from three without breaking older versions
 
 /**
