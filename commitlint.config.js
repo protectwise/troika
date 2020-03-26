@@ -4,6 +4,7 @@
 module.exports = {
   extends: ['@commitlint/config-conventional'],
   rules: {
+    'header-max-length': [2, 'always', 120], //give ourselves a bit more room
     'type-enum': [
       2,
       'always',
