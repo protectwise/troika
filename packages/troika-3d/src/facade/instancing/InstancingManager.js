@@ -2,17 +2,13 @@ import { utils } from 'troika-core'
 import {
   InstancedBufferAttribute,
   InstancedBufferGeometry,
-  Matrix4,
-  RGBADepthPacking,
-  ShaderMaterial,
-  ShaderLib,
-  Vector3
+  Matrix4
 } from 'three'
 import Group3DFacade from '../Group3DFacade.js'
-import { upgradeShaders } from './InstancingShaderUpgrades.js'
-import { getShadersForMaterial, getShaderUniformTypes, expandShaderIncludes } from 'troika-three-utils'
+import { getInstancingDerivedMaterial } from './InstancingDerivedMaterial.js'
+import { getShadersForMaterial } from 'troika-three-utils'
 
-const { assign, assignIf } = utils
+const { assign } = utils
 
 const INSTANCE_BATCH_SIZE = 128 //TODO make this an option?
 const DYNAMIC_DRAW = 0x88E8 //can't import DynamicDrawUsage from three without breaking older versions
@@ -122,7 +118,8 @@ class InstancingManager extends Group3DFacade {
               let uniform = instanceUniforms[i]
               let attr = attrs[uniform]
               let facadeUniforms = facade._instanceUniforms
-              let value = facadeUniforms && uniform in facadeUniforms ? facadeUniforms[uniform] : getShadersForMaterial(protoObject.material).uniforms[uniform].value //TODO clean up
+              let value = facadeUniforms && (uniform in facadeUniforms) ?
+                facadeUniforms[uniform] : getDefaultUniformValue(protoObject.material, uniform)
               setAttributeValue(attr, attrOffset, value)
             }
           }
@@ -221,33 +218,30 @@ class InstancingManager extends Group3DFacade {
     let key = cache && cache[object.id]
     if (!key) {
       let mat = object.material
-      let shaders = getShadersForMaterial(mat)
       let uniforms = mat.instanceUniforms
-      key = `${object.geometry.id}|${mat.id}|${shaders.vertexShader}|${shaders.fragmentShader}|${uniforms ? uniforms.sort().join(',') : ''}`
+      key = `${object.geometry.id}|${mat.id}|${uniforms ? uniforms.sort().join(',') : ''}`
       cache[object.id] = key
     }
     return key
   }
 
-  _getInstanceUniformsTypes(material) {
-    let cache = this._uniformTypesCache || (this._uniformTypesCache = Object.create(null)) //cache results for duration of this frame
-    let result = cache[material.id]
+  _getInstanceUniformSizes(material) {
+    // Cache results per material for duration of this frame
+    let cache = this._uniformSizesCache || (this._uniformSizesCache = new Map())
+    let result = cache.get(material)
     if (!result) {
-      result = cache[material.id] = Object.create(null)
-      let {instanceUniforms} = material
-      if (instanceUniforms && instanceUniforms.length) {
-        let {vertexShader, fragmentShader} = getShadersForMaterial(material)
-        let allTypes = assign(
-          getShaderUniformTypes(expandShaderIncludes(vertexShader)),
-          getShaderUniformTypes(expandShaderIncludes(fragmentShader))
-        ) //TODO handle type mismatches?
-        for (let i = instanceUniforms.length; i--;) {
-          let uniform = instanceUniforms[i]
-          if (allTypes[uniform]) {
-            result[uniform] = allTypes[uniform]
+      result = Object.create(null)
+      if (material.instanceUniforms) {
+        material.instanceUniforms.forEach(name => {
+          let size = getUniformItemSize(material,  name)
+          if (size > 0) {
+            result[name] = size
+          } else {
+            console.warn(`Could not determine item size for uniform ${name}`)
           }
-        }
+        })
       }
+      cache.set(material, result)
     }
     return result
   }
@@ -260,50 +254,70 @@ class InstancingManager extends Group3DFacade {
       throw new Error('Instanceable proto object must use a BufferGeometry')
     }
     let batchKey = this._getBatchKey(instancedObject)
-    let uniformsTypes = this._getInstanceUniformsTypes(material)
-    let batchGeometry = this._batchGeometryPool.borrow(batchKey, geometry, uniformsTypes)
+    let uniformSizes = this._getInstanceUniformSizes(material)
+    let batchGeometry = this._batchGeometryPool.borrow(batchKey, geometry, uniformSizes)
     batchGeometry.maxInstancedCount = 0
 
-    // Upgrade the material to one with the shader modifications and defines to trigger instancing
-    let batchMaterial = Object.create(material)
-    let instUniforms = material.instanceUniforms || []
-    instUniforms.sort()
-    batchMaterial.defines = assignIf({
-      [`TROIKA_INSTANCED_${instUniforms.join('_')}`]: '' //unique define value to trigger compilation for different sets of instanceUniforms
-    }, batchMaterial.defines)
-    batchMaterial.onBeforeCompile = function(shaderInfo) {
-      // Upgrade the material's shaders to support instanced matrices and other uniforms
-      // This will be called on program change even after first compile, so cache after first run
-      let upgraded = material.$troikaUpgraded
-      let upgradeKey = `${shaderInfo.vertexShader}|${shaderInfo.fragmentShader}|${instUniforms.join(',')}`
-      if (!upgraded || upgraded.upgradeKey !== upgradeKey) {
-        upgraded = material.$troikaUpgraded = upgradeShaders(shaderInfo.vertexShader, shaderInfo.fragmentShader, instUniforms)
-        upgraded.upgradeKey = upgradeKey
-      }
-      assign(shaderInfo, upgraded)
-    }
+    // Upgrade the material to one with the shader modifications for instancing
+    let batchMaterial = getInstancingDerivedMaterial(material)
+    let depthMaterial, distanceMaterial
 
     // Create a new mesh object to hold it all
-    let shadowMaterial = null
     let batchObject = Object.create(instancedObject, {
+      // Redefine properties rather than setting them so we don't inadvertently trigger setters on
+      // the base object:
+      geometry: { value: batchGeometry },
+      material: { value: batchMaterial },
+      visible: { value: true },
+      frustumCulled: { value: false },
+
       // Lazy getters for shadow materials:
       customDepthMaterial: {
-        get() { return shadowMaterial = getBatchDepthMaterial() }
+        get() {
+          if (!depthMaterial) {
+            depthMaterial = batchMaterial.getDepthMaterial()
+            // We need to trick WebGLRenderer into setting the `viewMatrix` uniform, which it doesn't
+            // normally do for MeshDepthMaterial but it's needed by the instancing shader code. It does
+            // for ShaderMaterials so we pretend to be one.
+            depthMaterial.isShaderMaterial = true
+          }
+          return depthMaterial
+        }
       },
       customDistanceMaterial: {
-        get() { return shadowMaterial = getBatchDistanceMaterial() }
+        get() {
+          if (!distanceMaterial) {
+            distanceMaterial = batchMaterial.getDistanceMaterial()
+            // We need to trick WebGLRenderer into setting the `viewMatrix` uniform, which it doesn't
+            // normally do for MeshDistanceMaterial but it's needed by the instancing shader code. It does
+            // for ShaderMaterials so we pretend to be one.
+            distanceMaterial.isShaderMaterial = true
+
+            // Additionally, WebGLShadowMap.render() rotates a single camera 6 times per object, which fails
+            // to trigger the code in WebGLRenderer.setProgram() that updates the viewMatrix uniform for
+            // directions 2 through 6. Since we need a correct viewMatrix in the instancing shader code,
+            // we hack it by defining our own viewMatrix uniform on the distance material and manually
+            // updating it before each view of the distance cube is rendered. Unfortunately intercepting the
+            // view changes in a way that has access to the shadow camera's viewMatrix has proven quite
+            // difficult; the least-awful way I've found is to monkeypatch the `modelViewMatrix.multiplyMatrices()`
+            // function which is always called - see (*!) below.
+            distanceMaterial.uniforms = assign({
+              viewMatrix: { value: new Matrix4() }
+            }, distanceMaterial.uniforms)
+          }
+          return distanceMaterial
+        }
       },
-      // Hack to update viewMatrix for each face of the distance cube - see explanation
-      // in getBatchDistanceMaterial() comments below. Would be cleaner to use an onBeforeRender
-      // hook but that isn't called during shadowmap rendering.
+      // (*!) Hack for updating viewMatrix uniform on the distance material - see explanation above.
       modelViewMatrix: {
         value: function() {
           const modelViewMatrix = new Matrix4()
           modelViewMatrix.multiplyMatrices = function(viewMatrix, matrixWorld) {
-            Matrix4.prototype.multiplyMatrices.call(this, viewMatrix, matrixWorld)
-            if (shadowMaterial && shadowMaterial._updateViewMatrix) {
-              shadowMaterial._updateViewMatrix(viewMatrix)
+            if (distanceMaterial) {
+              distanceMaterial.uniforms.viewMatrix.value.copy(viewMatrix)
+              distanceMaterial.uniformsNeedUpdate = true //undocumented flag for ShaderMaterial
             }
+            return Matrix4.prototype.multiplyMatrices.call(this, viewMatrix, matrixWorld)
           }
           return modelViewMatrix
         }()
@@ -311,10 +325,6 @@ class InstancingManager extends Group3DFacade {
     })
     batchObject.$troikaBatchBaseObj = instancedObject
     batchObject.$troikaInstancingManager = this
-    batchObject.visible = true
-    batchObject.frustumCulled = false
-    batchObject.geometry = batchGeometry
-    batchObject.material = batchMaterial
     // NOTE other props are inherited so don't need to copy them
     return batchObject
   }
@@ -325,7 +335,7 @@ class InstancingManager extends Group3DFacade {
 
     // Clear caches from this render frame
     this._batchKeysCache = null
-    this._uniformTypesCache = null
+    this._uniformSizesCache = null
 
     // Remove batch objects from scene
     scene.children = scene.children.filter(obj => obj.$troikaInstancingManager !== this)
@@ -348,7 +358,7 @@ class BatchGeometryPool {
     this._poolsByKey = Object.create(null)
   }
 
-  borrow(key, baseGeometry, uniformsTypes) {
+  borrow(key, baseGeometry, instanceUniformSizes) {
     let poolsByKey = this._poolsByKey
     let pool = poolsByKey[key] || (poolsByKey[key] = {geometries: [], firstFree: 0})
     let batchGeometry = pool.geometries[pool.firstFree++]
@@ -372,11 +382,9 @@ class BatchGeometryPool {
       }
 
       // Create instancing attributes for the instanceUniforms
-      for (let name in uniformsTypes) {
-        let type = uniformsTypes[name]
-        let itemSize = ATTR_ITEM_SIZES[type]
-        let ArrayType = type === 'int' ? Uint32Array : Float32Array
-        let attr = new InstancedBufferAttribute(new ArrayType(INSTANCE_BATCH_SIZE * itemSize), itemSize)
+      for (let name in instanceUniformSizes) {
+        let itemSize = instanceUniformSizes[name]
+        let attr = new InstancedBufferAttribute(new Float32Array(INSTANCE_BATCH_SIZE * itemSize), itemSize)
         if (attr.setUsage) {
           attr.setUsage(DYNAMIC_DRAW)
         } else {
@@ -438,16 +446,6 @@ proto._notifyWorldHandlers = {
 }
 
 
-
-const ATTR_ITEM_SIZES = {
-  'int': 1,
-  'float': 1,
-  'vec2': 2,
-  'vec3': 3,
-  'vec4': 4
-}
-
-
 function setAttributeValue(attr, offset, value) {
   let size = attr.itemSize
   if (size === 1) {
@@ -467,45 +465,31 @@ function setAttributeValue(attr, offset, value) {
   }
 }
 
-
-let getBatchDepthMaterial = function() {
-  // We have to use a ShaderMaterial here instead of just deriving from MeshDepthMaterial,
-  // due to a quirk in WebGLRenderer where it doesn't set the viewMatrix uniform
-  // for MeshDepthMaterial, which is needed by the instancing upgrades.
-  const shaderInfo = assign({}, ShaderLib.depth)
-  shaderInfo.vertexShader = upgradeShaders(shaderInfo.vertexShader, '', []).vertexShader
-  const material = new ShaderMaterial(shaderInfo)
-  material.isMeshDepthMaterial = true
-  material.depthPacking = RGBADepthPacking
-  getBatchDepthMaterial = () => material
-  return material
-}
-
-let getBatchDistanceMaterial = function() {
-  // We have to use a ShaderMaterial here instead of just deriving from MeshDistanceMaterial,
-  // due to a quirk in WebGLRenderer where it doesn't set the viewMatrix uniform
-  // for MeshDistanceMaterial, which is needed by the instancing upgrades.
-  // Additionally, the way WebGLShadowMap rotates a single camera 6 times per object prevents
-  // WebGLRenderer.setProgram() from updating the viewMatrix uniform for directions 2-6. To
-  // get around this we define a ShaderMaterial uniform for it and monkeypatch in way to
-  // intercept view changes and manually update the uniform to match (see modelViewMatrix
-  // override above when constructing the batchObject).
-  const shaderInfo = assign({}, ShaderLib.distanceRGBA)
-  const viewMatrix = new Matrix4()
-  shaderInfo.vertexShader = upgradeShaders(shaderInfo.vertexShader, '', []).vertexShader
-  shaderInfo.uniforms = assign({viewMatrix: {value: viewMatrix}}, shaderInfo.uniforms)
-  const material = new ShaderMaterial(shaderInfo)
-  material.isMeshDistanceMaterial = true
-  material.referencePosition = new Vector3() //mutated during shadowmap setup
-  material._updateViewMatrix = source => {
-    viewMatrix.copy(source)
-    material.uniformsNeedUpdate = true //undocumented flag for ShaderMaterial
+function getDefaultUniformValue(material, name) {
+  // Try uniforms on the material itself, then try the builtin material shaders
+  let uniforms = material.uniforms
+  if (uniforms && uniforms[name]) {
+    return uniforms[name].value || null
   }
-  getBatchDistanceMaterial = () => material
-  return material
+  uniforms = getShadersForMaterial(material).uniforms
+  if (uniforms && uniforms[name]) {
+    return uniforms[name].value || null
+  }
+  return null
 }
 
+function getUniformItemSize(material, name) {
+  return getItemSizeForValue(getDefaultUniformValue(material, name))
+}
 
-
+function getItemSizeForValue(value) {
+  return value == null ? 0
+    : typeof value === 'number' ? 1
+    : value.isVector2 ? 2
+    : (value.isVector3 || value.isColor) ? 3
+    : value.isVector4 ? 4
+    : Array.isArray(value) ? value.length
+    : 0
+}
 
 export default InstancingManager

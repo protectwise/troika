@@ -7,7 +7,8 @@ import {
   Vector3
 } from 'three'
 import {
-  Instanceable3DFacade
+  Instanceable3DFacade,
+  createDerivedMaterial
 } from 'troika-3d'
 
 
@@ -17,19 +18,13 @@ const geometry = new SphereBufferGeometry(1)
 
 // Common shared material, implementing a custom `radius` uniform to use in place of
 // scaling the matrix, and declaring that and the diffuse color as instanceable uniforms.
-let customShaderMaterial = new MeshPhongMaterial()
-customShaderMaterial.type = 'CustomPhongWithRadius'
-customShaderMaterial.vertexShader = `
-uniform float radius;
-${ShaderLib.phong.vertexShader.replace('#include <begin_vertex>', `
-$&
-transformed *= radius;`
-)}
-`
-customShaderMaterial.fragmentShader = ShaderLib.phong.fragmentShader
-customShaderMaterial.uniforms = Object.assign({
-  radius: {value: 1}
-}, ShaderLib.phong.uniforms)
+let customShaderMaterial = createDerivedMaterial(new MeshPhongMaterial(), {
+  uniforms: {
+    radius: {value: 1}
+  },
+  vertexDefs: 'uniform float radius;',
+  vertexTransform: 'position *= radius;'
+})
 customShaderMaterial.instanceUniforms = ['radius', 'diffuse']
 
 // Single mesh shared between all instanceables

@@ -1,4 +1,4 @@
-import {expandShaderIncludes, getShaderUniformTypes, voidMainRegExp} from 'troika-three-utils'
+import { createDerivedMaterial, getShaderUniformTypes, voidMainRegExp } from 'troika-three-utils'
 
 const inverseFunction = `
 #if __VERSION__ < 300
@@ -23,14 +23,17 @@ mat3 inverse(mat3 m) {
 #endif
 `
 
-const modelMatrixRowAttrs = `
+const vertexCommonDefs = `
 attribute vec4 troika_modelMatrixRow0;
 attribute vec4 troika_modelMatrixRow1;
 attribute vec4 troika_modelMatrixRow2;
+mat4 troika_modelMatrix;
+mat4 troika_modelViewMatrix;
+mat3 troika_normalMatrix;
 `
 
 const modelMatrixVarAssignment = `
-mat4 troika_modelMatrix = mat4(
+troika_modelMatrix = mat4(
   %0.x, %1.x, %2.x, 0.0,
   %0.y, %1.y, %2.y, 0.0,
   %0.z, %1.z, %2.z, 0.0,
@@ -39,11 +42,11 @@ mat4 troika_modelMatrix = mat4(
 `.replace(/%/g, 'troika_modelMatrixRow')
 
 const modelViewMatrixVarAssignment = `
-mat4 troika_modelViewMatrix = viewMatrix * troika_modelMatrix;
+troika_modelViewMatrix = viewMatrix * troika_modelMatrix;
 `
 
 const normalMatrixVarAssignment = `
-mat3 troika_normalMatrix = transposeMat3(inverse(mat3(troika_modelViewMatrix)));
+troika_normalMatrix = transposeMat3(inverse(mat3(troika_modelViewMatrix)));
 `
 
 
@@ -54,7 +57,31 @@ const precededByUniformRE = /\buniform\s+(int|float|vec[234])\s+$/
 const attrRefReplacer = (name, index, str) => precededByUniformRE.test(str.substr(0, index)) ? name : `troika_${name}`
 const varyingRefReplacer = (name, index, str) => precededByUniformRE.test(str.substr(0, index)) ? name : `troika_vary_${name}`
 
+const CACHE = new WeakMap()
 
+/**
+ * Get a derived material with instancing upgrades for the given base material.
+ * The result is cached by baseMaterial+instanceUniforms so we always get the same instance
+ * back rather than getting a clone each time and having to re-upgrade every frame.
+ */
+export function getInstancingDerivedMaterial(baseMaterial) {
+  let {instanceUniforms} = baseMaterial
+  let instanceUniformsKey = instanceUniforms ? instanceUniforms.sort().join('|') : ''
+  let derived = CACHE.get(baseMaterial)
+  if (!derived || derived._instanceUniformsKey !== instanceUniformsKey) {
+    derived = createDerivedMaterial(baseMaterial, {
+      defines: {
+        TROIKA_INSTANCED_UNIFORMS: instanceUniformsKey
+      },
+      customRewriter({vertexShader, fragmentShader}) {
+        return upgradeShaders(vertexShader, fragmentShader, instanceUniforms)
+      }
+    })
+    derived._instanceUniformsKey = instanceUniformsKey
+    CACHE.set(baseMaterial, derived)
+  }
+  return derived
+}
 
 
 /**
@@ -63,10 +90,6 @@ const varyingRefReplacer = (name, index, str) => precededByUniformRE.test(str.su
  * have been declared as instanceable.
  */
 export function upgradeShaders(vertexShader, fragmentShader, instanceUniforms=[]) {
-  // Pre-expand includes
-  vertexShader = expandShaderIncludes(vertexShader)
-  fragmentShader = expandShaderIncludes(fragmentShader)
-
   // See what gets used
   let usesModelMatrix = modelMatrixRefRE.test(vertexShader)
   let usesModelViewMatrix = modelViewMatrixRefRE.test(vertexShader)
@@ -76,7 +99,7 @@ export function upgradeShaders(vertexShader, fragmentShader, instanceUniforms=[]
   let vertexUniforms = getShaderUniformTypes(vertexShader)
   let fragmentUniforms = getShaderUniformTypes(fragmentShader)
 
-  let vertexDeclarations = [modelMatrixRowAttrs]
+  let vertexDeclarations = [vertexCommonDefs]
   let vertexAssignments = []
   let fragmentDeclarations = []
 
@@ -119,18 +142,18 @@ export function upgradeShaders(vertexShader, fragmentShader, instanceUniforms=[]
   })
 
   // Inject vertex shader declarations and assignments
-  vertexShader = vertexShader.replace(voidMainRegExp, `
-${ vertexDeclarations.join('\n') }
-$&
-${ vertexAssignments.join('\n') }
-`)
+  vertexShader = `
+${vertexDeclarations.join('\n')}
+${vertexShader.replace(voidMainRegExp, `
+  $&
+  ${ vertexAssignments.join('\n') }
+`)}`
 
   // Inject fragment shader declarations
   if (fragmentDeclarations.length) {
-    fragmentShader = fragmentShader.replace(voidMainRegExp, `
-${ fragmentDeclarations.join('\n') }
-$&
-    `)
+    fragmentShader = `
+${fragmentDeclarations.join('\n')}
+${fragmentShader}`
   }
 
   return {vertexShader, fragmentShader}
