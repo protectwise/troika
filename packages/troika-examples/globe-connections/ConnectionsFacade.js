@@ -1,5 +1,5 @@
 import {Group3DFacade} from 'troika-3d'
-import Bezier3DFacade from '../bezier-3d/Bezier3DFacade'
+import { Bezier3DFacade, Bezier3DInstanceableFacade } from '../bezier-3d/Bezier3DFacade'
 import {Vector3} from 'three'
 
 
@@ -46,7 +46,7 @@ class ConnectionsFacade extends Group3DFacade {
             // globeCtrl.applyMatrix4(globe.threeObject.matrixWorld)
             cxns.push({
               key: cityLabel.$facadeId,
-              facade: Bezier3DFacade,
+              facade: Bezier3DInstanceableFacade,
               radius: hovering ? 0.0015 : 0.001,
               color: hovering ? 0xffffff : colors[i % colors.length],
               opacity: hovering ? 1.0 : 0.6,

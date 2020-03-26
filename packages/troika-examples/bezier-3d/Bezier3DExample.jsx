@@ -1,6 +1,6 @@
 import React from 'react'
 import { Canvas3D, Group3DFacade } from 'troika-3d'
-import Bezier3DFacade from './Bezier3DFacade'
+import { Bezier3DFacade, Bezier3DInstanceableFacade } from './Bezier3DFacade'
 import ShadowSurface from './ShadowSurfaceFacade'
 import DatGui, {DatBoolean, DatNumber} from 'react-dat-gui'
 
@@ -18,6 +18,9 @@ class Bezier3DExample extends React.Component {
       dashed: 0,
       randomize: true,
       shadows: true,
+      instancing: false,
+      pointLight: false,
+      directionalLight: true,
       p1x: -1,
       p1y: 0,
       p1z: 0,
@@ -41,7 +44,7 @@ class Bezier3DExample extends React.Component {
     for (let i = 0; i < (state.randomize ? state.count : 1); i++) {
       const obj = {
         key: 'bezier' + i,
-        facade: Bezier3DFacade,
+        facade: state.instancing ? Bezier3DInstanceableFacade : Bezier3DFacade,
         radius: state.radius,
         color: state.randomize ? (colors[i] || (colors[i] = randomColor())) : 0x66ccff,
         castShadow: state.shadows,
@@ -66,14 +69,22 @@ class Bezier3DExample extends React.Component {
           z: vr ? 1 : 3
         } }
         lights={[
-          {
+          state.directionalLight && {
             type: 'directional',
             z: 2,
             y: 1,
             castShadow: state.shadows,
             shadow: {
-              //mapSize: {width: 1024, height: 1024},
               camera: {far: 10, near: 0.1, left: -2, right: 2, top: 2, bottom: -2}
+            }
+          },
+          state.pointLight && {
+            type: 'point',
+            z: 0,
+            y: 0,
+            castShadow: state.shadows,
+            shadow: {
+              camera: {far: 10, near: 0.001}
             }
           },
         ]}
@@ -105,8 +116,12 @@ class Bezier3DExample extends React.Component {
         <DatNumber path="radius" min={0.001} max={0.1} step={0.001} />
         <DatNumber path="dashed" min={0} max={0.2} step={0.01} />
         <DatBoolean path="shadows" />
+        <DatBoolean path="instancing" />
         <DatBoolean path="randomize" />
-        {state.randomize ? <DatNumber path="count" min={1} max={100} step={1} /> : null }
+        <DatBoolean path="directionalLight" label="Directional Light" />
+        <DatBoolean path="pointLight" label="Point Light" />
+        <DatBoolean path="randomize" />
+        {state.randomize ? <DatNumber path="count" min={1} max={200} step={1} /> : null }
 
         {state.randomize ? null : pointProps.map(prop =>
           <DatNumber key={prop} path={prop} min={-1} max={1} step={0.01} />

@@ -34,11 +34,15 @@ const defaultBaseMaterial = new MeshStandardMaterial({color: 0xffffff, side: Dou
  * TODO: allow control of the geometry's segment counts
  */
 class BezierMesh extends Mesh {
+  static getGeometry() {
+    return geometry || (geometry =
+      new CylinderBufferGeometry(1, 1, 1, 6, 64).translate(0, 0.5, 0)
+    )
+  }
+
   constructor() {
     super(
-      geometry || (geometry =
-        new CylinderBufferGeometry(1, 1, 1, 6, 64).translate(0, 0.5, 0)
-      ),
+      BezierMesh.getGeometry(),
       defaultBaseMaterial
     )
 
