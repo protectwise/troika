@@ -289,7 +289,6 @@ class World3DFacade extends WorldBaseFacade {
   destructor() {
     super.destructor()
     this._threeRenderer.dispose()
-    this._threeRenderer.forceContextLoss()
   }
 
 }
