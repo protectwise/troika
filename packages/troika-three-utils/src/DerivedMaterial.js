@@ -46,6 +46,8 @@ const CACHE = new WeakMap() //threejs requires WeakMap internally so should be s
  *        definitions, above the `void main()` function.
  * @param {String} options.vertexMainIntro - Custom GLSL code to inject at the top of the vertex
  *        shader's `void main` function.
+ * @param {String} options.vertexMainOutro - Custom GLSL code to inject at the end of the vertex
+ *        shader's `void main` function.
  * @param {String} options.vertexTransform - Custom GLSL code to manipulate the `position`, `normal`,
  *        and/or `uv` vertex attributes. This code will be wrapped within a standalone function with
  *        those attributes exposed by their normal names as read/write values.
@@ -53,9 +55,15 @@ const CACHE = new WeakMap() //threejs requires WeakMap internally so should be s
  *        definitions, above the `void main()` function.
  * @param {String} options.fragmentMainIntro - Custom GLSL code to inject at the top of the fragment
  *        shader's `void main` function.
+ * @param {String} options.fragmentMainOutro - Custom GLSL code to inject at the end of the fragment
+ *        shader's `void main` function.
  * @param {String} options.fragmentColorTransform - Custom GLSL code to manipulate the `gl_FragColor`
- *        output value. Will be injected after all other `void main` logic has executed.
- *        TODO allow injecting before base shader logic or elsewhere?
+ *        output value. Will be injected after all other `void main` logic has executed but just before
+ *        the `fragmentMainOutro`. TODO allow injecting in other places?
+ * @param {function<{vertexShader,fragmentShader}>:{vertexShader,fragmentShader}} options.customRewriter - A function
+ *        for performing custom rewrites of the full shader code. Useful if you need to do something
+ *        special that's not covered by the other builtin options. This function will be executed before
+ *        any other transforms are applied.
  *
  * @return {THREE.Material}
  *
@@ -218,64 +226,75 @@ function upgradeShaders({vertexShader, fragmentShader}, options, id) {
   let {
     vertexDefs,
     vertexMainIntro,
+    vertexMainOutro,
     vertexTransform,
     fragmentDefs,
     fragmentMainIntro,
+    fragmentMainOutro,
     fragmentColorTransform,
+    customRewriter,
     timeUniform
   } = options
+
+  vertexDefs = vertexDefs || ''
+  vertexMainIntro = vertexMainIntro || ''
+  vertexMainOutro = vertexMainOutro || ''
+  fragmentDefs = fragmentDefs || ''
+  fragmentMainIntro = fragmentMainIntro || ''
+  fragmentMainOutro = fragmentMainOutro || ''
+
+  // Expand includes if needed
+  if (vertexTransform || customRewriter) {
+    vertexShader = expandShaderIncludes(vertexShader)
+  }
+  if (fragmentColorTransform || customRewriter) {
+    fragmentShader = expandShaderIncludes(fragmentShader)
+  }
+
+  // Apply custom rewriter function
+  if (customRewriter) {
+    let res = customRewriter({vertexShader, fragmentShader})
+    vertexShader = res.vertexShader
+    fragmentShader = res.fragmentShader
+  }
+
+  // Treat fragmentColorTransform as an outro
+  if (fragmentColorTransform) {
+    fragmentMainOutro = `${fragmentColorTransform}\n${fragmentMainOutro}`
+  }
 
   // Inject auto-updating time uniform if requested
   if (timeUniform) {
     const code = `\nuniform float ${timeUniform};\n`
-    vertexDefs = (vertexDefs || '') + code
-    fragmentDefs = (fragmentDefs || '') + code
+    vertexDefs += code
+    fragmentDefs += code
   }
 
-  // Modify vertex shader
-  if (vertexDefs || vertexMainIntro || vertexTransform) {
-    // If there's a position transform, we need to:
-    // - expand all include statements
-    // - replace all usages of the `position` attribute with a mutable variable
-    // - inject the transform code into a function and call it to transform the position
-    if (vertexTransform) {
-      vertexShader = expandShaderIncludes(vertexShader)
-      vertexDefs = `${vertexDefs || ''}
+  // Inject a function for the vertexTransform and rename all usages of position/normal/uv
+  if (vertexTransform) {
+    vertexDefs = `${vertexDefs}
+vec3 troika_position_${id};
+vec3 troika_normal_${id};
+vec2 troika_uv_${id};
 void troikaVertexTransform${id}(inout vec3 position, inout vec3 normal, inout vec2 uv) {
   ${vertexTransform}
 }
 `
-      vertexShader = vertexShader.replace(/\b(position|normal|uv)\b/g, (match, match1, index, fullStr) => {
-        return /\battribute\s+vec[23]\s+$/.test(fullStr.substr(0, index)) ? match1 : `troika_${match1}_${id}`
-      })
-      vertexMainIntro = `
-vec3 troika_position_${id} = vec3(position);
-vec3 troika_normal_${id} = vec3(normal);
-vec2 troika_uv_${id} = vec2(uv);
+    vertexMainIntro = `
+troika_position_${id} = vec3(position);
+troika_normal_${id} = vec3(normal);
+troika_uv_${id} = vec2(uv);
 troikaVertexTransform${id}(troika_position_${id}, troika_normal_${id}, troika_uv_${id});
-${vertexMainIntro || ''}
+${vertexMainIntro}
 `
-    }
-
-    vertexShader = vertexShader.replace(
-      voidMainRegExp,
-      `${vertexDefs || ''}\n\n$&\n\n${vertexMainIntro || ''}`)
+    vertexShader = vertexShader.replace(/\b(position|normal|uv)\b/g, (match, match1, index, fullStr) => {
+      return /\battribute\s+vec[23]\s+$/.test(fullStr.substr(0, index)) ? match1 : `troika_${match1}_${id}`
+    })
   }
 
-  // Modify fragment shader
-  if (fragmentDefs || fragmentMainIntro || fragmentColorTransform) {
-    fragmentShader = expandShaderIncludes(fragmentShader)
-    fragmentShader = fragmentShader.replace(voidMainRegExp, `
-${fragmentDefs || ''}
-void troikaOrigMain${id}() {
-${fragmentMainIntro || ''}
-`)
-    fragmentShader += `
-void main() {
-  troikaOrigMain${id}();
-  ${fragmentColorTransform || ''}
-}`
-  }
+  // Inject defs and intro/outro snippets
+  vertexShader = injectIntoShaderCode(vertexShader, id, vertexDefs, vertexMainIntro, vertexMainOutro)
+  fragmentShader = injectIntoShaderCode(fragmentShader, id, fragmentDefs, fragmentMainIntro, fragmentMainOutro)
 
   return {
     vertexShader,
@@ -283,10 +302,26 @@ void main() {
   }
 }
 
+function injectIntoShaderCode(shaderCode, id, defs, intro, outro) {
+  if (intro || outro || defs) {
+    shaderCode = shaderCode.replace(voidMainRegExp, `
+${defs}
+void troikaOrigMain${id}() {`
+    )
+    shaderCode += `
+void main() {
+  ${intro}
+  troikaOrigMain${id}();
+  ${outro}
+}`
+  }
+  return shaderCode
+}
 
 function getOptionsHash(options) {
   return JSON.stringify(options, optionsJsonReplacer)
 }
+
 function optionsJsonReplacer(key, value) {
-  return key === 'uniforms' ? undefined : value
+  return key === 'uniforms' ? undefined : typeof value === 'function' ? value.toString() : value
 }
