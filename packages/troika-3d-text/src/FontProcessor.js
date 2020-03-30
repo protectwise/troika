@@ -270,7 +270,7 @@ export default function createFontProcessor(fontParser, sdfGenerator, config) {
         if (char === '\n') {
           currentLine = {glyphs: [], width: 0}
           lines.push(currentLine)
-          lineXOffset = -(glyphX + glyphWidth)
+          lineXOffset = -(glyphX + glyphWidth + (letterSpacing * fontSize))
         }
       })
 
