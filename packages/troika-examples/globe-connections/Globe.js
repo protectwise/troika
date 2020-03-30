@@ -100,6 +100,7 @@ class Globe extends Object3DFacade {
       sphereMaterial
     )
     sphere.add(lines)
+    sphere.renderOrder = 1000 //make sure you can see things through it
     super(parent, sphere)
 
     this.raycastSide = DoubleSide
