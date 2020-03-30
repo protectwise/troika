@@ -98,8 +98,20 @@ export class Projection extends MeshFacade {
     this.material = createMaterial()
   }
 
+  syncSourcePosition() {
+    // Sync the geometry from the current sourceWorldPosition value
+    let {sourceWorldPosition:srcPos} = this
+    let posAttr = this.threeObject.geometry.getAttribute('position')
+    if (srcPos && posAttr && (
+      srcPos.x !== posAttr.getX(0) || srcPos.y !== posAttr.getY(0) || srcPos.z !== posAttr.getZ(0)
+    )) {
+      posAttr.setXYZ(0, srcPos.x, srcPos.y, srcPos.z)
+      posAttr.needsUpdate = true
+    }
+  }
+
   afterUpdate() {
-    let {sourceWorldPosition:srcPos, targetVertices, geometry, color} = this
+    let {targetVertices, geometry, color} = this
 
     // Update geometry vertices
     let posAttr = this.geometry.getAttribute('position')
@@ -127,11 +139,7 @@ export class Projection extends MeshFacade {
     }
 
     // Handle changing sourceWorldPosition
-    if (srcPos.x !== posAttr.getX(0) || srcPos.y !== posAttr.getY(0)
-        || srcPos.z !== posAttr.getZ(0)) {
-      posAttr.setXYZ(0, srcPos.x, srcPos.y, srcPos.z)
-      posAttr.needsUpdate = true
-    }
+    this.syncSourcePosition()
 
     // Material
     if (color == null) {

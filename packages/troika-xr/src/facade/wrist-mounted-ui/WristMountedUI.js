@@ -57,7 +57,7 @@ export class WristMountedUI extends Group3DFacade {
 
     let [wristbandDef, contentDef] = children
     wristbandDef.active = contentDef.active = this.active
-    wristbandDef.gripPose = contentDef.gripPose = this.gripPose
+    //wristbandDef.gripPose = contentDef.gripPose = this.gripPose
     contentDef.platformRadius = this.platformRadius
     contentDef.platformColor = this.platformColor
     contentDef.projectionColor = this.projectionColor
@@ -97,13 +97,19 @@ export class WristMountedUI extends Group3DFacade {
         tempVec3.set(1, 0, 0).applyQuaternion(
           tempQuat.setFromRotationMatrix(tempMat4.fromArray(gripPose.transform.matrix))
         )
-        this.active = tempVec3.angleTo(upVec3) < this.activeUpAngle
+        let active = tempVec3.angleTo(upVec3) < this.activeUpAngle
+        if (active !== this.active) {
+          this.active = active
+          this.afterUpdate()
+        }
       }
     }
 
     if (gripPose || !this.gripPose) {
       this.gripPose = gripPose
-      this.afterUpdate()
+      // Skip full afterUpdate pass, just give the gripPose to children - they both have
+      // a syncPose method to handle syncing matrices without a full afterUpdate.
+      this.forEachChild(child => child.syncPose(gripPose))
     }
   }
 

@@ -22,10 +22,18 @@ const strapWidth = 0.025
 
 
 export class Wristband extends Group3DFacade {
-  set gripPose(gripPose) {
+  /**
+   * Sync to the current XRFrame's gripPose - all matrix syncing is localized here
+   * to avoid a full afterUpdate pass on every frame.
+   */
+  syncPose(gripPose) {
     if (gripPose) {
       this.visible = true
       copyXRPoseToFacadeProps(gripPose, this)
+      this.traverse(updateMatrices)
+      if (this.onCogMove && this._cogFacade) {
+        this.onCogMove(this._cogFacade.getWorldPosition(tempVec3))
+      }
     } else {
       this.visible = false
     }
@@ -77,11 +85,11 @@ export class Wristband extends Group3DFacade {
 
     return groupDef
   }
+}
 
-  afterUpdate() {
-    super.afterUpdate()
-    if (this.onCogMove && this._cogFacade) {
-      this.onCogMove(this._cogFacade.getWorldPosition(tempVec3))
-    }
+
+function updateMatrices(obj) {
+  if (obj.updateMatrices) {
+    obj.updateMatrices()
   }
 }

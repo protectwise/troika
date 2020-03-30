@@ -19,8 +19,11 @@ export class ContentContainer extends Object3DFacade {
     this.active = false
   }
 
-  afterUpdate() {
-    const {gripPose} = this
+  /**
+   * Sync to the current XRFrame's gripPose - all matrix syncing is localized here
+   * to avoid a full afterUpdate pass on every frame.
+   */
+  syncPose(gripPose) {
     if (gripPose) {
       // Get current posed camera position, relative to the parent
       let cam = this.getCameraFacade().threeObject
@@ -49,13 +52,22 @@ export class ContentContainer extends Object3DFacade {
       this.scale += (targetScale - this.scale) * 0.3
       this.visible = this.scale > 0.01 //hide below a certain size
 
-      // Rotate to face camera
-      this.rotateY = Math.atan2(camPos.x - pos.x, camPos.z - pos.z)
+      if (this.visible) {
+        // Rotate to face camera
+        this.rotateY = Math.atan2(camPos.x - pos.x, camPos.z - pos.z)
+
+        // Update projection cone's source position
+        let proj = this.getChildByKey('$projection')
+        if (proj) {
+          proj.syncSourcePosition()
+        }
+
+        // Sync all matrices
+        this.traverse(updateMatrices)
+      }
     } else {
       this.visible = false
     }
-
-    super.afterUpdate()
   }
 
   shouldUpdateChildren () {
@@ -93,15 +105,20 @@ export class ContentContainer extends Object3DFacade {
     kids[0].scale = kids[1].scale = this.platformRadius
 
     // Update projection source
-    if (this.gripPose && this.visible) {
-      kids[1].sourceWorldPosition = this.projectionSourcePosition
-    }
+    kids[1].sourceWorldPosition = this.projectionSourcePosition
 
     // Colors
     kids[0]['material.color'] = this.platformColor
     kids[1].color = this.projectionColor
 
     return kids.concat(this.children)
+  }
+}
+
+function updateMatrices(obj) {
+  if (obj.updateMatrices) {
+    obj.updateMatrices()
+    obj._checkBoundsChange() //TODO ugh shouldn't have to call private method
   }
 }
 

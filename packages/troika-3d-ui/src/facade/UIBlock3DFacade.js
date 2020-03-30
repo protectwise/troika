@@ -60,6 +60,11 @@ class UIBlock3DFacade extends Group3DFacade {
     }
   }
 
+  updateMatrices() {
+    super.updateMatrices()
+    this.layers.traverse(updateMatrices)
+  }
+
   afterUpdate() {
     let {
       layers,
@@ -435,6 +440,12 @@ function dragHandler(e) {
 
 function isTextNodeChild(child) {
   return typeof child === 'string' || typeof child === 'number'
+}
+
+function updateMatrices(obj) {
+  if (obj.updateMatrices) {
+    obj.updateMatrices()
+  }
 }
 
 
