@@ -127,8 +127,11 @@ class OculusTouchGrip extends Object3DFacade {
       for (let name in meshes) {
         const color = name === 'body' ? this.bodyColor : this.buttonColor
         const material = meshes[name].material
-        material.color.set(color)
-        material.emissive.set(color)
+        if (color !== material._lastColor) {
+          material.color.set(color)
+          material.emissive.set(color)
+          material._lastColor = color
+        }
         material.emissiveIntensity = this.emissiveIntensity
       }
     }
