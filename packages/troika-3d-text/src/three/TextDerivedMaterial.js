@@ -6,29 +6,30 @@ const VERTEX_DEFS = `
 uniform vec2 uTroikaSDFTextureSize;
 uniform float uTroikaSDFGlyphSize;
 uniform vec4 uTroikaTotalBounds;
+uniform vec4 uTroikaClipRect;
 attribute vec4 aTroikaGlyphBounds;
 attribute float aTroikaGlyphIndex;
 varying vec2 vTroikaSDFTextureUV;
 varying vec2 vTroikaGlyphUV;
-varying vec3 vTroikaLocalPos;
 `
 
 // language=GLSL prefix="void main() {" suffix="}"
 const VERTEX_TRANSFORM = `
-vTroikaGlyphUV = vec2(position);
+vec4 bounds = aTroikaGlyphBounds;
+vec4 clippedBounds = vec4(
+  clamp(bounds.xy, uTroikaClipRect.xy, uTroikaClipRect.zw),
+  clamp(bounds.zw, uTroikaClipRect.xy, uTroikaClipRect.zw)
+);
+vec2 clippedXY = (mix(clippedBounds.xy, clippedBounds.zw, position.xy) - bounds.xy) / (bounds.zw - bounds.xy);
+vTroikaGlyphUV = clippedXY.xy;
 
-vec2 colsAndRows = uTroikaSDFTextureSize / uTroikaSDFGlyphSize;
+float cols = uTroikaSDFTextureSize.x / uTroikaSDFGlyphSize;
 vTroikaSDFTextureUV = vec2(
-  mod(aTroikaGlyphIndex, colsAndRows.x) + position.x,
-  floor(aTroikaGlyphIndex / colsAndRows.x) + position.y
+  mod(aTroikaGlyphIndex, cols) + clippedXY.x,
+  floor(aTroikaGlyphIndex / cols) + clippedXY.y
 ) * uTroikaSDFGlyphSize / uTroikaSDFTextureSize;
 
-position = vec3(
-  mix(aTroikaGlyphBounds.x, aTroikaGlyphBounds.z, position.x),
-  mix(aTroikaGlyphBounds.y, aTroikaGlyphBounds.w, position.y),
-  position.z
-);
-vTroikaLocalPos = vec3(position);
+position.xy = mix(bounds.xy, bounds.zw, clippedXY);
 
 uv = vec2(
   (position.x - uTroikaTotalBounds.x) / (uTroikaTotalBounds.z - uTroikaTotalBounds.x),
@@ -41,25 +42,8 @@ const FRAGMENT_DEFS = `
 uniform sampler2D uTroikaSDFTexture;
 uniform float uTroikaSDFMinDistancePct;
 uniform bool uTroikaSDFDebug;
-uniform vec4 uTroikaClipRect;
 varying vec2 vTroikaSDFTextureUV;
 varying vec2 vTroikaGlyphUV;
-varying vec3 vTroikaLocalPos;
-
-float troikaGetClipAlpha() {
-  vec4 clip = uTroikaClipRect;
-  vec3 pos = vTroikaLocalPos;
-  float dClip = min(
-    min(pos.x - min(clip.x, clip.z), max(clip.x, clip.z) - pos.x),
-    min(pos.y - min(clip.y, clip.w), max(clip.y, clip.w) - pos.y)
-  );
-  #if defined(GL_OES_standard_derivatives) || __VERSION__ >= 300
-  float aa = length(fwidth(pos)) * 0.5;
-  return smoothstep(-aa, aa, dClip);
-  #else
-  return step(0.0, dClip);
-  #endif
-}
 
 float troikaGetTextAlpha() {
   float troikaSDFValue = texture2D(uTroikaSDFTexture, vTroikaSDFTextureUV).r;
@@ -92,7 +76,7 @@ float troikaGetTextAlpha() {
   );
   #endif
   
-  return min(alpha, troikaGetClipAlpha());
+  return alpha;
 }
 `
 
@@ -118,8 +102,8 @@ export function createTextDerivedMaterial(baseMaterial) {
       uTroikaSDFTextureSize: {value: new Vector2()},
       uTroikaSDFGlyphSize: {value: 0},
       uTroikaSDFMinDistancePct: {value: 0},
-      uTroikaTotalBounds: {value: new Vector4()},
-      uTroikaClipRect: {value: new Vector4()},
+      uTroikaTotalBounds: {value: new Vector4(0,0,0,0)},
+      uTroikaClipRect: {value: new Vector4(0,0,0,0)},
       uTroikaSDFDebug: {value: false}
     },
     vertexDefs: VERTEX_DEFS,
