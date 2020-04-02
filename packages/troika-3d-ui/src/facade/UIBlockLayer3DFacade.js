@@ -1,9 +1,11 @@
-import { Object3DFacade } from 'troika-3d'
-import { Color, Mesh, MeshBasicMaterial, PlaneBufferGeometry, Vector4 } from 'three'
+import { Instanceable3DFacade } from 'troika-3d'
+import { Color, Mesh, MeshBasicMaterial, PlaneBufferGeometry, Vector2, Vector4 } from 'three'
 import { createUIBlockLayerDerivedMaterial } from './UIBlockLayerDerivedMaterial.js'
+
 const geometry = new PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0)
-const defaultBgMaterial = new MeshBasicMaterial({color: 0})
-const noclip = Object.freeze(new Vector4())
+const defaultMaterial = new MeshBasicMaterial({color: 0})
+const emptyVec2 = Object.freeze(new Vector2())
+const emptyVec4 = Object.freeze(new Vector4(0,0,0,0))
 
 const shadowMaterialPropDefs = {
   // Create and update materials for shadows upon request:
@@ -19,53 +21,79 @@ const shadowMaterialPropDefs = {
   }
 }
 
+const instanceMeshesByKey = new Map()
+
 /**
  * A single layer in a UI Block's rendering, e.g. background or border. All layers honor
  * border radius, which is calculated shader-side for perfectly smooth curves at any scale,
  * with antialiasing.
  *
+ * Layer meshes are rendered via GPU instancing when possible -- specifically when they share
+ * the same Material instance, layering depth, and shadow behavior.
+ *
  * You shouldn't have to use this directly; UIBlock3DFacade will create these as needed
  * based on background/border styles.
  */
-class UIBlockLayer3DFacade extends Object3DFacade {
+class UIBlockLayer3DFacade extends Instanceable3DFacade {
   constructor(parent) {
-    const mesh = new Mesh(geometry, defaultBgMaterial)
-    mesh.frustumCulled = false //TODO moot if we make this an Instanceable, otherwise need to fix culling by transformed size
-    Object.defineProperties(mesh, shadowMaterialPropDefs)
-
-    super(parent, mesh)
+    super(parent)
 
     this._colorObj = new Color()
 
     // Properties
-    // this.size = new Vector2()
-    // this.borderRadius = new Vector4()
-    // this.borderWidth = new Vector4()
-    // this.color = 0
-    // this.material = null
-    // this.isBorder = false
+    this.size = emptyVec2
+    this.borderRadius = emptyVec4
+    this.borderWidth = emptyVec4
+    this.color = 0
+    this.isBorder = false
+    this.material = defaultMaterial
   }
 
   afterUpdate() {
-    const {color} = this
+    let {material, depthOffset, castShadow, receiveShadow, color, renderOrder} = this
+    if (!material) { material = defaultMaterial }
 
-    // Ensure we're using an upgraded material
-    const layerMaterial = this.threeObject.material = this._getUpgradedMaterial()
+    // Find or create the instanced mesh
+    let meshKey = `${material.id}|${renderOrder}|${depthOffset}|${castShadow}|${receiveShadow}`
+    if (meshKey !== this._prevMeshKey) {
+      let mesh = instanceMeshesByKey.get(meshKey)
+      if (!mesh) {
+        let derivedMaterial = createUIBlockLayerDerivedMaterial(material)
+        derivedMaterial.instanceUniforms = [
+          'diffuse',
+          'uTroikaBlockSize',
+          'uTroikaClipRect',
+          'uTroikaCornerRadii',
+          'uTroikaBorderWidth'
+        ]
+        derivedMaterial.polygonOffset = !!this.depthOffset
+        derivedMaterial.polygonOffsetFactor = derivedMaterial.polygonOffsetUnits = this.depthOffset || 0
+        // dispose the derived material when its base material is disposed:
+        material.addEventListener('dispose', function onDispose() {
+          material.removeEventListener('dispose', onDispose)
+          derivedMaterial.dispose()
+        })
 
-    layerMaterial.polygonOffset = !!this.depthOffset
-    layerMaterial.polygonOffsetFactor = layerMaterial.polygonOffsetUnits = this.depthOffset || 0
+        mesh = new Mesh(geometry, derivedMaterial)
+        mesh._instanceKey = meshKey
+        mesh.castShadow = castShadow
+        mesh.receiveShadow = receiveShadow
+        mesh.renderOrder = renderOrder
+        Object.defineProperties(mesh, shadowMaterialPropDefs)
+        instanceMeshesByKey.set(meshKey, mesh)
+      }
+      this.instancedThreeObject = mesh
+      this._prevMeshKey = meshKey
+    }
 
     // Set material uniform values
-    const uniforms = layerMaterial.uniforms
-    uniforms.uTroikaBlockSize.value = this.size
-    uniforms.uTroikaCornerRadii.value = this.borderRadius
-    uniforms.uTroikaClipRect.value = this.clipRect || noclip
-    if (this.isBorder) {
-      uniforms.uTroikaBorderWidth.value = this.borderWidth
-    }
+    this.setInstanceUniform('uTroikaBlockSize', this.size)
+    this.setInstanceUniform('uTroikaCornerRadii', this.borderRadius)
+    this.setInstanceUniform('uTroikaClipRect', this.clipRect)
+    this.setInstanceUniform('uTroikaBorderWidth', this.isBorder ? this.borderWidth : emptyVec4)
     if (color !== this._lastColor) {
-      this._colorObj.set(color)
       this._lastColor = color
+      this.setInstanceUniform('diffuse', new Color(color))
     }
 
     super.afterUpdate()
@@ -73,25 +101,6 @@ class UIBlockLayer3DFacade extends Object3DFacade {
 
   getBoundingSphere() {
     return null //parent will handle bounding sphere and raycasting
-  }
-
-  _getUpgradedMaterial() {
-    const baseMaterial = this.material || defaultBgMaterial
-    let upgradedMaterial = this._upgradedMaterial
-    if (!upgradedMaterial || upgradedMaterial.baseMaterial !== baseMaterial) {
-      if (upgradedMaterial) {
-        upgradedMaterial.dispose()
-      }
-      upgradedMaterial = this._upgradedMaterial = createUIBlockLayerDerivedMaterial(baseMaterial, this.isBorder)
-      upgradedMaterial.color = this._colorObj
-
-      // dispose the derived material when its base material is disposed:
-      baseMaterial.addEventListener('dispose', function onDispose() {
-        baseMaterial.removeEventListener('dispose', onDispose)
-        upgradedMaterial.dispose()
-      })
-    }
-    return upgradedMaterial
   }
 }
 

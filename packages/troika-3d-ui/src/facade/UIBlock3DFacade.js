@@ -9,6 +9,8 @@ import ScrollbarsFacade from './ScrollbarsFacade.js'
 
 const raycastMesh = new Mesh(new PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0))
 const tempMat4 = new Matrix4()
+const tempVec4 = new Vector4(0,0,0,0)
+const emptyVec4 = Object.freeze(new Vector4(0,0,0,0))
 const tempPlane = new Plane()
 const DEFAULT_FONT_SIZE = 16
 const DEFAULT_LINE_HEIGHT = 'normal'
@@ -39,10 +41,12 @@ class UIBlock3DFacade extends Group3DFacade {
     this.layers = new Group3DFacade(this)
     this.layers.children = [null, null, null]
 
-    this._sizeVec2 = new Vector2()
-    this._clipRectVec4 = new Vector4()
-    this._borderWidthVec4 = new Vector4()
-    this._borderRadiiVec4 = new Vector4()
+    // Shared objects for passing down to layers - treated as immutable
+    this._sizeVec2 = Object.freeze(new Vector2())
+    this._clipRectVec4 = emptyVec4
+    this._borderWidthVec4 = emptyVec4
+    this._borderRadiiVec4 = emptyVec4
+
     ;(this._geomBoundingSphere = new Sphere()).version = 0
     this._wasFullyClipped = true
   }
@@ -55,7 +59,6 @@ class UIBlock3DFacade extends Group3DFacade {
    */
   updateChildren(children) {
     if (!this.isFullyClipped || !this._wasFullyClipped) {
-      this._wasFullyClipped = this.isFullyClipped
       super.updateChildren(children)
     }
   }
@@ -81,6 +84,7 @@ class UIBlock3DFacade extends Group3DFacade {
       parentFlexNode,
       flexNodeDepth,
       isFullyClipped,
+      _wasFullyClipped,
       _borderWidthVec4,
       _clipRectVec4,
       _sizeVec2
@@ -101,7 +105,7 @@ class UIBlock3DFacade extends Group3DFacade {
         this.y = -(offsetTop - (isAbsPos ? 0 : parentFlexNode.scrollTop))
       }
       if (offsetWidth !== _sizeVec2.x || offsetHeight !== _sizeVec2.y) {
-        _sizeVec2.set(offsetWidth, offsetHeight)
+        _sizeVec2 = this._sizeVec2 = Object.freeze(new Vector2(offsetWidth, offsetHeight))
 
         // Update pre-worldmatrix bounding sphere
         const sphere = this._geomBoundingSphere
@@ -111,16 +115,23 @@ class UIBlock3DFacade extends Group3DFacade {
       }
     }
 
-    if (!isFullyClipped) {
+    if (!isFullyClipped || !_wasFullyClipped) {
       // Update shared vector objects for the sublayers
       const radii = (hasBg || hasBorder) ? this._normalizeBorderRadius() : null
-      _borderWidthVec4.fromArray(borderWidth)
-      _clipRectVec4.set(
+
+      tempVec4.fromArray(borderWidth)
+      if (!tempVec4.equals(_borderWidthVec4)) {
+        _borderWidthVec4 = this._borderWidthVec4 = Object.freeze(tempVec4.clone())
+      }
+      tempVec4.set(
         Math.max(this.clipLeft, 0),
         Math.max(this.clipTop, 0),
         Math.min(this.clipRight, offsetWidth),
         Math.min(this.clipBottom, offsetHeight)
       )
+      if (!tempVec4.equals(_clipRectVec4)) {
+        _clipRectVec4 = this._clipRectVec4 = Object.freeze(tempVec4.clone())
+      }
 
       // Update rendering layers...
       let bgLayer = null
@@ -155,7 +166,7 @@ class UIBlock3DFacade extends Group3DFacade {
         borderLayer.material = borderMaterial
         borderLayer.clipRect = _clipRectVec4
         borderLayer.depthOffset = -flexNodeDepth - 1
-        borderLayer.renderOrder = flexNodeDepth + 0.1 //TODO how can we make this play with the rest of the scene?
+        borderLayer.renderOrder = flexNodeDepth + 1 //TODO how can we make this play with the rest of the scene?
         borderLayer.castShadow = this.castShadow
         borderLayer.receiveShadow = this.receiveShadow
       }
@@ -169,7 +180,7 @@ class UIBlock3DFacade extends Group3DFacade {
           facade: ScrollbarsFacade,
           target: this
         })
-        scrollbarsLayer.renderOrder = flexNodeDepth + 0.2 //TODO how can we make this play with the rest of the scene?
+        scrollbarsLayer.renderOrder = flexNodeDepth + 2 //TODO how can we make this play with the rest of the scene?
       }
       layers.children[2] = scrollbarsLayer
 
@@ -194,7 +205,7 @@ class UIBlock3DFacade extends Group3DFacade {
         textChild.color = getInheritable(this, 'color')
         textChild.material = this.textMaterial
         textChild.depthOffset = -flexNodeDepth - 1
-        textChild.renderOrder = flexNodeDepth + 0.2
+        textChild.renderOrder = flexNodeDepth + 1
         textChild.castShadow = this.castShadow
         textChild.receiveShadow = this.receiveShadow
         this._actualChildren = textChild //NOTE: text content will clobber any other defined children
@@ -231,9 +242,10 @@ class UIBlock3DFacade extends Group3DFacade {
     }
 
     super.afterUpdate()
-    if (!isFullyClipped) {
+    if (!isFullyClipped || !_wasFullyClipped) {
       layers.afterUpdate()
     }
+    this._wasFullyClipped = isFullyClipped
   }
 
   describeChildren () {
@@ -245,11 +257,11 @@ class UIBlock3DFacade extends Group3DFacade {
   }
 
   _normalizeBorderRadius() {
-    const {
+    let {
       borderRadius:input,
       offsetWidth=0,
       offsetHeight=0,
-      _borderRadiiVec4:vec4
+      _borderRadiiVec4:prevVec4
     } = this
 
     // Normalize to four corner values
@@ -295,12 +307,12 @@ class UIBlock3DFacade extends Group3DFacade {
       }
     }
 
-    // Update the Vector4 if anything hanged
-    if (tl !== vec4.x || tr !== vec4.y || br !== vec4.z || bl !== vec4.w) {
-      vec4.set(tl, tr, br, bl)
+    // Update the Vector4 if anything changed
+    tempVec4.set(tl, tr, br, bl)
+    if (!tempVec4.equals(prevVec4)) {
+      prevVec4 = this._borderRadiiVec4 = Object.freeze(tempVec4.clone())
     }
-
-    return vec4
+    return prevVec4
   }
 
   /**

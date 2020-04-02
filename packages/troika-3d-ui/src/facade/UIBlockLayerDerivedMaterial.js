@@ -4,22 +4,27 @@ import { Vector2, Vector4 } from 'three'
 // language=GLSL
 const VERTEX_DEFS = `
 uniform vec2 uTroikaBlockSize;
+uniform vec4 uTroikaClipRect;
 varying vec2 vTroikaPosInBlock;
 `
 
 // language=GLSL prefix="void main() {" suffix="}"
 const VERTEX_TRANSFORM = `
-vTroikaPosInBlock = vec2(position.x, -position.y) * uTroikaBlockSize;
-position.xy *= uTroikaBlockSize;
+vec2 xy = position.xy * uTroikaBlockSize;
+xy.y *= -1.0;
+xy = clamp(xy, uTroikaClipRect.xy, uTroikaClipRect.zw);
+vTroikaPosInBlock = xy;
+xy.y *= -1.0;
+position.xy = xy;
 `
 
 // language=GLSL
 const FRAGMENT_DEFS = `
 uniform vec2 uTroikaBlockSize;
-uniform vec4 uTroikaClipRect;
 uniform vec4 uTroikaCornerRadii;
 uniform vec4 uTroikaBorderWidth;
 varying vec2 vTroikaPosInBlock;
+const vec4 NO_BORDER = vec4(0.,0.,0.,0.);
 
 float troikaEllipseRadiusAtAngle(in float angle, in float rx, in float ry) {
   if (rx == ry) {return rx;}
@@ -35,9 +40,8 @@ void troikaGetCurveDists(
   vec2 adjPos = pos - radCenter;
   float angle = atan(adjPos.y, adjPos.x);
   dOuter = troikaEllipseRadiusAtAngle(angle, outerR, outerR) - length(adjPos);
-  #ifdef TROIKA_UI_BORDER
-  dInner = troikaEllipseRadiusAtAngle(angle, max(0.0, outerR - xBorder), max(0.0, outerR - yBorder)) - length(adjPos);
-  #endif
+  dInner = uTroikaBorderWidth == NO_BORDER ? dInner : 
+    troikaEllipseRadiusAtAngle(angle, max(0.0, outerR - xBorder), max(0.0, outerR - yBorder)) - length(adjPos);
 }
 
 float troikaGetAlphaMultiplier() {
@@ -46,12 +50,11 @@ float troikaGetAlphaMultiplier() {
   vec4 rad = uTroikaCornerRadii;
   vec4 bdr = uTroikaBorderWidth;
   vec2 pos = vTroikaPosInBlock;
-  vec4 clip = uTroikaClipRect;
 
   float dOuter;
   float dInner;
-  float dClip;
   bool isOnCurve = true;
+  bool isBorder = uTroikaBorderWidth != NO_BORDER;
 
   // Top left
   if (pos.x < rad[0] && pos.y < rad[0]) {
@@ -73,30 +76,18 @@ float troikaGetAlphaMultiplier() {
   else {
     isOnCurve = false;
     dOuter = min(min(pos.x, pos.y), min(dim.x - pos.x, dim.y - pos.y));
-    #ifdef TROIKA_UI_BORDER
-    dInner = min(min(pos.x - bdr[3], pos.y - bdr[0]), min(dim.x - pos.x - bdr[1], dim.y - pos.y - bdr[2]));
-    #endif
+    dInner = isBorder ? min(min(pos.x - bdr[3], pos.y - bdr[0]), min(dim.x - pos.x - bdr[1], dim.y - pos.y - bdr[2])) : dInner;
   }
-  
-  // Clipping rect
-  dClip = min(
-    min(pos.x - min(clip.x, clip.z), max(clip.x, clip.z) - pos.x),
-    min(pos.y - min(clip.y, clip.w), max(clip.y, clip.w) - pos.y)
-  );
 
   float alpha;
   #if defined(GL_OES_standard_derivatives) || __VERSION__ >= 300
     float aa = length(fwidth(pos)) * 0.5;
-    alpha = (isOnCurve || dClip < dOuter) ? smoothstep(-aa, aa, min(dClip, dOuter)) : 1.0;
-    #ifdef TROIKA_UI_BORDER
-    alpha = min(alpha, (dOuter == dInner) ? 0.0 : smoothstep(aa, -aa, dInner));
-    #endif
+    alpha = isOnCurve ? smoothstep(-aa, aa, dOuter) : 1.0;
+    alpha = isBorder ? min(alpha, (dOuter == dInner) ? 0.0 : smoothstep(aa, -aa, dInner)) : alpha;
     return alpha;
   #else
-    alpha = step(0.0, min(dClip, dOuter));
-    #ifdef TROIKA_UI_BORDER
-    alpha = min(alpha, step(0.0, -dInner));
-    #endif
+    alpha = step(0.0, dOuter);
+    alpha = isBorder ? min(alpha, step(0.0, -dInner)) : alpha;
   #endif
   return alpha;
 }
@@ -113,19 +104,19 @@ if (troikaAlphaMult == 0.0) {
 `
 
 
-export function createUIBlockLayerDerivedMaterial(baseMaterial, isBorder) {
+export function createUIBlockLayerDerivedMaterial(baseMaterial) {
   const material = createDerivedMaterial(baseMaterial, {
     defines: {
-      [`TROIKA_UI_${isBorder ? 'BORDER' : 'BG'}`]: ''
+      TROIKA_UI_BLOCK: ''
     },
     extensions: {
       derivatives: true
     },
     uniforms: {
       uTroikaBlockSize: {value: new Vector2()},
-      uTroikaClipRect: {value: new Vector4()},
-      uTroikaCornerRadii: {value: new Vector4()},
-      uTroikaBorderWidth: {value: new Vector4()}
+      uTroikaClipRect: {value: new Vector4(0,0,0,0)},
+      uTroikaCornerRadii: {value: new Vector4(0,0,0,0)},
+      uTroikaBorderWidth: {value: new Vector4(0,0,0,0)}
     },
     vertexDefs: VERTEX_DEFS,
     vertexTransform: VERTEX_TRANSFORM,
@@ -138,6 +129,9 @@ export function createUIBlockLayerDerivedMaterial(baseMaterial, isBorder) {
   Object.defineProperty(material, 'shadowSide', {
     get() {
       return this.side
+    },
+    set() {
+      //no-op
     }
   })
 
