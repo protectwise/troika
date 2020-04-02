@@ -18,6 +18,7 @@ const TEXT_MESH_PROPS = [
   'color',
   'depthOffset',
   'clipRect',
+  'orientation',
   'debugSDF'
 ]
 

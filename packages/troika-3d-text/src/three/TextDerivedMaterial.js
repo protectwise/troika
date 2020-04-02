@@ -1,5 +1,5 @@
 import { createDerivedMaterial } from 'troika-three-utils'
-import { Vector2, Vector4 } from 'three'
+import { Vector2, Vector4, Matrix3 } from 'three'
 
 // language=GLSL
 const VERTEX_DEFS = `
@@ -7,6 +7,7 @@ uniform vec2 uTroikaSDFTextureSize;
 uniform float uTroikaSDFGlyphSize;
 uniform vec4 uTroikaTotalBounds;
 uniform vec4 uTroikaClipRect;
+uniform mat3 uTroikaOrient;
 attribute vec4 aTroikaGlyphBounds;
 attribute float aTroikaGlyphIndex;
 varying vec2 vTroikaSDFTextureUV;
@@ -35,6 +36,9 @@ uv = vec2(
   (position.x - uTroikaTotalBounds.x) / (uTroikaTotalBounds.z - uTroikaTotalBounds.x),
   (position.y - uTroikaTotalBounds.y) / (uTroikaTotalBounds.w - uTroikaTotalBounds.y)
 );
+
+position = uTroikaOrient * position;
+normal = uTroikaOrient * normal;
 `
 
 // language=GLSL
@@ -104,6 +108,7 @@ export function createTextDerivedMaterial(baseMaterial) {
       uTroikaSDFMinDistancePct: {value: 0},
       uTroikaTotalBounds: {value: new Vector4(0,0,0,0)},
       uTroikaClipRect: {value: new Vector4(0,0,0,0)},
+      uTroikaOrient: {value: new Matrix3()},
       uTroikaSDFDebug: {value: false}
     },
     vertexDefs: VERTEX_DEFS,

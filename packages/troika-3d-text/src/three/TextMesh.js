@@ -3,7 +3,8 @@ import {
   Matrix4,
   Mesh,
   MeshBasicMaterial,
-  PlaneBufferGeometry
+  PlaneBufferGeometry,
+  Vector3
 } from 'three'
 import { GlyphsGeometry } from './GlyphsGeometry.js'
 import { createTextDerivedMaterial } from './TextDerivedMaterial.js'
@@ -18,6 +19,10 @@ const defaultMaterial = new MeshBasicMaterial({
 })
 
 const tempMat4 = new Matrix4()
+const tempVec3a = new Vector3()
+const tempVec3b = new Vector3()
+const origin = new Vector3()
+const defaultOrient = '+x+y'
 
 const raycastMesh = new Mesh(
   new PlaneBufferGeometry(1, 1).translate(0.5, 0.5, 0),
@@ -150,6 +155,17 @@ class TextMesh extends Mesh {
      * `whiteSpace='nowrap'`.
      */
     this.clipRect = null
+
+    /**
+     * @member {string} orientation
+     * Defines the axis plane on which the text should be laid out when the mesh has no extra
+     * rotation transform. It is specified as a string with two axes: the horizontal axis with
+     * positive pointing right, and the vertical axis with positive pointing up. By default this
+     * is '+x+y', meaning the text sits on the xy plane with the text's top toward positive y
+     * and facing positive z. A value of '+x-z' would place it on the xz plane with the text's
+     * top toward negative z and facing positive y.
+     */
+    this.orientation = defaultOrient
 
     this.debugSDF = false
   }
@@ -304,6 +320,24 @@ class TextMesh extends Mesh {
     const color = this.color
     if (color != null && material.color && material.color.isColor && color !== material._troikaColor) {
       material.color.set(material._troikaColor = color)
+    }
+
+    // base orientation
+    let orient = this.orientation || defaultOrient
+    if (orient !== material._orientation) {
+      let rotMat = uniforms.uTroikaOrient.value
+      orient = orient.replace(/[^-+xyz]/g, '')
+      let match = orient !== defaultOrient && orient.match(/^([-+])([xyz])([-+])([xyz])$/)
+      if (match) {
+        let [, hSign, hAxis, vSign, vAxis] = match
+        tempVec3a.set(0, 0, 0)[hAxis] = hSign === '-' ? 1 : -1
+        tempVec3b.set(0, 0, 0)[vAxis] = vSign === '-' ? -1 : 1
+        tempMat4.lookAt(origin, tempVec3a.cross(tempVec3b), tempVec3b)
+        rotMat.setFromMatrix4(tempMat4)
+      } else {
+        rotMat.identity()
+      }
+      material._orientation = orient
     }
   }
 
