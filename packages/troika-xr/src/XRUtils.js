@@ -1,4 +1,9 @@
 /**
+ * A `renderOrder` for the target ray that ensures proper transparency
+ */
+export const TARGET_RAY_RENDERORDER = 1e8
+
+/**
  * Given a XRPose, copy its transform's position and orientation to the corresponding
  * properties on a Object3DFacade.
  * @param {XRPose} pose
