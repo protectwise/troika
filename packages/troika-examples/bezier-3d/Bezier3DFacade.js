@@ -1,10 +1,10 @@
 import { Object3DFacade, Instanceable3DFacade } from 'troika-3d'
 import { BezierMesh } from 'troika-three-utils'
-import { Color, MeshStandardMaterial, Vector3 } from 'three'
+import { Color, DoubleSide, MeshStandardMaterial, Vector3 } from 'three'
 
 const noDash = [0, 0]
 const tempColor = new Color()
-const defaultMaterial = new MeshStandardMaterial({transparent: true})
+const defaultMaterial = new MeshStandardMaterial({transparent: true, side: DoubleSide})
 
 /**
  * Facade wrapper around BezierMesh from three-troika-utils
