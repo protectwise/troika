@@ -1,10 +1,6 @@
 import {defineWorkerModule} from '../src/WorkerModules.js'
 import ThenableWorkerModule from '../src/ThenableWorkerModule.js'
-
-// Sometimes URL.$$objects hangs around between suites which prevents jsdom-worker
-// from attaching its custom `fetch` override that knows how to read fake blob URLs
-delete global.URL.$$objects
-require('jsdom-worker')
+require('./_jsdom-worker.js')
 
 
 beforeEach(() => {
