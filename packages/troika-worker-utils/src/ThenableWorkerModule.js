@@ -7,6 +7,7 @@ import {defineWorkerModule} from './WorkerModules.js'
  * the raw function in its `dependencies` array so it only gets registered once.
  */
 export default defineWorkerModule({
+  name: 'Thenable',
   dependencies: [Thenable],
   init: function(Thenable) {
     return Thenable

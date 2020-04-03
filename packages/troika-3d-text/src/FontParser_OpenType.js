@@ -69,6 +69,7 @@ function parserFactory(opentype) {
 
 
 const workerModule = defineWorkerModule({
+  name: 'OpenType Font Parser',
   dependencies: [opentypeFactory, parserFactory],
   init(opentypeFactory, parserFactory) {
     const opentype = opentypeFactory()

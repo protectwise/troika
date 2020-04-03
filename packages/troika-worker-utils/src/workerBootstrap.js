@@ -6,7 +6,7 @@ export function workerBootstrap() {
   const modules = Object.create(null)
 
   // Handle messages for registering a module
-  function registerModule({id, dependencies=[], init=function(){}, getTransferables=null}, callback) {
+  function registerModule({id, name, dependencies=[], init=function(){}, getTransferables=null}, callback) {
     // Only register once
     if (modules[id]) return
 
@@ -23,13 +23,18 @@ export function workerBootstrap() {
       })
 
       // Rehydrate functions
-      init = new Function(`return (${init})`)()
+      init = rehydrate(`<${name}>.init`, init)
       if (getTransferables) {
-        getTransferables = new Function(`return (${getTransferables})`)()
+        getTransferables = rehydrate(`<${name}>.getTransferables`, getTransferables)
       }
 
       // Initialize the module and store its value
-      const value = init(...dependencies)
+      let value = null
+      if (typeof init === 'function') {
+        value = init(...dependencies)
+      } else {
+        console.error('worker module init function failed to rehydrate')
+      }
       modules[id] = {
         id,
         value,
@@ -71,6 +76,25 @@ export function workerBootstrap() {
         callback(err)
       }
     }
+  }
+
+  function rehydrate(name, str) {
+    let result = void 0
+    self.troikaDefine = r => result = r
+    let url = URL.createObjectURL(
+      new Blob(
+        [`/** ${name.replace(/\*/g, '')} **/\n\ntroikaDefine(\n${str}\n)`],
+        {type: 'application/javascript'}
+      )
+    )
+    try {
+      importScripts(url)
+    } catch(err) {
+      console.error(err)
+    }
+    URL.revokeObjectURL(url)
+    delete self.troikaDefine
+    return result
   }
 
   // Handler for all messages within the worker

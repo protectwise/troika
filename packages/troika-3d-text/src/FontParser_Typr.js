@@ -98,6 +98,7 @@ function parserFactory(Typr, woff2otf) {
 
 
 const workerModule = defineWorkerModule({
+  name: 'Typr Font Parser',
   dependencies: [typrFactory, woff2otfFactory, parserFactory],
   init(typrFactory, woff2otfFactory, parserFactory) {
     const Typr = typrFactory()

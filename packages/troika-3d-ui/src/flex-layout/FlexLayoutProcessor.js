@@ -17,7 +17,7 @@ export function requestFlexLayout(styleTree, callback) {
 
 
 function createFlexLayoutProcessor(Yoga, loadFontFn, measureFn) {
-  
+
   const YOGA_VALUE_MAPPINGS = {
     align: {
       'auto': 'ALIGN_AUTO',
@@ -246,6 +246,7 @@ function createFlexLayoutProcessor(Yoga, loadFontFn, measureFn) {
 
 
 const flexLayoutProcessorWorkerModule = defineWorkerModule({
+  name: 'FlexLayoutProcessor',
   dependencies: [
     yogaFactory,
     fontProcessorWorkerModule,
@@ -310,7 +311,7 @@ const styleTreeExample = {
   fontSize,
   lineHeight,
   letterSpacing,
-    
+
   children: [{
     //...
   }]

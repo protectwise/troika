@@ -180,6 +180,7 @@ function assign(toObj, fromObj) {
 
 
 export const fontProcessorWorkerModule = defineWorkerModule({
+  name: 'FontProcessor',
   dependencies: [
     CONFIG,
     SDF_DISTANCE_PERCENT,
@@ -199,6 +200,7 @@ export const fontProcessorWorkerModule = defineWorkerModule({
 })
 
 export const processInWorker = defineWorkerModule({
+  name: 'TextBuilder',
   dependencies: [fontProcessorWorkerModule, ThenableWorkerModule],
   init(fontProcessor, Thenable) {
     return function(args) {

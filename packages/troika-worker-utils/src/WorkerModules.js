@@ -3,6 +3,7 @@ import { workerBootstrap } from './workerBootstrap.js'
 
 let _workerModuleId = 0
 let _messageId = 0
+let _allowInitAsString = false
 const workers = Object.create(null)
 const openRequests = Object.create(null)
 openRequests._count = 0
@@ -31,6 +32,8 @@ openRequests._count = 0
  *        It will be passed that response value, and if it returns an array then that will be
  *        used as the "transferables" parameter to `postMessage`. Use this if there are values
  *        in the response that can/should be transfered rather than cloned.
+ * @param {string} [options.name] - A descriptive name for this module; this can be useful for
+ *        debugging but is not currently used for anything else.
  * @param {string} [options.workerId] - By default all modules will run in the same dedicated worker,
  *        but if you want to use multiple workers you can pass a `workerId` to indicate a specific
  *        worker to spawn. Note that each worker is completely standalone and no data or state will
@@ -39,7 +42,7 @@ openRequests._count = 0
  * @return {function(...[*]): {then}}
  */
 export function defineWorkerModule(options) {
-  if (!options || typeof options.init !== 'function') {
+  if ((!options || typeof options.init !== 'function') && !_allowInitAsString) {
     throw new Error('requires `options.init` function')
   }
   let {dependencies, init, getTransferables, workerId} = options
@@ -47,15 +50,19 @@ export function defineWorkerModule(options) {
     workerId = '#default'
   }
   const id = `workerModule${++_workerModuleId}`
+  const name = options.name || id
   let registrationThenable = null
 
   dependencies = dependencies && dependencies.map(dep => {
     // Wrap raw functions as worker modules with no dependencies
     if (typeof dep === 'function' && !dep.workerModuleData) {
+      _allowInitAsString = true
       dep = defineWorkerModule({
         workerId,
-        init: new Function(`return function(){return (${stringifyFunction(dep)})}`)()
+        name: `<${name}> function dependency: ${dep.name}`,
+        init: `function(){return (\n${stringifyFunction(dep)}\n)}`
       })
+      _allowInitAsString = false
     }
     // Grab postable data for worker modules
     if (dep && dep.workerModuleData) {
@@ -82,6 +89,7 @@ export function defineWorkerModule(options) {
   moduleFunc.workerModuleData = {
     isWorkerModule: true,
     id,
+    name,
     dependencies,
     init: stringifyFunction(init),
     getTransferables: getTransferables && stringifyFunction(getTransferables)
@@ -112,7 +120,10 @@ function getWorker(workerId) {
     // Create the worker from the bootstrap function content
     worker = workers[workerId] = new Worker(
       URL.createObjectURL(
-        new Blob([`;(${bootstrap})()`], {type: 'application/javascript'})
+        new Blob(
+          [`/** Worker Module Bootstrap: ${workerId.replace(/\*/g, '')} **/\n\n;(${bootstrap})()`],
+          {type: 'application/javascript'}
+        )
       )
     )
 
