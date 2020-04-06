@@ -56,10 +56,13 @@ const CACHE = new WeakMap() //threejs requires WeakMap internally so should be s
  * @param {String} options.fragmentMainIntro - Custom GLSL code to inject at the top of the fragment
  *        shader's `void main` function.
  * @param {String} options.fragmentMainOutro - Custom GLSL code to inject at the end of the fragment
- *        shader's `void main` function.
+ *        shader's `void main` function. You can manipulate `gl_FragColor` here but keep in mind it goes
+ *        after any of ThreeJS's color postprocessing shader chunks (tonemapping, fog, etc.), so if you
+ *        want those to apply to your changes use `fragmentColorTransform` instead.
  * @param {String} options.fragmentColorTransform - Custom GLSL code to manipulate the `gl_FragColor`
- *        output value. Will be injected after all other `void main` logic has executed but just before
- *        the `fragmentMainOutro`. TODO allow injecting in other places?
+ *        output value. Will be injected near the end of the `void main` function, but before any
+ *        of ThreeJS's color postprocessing shader chunks (tonemapping, fog, etc.), and before the
+ *        `fragmentMainOutro`.
  * @param {function<{vertexShader,fragmentShader}>:{vertexShader,fragmentShader}} options.customRewriter - A function
  *        for performing custom rewrites of the full shader code. Useful if you need to do something
  *        special that's not covered by the other builtin options. This function will be executed before
@@ -250,6 +253,14 @@ function upgradeShaders({vertexShader, fragmentShader}, options, id) {
     vertexShader = expandShaderIncludes(vertexShader)
   }
   if (fragmentColorTransform || customRewriter) {
+    // We need to be able to find postprocessing chunks after include expansion in order to
+    // put them after the fragmentColorTransform, so mark them with comments first. Even if
+    // this particular derivation doesn't have a fragmentColorTransform, other derivations may,
+    // so we still mark them.
+    fragmentShader = fragmentShader.replace(
+      /^[ \t]*#include <((?:tonemapping|encodings|fog|premultiplied_alpha|dithering)_fragment)>/gm,
+      '\n//!BEGIN_POST_CHUNK $1\n$&\n//!END_POST_CHUNK\n'
+    )
     fragmentShader = expandShaderIncludes(fragmentShader)
   }
 
@@ -260,9 +271,18 @@ function upgradeShaders({vertexShader, fragmentShader}, options, id) {
     fragmentShader = res.fragmentShader
   }
 
-  // Treat fragmentColorTransform as an outro
+  // The fragmentColorTransform needs to go before any postprocessing chunks, so extract
+  // those and re-insert them into the outro in the correct place:
   if (fragmentColorTransform) {
-    fragmentMainOutro = `${fragmentColorTransform}\n${fragmentMainOutro}`
+    let postChunks = []
+    fragmentShader = fragmentShader.replace(
+      /^\/\/!BEGIN_POST_CHUNK[^]+?^\/\/!END_POST_CHUNK/gm, // [^]+? = non-greedy match of any chars including newlines
+      match => {
+        postChunks.push(match)
+        return ''
+      }
+    )
+    fragmentMainOutro = `${fragmentColorTransform}\n${postChunks.join('\n')}\n${fragmentMainOutro}`
   }
 
   // Inject auto-updating time uniform if requested
