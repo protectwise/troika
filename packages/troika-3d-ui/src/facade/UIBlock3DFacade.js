@@ -419,7 +419,7 @@ function wheelHandler(e) {
 }
 
 function dragHandler(e) {
-  if (!e._didScroll) {
+  if (!e._didScroll && !e.defaultPrevented) {
     const facade = e.currentTarget
     const ray = e.ray.clone().applyMatrix4(tempMat4.getInverse(facade.threeObject.matrixWorld))
     const localPos = ray.intersectPlane(tempPlane.setComponents(0, 0, 1, 0), new Vector3())
