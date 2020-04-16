@@ -3,6 +3,32 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.23.0](https://github.com/protectwise/troika/compare/v0.22.0...v0.23.0) (2020-04-16)
+
+
+### Bug Fixes
+
+* **troika-3d-text:** selection range rects now honor clipRect, and are instanced ([ba86004](https://github.com/protectwise/troika/commit/ba860049c46d104fb755a192de56e8e397bb4862))
+* **troika-3d-ui:** allow canceling drag-scroll behavior with e.preventDefault() ([eca5f15](https://github.com/protectwise/troika/commit/eca5f15bb83c43d695e1674a6b265f208fb9a3cf))
+* **troika-3d-ui:** prevent sync of text nodes before flex layout finishes ([4769cac](https://github.com/protectwise/troika/commit/4769cac2db7be7a925f1de5160e56ac95e4e97da))
+* **troika-three-utils:** fragmentColorTransform is now inserted prior to postprocessing chunks ([97cd9ac](https://github.com/protectwise/troika/commit/97cd9ac3276c353597a374f1c7d2c7f23993aa7f)), closes [#20](https://github.com/protectwise/troika/issues/20)
+
+
+### Features
+
+* **troika-3d-ui:** add onAfterFlexLayoutApplied hook for `FlexNode`s ([912f95c](https://github.com/protectwise/troika/commit/912f95c9a0817b51cbfaef5872f3c5321c65d1fb))
+* **troika-3d-ui:** allow overriding DatSelect dropdown styles/config ([bf78e79](https://github.com/protectwise/troika/commit/bf78e79951d836e159534c7c545c8a2e7126b996))
+* **troika-worker-modules:** improve rehydration of functions in worker ([8f63090](https://github.com/protectwise/troika/commit/8f63090a5ad4fa3569faeade8e5c532ebfb065c5)), closes [#31](https://github.com/protectwise/troika/issues/31)
+
+
+### Performance Improvements
+
+* **troika-3d-ui:** make bg/border layers instanced, and move clipping to vertex shader ([f7526f4](https://github.com/protectwise/troika/commit/f7526f42f5ad02397aca656eadac80fa0ac13c90))
+
+
+
+
+
 # [0.22.0](https://github.com/protectwise/troika/compare/v0.21.0...v0.22.0) (2020-04-02)
 
 
