@@ -1,4 +1,4 @@
-import { Group3DFacade } from 'troika-3d'
+import { ListFacade } from 'troika-3d'
 import { Matrix4, Plane, Vector3 } from 'three'
 import { getCaretAtPoint, getSelectionRects } from '../selectionUtils.js'
 import SelectionRangeRect from './SelectionRangeRect.js'
@@ -8,16 +8,35 @@ const THICKNESS = 0.25 //rect depth as percentage of height
 const tempMat4 = new Matrix4()
 const tempPlane = new Plane()
 const tempVec3 = new Vector3()
+const noClip = Object.freeze([-Infinity, -Infinity, Infinity, Infinity])
 
 /**
  * Manager facade for selection rects and user selection behavior
  */
-class SelectionManagerFacade extends Group3DFacade {
+class SelectionManagerFacade extends ListFacade {
   constructor (parent, onSelectionChange) {
     super(parent)
     const textMesh = parent.threeObject
 
     this.rangeColor = 0x00ccff
+    this.clipRect = noClip
+
+    this.template = {
+      key: (d, i) => `rect${i}`,
+      facade: SelectionRangeRect,
+      top: d => clamp(d.top, this.clipRect[1], this.clipRect[3]),
+      right: d => clamp(d.right, this.clipRect[0], this.clipRect[2]),
+      bottom: d => clamp(d.bottom, this.clipRect[1], this.clipRect[3]),
+      left: d => clamp(d.left, this.clipRect[0], this.clipRect[2]),
+      z: d => (d.top - d.bottom) * THICKNESS / 2,
+      scaleZ: d => (d.top - d.bottom) * THICKNESS,
+      color: d => this.rangeColor,
+      visible: d => {
+        let r = this.clipRect
+        return d.right > r[0] && d.top > r[1] && d.left < r[2] && d.bottom < r[3]
+      },
+      renderOrder: d => this.renderOrder || 0
+    }
 
     const onDragStart = e => {
       const textRenderInfo = this.textRenderInfo
@@ -29,6 +48,7 @@ class SelectionManagerFacade extends Group3DFacade {
           parent.addEventListener('drag', onDrag)
           parent.addEventListener('dragend', onDragEnd)
         }
+        e.preventDefault()
       }
     }
 
@@ -44,6 +64,7 @@ class SelectionManagerFacade extends Group3DFacade {
             onSelectionChange(this.selectionStart, caret.charIndex)
           }
         }
+        e.preventDefault()
       }
     }
 
@@ -62,18 +83,17 @@ class SelectionManagerFacade extends Group3DFacade {
     }
   }
 
-  describeChildren() {
-    const rects = getSelectionRects(this.textRenderInfo, this.selectionStart, this.selectionEnd)
-    // TODO make the rects into a single draw call, either by instancing or updating a single geometry
-    return rects ? rects.map(({top, right, bottom, left}, i) => ({
-      key: `rect${i}`,
-      facade: SelectionRangeRect,
-      top, right, bottom, left,
-      z: (top - bottom) * THICKNESS / 2,
-      scaleZ: (top - bottom) * THICKNESS,
-      color: this.rangeColor,
-      renderOrder: this.renderOrder || 0
-    })) : null
+  afterUpdate() {
+    this.data = getSelectionRects(this.textRenderInfo, this.selectionStart, this.selectionEnd)
+    super.afterUpdate()
+  }
+
+  // normalize clipRect
+  set clipRect(clipRect) {
+    this._clipRect = (clipRect && Array.isArray(clipRect) && clipRect.length === 4) ? clipRect : noClip
+  }
+  get clipRect() {
+    return this._clipRect
   }
 
   destructor () {
@@ -82,5 +102,8 @@ class SelectionManagerFacade extends Group3DFacade {
   }
 }
 
+function clamp(val, min, max) {
+  return Math.min(max, Math.max(min, val))
+}
 
 export default SelectionManagerFacade
