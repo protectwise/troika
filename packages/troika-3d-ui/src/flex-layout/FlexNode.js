@@ -72,6 +72,11 @@ const { assign, createClassExtender } = utils
  * - parentFlexNode (the nearest parent FlexNode instance, or `null` if this is the root FlexNode)
  * - needsFlexLayout (boolean, can be set to force a recalculation of the full flexbox layout)
  *
+ * If the base class implements an `onAfterFlexLayoutApplied`, that will be invoked after the
+ * results of a flex layout pass have been written to the object. This is a good place to put
+ * custom logic that depends on a completed layout, rather than in `afterUpdate` which may have
+ * layout properties queued but not yet evaluated.
+ *
  * @param {class} BaseFacadeClass
  * @return {FlexNode} a new class that extends the BaseFacadeClass
  */
@@ -219,6 +224,10 @@ export const extendAsFlexNode = createClassExtender('flexNode', BaseFacadeClass 
                 }
                 parent.scrollHeight = h
               }
+            }
+
+            if (facade.onAfterFlexLayoutApplied) {
+              facade.onAfterFlexLayoutApplied()
             }
           }
         }
