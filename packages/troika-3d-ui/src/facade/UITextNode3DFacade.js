@@ -3,7 +3,7 @@ import { Text3DFacade } from 'troika-3d-text'
 import { getInheritable } from '../uiUtils.js'
 
 const flexLayoutTextProps = ['text', 'font', 'fontSize', 'lineHeight', 'letterSpacing', 'whiteSpace', 'overflowWrap']
-
+const noop = () => {}
 
 /**
  * Wrapper for Text3DFacade that lets it act as a flex layout node. This shouldn't be used
@@ -11,6 +11,15 @@ const flexLayoutTextProps = ['text', 'font', 'fontSize', 'lineHeight', 'letterSp
  * configured with a `text` property.
  */
 class UITextNode3DFacade extends Text3DFacade {
+  constructor (props) {
+    super(props)
+
+    // Override the sync method so we can have control over when it's called
+    let mesh = this.threeObject
+    mesh._actuallySync = mesh.sync
+    mesh.sync = noop
+  }
+
   afterUpdate() {
     // Read computed layout
     const {
@@ -25,7 +34,6 @@ class UITextNode3DFacade extends Text3DFacade {
       let parent = this.parentFlexNode
       this.x = offsetLeft - parent.scrollLeft
       this.y = -(offsetTop - parent.scrollTop)
-      this.maxWidth = offsetWidth
 
       // Update clip rect based on parent
       const clipRect = this.clipRect || (this.clipRect = [0, 0, 0, 0])
@@ -50,9 +58,12 @@ class UITextNode3DFacade extends Text3DFacade {
       }
     }
 
-    this.threeObject.visible = hasLayout
-
     super.afterUpdate()
+  }
+
+  onAfterFlexLayoutApplied() {
+    this.threeObject.maxWidth = this.offsetWidth
+    this.threeObject._actuallySync(this._afterSync)
   }
 
   getBoundingSphere() {
