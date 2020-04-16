@@ -8,6 +8,7 @@ class DatSelectFacade extends PopupOwner {
   constructor(parent) {
     super(parent)
     this.position = 'relative'
+    this.dropdownConfig = null
 
     this._onItemClick = e => {
       this.onUpdate(e.target.value)
@@ -114,7 +115,7 @@ class DatSelectFacade extends PopupOwner {
     }, [])
 
     this._btnChild.children[0] = currentOption ? currentOption.label : '[Select...]'
-
+    Object.assign(this.popupContent, this.dropdownConfig)
     this._menuListDef.data = options
 
     super.afterUpdate()
