@@ -68,16 +68,24 @@ const atlases = Object.create(null)
 
 /**
  * @typedef {object} TroikaTextRenderInfo - Format of the result from `getTextRenderInfo`.
- * @property {DataTexture} sdfTexture
- * @property {number} sdfGlyphSize
- * @property {number} sdfMinDistancePercent
- * @property {Float32Array} glyphBounds
- * @property {Float32Array} glyphAtlasIndices
- * @property {Float32Array} [caretPositions]
- * @property {number} [caretHeight]
- * @property {Array<number>} totalBounds
- * @property {Array<number>} totalBlockSize
- * @property {Array<number>} chunkedBounds
+ * @property {DataTexture} sdfTexture - The SDF atlas texture.
+ * @property {number} sdfGlyphSize - See `configureTextBuilder#config.sdfGlyphSize`
+ * @property {number} sdfMinDistancePercent - See `SDF_DISTANCE_PERCENT`
+ * @property {Float32Array} glyphBounds - List of [minX, minY, maxX, maxY] quad bounds for each glyph.
+ * @property {Float32Array} glyphAtlasIndices - List holding each glyph's index in the SDF atlas
+ * @property {Float32Array} [caretPositions] - A list of caret positions for all glyphs; this is
+ *           the bottom [x,y] of the cursor position before each char, plus one after the last char.
+ * @property {number} [caretHeight] - An appropriate height for all selection carets.
+ * @property {number} ascender - The font's ascender metric.
+ * @property {number} descender - The font's descender metric.
+ * @property {number} lineHeight - The final computed lineHeight measurement.
+ * @property {number} topBaseline - The y position of the top line's baseline.
+ * @property {Array<number>} totalBounds - The total [minX, minY, maxX, maxY] rect including all glyph
+ *           quad bounds; this will be slightly larger than the actual glyph path edges due to SDF padding.
+ * @property {Array<number>} totalBlockSize - The [width, height] of the text block; this does not include
+ *           extra SDF padding so it is accurate to use for measurement.
+ * @property {Array<number>} chunkedBounds - List of bounding rects for each consecutive set of N glyphs,
+ *           in the format `{start:N, end:N, rect:[minX, minY, maxX, maxY]}`.
  * @frozen
  */
 
@@ -163,8 +171,12 @@ export function getTextRenderInfo(args, callback) {
       glyphAtlasIndices: result.glyphAtlasIndices,
       caretPositions: result.caretPositions,
       caretHeight: result.caretHeight,
-      totalBounds: result.totalBounds,
       chunkedBounds: result.chunkedBounds,
+      ascender: result.ascender,
+      descender: result.descender,
+      lineHeight: result.lineHeight,
+      topBaseline: result.topBaseline,
+      totalBounds: result.totalBounds,
       totalBlockSize: result.totalBlockSize
     }))
   })

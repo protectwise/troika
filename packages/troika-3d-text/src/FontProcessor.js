@@ -207,6 +207,7 @@ export default function createFontProcessor(fontParser, sdfGenerator, config) {
       // Determine line height and leading adjustments
       lineHeight = lineHeight * fontSize
       const halfLeading = (lineHeight - (ascender - descender) * fontSizeMult) / 2
+      const topBaseline = -(fontSize + halfLeading)
       const caretHeight = Math.min(lineHeight, (ascender - descender) * fontSizeMult)
       const caretBottomOffset = (ascender + descender) / 2 * fontSizeMult - caretHeight / 2
 
@@ -295,7 +296,7 @@ export default function createFontProcessor(fontParser, sdfGenerator, config) {
         // Process each line, applying alignment offsets, adding each glyph to the atlas, and
         // collecting all renderable glyphs into a single collection.
         const renderableGlyphs = []
-        let lineYOffset = -(fontSize + halfLeading)
+        let lineYOffset = topBaseline
         if (includeCaretPositions) {
           caretPositions = new Float32Array(text.length * 3)
         }
@@ -453,8 +454,12 @@ export default function createFontProcessor(fontParser, sdfGenerator, config) {
         glyphAtlasIndices, //atlas indices for each glyph
         caretPositions, //x,y of bottom of cursor position before each char, plus one after last char
         caretHeight, //height of cursor from bottom to top
-        totalBounds, //total rect including all glyphBounds; will be slightly larger than glyph edges due to SDF padding
         chunkedBounds, //total rects per (n=chunkedBoundsSize) consecutive glyphs
+        ascender: ascender * fontSizeMult, //font ascender
+        descender: descender * fontSizeMult, //font descender
+        lineHeight, //computed line height
+        topBaseline, //y coordinate of the top line's baseline
+        totalBounds, //total rect including all glyphBounds; will be slightly larger than glyph edges due to SDF padding
         totalBlockSize: [maxLineWidth, lines.length * lineHeight], //width and height of the text block; accurate for layout measurement
         newGlyphSDFs: newGlyphs //if this request included any new SDFs for the atlas, they'll be included here
       })
