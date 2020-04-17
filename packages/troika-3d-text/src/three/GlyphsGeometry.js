@@ -67,11 +67,15 @@ class GlyphsGeometry extends InstancedBufferGeometry {
    * @param {Float32Array} glyphAtlasIndices - An array holding the index of each glyph within
    *        the SDF atlas texture.
    * @param {Array} totalBounds - An array holding the [minX, minY, maxX, maxY] across all glyphs
+   * @param {Array} [chunkedBounds] - An array of objects describing bounds for each chunk of N
+   *        consecutive glyphs: `{start:N, end:N, rect:[minX, minY, maxX, maxY]}`. This can be
+   *        used with `applyClipRect` to choose an optimized `maxInstancedCount`.
    */
-  updateGlyphs(glyphBounds, glyphAtlasIndices, totalBounds) {
+  updateGlyphs(glyphBounds, glyphAtlasIndices, totalBounds, chunkedBounds) {
     // Update the instance attributes
     updateBufferAttr(this, glyphBoundsAttrName, glyphBounds, 4)
     updateBufferAttr(this, glyphIndexAttrName, glyphAtlasIndices, 1)
+    this._chunkedBounds = chunkedBounds
     this.maxInstancedCount = glyphAtlasIndices.length
 
     // Update the boundingSphere based on the total bounds
@@ -82,6 +86,35 @@ class GlyphsGeometry extends InstancedBufferGeometry {
       0
     )
     sphere.radius = sphere.center.distanceTo(tempVec3.set(totalBounds[0], totalBounds[1], 0))
+  }
+
+  /**
+   * Given a clipping rect, and the chunkedBounds from the last updateGlyphs call, choose the lowest
+   * `maxInstancedCount` that will show all glyphs within the clipped view. This is an optimization
+   * for long blocks of text that are clipped, to skip vertex shader evaluation for glyphs that would
+   * be clipped anyway.
+   *
+   * Note that since `drawElementsInstanced[ANGLE]` only accepts an instance count and not a starting
+   * offset, this optimization becomes less effective as the clipRect moves closer to the end of the
+   * text block. We could fix that by switching from instancing to a full geometry with a drawRange,
+   * but at the expense of much larger attribute buffers (see classdoc above.)
+   *
+   * @param {Vector4} clipRect
+   */
+  applyClipRect(clipRect) {
+    let count = this.getAttribute(glyphIndexAttrName).count
+    let chunks = this._chunkedBounds
+    if (chunks) {
+      for (let i = chunks.length; i--;) {
+        count = chunks[i].end
+        let rect = chunks[i].rect
+        // note: both rects are l-b-r-t
+        if (rect[1] < clipRect.w && rect[3] > clipRect.y && rect[0] < clipRect.z && rect[2] > clipRect.x) {
+          break
+        }
+      }
+    }
+    this.maxInstancedCount = count
   }
 }
 

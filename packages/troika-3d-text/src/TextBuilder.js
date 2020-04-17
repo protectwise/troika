@@ -77,6 +77,7 @@ const atlases = Object.create(null)
  * @property {number} [caretHeight]
  * @property {Array<number>} totalBounds
  * @property {Array<number>} totalBlockSize
+ * @property {Array<number>} chunkedBounds
  * @frozen
  */
 
@@ -163,6 +164,7 @@ export function getTextRenderInfo(args, callback) {
       caretPositions: result.caretPositions,
       caretHeight: result.caretHeight,
       totalBounds: result.totalBounds,
+      chunkedBounds: result.chunkedBounds,
       totalBlockSize: result.totalBlockSize
     }))
   })

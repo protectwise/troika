@@ -205,7 +205,12 @@ class TextMesh extends Mesh {
           this._textRenderInfo = textRenderInfo
 
           // Update the geometry attributes
-          this.geometry.updateGlyphs(textRenderInfo.glyphBounds, textRenderInfo.glyphAtlasIndices, textRenderInfo.totalBounds)
+          this.geometry.updateGlyphs(
+            textRenderInfo.glyphBounds,
+            textRenderInfo.glyphAtlasIndices,
+            textRenderInfo.totalBounds,
+            textRenderInfo.chunkedBounds
+          )
 
           // If we had extra sync requests queued up, kick it off
           const queued = this._queuedSyncs
@@ -233,7 +238,7 @@ class TextMesh extends Mesh {
    */
   onBeforeRender() {
     this.sync()
-    this._prepareMaterial()
+    this._prepareForRender()
   }
 
   /**
@@ -288,7 +293,7 @@ class TextMesh extends Mesh {
     return this.material.getDistanceMaterial()
   }
 
-  _prepareMaterial() {
+  _prepareForRender() {
     const material = this._derivedMaterial
     const uniforms = material.uniforms
     const textInfo = this.textRenderInfo
@@ -311,6 +316,7 @@ class TextMesh extends Mesh {
           Math.min(totalBounds[3], clipRect[3])
         )
       }
+      this.geometry.applyClipRect(uniforms.uTroikaClipRect.value)
     }
     uniforms.uTroikaSDFDebug.value = !!this.debugSDF
     material.polygonOffset = !!this.depthOffset

@@ -163,7 +163,8 @@ export default function createFontProcessor(fontParser, sdfGenerator, config) {
       whiteSpace='normal',
       overflowWrap='normal',
       anchor,
-      includeCaretPositions=false
+      includeCaretPositions=false,
+      chunkedBoundsSize=8192
     },
     callback,
     metricsOnly=false
@@ -188,6 +189,7 @@ export default function createFontProcessor(fontParser, sdfGenerator, config) {
       let glyphAtlasIndices = null
       let caretPositions = null
       let totalBounds = null
+      let chunkedBounds = null
       let maxLineWidth = 0
       let canWrap = whiteSpace !== 'nowrap'
       const {ascender, descender, unitsPerEm} = fontObj
@@ -418,6 +420,8 @@ export default function createFontProcessor(fontParser, sdfGenerator, config) {
         glyphBounds = new Float32Array(renderableGlyphs.length * 4)
         glyphAtlasIndices = new Float32Array(renderableGlyphs.length)
         totalBounds = [INF, INF, -INF, -INF]
+        chunkedBounds = []
+        let chunk
         renderableGlyphs.forEach((glyphInfo, i) => {
           const {renderingBounds, atlasIndex} = glyphInfo.atlasInfo
           const x0 = glyphBounds[i * 4] = glyphInfo.x + renderingBounds[0] * fontSizeMult + anchorXOffset
@@ -430,6 +434,16 @@ export default function createFontProcessor(fontParser, sdfGenerator, config) {
           if (x1 > totalBounds[2]) totalBounds[2] = x1
           if (y1 > totalBounds[3]) totalBounds[3] = y1
 
+          if (i % chunkedBoundsSize === 0) {
+            chunk = {start: i, end: i, rect: [INF, INF, -INF, -INF]}
+            chunkedBounds.push(chunk)
+          }
+          chunk.end++
+          if (x0 < chunk.rect[0]) chunk.rect[0] = x0
+          if (y0 < chunk.rect[1]) chunk.rect[1] = y0
+          if (x1 > chunk.rect[2]) chunk.rect[2] = x1
+          if (y1 > chunk.rect[3]) chunk.rect[3] = y1
+
           glyphAtlasIndices[i] = atlasIndex
         })
       }
@@ -440,6 +454,7 @@ export default function createFontProcessor(fontParser, sdfGenerator, config) {
         caretPositions, //x,y of bottom of cursor position before each char, plus one after last char
         caretHeight, //height of cursor from bottom to top
         totalBounds, //total rect including all glyphBounds; will be slightly larger than glyph edges due to SDF padding
+        chunkedBounds, //total rects per (n=chunkedBoundsSize) consecutive glyphs
         totalBlockSize: [maxLineWidth, lines.length * lineHeight], //width and height of the text block; accurate for layout measurement
         newGlyphSDFs: newGlyphs //if this request included any new SDFs for the atlas, they'll be included here
       })
