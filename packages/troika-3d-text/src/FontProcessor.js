@@ -1,9 +1,9 @@
 /**
  * Creates a self-contained environment for processing text rendering requests.
  *
- * It is important that this function has no external dependencies, so that it can be easily injected
- * into the source for a Worker without requiring a build step or complex dependency loading. Its sole
- * dependency, a `fontParser` implementation function, must be passed in at initialization.
+ * It is important that this function has no closure dependencies, so that it can be easily injected
+ * into the source for a Worker without requiring a build step or complex dependency loading. All its
+ * dependencies must be passed in at initialization.
  *
  * @param {function} fontParser - a function that accepts an ArrayBuffer of the font data and returns
  * a standardized structure giving access to the font and its glyphs:
@@ -36,7 +36,7 @@
  * @param {Object} config
  * @return {Object}
  */
-export default function createFontProcessor(fontParser, sdfGenerator, config) {
+export function createFontProcessor(fontParser, sdfGenerator, config) {
 
   const {
     defaultFontUrl

@@ -1,7 +1,8 @@
-import { DataTexture, LinearFilter, LuminanceFormat, Vector2 } from 'three'
+import { DataTexture, LinearFilter, LuminanceFormat } from 'three'
 import { defineWorkerModule, ThenableWorkerModule } from 'troika-worker-utils'
-import createSDFGenerator from './SDFGenerator.js'
-import createFontProcessor from './FontProcessor.js'
+import { createSDFGenerator } from './SDFGenerator.js'
+import { createFontProcessor } from './FontProcessor.js'
+import { createGlyphSegmentsQuadtree } from './GlyphSegmentsQuadtree'
 
 // Choose parser impl:
 import fontParser from './FontParser_Typr.js'
@@ -199,14 +200,18 @@ export const fontProcessorWorkerModule = defineWorkerModule({
     CONFIG,
     SDF_DISTANCE_PERCENT,
     fontParser,
+    createGlyphSegmentsQuadtree,
     createSDFGenerator,
     createFontProcessor
   ],
-  init(config, sdfDistancePercent, fontParser, createSDFGenerator, createFontProcessor) {
-    const sdfGenerator = createSDFGenerator({
-      sdfTextureSize: config.sdfGlyphSize,
-      sdfDistancePercent
-    })
+  init(config, sdfDistancePercent, fontParser, createGlyphSegmentsQuadtree, createSDFGenerator, createFontProcessor) {
+    const sdfGenerator = createSDFGenerator(
+      createGlyphSegmentsQuadtree,
+      {
+        sdfTextureSize: config.sdfGlyphSize,
+        sdfDistancePercent
+      }
+    )
     return createFontProcessor(fontParser, sdfGenerator, {
       defaultFontUrl: config.defaultFontURL
     })
