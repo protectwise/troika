@@ -1,6 +1,7 @@
 node_modules
 coverage
 dist
+.idea
 .tmp
 .DS_store
 lerna-debug.log
