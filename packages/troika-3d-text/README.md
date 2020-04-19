@@ -104,9 +104,19 @@ Default: _none_
 
 #### `anchor`
 
-Defines what position within the text block should correspond to the local origin, as a set of horizontal and vertical percentages from 0 to 1. A value of `[0, 0]` anchors at the block's top-left, `[1, 1]` at its bottom-right, and `[0.5, 0.5]` centers the block on the origin.
+This property is deprecated as of version 0.24.0; use `anchorX` and `anchorY` instead.
 
-Default: `[0, 0]`
+#### `anchorX`
+
+Defines the horizontal position in the text block that should line up with the local origin. Can be specified as a numeric `x` position in local units, a string percentage of the total text block width e.g. `'25%'`, or one of the following keyword strings: `'left'`, `'center'`, or `'right'`.
+
+Default: `0`
+
+#### `anchorY`
+
+Defines the vertical position in the text block that should line up with the local origin. Can be specified as a numeric `y` position in local units (note: down is negative y), a string percentage of the total text block height e.g. `'25%'`, or one of the following keyword strings: `'top'`, `'top-baseline'`, `'middle'`, `'bottom-baseline'`, or `'bottom'`.
+
+Default: `0`
 
 #### `clipRect`
 

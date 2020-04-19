@@ -51,13 +51,32 @@ class TextMesh extends Mesh {
     this.text = ''
 
     /**
+     * @deprecated Use `anchorX` and `anchorY` instead
      * @member {Array<number>} anchor
      * Defines where in the text block should correspond to the mesh's local position, as a set
      * of horizontal and vertical percentages from 0 to 1. A value of `[0, 0]` (the default)
      * anchors at the top-left, `[1, 1]` at the bottom-right, and `[0.5, 0.5]` centers the
      * block at the mesh's position.
      */
-    this.anchor = null
+    //this.anchor = null
+
+    /**
+     * @member {number|string} anchorX
+     * Defines the horizontal position in the text block that should line up with the local origin.
+     * Can be specified as a numeric x position in local units, a string percentage of the total
+     * text block width e.g. `'25%'`, or one of the following keyword strings: 'left', 'center',
+     * or 'right'.
+     */
+    this.anchorX = 0
+
+    /**
+     * @member {number|string} anchorX
+     * Defines the vertical position in the text block that should line up with the local origin.
+     * Can be specified as a numeric y position in local units (note: down is negative y), a string
+     * percentage of the total text block height e.g. `'25%'`, or one of the following keyword strings:
+     * 'top', 'top-baseline', 'middle', 'bottom-baseline', or 'bottom'.
+     */
+    this.anchorY = 0
 
     /**
      * @member {string} font
@@ -196,7 +215,8 @@ class TextMesh extends Mesh {
           textAlign: this.textAlign,
           whiteSpace: this.whiteSpace,
           overflowWrap: this.overflowWrap,
-          anchor: this.anchor,
+          anchorX: this.anchorX,
+          anchorY: this.anchorY,
           includeCaretPositions: true //TODO parameterize
         }, textRenderInfo => {
           this._isSyncing = false
@@ -382,29 +402,46 @@ const SYNCABLE_PROPS = [
   'text',
   'textAlign',
   'whiteSpace',
-  'anchor'
+  'anchorX',
+  'anchorY'
 ]
 SYNCABLE_PROPS.forEach(prop => {
   const privateKey = '_private_' + prop
   Object.defineProperty(TextMesh.prototype, prop, {
-    get: function() {
+    get() {
       return this[privateKey]
     },
-    set: prop === 'anchor'
-      ? function(value) {
-        if (JSON.stringify(value) !== JSON.stringify(this[privateKey])) {
-          this[privateKey] = value
-          this._needsSync = true
-        }
+    set(value) {
+      if (value !== this[privateKey]) {
+        this[privateKey] = value
+        this._needsSync = true
       }
-      : function(value) {
-        if (value !== this[privateKey]) {
-          this[privateKey] = value
-          this._needsSync = true
-        }
-      }
+    }
   })
 })
+
+
+// Deprecation handler for `anchor` array:
+let deprMsgShown = false
+Object.defineProperty(TextMesh.prototype, 'anchor', {
+  get() {
+    return this._deprecated_anchor
+  },
+  set(val) {
+    this._deprecated_anchor = val
+    if (!deprMsgShown) {
+      console.warn('TextMesh: `anchor` has been deprecated; use `anchorX` and `anchorY` instead.')
+      deprMsgShown = true
+    }
+    if (Array.isArray(val)) {
+      this.anchorX = `${(+val[0] || 0) * 100}%`
+      this.anchorY = `${(+val[1] || 0) * 100}%`
+    } else {
+      this.anchorX = this.anchorY = 0
+    }
+  }
+})
+
 
 
 

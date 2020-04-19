@@ -162,7 +162,8 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
       textAlign='left',
       whiteSpace='normal',
       overflowWrap='normal',
-      anchor,
+      anchorX = 0,
+      anchorY = 0,
       includeCaretPositions=false,
       chunkedBoundsSize=8192
     },
@@ -398,13 +399,31 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
         // Find overall position adjustments for anchoring
         let anchorXOffset = 0
         let anchorYOffset = 0
-        if (anchor) {
-          // TODO allow string keywords?
-          if (anchor[0]) {
-            anchorXOffset = -maxLineWidth * anchor[0]
+        if (anchorX) {
+          if (typeof anchorX === 'number') {
+            anchorXOffset = -anchorX
           }
-          if (anchor[1]) {
-            anchorYOffset = lines.length * lineHeight * anchor[1]
+          else if (typeof anchorX === 'string') {
+            anchorXOffset = -maxLineWidth * (
+              anchorX === 'left' ? 0 :
+              anchorX === 'center' ? 0.5 :
+              anchorX === 'right' ? 1 :
+              parsePercent(anchorX)
+            )
+          }
+        }
+        if (anchorY) {
+          if (typeof anchorY === 'number') {
+            anchorYOffset = -anchorY
+          }
+          else if (typeof anchorY === 'string') {
+            let height = lines.length * lineHeight
+            anchorYOffset = anchorY === 'top' ? 0 :
+              anchorY === 'top-baseline' ? -topBaseline :
+              anchorY === 'middle' ? height / 2 :
+              anchorY === 'bottom' ? height :
+              anchorY === 'bottom-baseline' ? height - halfLeading + descender * fontSizeMult :
+              parsePercent(anchorY) * height
           }
         }
 
@@ -480,6 +499,12 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
         height: result.totalBlockSize[1]
       })
     }, {metricsOnly: true})
+  }
+
+  function parsePercent(str) {
+    let match = str.match(/^([\d.]+)%$/)
+    let pct = match ? parseFloat(match[1]) : NaN
+    return isNaN(pct) ? 0 : pct / 100
   }
 
   return {

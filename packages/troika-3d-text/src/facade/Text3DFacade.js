@@ -5,7 +5,8 @@ import SelectionManagerFacade from './SelectionManagerFacade.js'
 // Properties that will simply be forwarded to the TextMesh:
 const TEXT_MESH_PROPS = [
   'text',
-  'anchor',
+  'anchorX',
+  'anchorY',
   'font',
   'fontSize',
   'letterSpacing',
