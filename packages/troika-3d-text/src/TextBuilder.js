@@ -36,7 +36,7 @@ let hasRequested = false
  *                 2048^2 allows for 1024 glyphs.) This can be increased if you need to increase the
  *                 glyph size and/or have an extraordinary number of glyphs.
  */
-export function configureTextBuilder(config) {
+function configureTextBuilder(config) {
   if (hasRequested) {
     console.warn('configureTextBuilder called after first font request; will be ignored.')
   } else {
@@ -87,6 +87,8 @@ const atlases = Object.create(null)
  *           extra SDF padding so it is accurate to use for measurement.
  * @property {Array<number>} chunkedBounds - List of bounding rects for each consecutive set of N glyphs,
  *           in the format `{start:N, end:N, rect:[minX, minY, maxX, maxY]}`.
+ * @property {object} timings - Timing info for various parts of the rendering logic including SDF
+ *           generation, layout, etc.
  * @frozen
  */
 
@@ -101,7 +103,7 @@ const atlases = Object.create(null)
  * @param {object} args
  * @param {getTextRenderInfo~callback} callback
  */
-export function getTextRenderInfo(args, callback) {
+function getTextRenderInfo(args, callback) {
   args = assign({}, args)
 
   // Apply default font here to avoid a 'null' atlas, and convert relative
@@ -178,10 +180,31 @@ export function getTextRenderInfo(args, callback) {
       lineHeight: result.lineHeight,
       topBaseline: result.topBaseline,
       totalBounds: result.totalBounds,
-      totalBlockSize: result.totalBlockSize
+      totalBlockSize: result.totalBlockSize,
+      timings: result.timings
     }))
   })
 }
+
+
+/**
+ * Preload a given font and optionally pre-generate glyph SDFs for one or more character sequences.
+ * This can be useful to avoid long pauses when first showing text in a scene, by preloading the
+ * needed fonts and glyphs up front along with other assets.
+ *
+ * @param {string} font - URL of the font file to preload. If not given, the default font will
+ *        be loaded.
+ * @param {string|string[]} charSequences - One or more character sequences for which to pre-
+ *        generate glyph SDFs. Note that this will honor ligature substitution, so you may need
+ *        to specify ligature sequences in addition to their individual characters to get all
+ *        possible glyphs, e.g. `["t", "h", "th"]` to get the "t" and "h" glyphs plus the "th" ligature.
+ * @param {function} callback - A function that will be called when the preloading is complete.
+ */
+function preloadFont(font, charSequences, callback) {
+  let text = Array.isArray(charSequences) ? charSequences.join('\n') : '' + charSequences
+  getTextRenderInfo({ font, text }, callback)
+}
+
 
 // Local assign impl so we don't have to import troika-core
 function assign(toObj, fromObj) {
@@ -194,7 +217,7 @@ function assign(toObj, fromObj) {
 }
 
 
-export const fontProcessorWorkerModule = defineWorkerModule({
+const fontProcessorWorkerModule = defineWorkerModule({
   name: 'FontProcessor',
   dependencies: [
     CONFIG,
@@ -218,7 +241,7 @@ export const fontProcessorWorkerModule = defineWorkerModule({
   }
 })
 
-export const processInWorker = defineWorkerModule({
+const processInWorker = defineWorkerModule({
   name: 'TextBuilder',
   dependencies: [fontProcessorWorkerModule, ThenableWorkerModule],
   init(fontProcessor, Thenable) {
@@ -270,3 +293,11 @@ window._dumpSDFs = function() {
   })
 }
 */
+
+
+export {
+  configureTextBuilder,
+  getTextRenderInfo,
+  preloadFont,
+  fontProcessorWorkerModule
+}

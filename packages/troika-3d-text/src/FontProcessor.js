@@ -170,6 +170,9 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
     callback,
     metricsOnly=false
   ) {
+    const mainStart = now()
+    const timings = {total: 0, fontLoad: 0, layout: 0, sdf: {}, sdfTotal: 0}
+
     // Ensure newlines are normalized
     if (text.indexOf('\r') > -1) {
       console.warn('FontProcessor.process: got text with \\r chars; normalizing to \\n')
@@ -194,6 +197,8 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
       let maxLineWidth = 0
       let canWrap = whiteSpace !== 'nowrap'
       const {ascender, descender, unitsPerEm} = fontObj
+      timings.fontLoad = now() - mainStart
+      const layoutStart = now()
 
       // Find conversion between native font units and fontSize units; this will already be done
       // for the gx/gy values below but everything else we'll need to convert
@@ -369,7 +374,9 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
                 // If we haven't seen this glyph yet, generate its SDF
                 let glyphAtlasInfo = atlas.glyphs[glyphObj.index]
                 if (!glyphAtlasInfo) {
+                  const sdfStart = now()
                   const glyphSDFData = sdfGenerator(glyphObj)
+                  timings.sdf[glyphInfo.char] = now() - sdfStart
 
                   // Assign this glyph the next available atlas index
                   glyphSDFData.atlasIndex = atlas.glyphCount++
@@ -468,6 +475,13 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
         })
       }
 
+      // Timing stats
+      for (let ch in timings.sdf) {
+        timings.sdfTotal += timings.sdf[ch]
+      }
+      timings.layout = now() - layoutStart - timings.sdfTotal
+      timings.total = now() - mainStart
+
       callback({
         glyphBounds, //rendering quad bounds for each glyph [x1, y1, x2, y2]
         glyphAtlasIndices, //atlas indices for each glyph
@@ -480,7 +494,8 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
         topBaseline, //y coordinate of the top line's baseline
         totalBounds, //total rect including all glyphBounds; will be slightly larger than glyph edges due to SDF padding
         totalBlockSize: [maxLineWidth, lines.length * lineHeight], //width and height of the text block; accurate for layout measurement
-        newGlyphSDFs: newGlyphs //if this request included any new SDFs for the atlas, they'll be included here
+        newGlyphSDFs: newGlyphs, //if this request included any new SDFs for the atlas, they'll be included here
+        timings
       })
     })
   }
@@ -505,6 +520,10 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
     let match = str.match(/^([\d.]+)%$/)
     let pct = match ? parseFloat(match[1]) : NaN
     return isNaN(pct) ? 0 : pct / 100
+  }
+
+  function now() {
+    return (self.performance || Date).now()
   }
 
   return {

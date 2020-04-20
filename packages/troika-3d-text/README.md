@@ -203,3 +203,29 @@ Note that `'normal'` in this context _does_ honor newline characters to manually
 
 Default: `'normal'`
 
+
+## Preloading
+
+To avoid long pauses when first displaying a piece of text in your scene, you can preload fonts and optionally pre-generate the SDF textures for particular glyphs up front:
+
+```js
+import {preloadFont} from 'troika-3d-text'
+
+myApp.showLoadingScreen()
+
+preloadFont(
+  'path/to/myfontfile.woff', 
+  'abcdefghijklmnopqrstuvwxyz',
+  () => {
+    myApp.showScene()
+  }
+)
+```
+
+The arguments are:
+
+- `font` - The URL of the font file to preload. If `null` is passed, this will preload the default font.
+
+- `charSequences` - A string or array of string character sequences for which to pre-generate glyph SDF textures. Note that this _will_ honor ligature substitution, so you may need to specify ligature sequences in addition to their individual characters to get all possible glyphs, e.g. `["t", "h", "th"]` to get the "t" and "h" glyphs plus the "th" glyph.
+
+- `callback` - A function that will be called when the preloading is complete.
