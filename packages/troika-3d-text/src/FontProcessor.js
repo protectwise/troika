@@ -219,19 +219,24 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
 
       // Distribute glyphs into lines based on wrapping
       let lineXOffset = 0
-      let currentLine = {glyphs: [], width: 0}
+      let currentLine = {glyphs: [], width: 0, isSoftWrapped: false}
       const lines = [currentLine]
       fontObj.forEachGlyph(text, fontSize, letterSpacing, (glyphObj, glyphX, charIndex) => {
         const char = text.charAt(charIndex)
         const glyphWidth = glyphObj.advanceWidth * fontSizeMult
-        const isWhitespace = !!char && /\s/.test(char)
         const curLineGlyphs = currentLine.glyphs
         let nextLineGlyphs
 
+        // Calc isWhitespace and isEmpty once per glyphObj
+        if (!('isEmpty' in glyphObj)) {
+          glyphObj.isWhitespace = !!char && /\s/.test(char)
+          glyphObj.isEmpty = glyphObj.xMin === glyphObj.xMax || glyphObj.yMin === glyphObj.yMax
+        }
+
         // If a non-whitespace character overflows the max width, we need to soft-wrap
-        if (canWrap && hasMaxWidth && !isWhitespace && glyphX + glyphWidth + lineXOffset > maxWidth && curLineGlyphs.length) {
+        if (canWrap && hasMaxWidth && !glyphObj.isWhitespace && glyphX + glyphWidth + lineXOffset > maxWidth && curLineGlyphs.length) {
           // If it's the first char after a whitespace, start a new line
-          if (curLineGlyphs[curLineGlyphs.length - 1].isWhitespace) {
+          if (curLineGlyphs[curLineGlyphs.length - 1].glyphObj.isWhitespace) {
             nextLineGlyphs = []
             lineXOffset = -glyphX
           } else {
@@ -244,7 +249,7 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
                 break
               }
               // Found a soft break point; move all chars since it to a new line
-              else if (curLineGlyphs[i].isWhitespace) {
+              else if (curLineGlyphs[i].glyphObj.isWhitespace) {
                 nextLineGlyphs = curLineGlyphs.splice(i + 1)
                 const adjustX = nextLineGlyphs[0].x
                 lineXOffset -= adjustX
@@ -257,7 +262,7 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
           }
           if (nextLineGlyphs) {
             currentLine.isSoftWrapped = true
-            currentLine = {glyphs: nextLineGlyphs, width: 0}
+            currentLine = {glyphs: nextLineGlyphs, width: 0, isSoftWrapped: false}
             lines.push(currentLine)
             maxLineWidth = maxWidth //after soft wrapping use maxWidth as calculated width
           }
@@ -268,16 +273,13 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
           x: glyphX + lineXOffset,
           y: 0, //added later
           width: glyphWidth,
-          char: char,
           charIndex,
-          isWhitespace,
-          isEmpty: glyphObj.xMin === glyphObj.xMax || glyphObj.yMin === glyphObj.yMax,
           atlasInfo: null //added later
         })
 
         // Handle hard line breaks
         if (char === '\n') {
-          currentLine = {glyphs: [], width: 0}
+          currentLine = {glyphs: [], width: 0, isSoftWrapped: false}
           lines.push(currentLine)
           lineXOffset = -(glyphX + glyphWidth + (letterSpacing * fontSize))
         }
@@ -288,7 +290,7 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
         const lineGlyphs = line.glyphs
         for (let i = lineGlyphs.length; i--;) {
           const lastChar = lineGlyphs[i]
-          if (!lastChar.isWhitespace) {
+          if (!lastChar.glyphObj.isWhitespace) {
             line.width = lastChar.x + lastChar.width
             if (line.width > maxLineWidth) {
               maxLineWidth = line.width
@@ -314,38 +316,40 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
           if (lineGlyphs.length) {
             // Find x offset for horizontal alignment
             let lineXOffset = 0
-            let whitespaceCount = 0
+            let justifyAdjust = 0
             if (textAlign === 'center') {
               lineXOffset = (maxLineWidth - lineWidth) / 2
             } else if (textAlign === 'right') {
               lineXOffset = maxLineWidth - lineWidth
-            } else if (textAlign === 'justify') {
+            } else if (textAlign === 'justify' && line.isSoftWrapped) {
               // just count the non-trailing whitespace characters, and we'll adjust the offsets per
               // character in the next loop
+              let whitespaceCount = 0
               for (let i = lineGlyphs.length; i--;) {
-                if (!lineGlyphs[i].isWhitespace) {
+                if (!lineGlyphs[i].glyphObj.isWhitespace) {
                   while (i--) {
-                    if (lineGlyphs[i].isWhitespace) {
+                    if (lineGlyphs[i].glyphObj.isWhitespace) {
                       whitespaceCount++
                     }
                   }
                   break
                 }
               }
+              justifyAdjust = (maxLineWidth - lineWidth) / whitespaceCount
             }
 
             for (let i = 0, len = lineGlyphs.length; i < len; i++) {
               const glyphInfo = lineGlyphs[i]
+              const glyphObj = glyphInfo.glyphObj
 
               // Apply position adjustments
               if (lineXOffset) glyphInfo.x += lineXOffset
               glyphInfo.y = lineYOffset
 
               // Expand whitespaces for justify alignment
-              if (glyphInfo.isWhitespace && textAlign === 'justify' && line.isSoftWrapped) {
-                const adjust = (maxLineWidth - lineWidth) / whitespaceCount
-                lineXOffset += adjust
-                glyphInfo.width += adjust
+              if (justifyAdjust !== 0 && glyphObj.isWhitespace) {
+                lineXOffset += justifyAdjust
+                glyphInfo.width += justifyAdjust
               }
 
               // Add initial caret positions
@@ -368,15 +372,13 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
               }
 
               // Get atlas data for renderable glyphs
-              if (!glyphInfo.isWhitespace && !glyphInfo.isEmpty) {
-                const glyphObj = glyphInfo.glyphObj
-
+              if (!glyphObj.isWhitespace && !glyphObj.isEmpty) {
                 // If we haven't seen this glyph yet, generate its SDF
                 let glyphAtlasInfo = atlas.glyphs[glyphObj.index]
                 if (!glyphAtlasInfo) {
                   const sdfStart = now()
                   const glyphSDFData = sdfGenerator(glyphObj)
-                  timings.sdf[glyphInfo.char] = now() - sdfStart
+                  timings.sdf[text.charAt(glyphInfo.charIndex)] = now() - sdfStart
 
                   // Assign this glyph the next available atlas index
                   glyphSDFData.atlasIndex = atlas.glyphCount++
