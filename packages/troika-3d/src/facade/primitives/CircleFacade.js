@@ -1,5 +1,5 @@
 import { utils } from 'troika-core'
-import { CircleBufferGeometry } from 'three'
+import { CircleBufferGeometry, DoubleSide } from 'three'
 import { MeshFacade } from './MeshFacade.js'
 
 const geometries = Object.create(null, [
@@ -27,6 +27,11 @@ export function getCircleGeometry(detail) {
  * To control the material, see {@link MeshFacade}.
  */
 export class CircleFacade extends MeshFacade {
+  constructor (parent) {
+    super(parent)
+    this['material.side'] = this['material.shadowSide'] = DoubleSide
+  }
+
   get geometry() {
     return getCircleGeometry(this.detail)
   }

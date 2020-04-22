@@ -1,5 +1,5 @@
 import { utils } from 'troika-core'
-import { PlaneBufferGeometry } from 'three'
+import { DoubleSide, PlaneBufferGeometry } from 'three'
 import { MeshFacade } from './MeshFacade.js'
 
 const getGeometry = utils.memoize(() => {
@@ -12,6 +12,11 @@ const getGeometry = utils.memoize(() => {
  * To control the material, see {@link MeshFacade}.
  */
 export class PlaneFacade extends MeshFacade {
+  constructor (parent) {
+    super(parent)
+    this['material.side'] = this['material.shadowSide'] = DoubleSide
+  }
+
   get geometry() {
     return getGeometry()
   }
