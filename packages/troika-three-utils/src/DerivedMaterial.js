@@ -288,8 +288,8 @@ function upgradeShaders({vertexShader, fragmentShader}, options, id) {
   // Inject auto-updating time uniform if requested
   if (timeUniform) {
     const code = `\nuniform float ${timeUniform};\n`
-    vertexDefs += code
-    fragmentDefs += code
+    vertexDefs = code + vertexDefs
+    fragmentDefs = code + fragmentDefs
   }
 
   // Inject a function for the vertexTransform and rename all usages of position/normal/uv
