@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.24.0](https://github.com/protectwise/troika/compare/v0.23.0...v0.24.0) (2020-04-27)
+
+
+### Bug Fixes
+
+* **troika-3d:** default Plane and Circle primitives' side and shadowSide to DoubleSide ([7704b0a](https://github.com/protectwise/troika/commit/7704b0aea544231315880352e0ddc263d7092625))
+
+
+
+
+
 # [0.23.0](https://github.com/protectwise/troika/compare/v0.22.0...v0.23.0) (2020-04-16)
 
 **Note:** Version bump only for package troika-3d

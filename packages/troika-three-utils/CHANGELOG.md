@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.24.0](https://github.com/protectwise/troika/compare/v0.23.0...v0.24.0) (2020-04-27)
+
+
+### Bug Fixes
+
+* **troika-three-utils:** allow use of the timeUniform within glsl functions ([7354b9e](https://github.com/protectwise/troika/commit/7354b9ea03d7ffedd869ccc4bb496811a572deba))
+
+
+
+
+
 # [0.23.0](https://github.com/protectwise/troika/compare/v0.22.0...v0.23.0) (2020-04-16)
 
 
