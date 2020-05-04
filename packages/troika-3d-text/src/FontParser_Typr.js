@@ -36,18 +36,33 @@ function parserFactory(Typr, woff2otf) {
           if (glyphIndex !== -1) {
             let glyphObj = glyphMap[glyphIndex]
             if (!glyphObj) {
-              // !!! NOTE: Typr doesn't expose a public accessor for the glyph data, so this just
-              // copies how it parses that data in Typr.U._drawGlyf -- this may be fragile.
-              const typrGlyph = Typr.glyf._parseGlyf(typrFont, glyphIndex) || {xMin: 0, xMax: 0, yMin: 0, yMax: 0}
               const {cmds, crds} = Typr.U.glyphToPath(typrFont, glyphIndex)
+
+              // Find extents - Glyf gives this in metadata but not CFF, and Typr doesn't
+              // normalize the two, so it's simplest just to iterate ourselves.
+              let xMin, yMin, xMax, yMax
+              if (crds.length) {
+                xMin = yMin = Infinity
+                xMax = yMax = -Infinity
+                for (let i = 0, len = crds.length; i < len; i += 2) {
+                  let x = crds[i]
+                  let y = crds[i + 1]
+                  if (x < xMin) xMin = x
+                  if (y < yMin) yMin = y
+                  if (x > xMax) xMax = x
+                  if (y > yMax) yMax = y
+                }
+              } else {
+                xMin = xMax = yMin = yMax = 0
+              }
 
               glyphObj = glyphMap[glyphIndex] = {
                 index: glyphIndex,
                 advanceWidth: typrFont.hmtx.aWidth[glyphIndex],
-                xMin: typrGlyph.xMin,
-                yMin: typrGlyph.yMin,
-                xMax: typrGlyph.xMax,
-                yMax: typrGlyph.yMax,
+                xMin,
+                yMin,
+                xMax,
+                yMax,
                 pathCommandCount: cmds.length,
                 forEachPathCommand(callback) {
                   let argsIndex = 0
