@@ -469,11 +469,11 @@ function getDefaultUniformValue(material, name) {
   // Try uniforms on the material itself, then try the builtin material shaders
   let uniforms = material.uniforms
   if (uniforms && uniforms[name]) {
-    return uniforms[name].value || null
+    return uniforms[name].value
   }
   uniforms = getShadersForMaterial(material).uniforms
   if (uniforms && uniforms[name]) {
-    return uniforms[name].value || null
+    return uniforms[name].value
   }
   return null
 }
