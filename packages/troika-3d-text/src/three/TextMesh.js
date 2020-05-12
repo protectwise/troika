@@ -29,6 +29,9 @@ const raycastMesh = new Mesh(
   defaultMaterial
 )
 
+const syncStartEvent = {type: 'syncstart'}
+const syncCompleteEvent = {type: 'synccomplete'}
+
 
 
 /**
@@ -204,6 +207,7 @@ class TextMesh extends Mesh {
         (this._queuedSyncs || (this._queuedSyncs = [])).push(callback)
       } else {
         this._isSyncing = true
+        this.dispatchEvent(syncStartEvent)
 
         getTextRenderInfo({
           text: this.text,
@@ -242,6 +246,7 @@ class TextMesh extends Mesh {
             })
           }
 
+          this.dispatchEvent(syncCompleteEvent)
           if (callback) {
             callback()
           }

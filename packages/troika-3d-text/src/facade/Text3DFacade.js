@@ -42,14 +42,30 @@ class Text3DFacade extends Object3DFacade {
 
     this.selectable = false
     this.selectionStart = this.selectionEnd = -1
+    this.onSyncStart = null
+    this.onSyncComplete = null
 
-    this._afterSync = () => {
+    mesh.addEventListener('syncstart', e => {
+      this.notifyWorld('text3DSyncStart')
+      if (this.onSyncStart) {
+        this.onSyncStart()
+      }
+    })
+    mesh.addEventListener('synccomplete', e => {
       if (!this.isDestroying) {
         mesh.geometry.boundingSphere.version++
         this.afterUpdate()
+        this.notifyWorld('text3DSyncComplete')
         this.notifyWorld('needsRender')
+        if (this.onSyncComplete) {
+          this.onSyncComplete()
+        }
       }
-    }
+    })
+  }
+
+  get textRenderInfo() {
+    return this.threeObject.textRenderInfo
   }
 
   afterUpdate() {
@@ -57,7 +73,7 @@ class Text3DFacade extends Object3DFacade {
     TEXT_MESH_PROPS.forEach(prop => {
       textMesh[prop] = this[prop]
     })
-    textMesh.sync(this._afterSync)
+    textMesh.sync()
 
     super.afterUpdate()
 
