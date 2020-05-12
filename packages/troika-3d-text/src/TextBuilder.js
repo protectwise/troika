@@ -69,6 +69,7 @@ const atlases = Object.create(null)
 
 /**
  * @typedef {object} TroikaTextRenderInfo - Format of the result from `getTextRenderInfo`.
+ * @property {object} parameters - The normalized input arguments to the render call.
  * @property {DataTexture} sdfTexture - The SDF atlas texture.
  * @property {number} sdfGlyphSize - See `configureTextBuilder#config.sdfGlyphSize`
  * @property {number} sdfMinDistancePercent - See `SDF_DISTANCE_PERCENT`
@@ -113,6 +114,8 @@ function getTextRenderInfo(args, callback) {
 
   // Normalize text to a string
   args.text = '' + args.text
+
+  Object.freeze(args)
 
   // Init the atlas for this font if needed
   const {sdfGlyphSize, textureWidth} = CONFIG
@@ -167,6 +170,7 @@ function getTextRenderInfo(args, callback) {
 
     // Invoke callback with the text layout arrays and updated texture
     callback(Object.freeze({
+      parameters: args,
       sdfTexture: atlas.sdfTexture,
       sdfGlyphSize,
       sdfMinDistancePercent: SDF_DISTANCE_PERCENT,
