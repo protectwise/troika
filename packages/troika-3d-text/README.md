@@ -229,3 +229,21 @@ The arguments are:
 - `charSequences` - A string or array of string character sequences for which to pre-generate glyph SDF textures. Note that this _will_ honor ligature substitution, so you may need to specify ligature sequences in addition to their individual characters to get all possible glyphs, e.g. `["t", "h", "th"]` to get the "t" and "h" glyphs plus the "th" glyph.
 
 - `callback` - A function that will be called when the preloading is complete.
+
+
+## Carets and Selection Ranges
+
+In addition to rendering text, it is possible to access positioning information for caret placement and selection ranges. To access that info, use the `getCaretAtPoint` and `getSelectionRects` utility functions. Both of these functions take a `textRenderInfo` object as input, which you can get from the `TextMesh` object either in the `sync()` callback or from its `textRenderInfo` property after sync has completed.
+
+#### `getCaretAtPoint(textRenderInfo, x, y)`
+
+This returns the caret position nearest to a given x/y position in the local text plane. This is useful for placing an editing caret based on a click or ther raycasted event. The return value is an object with the following properties:
+
+- `x` - x position of the caret
+- `y` - y position of the caret's bottom
+- `height` - height of the caret, based on the current fontSize and lineHeight
+- `charIndex` - the index in the original input string of this caret's target character. The caret will be for the position _before_ that character. For the final caret position, this will be equal to the string length. For ligature glyphs, this will be for the first character in the ligature sequence.
+
+#### `getSelectionRects(textRenderInfo, start, end)`
+
+This returns a list of rectangles covering all the characters within a given character range. This is useful for highlighting a selection range. The return value is an array of objects, each with `{left, top, right, bottom}` properties in the local text plane.
