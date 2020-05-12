@@ -12,7 +12,7 @@ export const getBoxGeometry = utils.memoize(() => {
 
 
 /**
- * A simple sphere, centered on the origin.
+ * A simple box, centered on the origin.
  * The `width` property controls x scale, the `height` property controls y scale, and the `depth`
  * property controls z scale.
  * To control the material, see {@link MeshFacade}.
