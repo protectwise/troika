@@ -9,7 +9,7 @@
     "directory": "packages/troika-3d-text"
   },
   "license": "MIT",
-  "main": "dist/troika-3d-text.umd.js",
+  "main": "dist/troika-3d-text.cjs.js",
   "browser": "dist/troika-3d-text.umd.js",
   "jsnext:main": "dist/troika-3d-text.esm.js",
   "module": "dist/troika-3d-text.esm.js",

@@ -79,6 +79,19 @@ for (let entry of Object.keys(entries)) {
       ],
       onwarn
     },
+    // CJS file
+    {
+      input: entry,
+      output: {
+        format: 'cjs',
+        file: `dist/${outFilePrefix}.cjs.js`,
+      },
+      external: Object.keys(EXTERNAL_GLOBALS),
+      plugins: [
+        buble()
+      ],
+      onwarn
+    },
     // UMD file
     {
       input: entry,
