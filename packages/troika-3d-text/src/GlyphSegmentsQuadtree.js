@@ -123,6 +123,7 @@ export function createGlyphSegmentsQuadtree(glyphObj) {
    */
   function findNearestSignedDistance(x, y, maxSearchRadius) {
     let closestDist = maxSearchRadius
+    let closestDistSq = closestDist * closestDist
 
     walkTree(function visit(node) {
       // Ignore nodes that can't possibly have segments closer than what we've already found. We base
@@ -135,17 +136,11 @@ export function createGlyphSegmentsQuadtree(glyphObj) {
       }
 
       // Leaf - check each segment's actual distance
-      if (node.data) {
-        for (let segment = node.data; segment; segment = segment.next) {
-          if ( //fast prefilter for segment to avoid dist calc
-            x - closestDist < segment.maxX || x + closestDist > segment.minX ||
-            y - closestDist < segment.maxY || y + closestDist > segment.minY
-          ) {
-            const dist = absDistanceToLineSegment(x, y, segment.x0, segment.y0, segment.x1, segment.y1)
-            if (dist < closestDist) {
-              closestDist = dist
-            }
-          }
+      for (let segment = node.data; segment; segment = segment.next) {
+        const distSq = absSquareDistanceToLineSegment(x, y, segment.x0, segment.y0, segment.x1, segment.y1)
+        if (distSq < closestDistSq) {
+          closestDistSq = distSq
+          closestDist = Math.sqrt(distSq)
         }
       }
     })
@@ -169,30 +164,26 @@ export function createGlyphSegmentsQuadtree(glyphObj) {
       }
 
       // Leaf - test each segment for whether it crosses our east-pointing ray
-      if (node.data) {
-        for (let segment = node.data; segment; segment = segment.next) {
-          const {x0, y0, x1, y1} = segment
-          const intersects = ((y0 > y) !== (y1 > y)) && (x < (x1 - x0) * (y - y0) / (y1 - y0) + x0)
-          if (intersects) {
-            inside = !inside
-          }
+      for (let segment = node.data; segment; segment = segment.next) {
+        const {x0, y0, x1, y1} = segment
+        const intersects = ((y0 > y) !== (y1 > y)) && (x < (x1 - x0) * (y - y0) / (y1 - y0) + x0)
+        if (intersects) {
+          inside = !inside
         }
       }
     })
     return inside
   }
 
-  function square(n) {
-    return n * n
-  }
-
   // Find the absolute distance from a point to a line segment at closest approach
-  function absDistanceToLineSegment(x, y, lineX0, lineY0, lineX1, lineY1) {
+  function absSquareDistanceToLineSegment(x, y, lineX0, lineY0, lineX1, lineY1) {
     const ldx = lineX1 - lineX0
     const ldy = lineY1 - lineY0
-    const lengthSq = square(ldx) + square(ldy)
+    const lengthSq = ldx * ldx + ldy * ldy
     const t = lengthSq ? Math.max(0, Math.min(1, ((x - lineX0) * ldx + (y - lineY0) * ldy) / lengthSq)) : 0
-    return Math.sqrt(square(x - (lineX0 + t * ldx)) + square(y - (lineY0 + t * ldy)))
+    const dx = x - (lineX0 + t * ldx)
+    const dy = y - (lineY0 + t * ldy)
+    return dx * dx + dy * dy
   }
 
   return {
