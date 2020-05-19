@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.25.0](https://github.com/protectwise/troika/compare/v0.24.1...v0.25.0) (2020-05-19)
+
+
+### Bug Fixes
+
+* **troika-3d:** fix error in InstancingManager on uniforms with default value of 0 ([8d2cc83](https://github.com/protectwise/troika/commit/8d2cc8339de34abd904c5e2e9fbd9ed449a57144))
+* **troika-3d:** fix errors due to excessively deep BoundingSphereOctrees ([a4b5797](https://github.com/protectwise/troika/commit/a4b5797811ef0e15e9ee0c029e4c8dc1c5e58542)), closes [#42](https://github.com/protectwise/troika/issues/42)
+
+
+
+
+
 # [0.24.0](https://github.com/protectwise/troika/compare/v0.23.0...v0.24.0) (2020-04-27)
 
 

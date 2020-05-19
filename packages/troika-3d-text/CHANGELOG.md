@@ -3,6 +3,29 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.25.0](https://github.com/protectwise/troika/compare/v0.24.1...v0.25.0) (2020-05-19)
+
+
+### Bug Fixes
+
+* **troika-3d-text:** avoid error if something tries to set textMaterial.shadowSide ([c09a3c1](https://github.com/protectwise/troika/commit/c09a3c19dd7a452e631587f35ed4ecfaf6777bf1))
+
+
+### Features
+
+* **troika-3d-text:** add events fired on text sync start and completion ([3e7d4e0](https://github.com/protectwise/troika/commit/3e7d4e0d278fc28fe897aa574aad329746e451a0))
+* **troika-3d-text:** add original input parameters to textRenderInfo object ([e1ef963](https://github.com/protectwise/troika/commit/e1ef9637bf592f577c32e65c15b728f8229817ad))
+* **troika-3d-text:** publicly expose getCaretAtPoint and getSelectionRects functions ([669b256](https://github.com/protectwise/troika/commit/669b256ecbc8131bf96db363f9ec8919bd65959a))
+
+
+### Performance Improvements
+
+* **troika-3d-text:** improve speed of glyph SDF generation by ~15-20% ([3718997](https://github.com/protectwise/troika/commit/3718997809efce1db9874a9c2cc0c8b03652eb29))
+
+
+
+
+
 ## [0.24.1](https://github.com/protectwise/troika/compare/v0.24.0...v0.24.1) (2020-05-04)
 
 
