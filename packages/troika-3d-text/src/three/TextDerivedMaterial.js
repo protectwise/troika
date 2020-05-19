@@ -125,6 +125,9 @@ export function createTextDerivedMaterial(baseMaterial) {
   Object.defineProperty(textMaterial, 'shadowSide', {
     get() {
       return this.side
+    },
+    set() {
+      //no-op
     }
   })
 
