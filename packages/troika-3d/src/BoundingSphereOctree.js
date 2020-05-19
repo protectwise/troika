@@ -21,7 +21,7 @@ import { utils } from 'troika-core'
 const { assign, forOwn } = utils
 const tempSphere = new Sphere()
 const SQRT3 = Math.sqrt(3)
-
+const PRECISION = 1e-8
 
 
 export class BoundingSphereOctree {
@@ -38,13 +38,26 @@ export class BoundingSphereOctree {
 
   putSphere(key, sphere) {
     const {center, radius} = sphere
-    let root = this.root
 
     // Sanity check
     if (!sphere || isNaN(radius) || isNaN(center.x)) {
       console.warn('Invalid sphere', sphere)
       return
     }
+
+    // To prevent excessively deep trees when spheres are very close together, apply a rounding
+    // precision below which spheres will be treated as coincident and stored in the same leaf.
+    center._roundedX = Math.round(center.x / PRECISION) * PRECISION
+    center._roundedY = Math.round(center.y / PRECISION) * PRECISION
+    center._roundedZ = Math.round(center.z / PRECISION) * PRECISION
+
+    this._putSphere(key, sphere)
+  }
+
+  _putSphere(key, sphere) {
+    const {center} = sphere
+    const {root} = this
+    let {_roundedX, _roundedY, _roundedZ} = center
 
     // If we already have a sphere for this key, perform an update
     if (key in this.keysToLeaves) {
@@ -69,7 +82,7 @@ export class BoundingSphereOctree {
 
       // Handle special case where the second sphere has the same center point as the first, we still
       // can't determine good starting bounds so just append to the existing leaf
-      if (dataX === center.x && dataY === center.y && dataZ === center.z) {
+      if (dataX === _roundedX && dataY === _roundedY && dataZ === _roundedZ) {
         this._insertIntoOctant(key, sphere, root)
       }
       // Non-coincident: we can now choose an appropriate size for the root node's box. Overwrite the
@@ -77,9 +90,9 @@ export class BoundingSphereOctree {
       // that contains both sphere centerpoints. (Cube rounded to whole ints to avoid floating point issues)
       else {
         const newRoot = new Octant()
-        const cx = newRoot.cx = Math.round((dataX + center.x) / 2)
-        const cy = newRoot.cy = Math.round((dataY + center.y) / 2)
-        const cz = newRoot.cz = Math.round((dataZ + center.z) / 2)
+        const cx = newRoot.cx = Math.round((dataX + _roundedX) / 2)
+        const cy = newRoot.cy = Math.round((dataY + _roundedY) / 2)
+        const cz = newRoot.cz = Math.round((dataZ + _roundedZ) / 2)
         newRoot.cr = Math.ceil(Math.max(Math.abs(cx - dataX), Math.abs(cy - dataY), Math.abs(cz - dataZ)) + 1e-5)
         this.root = newRoot
 
@@ -91,7 +104,7 @@ export class BoundingSphereOctree {
 
     // Expand the root to cover the new centerpoint if necessary, and insert the sphere within it
     else {
-      this._expandToCoverPoint(center.x, center.y, center.z)
+      this._expandToCoverPoint(_roundedX, _roundedY, _roundedZ)
       this._insertIntoOctant(key, sphere, this.root)
     }
   }
@@ -123,13 +136,14 @@ export class BoundingSphereOctree {
 
   _insertIntoOctant(key, sphere, octant) {
     const {center, radius} = sphere
+    const {_roundedX, _roundedY, _roundedZ} = center
 
     // If the parent octant is a leaf:
     if (octant.isLeaf) {
       const {dataX, dataY, dataZ} = octant
 
       // If the new sphere's center matches that of the leaf, add it to the leaf's members
-      if (center.x === dataX && center.y === dataY && center.z === dataZ) {
+      if (_roundedX === dataX && _roundedY === dataY && _roundedZ === dataZ) {
         octant.addSphereData(key, sphere)
 
         // Increase maxRadius up the parent tree as needed
@@ -156,14 +170,14 @@ export class BoundingSphereOctree {
       octant.sphereCount++
 
       // Find the suboctant index in which the new center point falls
-      const subOctantIndex = octant.getSubOctantIndexForPoint(center.x, center.y, center.z)
+      const subOctantIndex = octant.getSubOctantIndexForPoint(_roundedX, _roundedY, _roundedZ)
 
       // If there is nothing at that index yet, insert a new leaf octant
       let subOctant = octant[subOctantIndex]
       if (!subOctant) {
         const newLeaf = new Octant()
         newLeaf.isLeaf = true
-        octant.addOctantForPoint(newLeaf, center.x, center.y, center.z)
+        octant.addOctantForPoint(newLeaf, _roundedX, _roundedY, _roundedZ)
         newLeaf.addSphereData(key, sphere)
 
         // Increment leafCount and maxRadius up the parent tree
@@ -261,13 +275,15 @@ export class BoundingSphereOctree {
     let leaf = this.keysToLeaves[key]
 
     const center = sphere.center
+    const {_roundedX, _roundedY, _roundedZ} = center
 
     // If its center point still falls within the leaf's cube, we can fast-path the changes:
-    if (leaf.containsPoint(center.x, center.y, center.z)) {
+    if (leaf.containsPoint(_roundedX, _roundedY, _roundedZ)) {
       const isMulti = leaf.sphereCount > 1
-      const hasMoved = center.x !== leaf.dataX ||
-        center.y !== leaf.dataY ||
-        center.z !== leaf.dataZ
+
+      const hasMoved = _roundedX !== leaf.dataX ||
+        _roundedY !== leaf.dataY ||
+        _roundedZ !== leaf.dataZ
 
       // If it was not the only member and has changed position, split that leaf; we can do this
       // slightly faster than a full remove+add because we know this will be the branch point and can
@@ -281,9 +297,9 @@ export class BoundingSphereOctree {
       // Otherwise we can just update this leaf
       else {
         if (hasMoved) {
-          leaf.dataX = center.x
-          leaf.dataY = center.y
-          leaf.dataZ = center.z
+          leaf.dataX = _roundedX
+          leaf.dataY = _roundedY
+          leaf.dataZ = _roundedZ
         }
         if (sphere.radius !== leaf.maxRadius) {
           leaf.updateMaxRadii()
@@ -296,7 +312,7 @@ export class BoundingSphereOctree {
     // collapse remaining up to that point, and insert sphere under that point
     else {
       this.removeSphere(key)
-      this.putSphere(key, sphere)
+      this._putSphere(key, sphere)
     }
   }
 
@@ -478,10 +494,10 @@ class Octant {
       this.data = sphere
       this.dataKey = key
       // copy center coords from the first added sphere
-      const center = sphere.center
-      this.dataX = center.x
-      this.dataY = center.y
-      this.dataZ = center.z
+      const {_roundedX, _roundedY, _roundedZ} = sphere.center
+      this.dataX = _roundedX
+      this.dataY = _roundedY
+      this.dataZ = _roundedZ
     }
     else if (count === 1) {
       const oldSphere = this.data
