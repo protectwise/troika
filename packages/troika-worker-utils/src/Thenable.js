@@ -160,11 +160,35 @@ export function NativePromiseThenable() {
   }
 }
 
+/**
+ * Promise.all() impl:
+ */
+BespokeThenable.all = NativePromiseThenable.all = function(items) {
+  let resultCount = 0
+  let results = []
+  let out = DefaultThenable()
+  if (items.length === 0) {
+    out.resolve([])
+  } else {
+    items.forEach((item, i) => {
+      let itemThenable = DefaultThenable()
+      itemThenable.resolve(item)
+      itemThenable.then(res => {
+        resultCount++
+        results[i] = res
+        if (resultCount === items.length) {
+          out.resolve(results)
+        }
+      }, out.reject)
+    })
+  }
+  return out
+}
+
 
 /**
  * Choose the best Thenable implementation and export it as the default.
  */
-export default (
-  typeof Promise === 'function' ? NativePromiseThenable : BespokeThenable
-)
+const DefaultThenable = typeof Promise === 'function' ? NativePromiseThenable : BespokeThenable
+export default DefaultThenable
 
