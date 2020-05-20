@@ -115,7 +115,8 @@ global.Worker = function Worker(url) {
     else inside.emit('message', { data });
   };
   this.terminate = () => {
-    throw Error('Not Supported');
+    // [TROIKA EDIT]: don't throw.
+    // throw Error('Not Supported');
   };
   global.fetch(url)
     .then( r => r.text() )

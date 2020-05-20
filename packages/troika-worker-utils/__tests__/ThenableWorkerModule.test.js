@@ -1,6 +1,6 @@
-import {defineWorkerModule} from '../src/WorkerModules.js'
-import ThenableWorkerModule from '../src/ThenableWorkerModule.js'
 require('./_jsdom-worker.js')
+const {defineWorkerModule} = require('../src/WorkerModules.js')
+const {default: ThenableWorkerModule} = require('../src/ThenableWorkerModule.js')
 
 
 beforeEach(() => {

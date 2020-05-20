@@ -1,5 +1,5 @@
-import {defineWorkerModule} from '../src/WorkerModules.js'
 require('./_jsdom-worker.js')
+const {defineWorkerModule} = require('../src/WorkerModules.js')
 
 beforeEach(() => {
   // Functions that are run in the worker can place breadcrumbs in this object that
