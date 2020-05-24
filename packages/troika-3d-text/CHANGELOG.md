@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.26.0](https://github.com/protectwise/troika/compare/v0.25.0...v0.26.0) (2020-05-24)
+
+
+### Bug Fixes
+
+* **troika-3d-text:** [#46](https://github.com/protectwise/troika/issues/46) fix error on script load when `document` not present ([1b005ec](https://github.com/protectwise/troika/commit/1b005ec0b4fb45b0b96cbb3270627de569f51b0e))
+
+
+### Features
+
+* **troika-3d-text:** experimental `colorRanges` feature ([c4971c3](https://github.com/protectwise/troika/commit/c4971c3b10dff597fb071b2039a6874df99c70a9))
+
+
+
+
+
 # [0.25.0](https://github.com/protectwise/troika/compare/v0.24.1...v0.25.0) (2020-05-19)
 
 

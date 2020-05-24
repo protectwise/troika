@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.26.0](https://github.com/protectwise/troika/compare/v0.25.0...v0.26.0) (2020-05-24)
+
+
+### Features
+
+* **troika-worker-utils:** add main thread fallback when web workers are not allowed ([c754d0b](https://github.com/protectwise/troika/commit/c754d0b2e716eadb2e478bb12fb2880d8a4ad63f))
+
+
+
+
+
 # [0.25.0](https://github.com/protectwise/troika/compare/v0.24.1...v0.25.0) (2020-05-19)
 
 **Note:** Version bump only for package troika-worker-utils
