@@ -165,7 +165,8 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
       anchorX = 0,
       anchorY = 0,
       includeCaretPositions=false,
-      chunkedBoundsSize=8192
+      chunkedBoundsSize=8192,
+      colorRanges=null
     },
     callback,
     metricsOnly=false
@@ -191,6 +192,7 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
       let newGlyphs = null
       let glyphBounds = null
       let glyphAtlasIndices = null
+      let glyphColors = null
       let caretPositions = null
       let totalBounds = null
       let chunkedBounds = null
@@ -342,9 +344,14 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
         if (includeCaretPositions) {
           caretPositions = new Float32Array(text.length * 3)
         }
+        if (colorRanges) {
+          glyphColors = new Uint8Array(renderableGlyphCount * 3)
+        }
         let renderableGlyphIndex = 0
         let prevCharIndex = -1
+        let colorCharIndex = -1
         let chunk
+        let currentColor
         lines.forEach(line => {
           const {count:lineGlyphCount, width:lineWidth} = line
 
@@ -409,6 +416,17 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
                 prevCharIndex = charIndex
               }
 
+              // Track current color range
+              if (colorRanges) {
+                const {charIndex} = glyphInfo
+                while(charIndex > colorCharIndex) {
+                  colorCharIndex++
+                  if (colorRanges.hasOwnProperty(colorCharIndex)) {
+                    currentColor = colorRanges[colorCharIndex]
+                  }
+                }
+              }
+
               // Get atlas data for renderable glyphs
               if (!glyphObj.isWhitespace && !glyphObj.isEmpty) {
                 const idx = renderableGlyphIndex++
@@ -462,6 +480,14 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
 
                 // Add to atlas indices array
                 glyphAtlasIndices[idx] = glyphAtlasInfo.atlasIndex
+
+                // Add colors
+                if (colorRanges) {
+                  const start = idx * 3
+                  glyphColors[start] = currentColor >> 16 & 255
+                  glyphColors[start + 1] = currentColor >> 8 & 255
+                  glyphColors[start + 2] = currentColor & 255
+                }
               }
             }
           }
@@ -469,10 +495,6 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
           // Increment y offset for next line
           lineYOffset -= lineHeight
         })
-
-        // Create the final output for the rendeable glyphs
-        glyphBounds = new Float32Array(glyphBounds)
-        glyphAtlasIndices = new Float32Array(glyphAtlasIndices)
       }
 
       // Timing stats
@@ -487,6 +509,7 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
         glyphAtlasIndices, //atlas indices for each glyph
         caretPositions, //x,y of bottom of cursor position before each char, plus one after last char
         caretHeight, //height of cursor from bottom to top
+        glyphColors, //color for each glyph, if color ranges supplied
         chunkedBounds, //total rects per (n=chunkedBoundsSize) consecutive glyphs
         ascender: ascender * fontSizeMult, //font ascender
         descender: descender * fontSizeMult, //font descender

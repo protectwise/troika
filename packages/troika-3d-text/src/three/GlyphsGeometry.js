@@ -12,6 +12,7 @@ const tempVec3 = new Vector3()
 
 const glyphBoundsAttrName = 'aTroikaGlyphBounds'
 const glyphIndexAttrName = 'aTroikaGlyphIndex'
+const glyphColorAttrName = 'aTroikaGlyphColor'
 
 
 
@@ -70,11 +71,13 @@ class GlyphsGeometry extends InstancedBufferGeometry {
    * @param {Array} [chunkedBounds] - An array of objects describing bounds for each chunk of N
    *        consecutive glyphs: `{start:N, end:N, rect:[minX, minY, maxX, maxY]}`. This can be
    *        used with `applyClipRect` to choose an optimized `maxInstancedCount`.
+   * @param {Uint8Array} [glyphColors] - An array holding r,g,b values for each glyph.
    */
-  updateGlyphs(glyphBounds, glyphAtlasIndices, totalBounds, chunkedBounds) {
+  updateGlyphs(glyphBounds, glyphAtlasIndices, totalBounds, chunkedBounds, glyphColors) {
     // Update the instance attributes
     updateBufferAttr(this, glyphBoundsAttrName, glyphBounds, 4)
     updateBufferAttr(this, glyphIndexAttrName, glyphAtlasIndices, 1)
+    updateBufferAttr(this, glyphColorAttrName, glyphColors, 3)
     this._chunkedBounds = chunkedBounds
     this.maxInstancedCount = glyphAtlasIndices.length
 
@@ -129,12 +132,16 @@ if (!GlyphsGeometry.prototype.setAttribute) {
 
 function updateBufferAttr(geom, attrName, newArray, itemSize) {
   const attr = geom.getAttribute(attrName)
-  // If length isn't changing, just update the attribute's array data
-  if (attr && attr.array.length === newArray.length) {
-    attr.array.set(newArray)
-    attr.needsUpdate = true
-  } else {
-    geom.setAttribute(attrName, new InstancedBufferAttribute(newArray, itemSize))
+  if (newArray) {
+    // If length isn't changing, just update the attribute's array data
+    if (attr && attr.array.length === newArray.length) {
+      attr.array.set(newArray)
+      attr.needsUpdate = true
+    } else {
+      geom.setAttribute(attrName, new InstancedBufferAttribute(newArray, itemSize))
+    }
+  } else if (attr) {
+    geom.deleteAttribute(attrName)
   }
 }
 

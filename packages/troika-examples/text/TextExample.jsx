@@ -7,7 +7,8 @@ import {
   MeshStandardMaterial,
   TextureLoader,
   PlaneBufferGeometry,
-  Mesh
+  Mesh,
+  Color
 } from 'three'
 import DatGui, {DatBoolean, DatSelect, DatNumber} from 'react-dat-gui'
 import { DatGuiFacade } from 'troika-3d-ui'
@@ -104,6 +105,7 @@ class TextExample extends React.Component {
       useTexture: false,
       shadows: false,
       selectable: false,
+      colorRanges: false,
       debugSDF: false
     }
 
@@ -188,6 +190,15 @@ class TextExample extends React.Component {
               scaleZ: state.textScale || 1,
               rotateX: 0,
               rotateZ: 0,
+              colorRanges: state.colorRanges ? TEXTS[state.text].split('').reduce((out, char, i) => {
+                if (i === 0 || /\s/.test(char)) {
+                  out[i] = (Math.floor(Math.pow(Math.sin(i), 2) * 256) << 16)
+                    | (Math.floor(Math.pow(Math.sin(i + 1), 2) * 256) << 8)
+                    | (Math.floor(Math.pow(Math.sin(i + 2), 2) * 256))
+                  //out[i] = '#' + new Color(out[i]).getHexString()
+                }
+                return out
+              }, {}) : null,
               transition: {
                 scaleX: true,
                 scaleY: true,
@@ -254,6 +265,7 @@ class TextExample extends React.Component {
                 {type: 'boolean', path: "fog", label: "Fog"},
                 {type: 'boolean', path: "shadows", label: "Shadows"},
                 {type: 'boolean', path: "debugSDF", label: "Show SDF"},
+                {type: 'boolean', path: "colorRanges", label: "colorRanges (WIP)"},
                 {type: 'boolean', path: "selectable", label: "Selectable (WIP)"},
                 {type: 'number', path: "fontSize", label: "fontSize", min: 0.01, max: 0.2, step: 0.01},
                 {type: 'number', path: "textScale", label: "scale", min: 0.1, max: 10, step: 0.1},

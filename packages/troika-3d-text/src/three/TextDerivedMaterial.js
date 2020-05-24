@@ -1,4 +1,4 @@
-import { createDerivedMaterial } from 'troika-three-utils'
+import { createDerivedMaterial, voidMainRegExp } from 'troika-three-utils'
 import { Vector2, Vector4, Matrix3 } from 'three'
 
 // language=GLSL
@@ -8,10 +8,13 @@ uniform float uTroikaSDFGlyphSize;
 uniform vec4 uTroikaTotalBounds;
 uniform vec4 uTroikaClipRect;
 uniform mat3 uTroikaOrient;
+uniform bool uTroikaUseGlyphColors;
 attribute vec4 aTroikaGlyphBounds;
 attribute float aTroikaGlyphIndex;
+attribute vec3 aTroikaGlyphColor;
 varying vec2 vTroikaSDFTextureUV;
 varying vec2 vTroikaGlyphUV;
+varying vec3 vTroikaGlyphColor;
 `
 
 // language=GLSL prefix="void main() {" suffix="}"
@@ -39,6 +42,7 @@ uv = vec2(
 
 position = uTroikaOrient * position;
 normal = uTroikaOrient * normal;
+vTroikaGlyphColor = uTroikaUseGlyphColors ? aTroikaGlyphColor / 255.0 : diffuse;
 `
 
 // language=GLSL
@@ -109,12 +113,27 @@ export function createTextDerivedMaterial(baseMaterial) {
       uTroikaTotalBounds: {value: new Vector4(0,0,0,0)},
       uTroikaClipRect: {value: new Vector4(0,0,0,0)},
       uTroikaOrient: {value: new Matrix3()},
+      uTroikaUseGlyphColors: {value: true},
       uTroikaSDFDebug: {value: false}
     },
     vertexDefs: VERTEX_DEFS,
     vertexTransform: VERTEX_TRANSFORM,
     fragmentDefs: FRAGMENT_DEFS,
-    fragmentColorTransform: FRAGMENT_TRANSFORM
+    fragmentColorTransform: FRAGMENT_TRANSFORM,
+    customRewriter({vertexShader, fragmentShader}) {
+      let uDiffuseRE = /\buniform\s+vec3\s+diffuse\b/
+      if (uDiffuseRE.test(fragmentShader)) {
+        // Replace all instances of `diffuse` with our varying
+        fragmentShader = fragmentShader
+          .replace(uDiffuseRE, 'varying vec3 vTroikaGlyphColor')
+          .replace(/\bdiffuse\b/g, 'vTroikaGlyphColor')
+        // Make sure the vertex shader declares the uniform so we can grab it as a fallback
+        if (!uDiffuseRE.test(vertexShader)) {
+          vertexShader = vertexShader.replace(voidMainRegExp, 'uniform vec3 diffuse;\n$&')
+        }
+      }
+      return { vertexShader, fragmentShader }
+    }
   })
 
   // Force transparency - TODO is this reasonable?

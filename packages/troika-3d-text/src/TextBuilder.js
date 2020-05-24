@@ -1,4 +1,4 @@
-import { DataTexture, LinearFilter, LuminanceFormat } from 'three'
+import { Color, DataTexture, LinearFilter, LuminanceFormat } from 'three'
 import { defineWorkerModule, ThenableWorkerModule } from 'troika-worker-utils'
 import { createSDFGenerator } from './SDFGenerator.js'
 import { createFontProcessor } from './FontProcessor.js'
@@ -14,6 +14,7 @@ const CONFIG = {
   sdfGlyphSize: 64,
   textureWidth: 2048
 }
+const tempColor = new Color()
 let hasRequested = false
 
 /**
@@ -73,7 +74,8 @@ const atlases = Object.create(null)
  * @property {number} sdfGlyphSize - See `configureTextBuilder#config.sdfGlyphSize`
  * @property {number} sdfMinDistancePercent - See `SDF_DISTANCE_PERCENT`
  * @property {Float32Array} glyphBounds - List of [minX, minY, maxX, maxY] quad bounds for each glyph.
- * @property {Float32Array} glyphAtlasIndices - List holding each glyph's index in the SDF atlas
+ * @property {Float32Array} glyphAtlasIndices - List holding each glyph's index in the SDF atlas.
+ * @property {Uint8Array} [glyphColors] - List holding each glyph's [r, g, b] color, if `colorRanges` was supplied.
  * @property {Float32Array} [caretPositions] - A list of caret positions for all glyphs; this is
  *           the bottom [x,y] of the cursor position before each char, plus one after the last char.
  * @property {number} [caretHeight] - An appropriate height for all selection carets.
@@ -112,6 +114,21 @@ function getTextRenderInfo(args, callback) {
 
   // Normalize text to a string
   args.text = '' + args.text
+
+  // Normalize colors
+  if (args.colorRanges != null) {
+    let colors = {}
+    for (let key in args.colorRanges) {
+      if (args.colorRanges.hasOwnProperty(key)) {
+        let val = args.colorRanges[key]
+        if (typeof val !== 'number') {
+          val = tempColor.set(val).getHex()
+        }
+        colors[key] = val
+      }
+    }
+    args.colorRanges = colors
+  }
 
   Object.freeze(args)
 
@@ -174,6 +191,7 @@ function getTextRenderInfo(args, callback) {
       sdfMinDistancePercent: SDF_DISTANCE_PERCENT,
       glyphBounds: result.glyphBounds,
       glyphAtlasIndices: result.glyphAtlasIndices,
+      glyphColors: result.glyphColors,
       caretPositions: result.caretPositions,
       caretHeight: result.caretHeight,
       chunkedBounds: result.chunkedBounds,

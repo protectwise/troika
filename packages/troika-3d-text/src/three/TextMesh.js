@@ -163,6 +163,17 @@ class TextMesh extends Mesh {
     this.color = null
 
     /**
+     * @member {object|null} colorRanges
+     * WARNING: This API is experimental and may change.
+     * This allows more fine-grained control of colors for individual or ranges of characters,
+     * taking precedence over the material's `color`. Its format is an Object whose keys each
+     * define a starting character index for a range, and whose values are the color for each
+     * range. The color value can be a numeric hex color value, a `THREE.Color` object, or
+     * any of the strings accepted by `THREE.Color`.
+     */
+    this.colorRanges = null
+
+    /**
      * @member {number} depthOffset
      * This is a shortcut for setting the material's `polygonOffset` and related properties,
      * which can be useful in preventing z-fighting when this text is laid on top of another
@@ -221,6 +232,7 @@ class TextMesh extends Mesh {
           overflowWrap: this.overflowWrap,
           anchorX: this.anchorX,
           anchorY: this.anchorY,
+          colorRanges: this.colorRanges,
           includeCaretPositions: true //TODO parameterize
         }, textRenderInfo => {
           this._isSyncing = false
@@ -233,7 +245,8 @@ class TextMesh extends Mesh {
             textRenderInfo.glyphBounds,
             textRenderInfo.glyphAtlasIndices,
             textRenderInfo.totalBounds,
-            textRenderInfo.chunkedBounds
+            textRenderInfo.chunkedBounds,
+            textRenderInfo.glyphColors
           )
 
           // If we had extra sync requests queued up, kick it off
@@ -329,6 +342,7 @@ class TextMesh extends Mesh {
       uniforms.uTroikaSDFGlyphSize.value = textInfo.sdfGlyphSize
       uniforms.uTroikaSDFMinDistancePct.value = textInfo.sdfMinDistancePercent
       uniforms.uTroikaTotalBounds.value.fromArray(totalBounds)
+      uniforms.uTroikaUseGlyphColors.value = !!textInfo.glyphColors
 
       let clipRect = this.clipRect
       if (!(clipRect && Array.isArray(clipRect) && clipRect.length === 4)) {
@@ -408,7 +422,8 @@ const SYNCABLE_PROPS = [
   'textAlign',
   'whiteSpace',
   'anchorX',
-  'anchorY'
+  'anchorY',
+  'colorRanges'
 ]
 SYNCABLE_PROPS.forEach(prop => {
   const privateKey = '_private_' + prop
