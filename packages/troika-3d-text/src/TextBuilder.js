@@ -14,7 +14,6 @@ const CONFIG = {
   sdfGlyphSize: 64,
   textureWidth: 2048
 }
-const linkEl = document.createElement('a') //for resolving relative URLs to absolute
 let hasRequested = false
 
 /**
@@ -109,8 +108,7 @@ function getTextRenderInfo(args, callback) {
 
   // Apply default font here to avoid a 'null' atlas, and convert relative
   // URLs to absolute so they can be resolved in the worker
-  linkEl.href = args.font || CONFIG.defaultFontURL
-  args.font = linkEl.href
+  args.font = toAbsoluteURL(args.font || CONFIG.defaultFontURL)
 
   // Normalize text to a string
   args.text = '' + args.text
@@ -218,6 +216,16 @@ function assign(toObj, fromObj) {
     }
   }
   return toObj
+}
+
+// Utility for making URLs absolute
+let linkEl
+function toAbsoluteURL(path) {
+  if (!linkEl) {
+    linkEl = typeof document === 'undefined' ? {} : document.createElement('a')
+  }
+  linkEl.href = path
+  return linkEl.href
 }
 
 
