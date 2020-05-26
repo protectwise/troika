@@ -1,6 +1,7 @@
 import Thenable from './Thenable.js'
 import { workerBootstrap } from './workerBootstrap.js'
 import { defineMainThreadModule } from './mainThreadFallback.js'
+import { supportsWorkers } from './supportsWorkers.js'
 
 let _workerModuleId = 0
 let _messageId = 0
@@ -9,24 +10,6 @@ const workers = Object.create(null)
 const openRequests = Object.create(null)
 openRequests._count = 0
 
-let supportsWorkers = () => {
-  let supported = false
-  try {
-    // TODO additional checks for things like importScripts within the worker?
-    //  Would need to be an async check.
-    let worker = new Worker(
-      URL.createObjectURL(
-        new Blob([''], {type: 'application/javascript'})
-      )
-    )
-    worker.terminate()
-    supported = true
-  } catch(err) {
-    console.warn(`Troika createWorkerModule: web workers not allowed in current environment; falling back to main thread execution.`, err)
-  }
-  supportsWorkers = () => supported
-  return supported
-}
 
 /**
  * Define a module of code that will be executed with a web worker. This provides a simple
