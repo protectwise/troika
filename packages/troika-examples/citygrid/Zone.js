@@ -1,45 +1,13 @@
 import React from 'react'
-import {Group, Mesh, Line, BufferGeometry, BufferAttribute, MeshLambertMaterial, LineBasicMaterial, DoubleSide} from 'three'
+import {Group, Mesh, Line, BufferGeometry, BufferAttribute, CylinderBufferGeometry, MeshLambertMaterial, LineBasicMaterial, DoubleSide} from 'three'
 import {Object3DFacade, HtmlOverlay3DFacade} from 'troika-3d'
 import Tooltip from './Tooltip.jsx'
 
 
-const wallsGeometry = new BufferGeometry()
-wallsGeometry.setAttribute( 'position', new BufferAttribute(new Float32Array([
-  0,0,0, 1,0,0, 1,0,1,
-  0,0,0, 0,0,1, 1,0,1,
-
-  0,1,0, 1,1,0, 1,1,1,
-  0,1,0, 0,1,1, 1,1,1,
-
-  0,0,0, 0,1,0, 0,1,1,
-  0,0,0, 0,0,1, 0,1,1,
-
-  1,0,0, 1,1,0, 1,1,1,
-  1,0,0, 1,0,1, 1,1,1
-]), 3))
-
-/*
-const wall1Geometry = new PlaneGeometry(1, 1)
-wall1Geometry.rotateY(Math.PI / 2)
-wall1Geometry.translate(-.5, -.5, 0)
-const wall2Geometry = new PlaneGeometry(1, 1)
-wall2Geometry.rotateX(Math.PI / 2)
-wall2Geometry.translate(.5, -.5, 1)
-const wall3Geometry = new PlaneGeometry(1, 1)
-wall3Geometry.rotateY(Math.PI / -2)
-wall3Geometry.translate(-.5, .5, 1)
-const wall4Geometry = new PlaneGeometry(1, 1)
-wall4Geometry.rotateX(Math.PI / -2)
-wall4Geometry.translate(-.5, -.5, 0)
-
-const wallsGeometry = new Geometry()
-wallsGeometry.merge(wall1Geometry)
-wallsGeometry.merge(wall2Geometry)
-wallsGeometry.merge(wall3Geometry)
-wallsGeometry.merge(wall4Geometry)
-*/
-
+const wallsGeometry = new CylinderBufferGeometry(Math.sqrt(2) / 2, Math.sqrt(2) / 2, 1, 4, 1, true)
+  .rotateY(Math.PI / 4)
+  .rotateX(Math.PI / 2)
+  .translate(0.5, 0.5, 0.5)
 
 const wallsMaterial = new MeshLambertMaterial({
   color: 0x3ba7db,

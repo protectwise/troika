@@ -87,7 +87,7 @@ class InstancingManager extends Group3DFacade {
           let batchObjects = batchObjectsByKey[batchKey] || (batchObjectsByKey[batchKey] = [])
           let batchObject = batchObjects[batchObjects.length - 1]
           let batchGeometry = batchObject && batchObject.geometry
-          if (!batchGeometry || batchGeometry.maxInstancedCount === INSTANCE_BATCH_SIZE) {
+          if (!batchGeometry || getInstanceCount(batchGeometry) === INSTANCE_BATCH_SIZE) {
             batchObject = this._getBatchObject(protoObject)
             batchGeometry = batchObject.geometry
             let attrs = batchGeometry._instanceAttrs.matrix
@@ -104,7 +104,8 @@ class InstancingManager extends Group3DFacade {
           }
 
           // Put the instance's world matrix into the batch geometry's instancing attributes
-          let attrOffset = batchGeometry.maxInstancedCount++
+          let attrOffset = getInstanceCount(batchGeometry)
+          setInstanceCount(batchGeometry, attrOffset + 1)
           let attrs = batchGeometry._instanceAttrs.matrix
           let elements = instanceObject.matrixWorld.elements //column order
           attrs[0].setXYZW(attrOffset, elements[0], elements[4], elements[8], elements[12])
@@ -149,7 +150,7 @@ class InstancingManager extends Group3DFacade {
       batchGrpCount++
       for (let i = batchObjects.length; i--;) {
         batchCount++
-        instanceCount += batchObjects[i].geometry.maxInstancedCount
+        instanceCount += getInstanceCount(batchObjects[i].geometry)
       }
     }
 
@@ -256,7 +257,7 @@ class InstancingManager extends Group3DFacade {
     let batchKey = this._getBatchKey(instancedObject)
     let uniformSizes = this._getInstanceUniformSizes(material)
     let batchGeometry = this._batchGeometryPool.borrow(batchKey, geometry, uniformSizes)
-    batchGeometry.maxInstancedCount = 0
+    setInstanceCount(batchGeometry, 0)
 
     // Upgrade the material to one with the shader modifications for instancing
     let batchMaterial = getInstancingDerivedMaterial(material)
@@ -490,6 +491,14 @@ function getItemSizeForValue(value) {
     : value.isVector4 ? 4
     : Array.isArray(value) ? value.length
     : 0
+}
+
+// Handle maxInstancedCount -> instanceCount rename that happened in three r117
+function getInstanceCount(geom) {
+  return geom[geom.hasOwnProperty('instanceCount') ? 'instanceCount' : 'maxInstancedCount']
+}
+function setInstanceCount(geom, count) {
+  geom[geom.hasOwnProperty('instanceCount') ? 'instanceCount' : 'maxInstancedCount'] = count
 }
 
 export default InstancingManager

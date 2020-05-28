@@ -70,7 +70,7 @@ class GlyphsGeometry extends InstancedBufferGeometry {
    * @param {Array} totalBounds - An array holding the [minX, minY, maxX, maxY] across all glyphs
    * @param {Array} [chunkedBounds] - An array of objects describing bounds for each chunk of N
    *        consecutive glyphs: `{start:N, end:N, rect:[minX, minY, maxX, maxY]}`. This can be
-   *        used with `applyClipRect` to choose an optimized `maxInstancedCount`.
+   *        used with `applyClipRect` to choose an optimized `instanceCount`.
    * @param {Uint8Array} [glyphColors] - An array holding r,g,b values for each glyph.
    */
   updateGlyphs(glyphBounds, glyphAtlasIndices, totalBounds, chunkedBounds, glyphColors) {
@@ -79,7 +79,7 @@ class GlyphsGeometry extends InstancedBufferGeometry {
     updateBufferAttr(this, glyphIndexAttrName, glyphAtlasIndices, 1)
     updateBufferAttr(this, glyphColorAttrName, glyphColors, 3)
     this._chunkedBounds = chunkedBounds
-    this.maxInstancedCount = glyphAtlasIndices.length
+    setInstanceCount(this, glyphAtlasIndices.length)
 
     // Update the boundingSphere based on the total bounds
     const sphere = this.boundingSphere
@@ -93,7 +93,7 @@ class GlyphsGeometry extends InstancedBufferGeometry {
 
   /**
    * Given a clipping rect, and the chunkedBounds from the last updateGlyphs call, choose the lowest
-   * `maxInstancedCount` that will show all glyphs within the clipped view. This is an optimization
+   * `instanceCount` that will show all glyphs within the clipped view. This is an optimization
    * for long blocks of text that are clipped, to skip vertex shader evaluation for glyphs that would
    * be clipped anyway.
    *
@@ -117,7 +117,7 @@ class GlyphsGeometry extends InstancedBufferGeometry {
         }
       }
     }
-    this.maxInstancedCount = count
+    setInstanceCount(this, count)
   }
 }
 
@@ -143,6 +143,11 @@ function updateBufferAttr(geom, attrName, newArray, itemSize) {
   } else if (attr) {
     geom.deleteAttribute(attrName)
   }
+}
+
+// Handle maxInstancedCount -> instanceCount rename that happened in three r117
+function setInstanceCount(geom, count) {
+  geom[geom.hasOwnProperty('instanceCount') ? 'instanceCount' : 'maxInstancedCount'] = count
 }
 
 
