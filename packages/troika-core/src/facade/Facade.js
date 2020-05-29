@@ -66,6 +66,21 @@ export default class Facade {
   }
 
   /**
+   * Performs a manual update of this facade, invoking the afterUpdate lifecycle method and triggering a
+   * render. This can be called in event handlers, for example, to affect changes to this facade and its
+   * subtree. This process is synchronous. Never override this method as a way to react to updates, as it
+   * is not the only way a component is updated; instead override `afterUpdate` or use setters.
+   * @param {object} props - A set of properties to be copied to the facade
+   */
+  update(props) {
+    if (props && typeof props === 'object') {
+      assign(this, props)
+      this.afterUpdate()
+      this.notifyWorld('needsRender')
+    }
+  }
+
+  /**
    * Called at the end of an update batch, after all individual properties have been assigned.
    */
   afterUpdate() {
