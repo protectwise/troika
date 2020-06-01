@@ -3,9 +3,16 @@ import { utils } from 'troika-core'
 import BasicGrip from './grip-models/BasicGrip.js'
 import OculusTouchGrip from './grip-models/OculusTouchGrip.js'
 import { copyXRPoseToFacadeProps } from '../XRUtils.js'
+//import { HandsGrip } from './grip-models/HandsGrip.js'
 
 
 const PROFILE_MODELS = [
+  /*{
+    match: xrInputSource => {
+      return true //TODO
+    },
+    facade: HandsGrip
+  },*/
   {
     match: xrInputSource => {
       return /Oculus/.test(navigator.userAgent) || (

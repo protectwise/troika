@@ -1,10 +1,9 @@
-import { Object3DFacade } from 'troika-3d'
-import { Group, Ray, Vector3 } from 'three'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { Euler, Matrix4, Quaternion, Vector3 } from 'three'
+import { GLTFFacade } from './GLTFFacade.js'
 
 const MODEL_GEN = 'gen2'
 
-function getModelUrl(gen, hand) {
+function getModelUrl (gen, hand) {
   return `https://cdn.aframe.io/controllers/oculus/oculus-touch-controller-${gen}-${hand}.gltf`
 }
 
@@ -12,38 +11,46 @@ const MODEL_PARAMS = {
   gen1: {
     left: {
       url: getModelUrl('gen1', 'left'),
-      position: [0, 0, -0.1],
-      rotation: [0, 0, 0]
+      transform: new Matrix4().compose(
+        new Vector3(0, 0, -0.1),
+        new Quaternion(),
+        new Vector3(1, 1, 1)
+      )
     },
     right: {
       url: getModelUrl('gen1', 'right'),
-      position: [0, 0, -0.1],
-      rotation: [0, 0, 0]
+      transform: new Matrix4().compose(
+        new Vector3(0, 0, -0.1),
+        new Quaternion(),
+        new Vector3(1, 1, 1)
+      )
     }
   },
   gen2: {
     left: {
       url: getModelUrl('gen2', 'left'),
-      position: [0.01, -0.01, -0.05],
-      rotation: [-0.67, 0, 0]
+      transform: new Matrix4().compose(
+        new Vector3(0.01, -0.01, -0.05),
+        new Quaternion().setFromEuler(new Euler(-0.67, 0, 0)),
+        new Vector3(1, 1, 1)
+      )
     },
     right: {
       url: getModelUrl('gen2', 'right'),
-      position: [-0.01, -0.01, -0.05],
-      rotation: [-0.67, 0, 0]
+      transform: new Matrix4().compose(
+        new Vector3(-0.01, -0.01, -0.05),
+        new Quaternion().setFromEuler(new Euler(-0.67, 0, 0)),
+        new Vector3(1, 1, 1)
+      )
     }
   }
 }
 
 // TODO define mapping here that will allow us to pass in a set of active button
 //  ids and highlight their corresponding meshes when pressed...
-const buttonIdsToMeshNames = {
+const buttonIdsToMeshNames = {}
 
-}
-
-
-
-class OculusTouchGrip extends Object3DFacade {
+class OculusTouchGrip extends GLTFFacade {
   /**
    * @property bodyColor
    * @property emissive
@@ -52,77 +59,45 @@ class OculusTouchGrip extends Object3DFacade {
    * @property buttonActiveColor
    */
 
-  constructor(parent) {
-    super(parent, new Group())
+  constructor (parent) {
+    super(parent)
 
+    this.xrInputSource = null
     this.bodyColor = 0x999999
     this.buttonColor = 0xffffff
     this.buttonActiveColor = 0xccffcc
     this.emissiveIntensity = 0.3
   }
 
-  afterUpdate() {
+  afterUpdate () {
     let hand = this.xrInputSource.handedness
     if (hand !== 'left' && hand !== 'right') {
       hand = 'left'
     }
     if (hand !== this._hand) {
       this._hand = hand
-      this.removeObjects()
-      new GLTFLoader().load(
-        MODEL_PARAMS[MODEL_GEN][hand].url,
-        this.addObjects.bind(this),
-        null,
-        err => {
-          console.error('Failed loading controller model', err)
-        }
-      )
+      this.url = MODEL_PARAMS[MODEL_GEN][hand].url
+      this.rootTransform = MODEL_PARAMS[MODEL_GEN][hand].transform
     }
 
     this.updateMaterials()
     super.afterUpdate()
   }
 
-  addObjects(gltf) {
-    if (this.threeObject) {
-      const root = this.rootObj = gltf.scene
-      root.position.fromArray(MODEL_PARAMS[MODEL_GEN][this._hand].position)
-      root.rotation.fromArray(MODEL_PARAMS[MODEL_GEN][this._hand].rotation)
-      this.threeObject.add(root)
-
-      // Find all the individual meshes
-      this.meshes = Object.create(null)
-      root.traverse(obj => {
-        if (obj.isMesh) {
-          obj.material = obj.material.clone() //workaround for some meshes sharing a material instance
-          this.meshes[obj.name] = obj
-        }
-      })
-      this.afterUpdate()
-    }
-  }
-
-  removeObjects() {
-    const {rootObj, meshes} = this
-    if (rootObj) {
-      this.threeObject.remove(rootObj)
-      this.rootObj = null
-    }
-    if (meshes) {
-      for (let name in meshes) {
-        const {geometry, material} = meshes[name]
-        geometry.dispose()
-        if (material.texture) {
-          material.texture.dispose()
-        }
-        material.dispose()
+  normalize (gltf) {
+    // Track all the individual meshes
+    this.meshes = Object.create(null)
+    gltf.scene.traverse(obj => {
+      if (obj.isMesh) {
+        obj.material = obj.material.clone() //workaround for some meshes sharing a material instance
+        this.meshes[obj.name] = obj
       }
-      this.meshes = null
-    }
+    })
+    return gltf
   }
 
-  updateMaterials() {
-    const {meshes} = this
+  updateMaterials () {
+    const { meshes } = this
     if (meshes) {
       for (let name in meshes) {
         const color = name === 'body' ? this.bodyColor : this.buttonColor
@@ -136,12 +111,6 @@ class OculusTouchGrip extends Object3DFacade {
       }
     }
   }
-
-  destructor () {
-    this.removeObjects()
-    super.destructor()
-  }
 }
-
 
 export default OculusTouchGrip
