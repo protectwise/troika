@@ -16,7 +16,7 @@ function parserFactory(Typr, woff2otf) {
     Z: 0
   }
 
-  function wrapFontObj([typrFont]) {
+  function wrapFontObj(typrFont) {
     const glyphMap = Object.create(null)
 
     const fontObj = {
@@ -107,7 +107,7 @@ function parserFactory(Typr, woff2otf) {
     } else if (tag === 'wOF2') {
       throw new Error('woff2 fonts not supported')
     }
-    return wrapFontObj(Typr.parse(buffer))
+    return wrapFontObj(Typr.parse(buffer)[0])
   }
 }
 
