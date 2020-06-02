@@ -4,7 +4,7 @@ import { Canvas3D, BoxFacade, Group3DFacade } from 'troika-3d'
 import { Text3DFacade } from 'troika-3d-text'
 import { UIBlock3DFacade as div } from 'troika-3d-ui'
 import { Matrix4, Plane, Vector3, MeshStandardMaterial } from 'three'
-import FlexboxGlobe from '../ui/FlexboxGlobe.js'
+import FlexboxGlobe from './FlexboxGlobe.js'
 
 const tempPlane = new Plane()
 const tempVec3 = new Vector3()
@@ -38,6 +38,27 @@ const globeCellConfig = {
   }
 }
 
+const listCellConfig = {
+  facade: div,
+  overflow: 'scroll',
+  children: (() => {
+    let items = []
+    for (let i = 0; i < 10; i++) {
+      items.push({
+        key: i,
+        facade: div,
+        borderWidth: 0.002,
+        borderColor: 0xffffff,
+        borderRadius: 0.01,
+        margin: 0.01,
+        padding: [0.005, 0.01],
+        text: `List Item ${i + 1}`
+      })
+    }
+    return items
+  })()
+}
+
 const rowConfig = {
   facade: div,
   flexDirection: 'row',
@@ -52,8 +73,8 @@ const rowConfig = {
 const rows = [
   Object.assign({}, rowConfig, {children: [textCellConfig, globeCellConfig, textCellConfig]}),
   Object.assign({}, rowConfig, {children: [globeCellConfig, textCellConfig]}),
-  Object.assign({}, rowConfig, {children: [textCellConfig, textCellConfig, globeCellConfig]}),
-  Object.assign({}, rowConfig, {children: [globeCellConfig, globeCellConfig, textCellConfig]})
+  Object.assign({}, rowConfig, {children: [textCellConfig, listCellConfig, globeCellConfig]}),
+  Object.assign({}, rowConfig, {children: [globeCellConfig, listCellConfig, globeCellConfig, textCellConfig]})
 ]
 
 
