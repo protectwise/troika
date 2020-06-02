@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.27.0](https://github.com/protectwise/troika/compare/v0.26.1...v0.27.0) (2020-06-02)
+
+
+### Bug Fixes
+
+* **troika-3d-text:** prevent error when transpiling down to es5 ([7264b0c](https://github.com/protectwise/troika/commit/7264b0cee7aa5fc5df08102a77fbfc8f6be5ba3e)), closes [#51](https://github.com/protectwise/troika/issues/51)
+
+
+### Features
+
+* **troika-3d:** add three.js r117 to supported version range ([2761f39](https://github.com/protectwise/troika/commit/2761f39c272ecacd1dc0ce4f4cab8f166d373e90))
+
+
+
+
+
 ## [0.26.1](https://github.com/protectwise/troika/compare/v0.26.0...v0.26.1) (2020-05-26)
 
 **Note:** Version bump only for package troika-3d-text
