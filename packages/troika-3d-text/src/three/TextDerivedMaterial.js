@@ -42,7 +42,6 @@ uv = vec2(
 
 position = uTroikaOrient * position;
 normal = uTroikaOrient * normal;
-vTroikaGlyphColor = uTroikaUseGlyphColors ? aTroikaGlyphColor / 255.0 : diffuse;
 `
 
 // language=GLSL
@@ -129,7 +128,10 @@ export function createTextDerivedMaterial(baseMaterial) {
           .replace(/\bdiffuse\b/g, 'vTroikaGlyphColor')
         // Make sure the vertex shader declares the uniform so we can grab it as a fallback
         if (!uDiffuseRE.test(vertexShader)) {
-          vertexShader = vertexShader.replace(voidMainRegExp, 'uniform vec3 diffuse;\n$&')
+          vertexShader = vertexShader.replace(
+            voidMainRegExp,
+            'uniform vec3 diffuse;\n$&\nvTroikaGlyphColor = uTroikaUseGlyphColors ? aTroikaGlyphColor / 255.0 : diffuse;\n'
+          )
         }
       }
       return { vertexShader, fragmentShader }
