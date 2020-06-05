@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.27.1](https://github.com/protectwise/troika/compare/v0.27.0...v0.27.1) (2020-06-05)
+
+
+### Bug Fixes
+
+* **troika-3d-text:** fix shader error when casting shadows from text ([0c9277d](https://github.com/protectwise/troika/commit/0c9277d3b53b8becb4bcab7f8f3b66ebfbc48963))
+
+
+
+
+
 # [0.27.0](https://github.com/protectwise/troika/compare/v0.26.1...v0.27.0) (2020-06-02)
 
 
