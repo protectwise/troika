@@ -155,6 +155,12 @@ The em-height at which to render the font, in local world units.
 
 Default: `0.1`
 
+#### `glyphGeometryDetail`
+
+The number of vertical/horizontal segments that make up each glyph's rectangular plane. This can be increased to provide more geometrical detail for custom vertex shader effects, for example.
+
+Default: `1`
+
 #### `letterSpacing`
 
 Sets a uniform adjustment to spacing between letters after kerning is applied, in local world units. Positive numbers increase spacing and negative numbers decrease it.

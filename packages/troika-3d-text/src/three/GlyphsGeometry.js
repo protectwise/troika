@@ -7,7 +7,14 @@ import {
 } from 'three'
 
 
-const templateGeometry = new PlaneBufferGeometry(1, 1).translate(0.5, 0.5, 0)
+const templateGeometries = {}
+function getTemplateGeometry(detail) {
+  let geom = templateGeometries[detail]
+  if (!geom) {
+    geom = templateGeometries[detail] = new PlaneBufferGeometry(1, 1, detail, detail).translate(0.5, 0.5, 0)
+  }
+  return geom
+}
 const tempVec3 = new Vector3()
 
 const glyphBoundsAttrName = 'aTroikaGlyphBounds'
@@ -50,8 +57,7 @@ class GlyphsGeometry extends InstancedBufferGeometry {
   constructor() {
     super()
 
-    // Base per-instance attributes
-    this.copy(templateGeometry)
+    this.detail = 1
 
     // Preallocate zero-radius bounding sphere
     this.boundingSphere = new Sphere()
@@ -59,6 +65,23 @@ class GlyphsGeometry extends InstancedBufferGeometry {
 
   computeBoundingSphere () {
     // No-op; we'll sync the boundingSphere proactively in `updateGlyphs`.
+  }
+
+  set detail(detail) {
+    if (detail !== this._detail) {
+      this._detail = detail
+      if (typeof detail !== 'number' || detail < 1) {
+        detail = 1
+      }
+      let tpl = getTemplateGeometry(detail)
+      ;['position', 'normal', 'uv'].forEach(attr => {
+        this.attributes[attr] = tpl.attributes[attr]
+      })
+      this.setIndex(tpl.getIndex())
+    }
+  }
+  get detail() {
+    return this._detail
   }
 
   /**

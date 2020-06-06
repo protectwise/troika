@@ -21,6 +21,7 @@ const TEXT_MESH_PROPS = [
   'depthOffset',
   'clipRect',
   'orientation',
+  'glyphGeometryDetail',
   'debugSDF'
 ]
 

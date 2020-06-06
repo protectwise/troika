@@ -200,6 +200,14 @@ class TextMesh extends Mesh {
      */
     this.orientation = defaultOrient
 
+    /**
+     * @member {number} glyphGeometryDetail
+     * Controls number of vertical/horizontal segments that make up each glyph's rectangular
+     * plane. Defaults to 1. This can be increased to provide more geometrical detail for custom
+     * vertex shader effects, for example.
+     */
+    this.glyphGeometryDetail = 1
+
     this.debugSDF = false
   }
 
@@ -321,6 +329,13 @@ class TextMesh extends Mesh {
   }
   set material(baseMaterial) {
     this._baseMaterial = baseMaterial
+  }
+
+  get glyphGeometryDetail() {
+    return this.geometry.detail
+  }
+  set glyphGeometryDetail(detail) {
+    this.geometry.detail = detail
   }
 
   // Create and update material for shadows upon request:
