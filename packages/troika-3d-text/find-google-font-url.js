@@ -17,7 +17,7 @@ if (!fontFamilyName) {
 }
 
 async function run() {
-  const response = await fetch(`https://fonts.googleapis.com/css?family=${fontFamilyName}`, {
+  const response = await fetch(`https://fonts.googleapis.com/css2?family=${fontFamilyName}&display=swap`, {
     "credentials": "omit",
     "headers": {
       "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; Touch; rv:11.0) like Gecko",
