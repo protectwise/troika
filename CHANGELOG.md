@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.28.0](https://github.com/protectwise/troika/compare/v0.27.1...v0.28.0) (2020-06-09)
+
+
+### Bug Fixes
+
+* **troika-3d-text:** fix cloning of TextMesh ([13df49b](https://github.com/protectwise/troika/commit/13df49b522abbd13a258b70f340779f940d3adfe)), closes [#60](https://github.com/protectwise/troika/issues/60)
+* **troika-3d-text:** prevent double-derivation of text material ([ef8cffa](https://github.com/protectwise/troika/commit/ef8cffaa0eb1717ca73e8a04b8bfcf8f031d2e52)), closes [#59](https://github.com/protectwise/troika/issues/59)
+
+
+### Features
+
+* **troika-3d-text:** add glyphGeometryDetail parameter ([1f7a11f](https://github.com/protectwise/troika/commit/1f7a11fed98d71d040b31035822215505e1c9f4d)), closes [#52](https://github.com/protectwise/troika/issues/52)
+
+
+
+
+
 ## [0.27.1](https://github.com/protectwise/troika/compare/v0.27.0...v0.27.1) (2020-06-05)
 
 
