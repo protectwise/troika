@@ -32,6 +32,30 @@ const raycastMesh = new Mesh(
 const syncStartEvent = {type: 'syncstart'}
 const syncCompleteEvent = {type: 'synccomplete'}
 
+const SYNCABLE_PROPS = [
+  'font',
+  'fontSize',
+  'letterSpacing',
+  'lineHeight',
+  'maxWidth',
+  'overflowWrap',
+  'text',
+  'textAlign',
+  'whiteSpace',
+  'anchorX',
+  'anchorY',
+  'colorRanges'
+]
+
+const COPYABLE_PROPS = SYNCABLE_PROPS.concat(
+  'material',
+  'color',
+  'depthOffset',
+  'clipRect',
+  'orientation',
+  'glyphGeometryDetail'
+)
+
 
 
 /**
@@ -381,7 +405,7 @@ class TextMesh extends Mesh {
     material.polygonOffset = !!this.depthOffset
     material.polygonOffsetFactor = material.polygonOffsetUnits = this.depthOffset || 0
 
-    // shortcut for setting material color via facade prop:
+    // shortcut for setting material color via `color` prop on the mesh:
     const color = this.color
     if (color != null && material.color && material.color.isColor && color !== material._troikaColor) {
       material.color.set(material._troikaColor = color)
@@ -427,24 +451,21 @@ class TextMesh extends Mesh {
     }
   }
 
+  copy(source) {
+    super.copy(source)
+    COPYABLE_PROPS.forEach(prop => {
+      this[prop] = source[prop]
+    })
+    return this
+  }
+
+  clone() {
+    return new this.constructor().copy(this)
+  }
 }
 
 
 // Create setters for properties that affect text layout:
-const SYNCABLE_PROPS = [
-  'font',
-  'fontSize',
-  'letterSpacing',
-  'lineHeight',
-  'maxWidth',
-  'overflowWrap',
-  'text',
-  'textAlign',
-  'whiteSpace',
-  'anchorX',
-  'anchorY',
-  'colorRanges'
-]
 SYNCABLE_PROPS.forEach(prop => {
   const privateKey = '_private_' + prop
   Object.defineProperty(TextMesh.prototype, prop, {
