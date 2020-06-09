@@ -41,7 +41,7 @@ const syncCompleteEvent = {type: 'synccomplete'}
  * fields (SDF).
  */
 class TextMesh extends Mesh {
-  constructor(material) {
+  constructor() {
     const geometry = new GlyphsGeometry()
     super(geometry, null)
 
@@ -328,7 +328,12 @@ class TextMesh extends Mesh {
     return derivedMaterial
   }
   set material(baseMaterial) {
-    this._baseMaterial = baseMaterial
+    if (baseMaterial && baseMaterial.isTroikaTextMaterial) { //prevent double-derivation
+      this._derivedMaterial = baseMaterial
+      this._baseMaterial = baseMaterial.baseMaterial
+    } else {
+      this._baseMaterial = baseMaterial
+    }
   }
 
   get glyphGeometryDetail() {
