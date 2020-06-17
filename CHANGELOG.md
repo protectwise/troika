@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.28.1](https://github.com/protectwise/troika/compare/v0.28.0...v0.28.1) (2020-06-17)
+
+
+### Bug Fixes
+
+* **troika-3d-text:** don't dispose derived materials on base material switch ([3d88475](https://github.com/protectwise/troika/commit/3d88475d2f3ead6bec92694ff0720d4ab643e872)), closes [#59](https://github.com/protectwise/troika/issues/59)
+* **troika-3d-text:** set correct `object` in TextMesh raycast intersections ([9f3eaa7](https://github.com/protectwise/troika/commit/9f3eaa713d759996aea274d33a0443541482453a)), closes [#62](https://github.com/protectwise/troika/issues/62)
+
+
+### Performance Improvements
+
+* **troika-three-utils:** increase chance of program reuse in createDerivedMaterial ([56daf65](https://github.com/protectwise/troika/commit/56daf6535a7bd8fec30d86a713feb5b8f26fa6a5)), closes [#59](https://github.com/protectwise/troika/issues/59)
+
+
+
+
+
 # [0.28.0](https://github.com/protectwise/troika/compare/v0.27.1...v0.28.0) (2020-06-09)
 
 
