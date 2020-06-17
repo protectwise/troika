@@ -339,9 +339,6 @@ class TextMesh extends Mesh {
     let derivedMaterial = this._derivedMaterial
     const baseMaterial = this._baseMaterial || defaultMaterial
     if (!derivedMaterial || derivedMaterial.baseMaterial !== baseMaterial) {
-      if (derivedMaterial) {
-        derivedMaterial.dispose()
-      }
       derivedMaterial = this._derivedMaterial = createTextDerivedMaterial(baseMaterial)
       // dispose the derived material when its base material is disposed:
       baseMaterial.addEventListener('dispose', function onDispose() {

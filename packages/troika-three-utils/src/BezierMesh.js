@@ -65,9 +65,6 @@ class BezierMesh extends Mesh {
     let derivedMaterial = this._derivedMaterial
     const baseMaterial = this._baseMaterial || defaultBaseMaterial
     if (!derivedMaterial || derivedMaterial.baseMaterial !== baseMaterial) {
-      if (derivedMaterial) {
-        derivedMaterial.dispose()
-      }
       derivedMaterial = this._derivedMaterial = createBezierMeshMaterial(baseMaterial)
       // dispose the derived material when its base material is disposed:
       baseMaterial.addEventListener('dispose', function onDispose() {
