@@ -21,6 +21,7 @@ const defaultMaterial = new MeshBasicMaterial({
 const tempMat4 = new Matrix4()
 const tempVec3a = new Vector3()
 const tempVec3b = new Vector3()
+const tempArray = []
 const origin = new Vector3()
 const defaultOrient = '+x+y'
 
@@ -444,7 +445,12 @@ class TextMesh extends Mesh {
           0, 0, 0, 1
         )
       )
-      raycastMesh.raycast(raycaster, intersects)
+      tempArray.length = 0
+      raycastMesh.raycast(raycaster, tempArray)
+      for (let i = 0; i < tempArray.length; i++) {
+        tempArray[i].object = this
+        intersects.push(tempArray[i])
+      }
     }
   }
 
