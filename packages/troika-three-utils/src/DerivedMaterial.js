@@ -20,7 +20,6 @@ const assign = Object.assign || function(/*target, ...sources*/) {
 }
 
 
-let idCtr = 0
 const epoch = Date.now()
 const CACHE = new WeakMap() //threejs requires WeakMap internally so should be safe to assume support
 
@@ -93,7 +92,11 @@ export function createDerivedMaterial(baseMaterial, options) {
     return cached[optionsHash].clone()
   }
 
-  const id = ++idCtr
+  // Even if baseMaterial is changing, use a consistent id in shader rewrites based on the
+  // optionsHash. This makes it more likely that deriving from base materials of the same
+  // type/class, e.g. multiple instances of MeshStandardMaterial, will produce identical
+  // rewritten shader code so they can share a single WebGLProgram behind the scenes.
+  const id = getIdForOptionsHash(optionsHash)
   const privateDerivedShadersProp = `_derivedShaders${id}`
   const privateBeforeCompileProp = `_onBeforeCompile${id}`
   let distanceMaterialTpl, depthMaterialTpl
@@ -346,4 +349,14 @@ function getOptionsHash(options) {
 
 function optionsJsonReplacer(key, value) {
   return key === 'uniforms' ? undefined : typeof value === 'function' ? value.toString() : value
+}
+
+let _idCtr = 0
+const optionsHashesToIds = new Map()
+function getIdForOptionsHash(optionsHash) {
+  let id = optionsHashesToIds.get(optionsHash)
+  if (id == null) {
+    optionsHashesToIds.set(optionsHash, (id = ++_idCtr))
+  }
+  return id
 }
