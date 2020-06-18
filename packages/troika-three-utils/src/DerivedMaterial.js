@@ -222,7 +222,7 @@ export function createDerivedMaterial(baseMaterial, options) {
   // Merge uniforms, defines, and extensions
   material.uniforms = assign(UniformsUtils.clone(baseMaterial.uniforms || {}), options.uniforms)
   material.defines = assign({}, baseMaterial.defines, options.defines)
-  material.defines.TROIKA_DERIVED_MATERIAL = id //force a program change from the base material
+  material.defines[`TROIKA_DERIVED_MATERIAL_${id}`] = '' //force a program change from the base material
   material.extensions = assign({}, baseMaterial.extensions, options.extensions)
 
   cached[optionsHash] = material
