@@ -18,11 +18,12 @@ import { ExampleConfigurator } from '../_shared/ExampleConfigurator.js'
 const FONTS = {
   'Roboto': 'https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff',
   'Noto Sans': 'https://fonts.gstatic.com/s/notosans/v7/o-0IIpQlx3QUlC5A4PNr5TRG.woff',
-  //too thin: 'Alex Brush': 'https://fonts.gstatic.com/s/alexbrush/v8/SZc83FzrJKuqFbwMKk6EhUXz6w.woff',
+  'Alex Brush': 'https://fonts.gstatic.com/s/alexbrush/v8/SZc83FzrJKuqFbwMKk6EhUXz6w.woff',
   'Comfortaa': 'https://fonts.gstatic.com/s/comfortaa/v12/1Ptsg8LJRfWJmhDAuUs4TYFs.woff',
   'Cookie': 'https://fonts.gstatic.com/s/cookie/v8/syky-y18lb0tSbf9kgqU.woff',
   'Cutive Mono': 'https://fonts.gstatic.com/s/cutivemono/v6/m8JWjfRfY7WVjVi2E-K9H6RCTmg.woff',
   'Gabriela': 'https://fonts.gstatic.com/s/gabriela/v6/qkBWXvsO6sreR8E-b8m5xL0.woff',
+  'Monoton': 'https://fonts.gstatic.com/s/monoton/v9/5h1aiZUrOngCibe4fkU.woff',
   'Philosopher': 'https://fonts.gstatic.com/s/philosopher/v9/vEFV2_5QCwIS4_Dhez5jcWBuT0s.woff',
   'Quicksand': 'https://fonts.gstatic.com/s/quicksand/v7/6xKtdSZaM9iE8KbpRA_hK1QL.woff',
   'Trirong': 'https://fonts.gstatic.com/s/trirong/v3/7r3GqXNgp8wxdOdOn4so3g.woff',
@@ -106,6 +107,7 @@ class TextExample extends React.Component {
       shadows: false,
       selectable: false,
       colorRanges: false,
+      sdfGlyphSize: 6,
       debugSDF: false
     }
 
@@ -190,6 +192,7 @@ class TextExample extends React.Component {
               scaleZ: state.textScale || 1,
               rotateX: 0,
               rotateZ: 0,
+              sdfGlyphSize: Math.pow(2, state.sdfGlyphSize),
               colorRanges: state.colorRanges ? TEXTS[state.text].split('').reduce((out, char, i) => {
                 if (i === 0 || /\s/.test(char)) {
                   out[i] = (Math.floor(Math.pow(Math.sin(i), 2) * 256) << 16)
@@ -264,14 +267,15 @@ class TextExample extends React.Component {
                 {type: 'boolean', path: "animRotate", label: "Rotate"},
                 {type: 'boolean', path: "fog", label: "Fog"},
                 {type: 'boolean', path: "shadows", label: "Shadows"},
-                {type: 'boolean', path: "debugSDF", label: "Show SDF"},
                 {type: 'boolean', path: "colorRanges", label: "colorRanges (WIP)"},
                 {type: 'boolean', path: "selectable", label: "Selectable (WIP)"},
                 {type: 'number', path: "fontSize", label: "fontSize", min: 0.01, max: 0.2, step: 0.01},
                 {type: 'number', path: "textScale", label: "scale", min: 0.1, max: 10, step: 0.1},
                 {type: 'number', path: "maxWidth", min: 1, max: 5, step: 0.01},
                 {type: 'number', path: "lineHeight", min: 1, max: 2, step: 0.01},
-                {type: 'number', path: "letterSpacing", min: -0.1, max: 0.5, step: 0.01}
+                {type: 'number', path: "letterSpacing", min: -0.1, max: 0.5, step: 0.01},
+                {type: 'boolean', path: "debugSDF", label: "Show SDF"},
+                {type: 'number', path: "sdfGlyphSize", label: 'SDF size (2^n):', min: 3, max: 8},
               ]
             }
           ] }

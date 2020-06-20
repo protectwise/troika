@@ -195,6 +195,12 @@ Defines how text wraps if the `whiteSpace` property is `'normal'`. Can be either
 
 Default: `'normal'`
 
+#### `sdfGlyphSize`
+
+Allows overriding the default size of each glyph's SDF (signed distance field) used when rendering this text instance. This must be a power-of-two number. Larger sizes can improve the quality of glyph rendering by increasing the sharpness of corners and preventing loss of very thin lines, at the expense of increased memory footprint and longer SDF generation time.
+
+Default: `64`
+
 #### `textAlign`
 
 The horizontal alignment of each line of text within the overall text bounding box. Can be one of `'left'`, `'right'`, `'center'`, or `'justify'`.

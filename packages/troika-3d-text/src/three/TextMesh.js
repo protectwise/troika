@@ -45,7 +45,8 @@ const SYNCABLE_PROPS = [
   'whiteSpace',
   'anchorX',
   'anchorY',
-  'colorRanges'
+  'colorRanges',
+  'sdfGlyphSize'
 ]
 
 const COPYABLE_PROPS = SYNCABLE_PROPS.concat(
@@ -233,6 +234,16 @@ class TextMesh extends Mesh {
      */
     this.glyphGeometryDetail = 1
 
+    /**
+     * @member {number|null} sdfGlyphSize
+     * The size of each glyph's SDF (signed distance field) used for rendering. This must be a
+     * power-of-two number. Defaults to 64 which is generally a good balance of size and quality
+     * for most fonts. Larger sizes can improve the quality of glyph rendering by increasing
+     * the sharpness of corners and preventing loss of very thin lines, at the expense of
+     * increased memory footprint and longer SDF generation time.
+     */
+    this.sdfGlyphSize = null
+
     this.debugSDF = false
   }
 
@@ -266,7 +277,8 @@ class TextMesh extends Mesh {
           anchorX: this.anchorX,
           anchorY: this.anchorY,
           colorRanges: this.colorRanges,
-          includeCaretPositions: true //TODO parameterize
+          includeCaretPositions: true, //TODO parameterize
+          sdfGlyphSize: this.sdfGlyphSize
         }, textRenderInfo => {
           this._isSyncing = false
 

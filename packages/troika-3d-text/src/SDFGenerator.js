@@ -1,15 +1,12 @@
 /**
  * Initializes and returns a function to generate an SDF texture for a given glyph.
  * @param {function} createGlyphSegmentsQuadtree - factory for a GlyphSegmentsQuadtree implementation.
- * @param {number} config.sdfTextureSize - the length of one side of the resulting texture image.
- *                 Larger images encode more details. Should be a power of 2.
  * @param {number} config.sdfDistancePercent - see docs for SDF_DISTANCE_PERCENT in TextBuilder.js
  *
  * @return {function(Object): {renderingBounds: [minX, minY, maxX, maxY], textureData: Uint8Array}}
  */
 function createSDFGenerator(createGlyphSegmentsQuadtree, config) {
   const {
-    sdfTextureSize,
     sdfDistancePercent
   } = config
 
@@ -45,12 +42,14 @@ function createSDFGenerator(createGlyphSegmentsQuadtree, config) {
   /**
    * Generate an SDF texture segment for a single glyph.
    * @param {object} glyphObj
+   * @param {number} sdfSize - the length of one side of the SDF image.
+   *        Larger images encode more details. Must be a power of 2.
    * @return {{textureData: Uint8Array, renderingBounds: *[]}}
    */
-  function generateSDF(glyphObj) {
+  function generateSDF(glyphObj, sdfSize) {
     //console.time('glyphSDF')
 
-    const textureData = new Uint8Array(sdfTextureSize * sdfTextureSize)
+    const textureData = new Uint8Array(sdfSize * sdfSize)
 
     // Determine mapping between glyph grid coords and sdf grid coords
     const glyphW = glyphObj.xMax - glyphObj.xMin
@@ -60,8 +59,8 @@ function createSDFGenerator(createGlyphSegmentsQuadtree, config) {
     const fontUnitsMaxDist = Math.max(glyphW, glyphH) * sdfDistancePercent
 
     // Use that, extending to the texture edges, to find conversion ratios between texture units and font units
-    const fontUnitsPerXTexel = (glyphW + fontUnitsMaxDist * 2) / sdfTextureSize
-    const fontUnitsPerYTexel = (glyphH + fontUnitsMaxDist * 2) / sdfTextureSize
+    const fontUnitsPerXTexel = (glyphW + fontUnitsMaxDist * 2) / sdfSize
+    const fontUnitsPerYTexel = (glyphH + fontUnitsMaxDist * 2) / sdfSize
 
     const textureMinFontX = glyphObj.xMin - fontUnitsMaxDist - fontUnitsPerXTexel
     const textureMinFontY = glyphObj.yMin - fontUnitsMaxDist - fontUnitsPerYTexel
@@ -69,11 +68,11 @@ function createSDFGenerator(createGlyphSegmentsQuadtree, config) {
     const textureMaxFontY = glyphObj.yMax + fontUnitsMaxDist + fontUnitsPerYTexel
 
     function textureXToFontX(x) {
-      return textureMinFontX + (textureMaxFontX - textureMinFontX) * x / sdfTextureSize
+      return textureMinFontX + (textureMaxFontX - textureMinFontX) * x / sdfSize
     }
 
     function textureYToFontY(y) {
-      return textureMinFontY + (textureMaxFontY - textureMinFontY) * y / sdfTextureSize
+      return textureMinFontY + (textureMaxFontY - textureMinFontY) * y / sdfSize
     }
 
     if (glyphObj.pathCommandCount) { //whitespace chars will have no commands, so we can skip all this
@@ -134,8 +133,8 @@ function createSDFGenerator(createGlyphSegmentsQuadtree, config) {
 
       // For each target SDF texel, find the distance from its center to its nearest line segment,
       // map that distance to an alpha value, and write that alpha to the texel
-      for (let sdfX = 0; sdfX < sdfTextureSize; sdfX++) {
-        for (let sdfY = 0; sdfY < sdfTextureSize; sdfY++) {
+      for (let sdfX = 0; sdfX < sdfSize; sdfX++) {
+        for (let sdfY = 0; sdfY < sdfSize; sdfY++) {
           const signedDist = lineSegmentsIndex.findNearestSignedDistance(
             textureXToFontX(sdfX + 0.5),
             textureYToFontY(sdfY + 0.5),
@@ -144,7 +143,7 @@ function createSDFGenerator(createGlyphSegmentsQuadtree, config) {
           //if (!isFinite(signedDist)) throw 'infinite distance!'
           let alpha = isFinite(signedDist) ? Math.round(255 * (1 + signedDist / fontUnitsMaxDist) * 0.5) : signedDist
           alpha = Math.max(0, Math.min(255, alpha)) //clamp
-          textureData[sdfY * sdfTextureSize + sdfX] = alpha
+          textureData[sdfY * sdfSize + sdfX] = alpha
         }
       }
     }

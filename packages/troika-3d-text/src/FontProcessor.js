@@ -45,10 +45,10 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
 
   /**
    * @private
-   * Holds the loaded data for all fonts
+   * Holds data about font glyphs and how they relate to SDF atlases
    *
    * {
-   *   fontUrl: {
+   *   'fontUrl@sdfSize': {
    *     fontObj: {}, //result of the fontParser
    *     glyphs: {
    *       [glyphIndex]: {
@@ -61,6 +61,11 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
    *     glyphCount: 123
    *   }
    * }
+   */
+  const fontAtlases = Object.create(null)
+
+  /**
+   * Holds parsed font objects by url
    */
   const fonts = Object.create(null)
 
@@ -112,23 +117,20 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
    */
   function loadFont(fontUrl, callback) {
     if (!fontUrl) fontUrl = defaultFontUrl
-    let atlas = fonts[fontUrl]
-    if (atlas) {
+    let font = fonts[fontUrl]
+    if (font) {
       // if currently loading font, add to callbacks, otherwise execute immediately
-      if (atlas.onload) {
-        atlas.onload.push(callback)
+      if (font.pending) {
+        font.pending.push(callback)
       } else {
-        callback()
+        callback(font)
       }
     } else {
-      const loadingAtlas = fonts[fontUrl] = {onload: [callback]}
+      fonts[fontUrl] = {pending: [callback]}
       doLoadFont(fontUrl, fontObj => {
-        atlas = fonts[fontUrl] = {
-          fontObj: fontObj,
-          glyphs: {},
-          glyphCount: 0
-        }
-        loadingAtlas.onload.forEach(cb => cb())
+        let callbacks = fonts[fontUrl].pending
+        fonts[fontUrl] = fontObj
+        callbacks.forEach(cb => cb(fontObj))
       })
     }
   }
@@ -138,11 +140,22 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
    * Get the atlas data for a given font url, loading it from the network and initializing
    * its atlas data objects if necessary.
    */
-  function getSdfAtlas(fontUrl, callback) {
+  function getSdfAtlas(fontUrl, sdfGlyphSize, callback) {
     if (!fontUrl) fontUrl = defaultFontUrl
-    loadFont(fontUrl, () => {
-      callback(fonts[fontUrl])
-    })
+    let atlasKey = `${fontUrl}@${sdfGlyphSize}`
+    let atlas = fontAtlases[atlasKey]
+    if (atlas) {
+      callback(atlas)
+    } else {
+      loadFont(fontUrl, fontObj => {
+        atlas = fontAtlases[atlasKey] || (fontAtlases[atlasKey] = {
+          fontObj: fontObj,
+          glyphs: {},
+          glyphCount: 0
+        })
+        callback(atlas)
+      })
+    }
   }
 
 
@@ -155,6 +168,7 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
     {
       text='',
       font=defaultFontUrl,
+      sdfGlyphSize=64,
       fontSize=1,
       letterSpacing=0,
       lineHeight='normal',
@@ -186,7 +200,7 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
     maxWidth = +maxWidth
     lineHeight = lineHeight || 'normal'
 
-    getSdfAtlas(font, atlas => {
+    getSdfAtlas(font, sdfGlyphSize, atlas => {
       const fontObj = atlas.fontObj
       const hasMaxWidth = isFinite(maxWidth)
       let newGlyphs = null
@@ -435,7 +449,7 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
                 let glyphAtlasInfo = atlas.glyphs[glyphObj.index]
                 if (!glyphAtlasInfo) {
                   const sdfStart = now()
-                  const glyphSDFData = sdfGenerator(glyphObj)
+                  const glyphSDFData = sdfGenerator(glyphObj, sdfGlyphSize)
                   timings.sdf[text.charAt(glyphInfo.charIndex)] = now() - sdfStart
 
                   // Assign this glyph the next available atlas index

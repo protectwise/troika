@@ -22,6 +22,7 @@ const TEXT_MESH_PROPS = [
   'clipRect',
   'orientation',
   'glyphGeometryDetail',
+  'sdfGlyphSize',
   'debugSDF'
 ]
 

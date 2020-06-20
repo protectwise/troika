@@ -24,8 +24,9 @@ let hasRequested = false
  * @param {String} config.defaultFontURL - The URL of the default font to use for text processing
  *                 requests, in case none is specified or the specifiede font fails to load or parse.
  *                 Defaults to "Roboto Regular" from Google Fonts.
- * @param {Number} config.sdfGlyphSize - The size of each glyph's SDF (signed distance field) texture
- *                 that is used for rendering. Must be a power-of-two number, and applies to all fonts.
+ * @param {Number} config.sdfGlyphSize - The default size of each glyph's SDF (signed distance field)
+ *                 texture used for rendering. Must be a power-of-two number, and applies to all fonts,
+ *                 but note that this can also be overridden per call to `getTextRenderInfo()`.
  *                 Larger sizes can improve the quality of glyph rendering by increasing the sharpness
  *                 of corners and preventing loss of very thin lines, at the expense of memory. Defaults
  *                 to 64 which is generally a good balance of size and quality.
@@ -71,7 +72,7 @@ const atlases = Object.create(null)
  * @typedef {object} TroikaTextRenderInfo - Format of the result from `getTextRenderInfo`.
  * @property {object} parameters - The normalized input arguments to the render call.
  * @property {DataTexture} sdfTexture - The SDF atlas texture.
- * @property {number} sdfGlyphSize - See `configureTextBuilder#config.sdfGlyphSize`
+ * @property {number} sdfGlyphSize - The size of each glyph's SDF.
  * @property {number} sdfMinDistancePercent - See `SDF_DISTANCE_PERCENT`
  * @property {Float32Array} glyphBounds - List of [minX, minY, maxX, maxY] quad bounds for each glyph.
  * @property {Float32Array} glyphAtlasIndices - List holding each glyph's index in the SDF atlas.
@@ -115,6 +116,8 @@ function getTextRenderInfo(args, callback) {
   // Normalize text to a string
   args.text = '' + args.text
 
+  args.sdfGlyphSize = args.sdfGlyphSize || CONFIG.sdfGlyphSize
+
   // Normalize colors
   if (args.colorRanges != null) {
     let colors = {}
@@ -133,10 +136,12 @@ function getTextRenderInfo(args, callback) {
   Object.freeze(args)
 
   // Init the atlas for this font if needed
-  const {sdfGlyphSize, textureWidth} = CONFIG
-  let atlas = atlases[args.font]
+  const {textureWidth} = CONFIG
+  const {sdfGlyphSize} = args
+  let atlasKey = `${args.font}@${sdfGlyphSize}`
+  let atlas = atlases[atlasKey]
   if (!atlas) {
-    atlas = atlases[args.font] = {
+    atlas = atlases[atlasKey] = {
       sdfTexture: new DataTexture(
         new Uint8Array(sdfGlyphSize * textureWidth),
         textureWidth,
@@ -261,7 +266,6 @@ const fontProcessorWorkerModule = defineWorkerModule({
     const sdfGenerator = createSDFGenerator(
       createGlyphSegmentsQuadtree,
       {
-        sdfTextureSize: config.sdfGlyphSize,
         sdfDistancePercent
       }
     )
