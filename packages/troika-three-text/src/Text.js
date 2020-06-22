@@ -8,7 +8,7 @@ import {
 } from 'three'
 import { GlyphsGeometry } from './GlyphsGeometry.js'
 import { createTextDerivedMaterial } from './TextDerivedMaterial.js'
-import { getTextRenderInfo } from '../TextBuilder.js'
+import { getTextRenderInfo } from './TextBuilder.js'
 
 
 
@@ -61,12 +61,12 @@ const COPYABLE_PROPS = SYNCABLE_PROPS.concat(
 
 
 /**
- * @class TextMesh
+ * @class Text
  *
  * A ThreeJS Mesh that renders a string of text on a plane in 3D space using signed distance
  * fields (SDF).
  */
-class TextMesh extends Mesh {
+class Text extends Mesh {
   constructor() {
     const geometry = new GlyphsGeometry()
     super(geometry, null)
@@ -483,7 +483,7 @@ class TextMesh extends Mesh {
 // Create setters for properties that affect text layout:
 SYNCABLE_PROPS.forEach(prop => {
   const privateKey = '_private_' + prop
-  Object.defineProperty(TextMesh.prototype, prop, {
+  Object.defineProperty(Text.prototype, prop, {
     get() {
       return this[privateKey]
     },
@@ -499,7 +499,7 @@ SYNCABLE_PROPS.forEach(prop => {
 
 // Deprecation handler for `anchor` array:
 let deprMsgShown = false
-Object.defineProperty(TextMesh.prototype, 'anchor', {
+Object.defineProperty(Text.prototype, 'anchor', {
   get() {
     return this._deprecated_anchor
   },
@@ -521,7 +521,7 @@ Object.defineProperty(TextMesh.prototype, 'anchor', {
 
 
 
-export {TextMesh}
+export {Text}
 
 
 

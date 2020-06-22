@@ -1,5 +1,5 @@
 import { Object3DFacade } from 'troika-3d'
-import { TextMesh } from '../three/TextMesh.js'
+import { Text } from 'troika-three-text'
 import SelectionManagerFacade from './SelectionManagerFacade.js'
 
 // Properties that will simply be forwarded to the TextMesh:
@@ -33,7 +33,7 @@ const TEXT_MESH_PROPS = [
  */
 class Text3DFacade extends Object3DFacade {
   constructor(parent) {
-    const mesh = new TextMesh()
+    const mesh = new Text()
     mesh.geometry.boundingSphere.version = 0
     super(parent, mesh)
 

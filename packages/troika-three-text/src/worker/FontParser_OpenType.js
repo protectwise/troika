@@ -3,7 +3,7 @@
  * Also adds support for WOFF files (not WOFF2).
  */
 
-import opentypeFactory from '../libs/opentype.factory.js'
+import opentypeFactory from '../../libs/opentype.factory.js'
 import { defineWorkerModule } from 'troika-worker-utils'
 
 function parserFactory(opentype) {

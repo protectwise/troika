@@ -16,6 +16,9 @@ async function fetchText(url) {
 }
 
 async function buildTypr() {
+  // NOTE: probably want to lock this to the last version of Typr before they stripped out
+  // built-in support for some things like ligatures in favor of a much larger Harfbuzz wasm
+  // plugin. We may need to fork Typr going forward if we need to merge future fixes.
   const typr = await fetchText('https://raw.githubusercontent.com/photopea/Typr.js/gh-pages/src/Typr.js')
   let typrU = await fetchText('https://raw.githubusercontent.com/photopea/Typr.js/gh-pages/src/Typr.U.js')
 

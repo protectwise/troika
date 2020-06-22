@@ -1,11 +1,11 @@
 import { Color, DataTexture, LinearFilter, LuminanceFormat } from 'three'
 import { defineWorkerModule, ThenableWorkerModule } from 'troika-worker-utils'
-import { createSDFGenerator } from './SDFGenerator.js'
-import { createFontProcessor } from './FontProcessor.js'
-import { createGlyphSegmentsQuadtree } from './GlyphSegmentsQuadtree'
+import { createSDFGenerator } from './worker/SDFGenerator.js'
+import { createFontProcessor } from './worker/FontProcessor.js'
+import { createGlyphSegmentsQuadtree } from './worker/GlyphSegmentsQuadtree.js'
 
 // Choose parser impl:
-import fontParser from './FontParser_Typr.js'
+import fontParser from './worker/FontParser_Typr.js'
 //import fontParser from './FontParser_OpenType.js'
 
 
@@ -217,17 +217,20 @@ function getTextRenderInfo(args, callback) {
  * This can be useful to avoid long pauses when first showing text in a scene, by preloading the
  * needed fonts and glyphs up front along with other assets.
  *
- * @param {string} font - URL of the font file to preload. If not given, the default font will
+ * @param {object} options
+ * @param {string} options.font - URL of the font file to preload. If not given, the default font will
  *        be loaded.
- * @param {string|string[]} charSequences - One or more character sequences for which to pre-
+ * @param {string|string[]} options.characters - One or more character sequences for which to pre-
  *        generate glyph SDFs. Note that this will honor ligature substitution, so you may need
  *        to specify ligature sequences in addition to their individual characters to get all
  *        possible glyphs, e.g. `["t", "h", "th"]` to get the "t" and "h" glyphs plus the "th" ligature.
+ * @param {number} options.sdfGlyphSize - The size at which to prerender the SDF textures for the
+ *        specified `characters`.
  * @param {function} callback - A function that will be called when the preloading is complete.
  */
-function preloadFont(font, charSequences, callback) {
-  let text = Array.isArray(charSequences) ? charSequences.join('\n') : '' + charSequences
-  getTextRenderInfo({ font, text }, callback)
+function preloadFont({font, characters, sdfGlyphSize}, callback) {
+  let text = Array.isArray(characters) ? characters.join('\n') : '' + characters
+  getTextRenderInfo({ font, sdfGlyphSize, text }, callback)
 }
 
 

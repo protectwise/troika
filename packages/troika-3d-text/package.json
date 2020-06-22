@@ -1,7 +1,7 @@
 {
   "name": "troika-3d-text",
   "version": "0.28.1",
-  "description": "Troika 3D Text",
+  "description": "SDF text for the Troika 3D scene management framework",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "repository": {
     "type": "git",
@@ -16,15 +16,6 @@
   "module:src": "src/index.js",
   "dependencies": {
     "troika-3d": "^0.28.1",
-    "troika-three-utils": "^0.28.1",
-    "troika-worker-utils": "^0.28.0"
-  },
-  "devDependencies": {
-    "node-fetch": "^2.6.0",
-    "opentype.js": "^1.0.1"
-  },
-  "scripts": {
-    "build-opentype": "rollup -c rollup.config.build-opentype.js",
-    "build-typr": "node build-typr.js"
+    "troika-three-text": "^0.28.1"
   }
 }

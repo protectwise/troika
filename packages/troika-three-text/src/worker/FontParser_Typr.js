@@ -3,8 +3,8 @@
  * Also adds support for WOFF files (not WOFF2).
  */
 
-import typrFactory from '../libs/typr.factory.js'
-import woff2otfFactory from '../libs/woff2otf.factory.js'
+import typrFactory from '../../libs/typr.factory.js'
+import woff2otfFactory from '../../libs/woff2otf.factory.js'
 import {defineWorkerModule} from 'troika-worker-utils'
 
 function parserFactory(Typr, woff2otf) {

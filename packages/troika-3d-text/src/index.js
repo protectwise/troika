@@ -1,13 +1,13 @@
-// 3D text exports
-
+// Proxy exports from troika-three-text for convenience:
 export {
   configureTextBuilder,
   fontProcessorWorkerModule,
-  preloadFont
-} from './TextBuilder.js'
+  preloadFont,
+  Text as TextMesh,
+  GlyphsGeometry,
+  getCaretAtPoint,
+  getSelectionRects
+} from 'troika-three-text'
 
-export {TextMesh} from './three/TextMesh.js'
-export {GlyphsGeometry} from './three/GlyphsGeometry.js'
-export {getCaretAtPoint, getSelectionRects} from './selectionUtils.js'
-
+// Troika framework specific exports:
 export {default as Text3DFacade} from './facade/Text3DFacade.js'
