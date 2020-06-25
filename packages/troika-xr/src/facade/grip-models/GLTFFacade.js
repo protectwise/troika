@@ -41,6 +41,7 @@ export class GLTFFacade extends Object3DFacade {
         root.applyMatrix4(this.rootTransform)
       }
       this.threeObject.add(root)
+      root.updateMatrixWorld(true)
       this.gltf = gltf
       this.afterUpdate()
     }
