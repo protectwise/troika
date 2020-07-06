@@ -158,6 +158,18 @@ By default it will derive from a simple white `MeshBasicMaterial, but you can us
 
 Also see the `color` shortcut property.
 
+Note that because your material instance is _replaced_ by a derived material instance, any changes you make to your original material will _not_ be reflected in the derived version. If you need to modify properties of the material afterward, be sure you get a new reference to the derived version:
+
+```js
+// Bad:
+text.material = myOrigMaterial
+myOrigMaterial.opacity = 0.5
+
+// Good:
+text.material = myOrigMaterial
+text.material.opacity = 0.5
+```
+
 Default: a `MeshBasicMaterial` instance
 
 #### `maxWidth`
