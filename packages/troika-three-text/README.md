@@ -226,6 +226,17 @@ The arguments are:
 - `callback` - A function that will be called when the preloading is complete.
 
 
+## Postprocessing
+
+It is possible to use `Text` within scenes that utilize the [postprocessing](https://github.com/vanruesc/postprocessing) library for applying image effects. However, you must enable a special mode in that library that allows `Text`'s custom material to be honored. Just do the following once somewhere in your code:
+
+```js
+import { OverrideMaterialManager } from 'postprocessing'
+
+OverrideMaterialManager.workaroundEnabled = true
+```
+
+
 ## Carets and Selection Ranges
 
 In addition to rendering text, it is possible to access positioning information for caret placement and selection ranges. To access that info, use the `getCaretAtPoint` and `getSelectionRects` utility functions. Both of these functions take a `textRenderInfo` object as input, which you can get from the `Text` object either in the `sync()` callback or from its `textRenderInfo` property after sync has completed.
