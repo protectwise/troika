@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.29.0](https://github.com/protectwise/troika/compare/v0.28.1...v0.29.0) (2020-07-06)
+
+
+### Features
+
+* **troika-3d-text:** add sdfGlyphSize option on TextMesh ([978ef53](https://github.com/protectwise/troika/commit/978ef534442ec159353c8aa4c0ebe45ac21b4189)), closes [#58](https://github.com/protectwise/troika/issues/58)
+
+
+
+
+
 ## [0.28.1](https://github.com/protectwise/troika/compare/v0.28.0...v0.28.1) (2020-06-17)
 
 **Note:** Version bump only for package troika-examples

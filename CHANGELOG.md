@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.29.0](https://github.com/protectwise/troika/compare/v0.28.1...v0.29.0) (2020-07-06)
+
+
+### Bug Fixes
+
+* **troika-three-utils:** fix program switching when double-deriving materials ([89ed2f8](https://github.com/protectwise/troika/commit/89ed2f8eab6dfccba3aab95ea667642d13976bfc))
+* **troika-xr:** ensure correct initial transform of gltf objects on load ([49287f3](https://github.com/protectwise/troika/commit/49287f328dd89b595e9a4305603bad661decb756))
+
+
+### Features
+
+* **troika-3d-text:** add sdfGlyphSize option on TextMesh ([978ef53](https://github.com/protectwise/troika/commit/978ef534442ec159353c8aa4c0ebe45ac21b4189)), closes [#58](https://github.com/protectwise/troika/issues/58)
+* **troika-three-text:** promote standalone text to a new `troika-three-text` package ([995f2eb](https://github.com/protectwise/troika/commit/995f2eb7202789a83671878209c65d240082ade7)), closes [#47](https://github.com/protectwise/troika/issues/47)
+
+
+
+
+
 ## [0.28.1](https://github.com/protectwise/troika/compare/v0.28.0...v0.28.1) (2020-06-17)
 
 

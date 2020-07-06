@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.29.0](https://github.com/protectwise/troika/compare/v0.28.1...v0.29.0) (2020-07-06)
+
+
+### Bug Fixes
+
+* **troika-three-utils:** fix program switching when double-deriving materials ([89ed2f8](https://github.com/protectwise/troika/commit/89ed2f8eab6dfccba3aab95ea667642d13976bfc))
+
+
+
+
+
 ## [0.28.1](https://github.com/protectwise/troika/compare/v0.28.0...v0.28.1) (2020-06-17)
 
 

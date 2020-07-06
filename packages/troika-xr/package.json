@@ -1,6 +1,6 @@
 {
   "name": "troika-xr",
-  "version": "0.28.1",
+  "version": "0.29.0",
   "description": "Troika XR",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "repository": {
@@ -15,9 +15,9 @@
   "module": "dist/troika-xr.esm.js",
   "module:src": "src/index.js",
   "dependencies": {
-    "troika-3d": "^0.28.1",
-    "troika-animation": "^0.28.0",
-    "troika-core": "^0.28.0",
-    "troika-three-utils": "^0.28.1"
+    "troika-3d": "^0.29.0",
+    "troika-animation": "^0.29.0",
+    "troika-core": "^0.29.0",
+    "troika-three-utils": "^0.29.0"
   }
 }
