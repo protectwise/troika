@@ -51,4 +51,4 @@ import { Text3DFacade } from 'troika-3d-text'
 
 ### Supported properties
 
-`Text3DFacade` supports all properties supported by the `Text` mesh from [troika-three-text](../troika-3d-text); see the documentation there for details.
+`Text3DFacade` supports all properties supported by the `Text` mesh from [troika-three-text](../troika-three-text); see the documentation there for details.
