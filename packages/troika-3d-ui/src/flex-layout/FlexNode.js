@@ -1,4 +1,4 @@
-import { requestFlexLayout } from './FlexLayoutProcessor.js'
+import { requestFlexLayout } from 'troika-flex-layout'
 import { utils } from 'troika-core'
 const { assign, createClassExtender } = utils
 
@@ -89,7 +89,7 @@ export const extendAsFlexNode = createClassExtender('flexNode', BaseFacadeClass 
       this.needsFlexLayout = true
 
       // Object holding all input styles for this node in the flex tree; see the style object
-      // format in FlexLayoutProcessor.js
+      // format in troika-flex-layout
       this._flexStyles = {
         id: this.$facadeId
       }

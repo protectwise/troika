@@ -13,7 +13,7 @@ if (!LERNA_ROOT_PATH) {
 
 
 const OUTPUT_TEMPLATE = `
-// Custom build of Yoga (https://yogalayout.com/) for use in Troika UI layout.
+// Custom build of Yoga (https://yogalayout.com/) for use in troika-flex-layout.
 // Original MIT license applies: https://github.com/facebook/yoga/blob/master/LICENSE
 
 export default function() {

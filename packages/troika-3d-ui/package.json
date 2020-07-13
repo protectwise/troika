@@ -19,14 +19,7 @@
     "troika-3d": "^0.29.0",
     "troika-3d-text": "^0.29.0",
     "troika-core": "^0.29.0",
-    "troika-three-utils": "^0.29.0",
-    "troika-worker-utils": "^0.29.0"
-  },
-  "devDependencies": {
-    "terser": "^4.2.0",
-    "yoga-layout-prebuilt": "1.9.3"
-  },
-  "scripts": {
-    "build-yoga": "rollup -c rollup.config.build-yoga.js"
+    "troika-flex-layout": "^0.29.0",
+    "troika-three-utils": "^0.29.0"
   }
 }

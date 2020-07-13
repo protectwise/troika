@@ -1,22 +1,57 @@
 import { defineWorkerModule, ThenableWorkerModule } from 'troika-worker-utils'
-import { fontProcessorWorkerModule } from 'troika-3d-text'
-import yogaFactory from '../../libs/yoga.factory.js'
+import { fontProcessorWorkerModule } from 'troika-three-text'
+import yogaFactory from '../libs/yoga.factory.js'
 
 
 /**
  * Main entry point. This issues a request to the web worker to perform flexbox layout
  * on the given `styleTree`, calling the `callback` function with the results when finished.
  *
- * @param {Object} styleTree
- * @param {Function} callback
+ * @param {FlexLayoutStyleNode} styleTree
+ * @param {function(FlexLayoutResult)} callback
  */
 export function requestFlexLayout(styleTree, callback) {
   flexLayoutProcessorWorkerModule(styleTree).then(callback)
 }
 
+/**
+ * @typedef {object<FlexLayoutResultNode>} FlexLayoutResult
+ * Mapping of node ids to layout results.
+ */
+
+/**
+ * @typedef {object} FlexLayoutResultNode - layout result for a single flex node.
+ * @property {number} left - the node's computed left position
+ * @property {number} top - the node's computed top position
+ * @property {number} width - the node's computed width
+ * @property {number} height - the node's computed height
+ */
 
 
-function createFlexLayoutProcessor(Yoga, loadFontFn, measureFn) {
+/**
+ * @typedef {object} MeasureFunctionParams - Parameters for the `measureFunction`.
+ * @property {string} text
+ * @property {string} font
+ * @property {number} fontSize
+ * @property {number} lineHeight
+ * @property {number} letterSpacing
+ * @property {string} whiteSpace
+ * @property {string} overflowWrap
+ * @property {number} maxWidth
+ */
+
+/**
+ * Factory for the flex layout processing function. This is injected into a web worker so it
+ * must be entirely self-contained other than specific dependencies passed in as arguments.
+ * @param {object} Yoga - The yoga-layout implementation object.
+ * @param {function(fontUrl:string, callback:function)} loadFontFn - A function that
+ *        loads a given font URL, invoking a callback when complete.
+ * @param {function(MeasureFunctionParams):{width:number}} measureFunction - A function that
+ *        measures the intrinsic dimensions for a block of text with given styles and
+ *        constraints. The measurement must occur synchronously.
+ * @return {function(FlexLayoutStyleNode):FlexLayoutResult}
+ */
+function createFlexLayoutProcessor(Yoga, loadFontFn, measureFunction) {
 
   const YOGA_VALUE_MAPPINGS = {
     align: {
@@ -191,11 +226,10 @@ function createFlexLayoutProcessor(Yoga, loadFontFn, measureFn) {
                   overflowWrap: styleNode.overflowWrap,
                   maxWidth: isNaN(innerWidth) ? Infinity : innerWidth
                 }
-                // TODO: this assumes the measureFn will exec the callback synchronously; this works
+                // NOTE: this assumes the measureFunction will exec the callback synchronously; this works
                 // with current impl since we preload all needed fonts above, but it would be good to
                 // formalize that contract in the FontProcessor
-                let result = null
-                measureFn(params, r => {result = r})
+                let result = measureFunction(params)
                 if (result) {
                   // Apply a fudge factor to avoid issues where the flexbox layout result using this
                   // measurement ends up slightly smaller (due to rounding?) and making text wrap
@@ -245,7 +279,7 @@ function createFlexLayoutProcessor(Yoga, loadFontFn, measureFn) {
 }
 
 
-const flexLayoutProcessorWorkerModule = defineWorkerModule({
+export const flexLayoutProcessorWorkerModule = defineWorkerModule({
   name: 'FlexLayoutProcessor',
   dependencies: [
     yogaFactory,
@@ -255,7 +289,12 @@ const flexLayoutProcessorWorkerModule = defineWorkerModule({
   ],
   init(yogaFactory, fontProcessor, create, Thenable) {
     const Yoga = yogaFactory()
-    const process = create(Yoga, fontProcessor.loadFont, fontProcessor.measure)
+    function measure(params) {
+      let result = null
+      fontProcessor.measure(params, r => {result = r})
+      return result
+    }
+    const process = create(Yoga, fontProcessor.loadFont, measure)
     return function(styleTree) {
       const thenable = new Thenable()
       process(styleTree, thenable.resolve)
@@ -264,56 +303,3 @@ const flexLayoutProcessorWorkerModule = defineWorkerModule({
   }
 })
 
-
-
-
-
-/*
-const styleTreeExample = {
-  id, //required!
-
-  width,
-  height,
-  minWidth,
-  minHeight,
-  maxWidth,
-  maxHeight,
-  flexDirection,
-  flex,
-  flexWrap,
-  flexBasis,
-  flexGrow,
-  flexShrink,
-  alignContent,
-  alignItems,
-  alignSelf,
-  justifyContent,
-  position,
-  left,
-  right,
-  top,
-  bottom,
-  marginTop,
-  marginRight,
-  marginBottom,
-  marginLeft,
-  paddingTop,
-  paddingRight,
-  paddingBottom,
-  paddingLeft,
-  borderTop,
-  borderRight,
-  borderBottom,
-  borderLeft,
-
-  text,
-  font,
-  fontSize,
-  lineHeight,
-  letterSpacing,
-
-  children: [{
-    //...
-  }]
-}
-*/
