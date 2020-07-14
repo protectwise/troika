@@ -95,6 +95,7 @@ class TextExample extends React.Component {
       letterSpacing: 0,
       maxWidth: 2, //2m
       textAlign: 'justify',
+      textIndent: 0,
       anchorX: 'center',
       anchorY: 'middle',
       color: 0xffffff,
@@ -179,6 +180,7 @@ class TextExample extends React.Component {
               fontSize: state.fontSize,
               maxWidth: state.maxWidth,
               textAlign: state.textAlign,
+              textIndent: state.textIndent,
               lineHeight: state.lineHeight,
               letterSpacing: state.letterSpacing,
               anchorX: state.anchorX,
@@ -271,6 +273,7 @@ class TextExample extends React.Component {
                 {type: 'boolean', path: "selectable", label: "Selectable (WIP)"},
                 {type: 'number', path: "fontSize", label: "fontSize", min: 0.01, max: 0.2, step: 0.01},
                 {type: 'number', path: "textScale", label: "scale", min: 0.1, max: 10, step: 0.1},
+                //{type: 'number', path: "textIndent", label: "indent", min: 0.1, max: 1, step: 0.01},
                 {type: 'number', path: "maxWidth", min: 1, max: 5, step: 0.01},
                 {type: 'number', path: "lineHeight", min: 1, max: 2, step: 0.01},
                 {type: 'number', path: "letterSpacing", min: -0.1, max: 0.5, step: 0.01},

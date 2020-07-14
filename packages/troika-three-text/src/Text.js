@@ -42,6 +42,7 @@ const SYNCABLE_PROPS = [
   'overflowWrap',
   'text',
   'textAlign',
+  'textIndent',
   'whiteSpace',
   'anchorX',
   'anchorY',
@@ -158,6 +159,12 @@ class Text extends Mesh {
     this.textAlign = 'left'
 
     /**
+     * @member {number} textIndent
+     * Indentation for the first character of a line; see CSS `text-indent`.
+     */
+    this.textIndent = 0
+
+    /**
      * @member {string} whiteSpace
      * Defines whether text should wrap when a line reaches the `maxWidth`. Can
      * be either `'normal'` (the default), to allow wrapping according to the `overflowWrap` property,
@@ -272,6 +279,7 @@ class Text extends Mesh {
           lineHeight: this.lineHeight || 'normal',
           maxWidth: this.maxWidth,
           textAlign: this.textAlign,
+          textIndent: this.textIndent,
           whiteSpace: this.whiteSpace,
           overflowWrap: this.overflowWrap,
           anchorX: this.anchorX,

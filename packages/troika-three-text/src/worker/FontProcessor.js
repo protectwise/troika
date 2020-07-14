@@ -174,6 +174,7 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
       lineHeight='normal',
       maxWidth=INF,
       textAlign='left',
+      textIndent=0,
       whiteSpace='normal',
       overflowWrap='normal',
       anchorX = 0,
@@ -199,6 +200,7 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
     letterSpacing = +letterSpacing
     maxWidth = +maxWidth
     lineHeight = lineHeight || 'normal'
+    textIndent = +textIndent
 
     getSdfAtlas(font, sdfGlyphSize, atlas => {
       const fontObj = atlas.fontObj
@@ -235,7 +237,7 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
       const caretBottomOffset = (ascender + descender) / 2 * fontSizeMult - caretHeight / 2
 
       // Distribute glyphs into lines based on wrapping
-      let lineXOffset = 0
+      let lineXOffset = textIndent
       let currentLine = new TextLine()
       const lines = [currentLine]
       fontObj.forEachGlyph(text, fontSize, letterSpacing, (glyphObj, glyphX, charIndex) => {
@@ -298,7 +300,7 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
         if (char === '\n') {
           currentLine = new TextLine()
           lines.push(currentLine)
-          lineXOffset = -(glyphX + glyphWidth + (letterSpacing * fontSize))
+          lineXOffset = -(glyphX + glyphWidth + (letterSpacing * fontSize)) + textIndent
         }
       })
 

@@ -14,6 +14,7 @@ const TEXT_MESH_PROPS = [
   'maxWidth',
   'overflowWrap',
   'textAlign',
+  'textIndent',
   'whiteSpace',
   'material',
   'color',

@@ -196,6 +196,12 @@ The horizontal alignment of each line of text within the overall text bounding b
 
 Default: `'left'`
 
+#### `textIndent`
+
+An indentation applied to the first character of each _hard_ newline. Behaves like CSS `text-indent`.
+
+Default: `0`
+
 #### `whiteSpace`
 
 Defines whether text should wrap when a line reaches the `maxWidth`. Can be either `'normal'`, to allow wrapping according to the `overflowWrap` property, or `'nowrap'` to prevent wrapping.
