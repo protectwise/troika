@@ -15,7 +15,7 @@ let supportsWorkers = () => {
       worker.terminate()
       supported = true
     } catch (err) {
-      console.warn(`Troika createWorkerModule: web workers not allowed; falling back to main thread execution. Cause: [${err.message}]`)
+      console.log(`Troika createWorkerModule: web workers not allowed; falling back to main thread execution. Cause: [${err.message}]`)
     }
   }
 
