@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.30.0](https://github.com/protectwise/troika/compare/v0.29.0...v0.30.0) (2020-07-16)
+
+
+### Bug Fixes
+
+* **troika-worker-utils:** decrease main thread message level from warn to log ([d7cee6d](https://github.com/protectwise/troika/commit/d7cee6d534c6a01f9c3bc984015f7f824f0b458f))
+
+
+
+
+
 # [0.29.0](https://github.com/protectwise/troika/compare/v0.28.1...v0.29.0) (2020-07-06)
 
 **Note:** Version bump only for package troika-worker-utils
