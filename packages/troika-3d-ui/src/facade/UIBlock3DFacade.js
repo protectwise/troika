@@ -3,7 +3,7 @@ import { Group3DFacade } from 'troika-3d'
 import UITextNode3DFacade from './UITextNode3DFacade.js'
 import UIBlockLayer3DFacade from './UIBlockLayer3DFacade.js'
 import { extendAsFlexNode } from '../flex-layout/FlexNode.js'
-import { getComputedFontSize, getInheritable } from '../uiUtils.js'
+import { getComputedFontSize, getInheritable, INHERITABLES } from '../uiUtils.js'
 import { utils } from 'troika-core'
 import ScrollbarsFacade from './ScrollbarsFacade.js'
 
@@ -198,6 +198,7 @@ class UIBlock3DFacade extends Group3DFacade {
         textChild.font = getInheritable(this, 'font')
         textChild.fontSize = this.getComputedFontSize()
         textChild.textAlign = getInheritable(this, 'textAlign')
+        textChild.textIndent = getInheritable(this, 'textIndent')
         textChild.lineHeight = getInheritable(this, 'lineHeight', DEFAULT_LINE_HEIGHT)
         textChild.letterSpacing = getInheritable(this, 'letterSpacing', 0)
         textChild.whiteSpace = getInheritable(this, 'whiteSpace')
@@ -366,14 +367,8 @@ class UIBlock3DFacade extends Group3DFacade {
 // Extend as FlexNode
 const UIBlock3DFacade$FlexNode = UIBlock3DFacade = extendAsFlexNode(UIBlock3DFacade)
 
-utils.assign(UIBlock3DFacade.prototype, {
-  font: 'inherit',
-  fontSize: 'inherit',
-  lineHeight: 'inherit',
-  letterSpacing: 'inherit',
-  whiteSpace: 'inherit',
-  overflowWrap: 'inherit',
-  color: 'inherit'
+INHERITABLES.forEach(prop => {
+  UIBlock3DFacade.prototype[prop] = 'inherit'
 })
 
 

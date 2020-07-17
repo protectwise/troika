@@ -1,8 +1,9 @@
 import { extendAsFlexNode } from '../flex-layout/FlexNode.js'
 import { Text3DFacade } from 'troika-3d-text'
-import { getInheritable } from '../uiUtils.js'
+import { getInheritable, INHERITABLES } from '../uiUtils.js'
+import UIBlock3DFacade from './UIBlock3DFacade.js'
 
-const flexLayoutTextProps = ['text', 'font', 'fontSize', 'lineHeight', 'letterSpacing', 'whiteSpace', 'overflowWrap']
+const flexLayoutTextProps = ['text', 'textIndent', 'font', 'fontSize', 'lineHeight', 'letterSpacing', 'whiteSpace', 'overflowWrap']
 const noop = () => {}
 
 /**
@@ -73,6 +74,10 @@ class UITextNode3DFacade extends Text3DFacade {
 
 // Extend as FlexNode
 UITextNode3DFacade = extendAsFlexNode(UITextNode3DFacade)
+
+INHERITABLES.forEach(prop => {
+  UITextNode3DFacade.prototype[prop] = 'inherit'
+})
 
 // Redefine the maxWidth property so it's not treated as a setter that affects flexbox layout
 Object.defineProperty(UITextNode3DFacade.prototype, 'maxWidth', {
