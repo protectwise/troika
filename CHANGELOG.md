@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.30.1](https://github.com/protectwise/troika/compare/v0.30.0...v0.30.1) (2020-07-19)
+
+
+### Bug Fixes
+
+* **troika-3d-ui:** fix inheritable props on text nodes, and add textIndent ([0650c59](https://github.com/protectwise/troika/commit/0650c594319bea46df8c1308a1bfcb4b51d14faa))
+* **troika-three-text:** fix changing text length in ThreeJS r117+ ([a7ef945](https://github.com/protectwise/troika/commit/a7ef945119649b4c3b451783000dd5c40ad3f3ba)), closes [#69](https://github.com/protectwise/troika/issues/69)
+
+
+
+
+
 # [0.30.0](https://github.com/protectwise/troika/compare/v0.29.0...v0.30.0) (2020-07-16)
 
 
