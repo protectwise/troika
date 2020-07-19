@@ -162,6 +162,14 @@ function updateBufferAttr(geom, attrName, newArray, itemSize) {
       attr.needsUpdate = true
     } else {
       geom.setAttribute(attrName, new InstancedBufferAttribute(newArray, itemSize))
+      // If the new attribute has a different size, we also have to (as of r117) manually clear the
+      // internal cached max instance count. See https://github.com/mrdoob/three.js/issues/19706
+      // It's unclear if this is a threejs bug or a truly unsupported scenario; discussion in
+      // that ticket is ambiguous as to whether replacing a BufferAttribute with one of a
+      // different size is supported, but https://github.com/mrdoob/three.js/pull/17418 strongly
+      // implies it should be supported. It's possible we need to
+      delete geom._maxInstanceCount //for r117+, could be fragile
+      geom.dispose() //for r118+, more robust feeling, but more heavy-handed than I'd like
     }
   } else if (attr) {
     geom.deleteAttribute(attrName)
