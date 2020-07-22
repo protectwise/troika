@@ -75,9 +75,9 @@ class GlyphsGeometry extends InstancedBufferGeometry {
       }
       let tpl = getTemplateGeometry(detail)
       ;['position', 'normal', 'uv'].forEach(attr => {
-        this.attributes[attr] = tpl.attributes[attr]
+        this.attributes[attr] = tpl.attributes[attr].clone()
       })
-      this.setIndex(tpl.getIndex())
+      this.setIndex(tpl.getIndex().clone())
     }
   }
   get detail() {
