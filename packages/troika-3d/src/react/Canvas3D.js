@@ -28,6 +28,10 @@ class Canvas3D extends ReactCanvasBase {
             antialias: props.antialias,
             rendererClass: props.rendererClass,
             backgroundColor: props.backgroundColor,
+            background: props.background,
+            environment: props.environment,
+            outputEncoding: props.outputEncoding,
+            toneMapping: props.toneMapping,
             shadows: props.shadows,
             camera: props.camera,
             lights: props.lights,
@@ -49,6 +53,10 @@ Canvas3D.displayName = 'Canvas3D'
 Canvas3D.propTypes = utils.assignIf(
   {
     backgroundColor: T.any,
+    background: T.any,
+    environment: T.any,
+    outputEncoding: T.number,
+    toneMapping: T.number,
     lights: T.array,
     camera: T.object,
     objects: T.oneOfType([T.array, T.object]).isRequired,

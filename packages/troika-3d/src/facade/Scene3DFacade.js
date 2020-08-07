@@ -26,6 +26,13 @@ class Scene3DFacade extends Object3DFacade {
     super(parent, scene)
   }
 
+  afterUpdate () {
+    let scene = this.threeObject
+    scene.background = this.background || null
+    scene.environment = this.environment || null
+    super.afterUpdate()
+  }
+
   describeChildren() {
     // Add root instancing manager
     let children = {
