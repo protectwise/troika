@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.31.0](https://github.com/protectwise/troika/compare/v0.30.2...v0.31.0) (2020-08-11)
+
+
+### Bug Fixes
+
+* **troika-3d-ui:** remove stray circular import ([06be563](https://github.com/protectwise/troika/commit/06be56308e592f6d99df39128227f8e8b6f05bd4))
+* move Three.js peerDependency from troika-3d to troika-three-utils ([96b6fc8](https://github.com/protectwise/troika/commit/96b6fc8c9d80ddce358b74d6bb80a063500476ac))
+
+
+### Features
+
+* **troika-3d:** expose some new props for scene background and color management ([5209f66](https://github.com/protectwise/troika/commit/5209f66f67f37036a659b0b660e5b343d682c64f))
+
+
+
+
+
 ## [0.30.2](https://github.com/protectwise/troika/compare/v0.30.1...v0.30.2) (2020-07-22)
 
 

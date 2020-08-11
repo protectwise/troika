@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.31.0](https://github.com/protectwise/troika/compare/v0.30.2...v0.31.0) (2020-08-11)
+
+
+### Bug Fixes
+
+* move Three.js peerDependency from troika-3d to troika-three-utils ([96b6fc8](https://github.com/protectwise/troika/commit/96b6fc8c9d80ddce358b74d6bb80a063500476ac))
+
+
+
+
+
 # [0.30.0](https://github.com/protectwise/troika/compare/v0.29.0...v0.30.0) (2020-07-16)
 
 **Note:** Version bump only for package troika-three-utils
