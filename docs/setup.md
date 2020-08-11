@@ -29,7 +29,7 @@ The `troika-3d` package requires `three` ([Three.js](https://threejs.org)) as a 
 npm install --save three
 ```
 
-You'll need to make sure that you keep your `three` dependency matches the range of supported versions declared in `troika-3d/package.json`, and keep that up to date in the future as you update Troika. You should see messages from `npm` in your terminal to remind you if you get behind.
+You'll need to make sure that you keep your `three` dependency matches the range of supported versions declared in `troika-three-utils/package.json`, and keep that up to date in the future as you update Troika. You should see messages from `npm` in your terminal to remind you if you get behind.
 
 Because the Three.js API tends to have rather [significant changes between releases](https://github.com/mrdoob/three.js/wiki/Migration-Guide), Troika has to be specific about the range of versions it currently works with. We try to keep that at the largest possible range that we know won't break. You _may_ try using a later version of `three` than officially supported, just no guarantees with that.
 

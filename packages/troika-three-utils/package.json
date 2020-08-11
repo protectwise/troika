@@ -13,5 +13,8 @@
   "browser": "dist/troika-three-utils.umd.js",
   "jsnext:main": "dist/troika-three-utils.esm.js",
   "module": "dist/troika-three-utils.esm.js",
-  "module:src": "src/index.js"
+  "module:src": "src/index.js",
+  "peerDependencies": {
+    "three": "0.103.x - 0.119.x"
+  }
 }

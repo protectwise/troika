@@ -28,7 +28,7 @@ You will also need to install a compatible version of [Three.js](https://threejs
 npm install three
 ```
 
-> You can look in [package.json](./package.json) under `"peerDependencies"` for a range of Three.js versions that has been verified to work with Troika's 3D packages. Other versions that have not been specifically tested may also work depending on the features you use.
+> You can look in the [package.json of troika-three-utils](../troika-three-utils/package.json) under `"peerDependencies"` for a range of Three.js versions that has been verified to work with Troika's 3D packages. Other versions that have not been specifically tested may also work depending on the features you use.
 
 
 ## Usage
