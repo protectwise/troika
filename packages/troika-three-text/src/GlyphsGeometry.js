@@ -119,10 +119,10 @@ class GlyphsGeometry extends InstancedBufferGeometry {
     )
     sphere.radius = sphere.center.distanceTo(tempVec3.set(totalBounds[0], totalBounds[1], 0))
 
-    // Update the boundingBox based on the total bounds with an arbitrary depth of 20
+    // Update the boundingBox based on the total bounds
     const box = this.boundingBox;
-    box.min = new Vector3(totalBounds[0], totalBounds[1], -10);
-    box.max = new Vector3(totalBounds[2], totalBounds[3], 10);
+    box.min.set(totalBounds[0], totalBounds[1], 0);
+    box.max.set(totalBounds[2], totalBounds[3], 0);
   }
 
   /**
