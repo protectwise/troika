@@ -3,6 +3,7 @@ import {
   InstancedBufferGeometry,
   InstancedBufferAttribute,
   Sphere,
+  Box3,
   Vector3
 } from 'three'
 
@@ -61,10 +62,15 @@ class GlyphsGeometry extends InstancedBufferGeometry {
 
     // Preallocate zero-radius bounding sphere
     this.boundingSphere = new Sphere()
+    this.boundingBox = new Box3();
   }
 
   computeBoundingSphere () {
     // No-op; we'll sync the boundingSphere proactively in `updateGlyphs`.
+  }
+
+  computeBoundingBox() {
+    // No-op; we'll sync the boundingBox proactively in `updateGlyphs`.
   }
 
   set detail(detail) {
@@ -112,6 +118,11 @@ class GlyphsGeometry extends InstancedBufferGeometry {
       0
     )
     sphere.radius = sphere.center.distanceTo(tempVec3.set(totalBounds[0], totalBounds[1], 0))
+
+    // Update the boundingBox based on the total bounds with an arbitrary depth of 20
+    const box = this.boundingBox;
+    box.min = new Vector3(totalBounds[0], totalBounds[1], -10);
+    box.max = new Vector3(totalBounds[2], totalBounds[3], 10);
   }
 
   /**
