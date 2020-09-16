@@ -211,6 +211,31 @@ Note that `'normal'` in this context _does_ honor newline characters to manually
 Default: `'normal'`
 
 
+## Handling Asynchronous Updates
+
+Since the text processing occurs in a web worker, it is by definition asynchronous. This means that you can't rely on the text being visible or having a complete geometry immediately. If you need to do things like access the geometry's `boundingSphere` or the `textRenderInfo`, you will have to listen for completion. You can do this two ways:
+
+1. Pass a callback function when you call the `sync` method:
+
+    ```js
+    myText.sync(() => {
+      // code to execute after sync completes...
+    })
+    ```
+   
+   This is best when you want to only react to _that specific_ sync call. Keep in mind that the callback will not execute if the text is already fully synced.
+   
+2. Add a listener for the `synccomplete` event:
+
+    ```js
+    myText.addEventListener('synccomplete', () => {
+      // code to execute after sync completes...
+    })
+    ```
+
+    This will fire after _every_ sync, no matter who invoked it. This is best if you need to react to all syncs, for example to trigger a manual canvas render.
+
+
 ## Preloading
 
 To avoid long pauses when first displaying a piece of text in your scene, you can preload fonts and optionally pre-generate the SDF textures for particular glyphs up front:
@@ -257,7 +282,7 @@ OverrideMaterialManager.workaroundEnabled = true
 
 ## Carets and Selection Ranges
 
-In addition to rendering text, it is possible to access positioning information for caret placement and selection ranges. To access that info, use the `getCaretAtPoint` and `getSelectionRects` utility functions. Both of these functions take a `textRenderInfo` object as input, which you can get from the `Text` object either in the `sync()` callback or from its `textRenderInfo` property after sync has completed.
+In addition to rendering text, it is possible to access positioning information for caret placement and selection ranges. To access that info, use the `getCaretAtPoint` and `getSelectionRects` utility functions. Both of these functions take a `textRenderInfo` object as input, which you can get from the `Text` object's `textRenderInfo` property after sync has completed. See "Handling Asynchronous Updates" above for how to react to sync completion events.
 
 #### `getCaretAtPoint(textRenderInfo, x, y)`
 
