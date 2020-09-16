@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.32.0](https://github.com/protectwise/troika/compare/v0.31.0...v0.32.0) (2020-09-16)
+
+
+### Bug Fixes
+
+* **troika-three-utils:** make derived material methods writable+configurable ([4d4bfbc](https://github.com/protectwise/troika/commit/4d4bfbc5d4d730eb0098d33beb1c3c562037fddf)), closes [react-spring/drei#121](https://github.com/react-spring/drei/issues/121)
+
+
+
+
+
 # [0.31.0](https://github.com/protectwise/troika/compare/v0.30.2...v0.31.0) (2020-08-11)
 
 
