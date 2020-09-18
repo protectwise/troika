@@ -234,6 +234,8 @@ Since the text processing occurs in a web worker, it is by definition asynchrono
     ```
 
     This will fire after _every_ sync, no matter who invoked it. This is best if you need to react to all syncs, for example to trigger a manual canvas render.
+    
+    You can also listen for the `syncstart` event if you need to react to the initiation of a sync call, e.g. to set some sort of "waiting" state while the text is being processed.
 
 
 ## Preloading
