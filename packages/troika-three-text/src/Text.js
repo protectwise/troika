@@ -1,4 +1,5 @@
 import {
+  Color,
   DoubleSide,
   Matrix4,
   Mesh,
@@ -191,7 +192,9 @@ class Text extends Mesh {
     /**
      * @member {string|number|THREE.Color} color
      * This is a shortcut for setting the `color` of the text's material. You can use this
-     * if you don't want to specify a whole custom `material`.
+     * if you don't want to specify a whole custom `material`. Also, if you do use a custom
+     * `material`, this color will only be used for this particuar Text instance, even if
+     * that same material instance is shared across multiple Text objects.
      */
     this.color = null
 
@@ -423,10 +426,17 @@ class Text extends Mesh {
     material.polygonOffset = !!this.depthOffset
     material.polygonOffsetFactor = material.polygonOffsetUnits = this.depthOffset || 0
 
-    // shortcut for setting material color via `color` prop on the mesh:
+    // Shortcut for setting material color via `color` prop on the mesh; this is
+    // applied only to the derived material to avoid mutating a shared base material.
     const color = this.color
-    if (color != null && material.color && material.color.isColor && color !== material._troikaColor) {
-      material.color.set(material._troikaColor = color)
+    if (color == null) {
+      delete material.color //inherit from base
+    } else {
+      const colorObj = this._colorObj || (this._colorObj = new Color())
+      if (color !== colorObj._input || typeof color === 'object') {
+        colorObj.set(colorObj._input = color)
+      }
+      material.color = colorObj
     }
 
     // base orientation
