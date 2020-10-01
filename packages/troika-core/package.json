@@ -9,6 +9,7 @@
     "directory": "packages/troika-core"
   },
   "license": "MIT",
+  "sideEffects": false,
   "main": "dist/troika-core.umd.js",
   "module": "dist/troika-core.esm.js",
   "module:src": "src/index.js",

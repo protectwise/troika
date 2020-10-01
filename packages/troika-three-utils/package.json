@@ -9,6 +9,7 @@
     "directory": "packages/troika-three-utils"
   },
   "license": "MIT",
+  "sideEffects": false,
   "main": "dist/troika-three-utils.umd.js",
   "module": "dist/troika-three-utils.esm.js",
   "module:src": "src/index.js",

@@ -9,6 +9,7 @@
     "directory": "packages/troika-worker-utils"
   },
   "license": "MIT",
+  "sideEffects": false,
   "main": "dist/troika-worker-utils.umd.js",
   "module": "dist/troika-worker-utils.esm.js",
   "module:src": "src/index.js"

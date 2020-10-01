@@ -9,6 +9,7 @@
     "directory": "packages/troika-flex-layout"
   },
   "license": "MIT",
+  "sideEffects": false,
   "main": "dist/troika-flex-layout.umd.js",
   "module": "dist/troika-flex-layout.esm.js",
   "module:src": "src/index.js",

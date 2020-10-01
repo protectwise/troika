@@ -9,6 +9,7 @@
     "directory": "packages/troika-3d"
   },
   "license": "MIT",
+  "sideEffects": false,
   "main": "dist/troika-3d.umd.js",
   "module": "dist/troika-3d.esm.js",
   "module:src": "src/index.js",

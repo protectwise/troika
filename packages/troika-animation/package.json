@@ -9,6 +9,7 @@
     "directory": "packages/troika-animation"
   },
   "license": "MIT",
+  "sideEffects": false,
   "main": "dist/troika-animation.umd.js",
   "module": "dist/troika-animation.esm.js",
   "module:src": "src/index.js"

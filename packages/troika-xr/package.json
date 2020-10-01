@@ -9,6 +9,7 @@
     "directory": "packages/troika-xr"
   },
   "license": "MIT",
+  "sideEffects": false,
   "main": "dist/troika-xr.umd.js",
   "module": "dist/troika-xr.esm.js",
   "module:src": "src/index.js",
