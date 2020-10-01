@@ -10,8 +10,6 @@
   },
   "license": "MIT",
   "main": "dist/troika-flex-layout.umd.js",
-  "browser": "dist/troika-flex-layout.umd.js",
-  "jsnext:main": "dist/troika-flex-layout.esm.js",
   "module": "dist/troika-flex-layout.esm.js",
   "module:src": "src/index.js",
   "dependencies": {

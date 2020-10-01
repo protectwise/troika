@@ -10,8 +10,6 @@
   },
   "license": "MIT",
   "main": "dist/troika-3d.umd.js",
-  "browser": "dist/troika-3d.umd.js",
-  "jsnext:main": "dist/troika-3d.esm.js",
   "module": "dist/troika-3d.esm.js",
   "module:src": "src/index.js",
   "dependencies": {

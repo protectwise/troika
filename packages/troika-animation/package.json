@@ -10,8 +10,6 @@
   },
   "license": "MIT",
   "main": "dist/troika-animation.umd.js",
-  "browser": "dist/troika-animation.umd.js",
-  "jsnext:main": "dist/troika-animation.esm.js",
   "module": "dist/troika-animation.esm.js",
   "module:src": "src/index.js"
 }
