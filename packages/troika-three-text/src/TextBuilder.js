@@ -14,7 +14,7 @@ const CONFIG = {
   sdfGlyphSize: 64,
   textureWidth: 2048
 }
-const tempColor = new Color()
+const tempColor = /*#__PURE__*/new Color()
 let hasRequested = false
 
 /**
@@ -255,7 +255,7 @@ function toAbsoluteURL(path) {
 }
 
 
-const fontProcessorWorkerModule = defineWorkerModule({
+const fontProcessorWorkerModule = /*#__PURE__*/defineWorkerModule({
   name: 'FontProcessor',
   dependencies: [
     CONFIG,
@@ -278,7 +278,7 @@ const fontProcessorWorkerModule = defineWorkerModule({
   }
 })
 
-const processInWorker = defineWorkerModule({
+const processInWorker = /*#__PURE__*/defineWorkerModule({
   name: 'TextBuilder',
   dependencies: [fontProcessorWorkerModule, ThenableWorkerModule],
   init(fontProcessor, Thenable) {

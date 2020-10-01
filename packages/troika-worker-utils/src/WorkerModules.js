@@ -7,8 +7,11 @@ let _workerModuleId = 0
 let _messageId = 0
 let _allowInitAsString = false
 const workers = Object.create(null)
-const openRequests = Object.create(null)
-openRequests._count = 0
+const openRequests = /*#__PURE__*/(() => {
+  const obj = Object.create(null)
+  obj._count = 0
+  return obj
+})()
 
 
 /**

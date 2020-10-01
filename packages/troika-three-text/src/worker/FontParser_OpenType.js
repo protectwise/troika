@@ -68,7 +68,7 @@ function parserFactory(opentype) {
 }
 
 
-const workerModule = defineWorkerModule({
+const workerModule = /*#__PURE__*/defineWorkerModule({
   name: 'OpenType Font Parser',
   dependencies: [opentypeFactory, parserFactory],
   init(opentypeFactory, parserFactory) {

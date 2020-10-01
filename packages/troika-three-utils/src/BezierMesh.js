@@ -3,7 +3,7 @@ import { createBezierMeshMaterial } from './BezierMeshMaterial.js'
 
 let geometry = null
 
-const defaultBaseMaterial = new MeshStandardMaterial({color: 0xffffff, side: DoubleSide})
+const defaultBaseMaterial = /*#__PURE__*/new MeshStandardMaterial({color: 0xffffff, side: DoubleSide})
 
 
 /**

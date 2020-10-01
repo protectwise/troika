@@ -6,7 +6,7 @@ import {defineWorkerModule} from './WorkerModules.js'
  * module needs Thenable as a dependency, it's better to pass this module rather than
  * the raw function in its `dependencies` array so it only gets registered once.
  */
-export default defineWorkerModule({
+export default /*#__PURE__*/defineWorkerModule({
   name: 'Thenable',
   dependencies: [Thenable],
   init: function(Thenable) {

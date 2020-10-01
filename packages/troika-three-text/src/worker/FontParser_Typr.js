@@ -112,7 +112,7 @@ function parserFactory(Typr, woff2otf) {
 }
 
 
-const workerModule = defineWorkerModule({
+const workerModule = /*#__PURE__*/defineWorkerModule({
   name: 'Typr Font Parser',
   dependencies: [typrFactory, woff2otfFactory, parserFactory],
   init(typrFactory, woff2otfFactory, parserFactory) {
