@@ -1,7 +1,6 @@
 import { voidMainRegExp } from './voidMainRegExp.js'
 import { expandShaderIncludes } from './expandShaderIncludes.js'
-import { MeshDepthMaterial, MeshDistanceMaterial, RGBADepthPacking, UniformsUtils } from 'three'
-
+import { MathUtils, MeshDepthMaterial, MeshDistanceMaterial, RGBADepthPacking, UniformsUtils } from 'three'
 
 // Local assign polyfill to avoid importing troika-core
 const assign = Object.assign || function(/*target, ...sources*/) {
@@ -21,8 +20,12 @@ const assign = Object.assign || function(/*target, ...sources*/) {
 
 
 const epoch = Date.now()
-const CACHE = new WeakMap() //threejs requires WeakMap internally so should be safe to assume support
+const CONSTRUCTOR_CACHE = new WeakMap()
+const SHADER_UPGRADE_CACHE = new Map()
 
+// Material ids must be integers, but we can't access the increment from Three's `Material` module,
+// so let's choose a sufficiently large starting value that should theoretically never collide.
+let materialInstanceId = 1e10
 
 /**
  * A utility for creating a custom shader material derived from another material's
@@ -66,6 +69,12 @@ const CACHE = new WeakMap() //threejs requires WeakMap internally so should be s
  *        for performing custom rewrites of the full shader code. Useful if you need to do something
  *        special that's not covered by the other builtin options. This function will be executed before
  *        any other transforms are applied.
+ * @param {boolean} options.chained - Set to `true` to prototype-chain the derived material to the base
+ *        material, rather than the default behavior of copying it. This allows the derived material to
+ *        automatically pick up changes made to the base material and its properties. This can be useful
+ *        where the derived material is hidden from the user as an implementation detail, allowing them
+ *        to work with the original material like normal. But it can result in unexpected behavior if not
+ *        handled carefully.
  *
  * @return {THREE.Material}
  *
@@ -79,46 +88,40 @@ const CACHE = new WeakMap() //threejs requires WeakMap internally so should be s
  * scenarios, e.g. skipping antialiasing or expensive shader logic.
  */
 export function createDerivedMaterial(baseMaterial, options) {
-  // First check the cache to see if we've already derived from this baseMaterial using
-  // this unique set of options, and if so just return a clone instead of a new subclass
-  // which is faster and allows their shader program to be shared when rendering.
-  const optionsHash = getOptionsHash(options)
-  let cached = CACHE.get(baseMaterial)
-  if (!cached) {
-    cached = Object.create(null)
-    CACHE.set(baseMaterial, cached)
+  // Generate a key that is unique to the content of these `options`. We'll use this
+  // throughout for caching and for generating the upgraded shader code. This increases
+  // the likelihood that the resulting shaders will line up across multiple calls so
+  // their GL programs can be shared and cached.
+  const optionsKey = getKeyForOptions(options)
+
+  // First check to see if we've already derived from this baseMaterial using this
+  // unique set of options, and if so reuse the constructor to avoid some allocations.
+  let ctorsByDerivation = CONSTRUCTOR_CACHE.get(baseMaterial)
+  if (!ctorsByDerivation) {
+    CONSTRUCTOR_CACHE.set(baseMaterial, (ctorsByDerivation = Object.create(null)))
   }
-  if (cached[optionsHash]) {
-    return cached[optionsHash].clone()
+  if (ctorsByDerivation[optionsKey]) {
+    return new ctorsByDerivation[optionsKey]()
   }
 
-  // Even if baseMaterial is changing, use a consistent id in shader rewrites based on the
-  // optionsHash. This makes it more likely that deriving from base materials of the same
-  // type/class, e.g. multiple instances of MeshStandardMaterial, will produce identical
-  // rewritten shader code so they can share a single WebGLProgram behind the scenes.
-  const id = getIdForOptionsHash(optionsHash)
-  const privateDerivedShadersProp = `_derivedShaders${id}`
-  const privateBeforeCompileProp = `_onBeforeCompile${id}`
-  let distanceMaterialTpl, depthMaterialTpl
+  const privateBeforeCompileProp = `_onBeforeCompile${optionsKey}`
 
   // Private onBeforeCompile handler that injects the modified shaders and uniforms when
   // the renderer switches to this material's program
-  function onBeforeCompile(shaderInfo) {
+  const onBeforeCompile = function (shaderInfo) {
     baseMaterial.onBeforeCompile.call(this, shaderInfo)
 
-    // Upgrade the shaders, caching the result
-    const {vertex, fragment} = this[privateDerivedShadersProp] || (this[privateDerivedShadersProp] = {vertex: {}, fragment: {}})
-    if (vertex.source !== shaderInfo.vertexShader || fragment.source !== shaderInfo.fragmentShader) {
-      const upgraded = upgradeShaders(shaderInfo, options, id)
-      vertex.source = shaderInfo.vertexShader
-      vertex.result = upgraded.vertexShader
-      fragment.source = shaderInfo.fragmentShader
-      fragment.result = upgraded.fragmentShader
+    // Upgrade the shaders, caching the result by incoming source code
+    const cacheKey = optionsKey + '|||' + shaderInfo.vertexShader + '|||' + shaderInfo.fragmentShader
+    let upgradedShaders = SHADER_UPGRADE_CACHE[cacheKey]
+    if (!upgradedShaders) {
+      const upgraded = upgradeShaders(shaderInfo, options, optionsKey)
+      upgradedShaders = SHADER_UPGRADE_CACHE[cacheKey] = upgraded
     }
 
     // Inject upgraded shaders and uniforms into the program
-    shaderInfo.vertexShader = vertex.result
-    shaderInfo.fragmentShader = fragment.result
+    shaderInfo.vertexShader = upgradedShaders.vertexShader
+    shaderInfo.fragmentShader = upgradedShaders.fragmentShader
     assign(shaderInfo.uniforms, this.uniforms)
 
     // Inject auto-updating time uniform if requested
@@ -134,14 +137,42 @@ export function createDerivedMaterial(baseMaterial, options) {
     }
   }
 
-  function DerivedMaterial() {
-    baseMaterial.constructor.apply(this, arguments)
-    this._listeners = undefined //don't inherit EventDispatcher listeners
+  const DerivedMaterial = function DerivedMaterial() {
+    return derive(options.chained ? baseMaterial : baseMaterial.clone())
   }
-  DerivedMaterial.prototype = Object.create(baseMaterial, {
+
+  const derive = function(base) {
+    // Prototype chain to the base material
+    const derived = Object.create(base, descriptor)
+
+    // Store the baseMaterial for reference; this is always the original even when cloning
+    Object.defineProperty(derived, 'baseMaterial', { value: baseMaterial })
+
+    // Needs its own ids
+    Object.defineProperty(derived, 'id', { value: materialInstanceId++ })
+    derived.uuid = MathUtils.generateUUID()
+
+    // Merge uniforms, defines, and extensions
+    derived.uniforms = assign({}, base.uniforms, options.uniforms)
+    derived.defines = assign({}, base.defines, options.defines)
+    derived.defines[`TROIKA_DERIVED_MATERIAL_${optionsKey}`] = '' //force a program change from the base material
+    derived.extensions = assign({}, base.extensions, options.extensions)
+
+    // Don't inherit EventDispatcher listeners
+    derived._listeners = undefined
+
+    return derived
+  }
+
+  const descriptor = {
     constructor: {value: DerivedMaterial},
     isDerivedMaterial: {value: true},
-    baseMaterial: {value: baseMaterial},
+
+    customProgramCacheKey: {
+      value: function () {
+        return optionsKey
+      }
+    },
 
     onBeforeCompile: {
       get() {
@@ -158,11 +189,20 @@ export function createDerivedMaterial(baseMaterial, options) {
       value: function (source) {
         baseMaterial.copy.call(this, source)
         if (!baseMaterial.isShaderMaterial && !baseMaterial.isDerivedMaterial) {
-          this.extensions = assign({}, source.extensions)
-          this.defines = assign({}, source.defines)
-          this.uniforms = UniformsUtils.clone(source.uniforms)
+          assign(this.extensions, source.extensions)
+          assign(this.defines, source.defines)
+          assign(this.uniforms, UniformsUtils.clone(source.uniforms))
         }
         return this
+      }
+    },
+
+    clone: {
+      writable: true,
+      configurable: true,
+      value: function () {
+        const newBase = new baseMaterial.constructor()
+        return derive(newBase).copy(this)
       }
     },
 
@@ -176,16 +216,13 @@ export function createDerivedMaterial(baseMaterial, options) {
       value: function() {
         let depthMaterial = this._depthMaterial
         if (!depthMaterial) {
-          if (!depthMaterialTpl) {
-            depthMaterialTpl = createDerivedMaterial(
-              baseMaterial.isDerivedMaterial
-                ? baseMaterial.getDepthMaterial()
-                : new MeshDepthMaterial({depthPacking: RGBADepthPacking}),
-              options
-            )
-            depthMaterialTpl.defines.IS_DEPTH_MATERIAL = ''
-          }
-          depthMaterial = this._depthMaterial = depthMaterialTpl.clone()
+          depthMaterial = this._depthMaterial = createDerivedMaterial(
+            baseMaterial.isDerivedMaterial
+              ? baseMaterial.getDepthMaterial()
+              : new MeshDepthMaterial({ depthPacking: RGBADepthPacking }),
+            options
+          )
+          depthMaterial.defines.IS_DEPTH_MATERIAL = ''
           depthMaterial.uniforms = this.uniforms //automatically recieve same uniform values
         }
         return depthMaterial
@@ -202,16 +239,13 @@ export function createDerivedMaterial(baseMaterial, options) {
       value: function() {
         let distanceMaterial = this._distanceMaterial
         if (!distanceMaterial) {
-          if (!distanceMaterialTpl) {
-            distanceMaterialTpl = createDerivedMaterial(
-              baseMaterial.isDerivedMaterial
-                ? baseMaterial.getDistanceMaterial()
-                : new MeshDistanceMaterial(),
-              options
-            )
-            distanceMaterialTpl.defines.IS_DISTANCE_MATERIAL = ''
-          }
-          distanceMaterial = this._distanceMaterial = distanceMaterialTpl.clone()
+          distanceMaterial = this._distanceMaterial = createDerivedMaterial(
+            baseMaterial.isDerivedMaterial
+              ? baseMaterial.getDistanceMaterial()
+              : new MeshDistanceMaterial(),
+            options
+          )
+          distanceMaterial.defines.IS_DISTANCE_MATERIAL = ''
           distanceMaterial.uniforms = this.uniforms //automatically recieve same uniform values
         }
         return distanceMaterial
@@ -228,23 +262,14 @@ export function createDerivedMaterial(baseMaterial, options) {
         baseMaterial.dispose.call(this)
       }
     }
-  })
+  }
 
-  const material = new DerivedMaterial()
-  material.copy(baseMaterial)
-
-  // Merge uniforms, defines, and extensions
-  material.uniforms = assign(UniformsUtils.clone(baseMaterial.uniforms || {}), options.uniforms)
-  material.defines = assign({}, baseMaterial.defines, options.defines)
-  material.defines[`TROIKA_DERIVED_MATERIAL_${id}`] = '' //force a program change from the base material
-  material.extensions = assign({}, baseMaterial.extensions, options.extensions)
-
-  cached[optionsHash] = material
-  return material.clone() //return a clone so changes made to it don't affect the cached object
+  ctorsByDerivation[optionsKey] = DerivedMaterial
+  return new DerivedMaterial()
 }
 
 
-function upgradeShaders({vertexShader, fragmentShader}, options, id) {
+function upgradeShaders({vertexShader, fragmentShader}, options, key) {
   let {
     vertexDefs,
     vertexMainIntro,
@@ -312,28 +337,28 @@ function upgradeShaders({vertexShader, fragmentShader}, options, id) {
   // Inject a function for the vertexTransform and rename all usages of position/normal/uv
   if (vertexTransform) {
     vertexDefs = `${vertexDefs}
-vec3 troika_position_${id};
-vec3 troika_normal_${id};
-vec2 troika_uv_${id};
-void troikaVertexTransform${id}(inout vec3 position, inout vec3 normal, inout vec2 uv) {
+vec3 troika_position_${key};
+vec3 troika_normal_${key};
+vec2 troika_uv_${key};
+void troikaVertexTransform${key}(inout vec3 position, inout vec3 normal, inout vec2 uv) {
   ${vertexTransform}
 }
 `
     vertexMainIntro = `
-troika_position_${id} = vec3(position);
-troika_normal_${id} = vec3(normal);
-troika_uv_${id} = vec2(uv);
-troikaVertexTransform${id}(troika_position_${id}, troika_normal_${id}, troika_uv_${id});
+troika_position_${key} = vec3(position);
+troika_normal_${key} = vec3(normal);
+troika_uv_${key} = vec2(uv);
+troikaVertexTransform${key}(troika_position_${key}, troika_normal_${key}, troika_uv_${key});
 ${vertexMainIntro}
 `
     vertexShader = vertexShader.replace(/\b(position|normal|uv)\b/g, (match, match1, index, fullStr) => {
-      return /\battribute\s+vec[23]\s+$/.test(fullStr.substr(0, index)) ? match1 : `troika_${match1}_${id}`
+      return /\battribute\s+vec[23]\s+$/.test(fullStr.substr(0, index)) ? match1 : `troika_${match1}_${key}`
     })
   }
 
   // Inject defs and intro/outro snippets
-  vertexShader = injectIntoShaderCode(vertexShader, id, vertexDefs, vertexMainIntro, vertexMainOutro)
-  fragmentShader = injectIntoShaderCode(fragmentShader, id, fragmentDefs, fragmentMainIntro, fragmentMainOutro)
+  vertexShader = injectIntoShaderCode(vertexShader, key, vertexDefs, vertexMainIntro, vertexMainOutro)
+  fragmentShader = injectIntoShaderCode(fragmentShader, key, fragmentDefs, fragmentMainIntro, fragmentMainOutro)
 
   return {
     vertexShader,
@@ -357,9 +382,6 @@ void main() {
   return shaderCode
 }
 
-function getOptionsHash(options) {
-  return JSON.stringify(options, optionsJsonReplacer)
-}
 
 function optionsJsonReplacer(key, value) {
   return key === 'uniforms' ? undefined : typeof value === 'function' ? value.toString() : value
@@ -367,7 +389,8 @@ function optionsJsonReplacer(key, value) {
 
 let _idCtr = 0
 const optionsHashesToIds = new Map()
-function getIdForOptionsHash(optionsHash) {
+function getKeyForOptions(options) {
+  const optionsHash = JSON.stringify(options, optionsJsonReplacer)
   let id = optionsHashesToIds.get(optionsHash)
   if (id == null) {
     optionsHashesToIds.set(optionsHash, (id = ++_idCtr))

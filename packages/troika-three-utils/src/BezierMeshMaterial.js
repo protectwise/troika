@@ -92,6 +92,7 @@ export function createBezierMeshMaterial(baseMaterial) {
   return createDerivedMaterial(
     baseMaterial,
     {
+      chained: true,
       uniforms: {
         pointA: {value: new Vector3()},
         controlA: {value: new Vector3()},

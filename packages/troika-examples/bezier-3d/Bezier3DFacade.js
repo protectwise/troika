@@ -17,7 +17,7 @@ export class Bezier3DFacade extends Object3DFacade {
     this.color = 0xffffff
     this.dashArray = [0, 0]
     this.dashOffset = 0
-    this.material = defaultMaterial
+    this.material = defaultMaterial.clone()
   }
 
   afterUpdate() {
