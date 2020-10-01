@@ -358,7 +358,7 @@ class Text extends Mesh {
   // lazily on _read_ rather than write to avoid unnecessary wrapping on transient values.
   get material() {
     let derivedMaterial = this._derivedMaterial
-    const baseMaterial = this._baseMaterial || defaultMaterial
+    const baseMaterial = this._baseMaterial || this._defaultMaterial || (this._defaultMaterial = defaultMaterial.clone())
     if (!derivedMaterial || derivedMaterial.baseMaterial !== baseMaterial) {
       derivedMaterial = this._derivedMaterial = createTextDerivedMaterial(baseMaterial)
       // dispose the derived material when its base material is disposed:

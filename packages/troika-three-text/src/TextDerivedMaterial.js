@@ -103,6 +103,7 @@ if (troikaAlphaMult == 0.0) {
  */
 export function createTextDerivedMaterial(baseMaterial) {
   const textMaterial = createDerivedMaterial(baseMaterial, {
+    chained: true,
     extensions: {derivatives: true},
     uniforms: {
       uTroikaSDFTexture: {value: null},
