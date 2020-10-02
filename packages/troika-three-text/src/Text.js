@@ -410,14 +410,16 @@ const Text = /*#__PURE__*/(() => {
         uniforms.uTroikaUseGlyphColors.value = !!textInfo.glyphColors
 
         let clipRect = this.clipRect
-        if (!(clipRect && Array.isArray(clipRect) && clipRect.length === 4)) {
-          uniforms.uTroikaClipRect.value.fromArray(totalBounds)
+        if (clipRect && Array.isArray(clipRect) && clipRect.length === 4) {
+          uniforms.uTroikaClipRect.value.fromArray(clipRect)
         } else {
+          // no clipping - choose a finite rect that shouldn't ever be reached by overflowing glyphs or outlines
+          const pad = (this.fontSize || 0.1) * 100
           uniforms.uTroikaClipRect.value.set(
-            Math.max(totalBounds[0], clipRect[0]),
-            Math.max(totalBounds[1], clipRect[1]),
-            Math.min(totalBounds[2], clipRect[2]),
-            Math.min(totalBounds[3], clipRect[3])
+            totalBounds[0] - pad,
+            totalBounds[1] - pad,
+            totalBounds[2] + pad,
+            totalBounds[3] + pad
           )
         }
         this.geometry.applyClipRect(uniforms.uTroikaClipRect.value)
