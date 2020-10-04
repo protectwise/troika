@@ -95,13 +95,13 @@ const GlyphsGeometry = /*#__PURE__*/(() => {
      *        to be rendered, 4 entries for each glyph: x1,x2,y1,y1
      * @param {Float32Array} glyphAtlasIndices - An array holding the index of each glyph within
      *        the SDF atlas texture.
-     * @param {Array} totalBounds - An array holding the [minX, minY, maxX, maxY] across all glyphs
+     * @param {Array} blockBounds - An array holding the [minX, minY, maxX, maxY] across all glyphs
      * @param {Array} [chunkedBounds] - An array of objects describing bounds for each chunk of N
      *        consecutive glyphs: `{start:N, end:N, rect:[minX, minY, maxX, maxY]}`. This can be
      *        used with `applyClipRect` to choose an optimized `instanceCount`.
      * @param {Uint8Array} [glyphColors] - An array holding r,g,b values for each glyph.
      */
-    updateGlyphs(glyphBounds, glyphAtlasIndices, totalBounds, chunkedBounds, glyphColors) {
+    updateGlyphs(glyphBounds, glyphAtlasIndices, blockBounds, chunkedBounds, glyphColors) {
       // Update the instance attributes
       updateBufferAttr(this, glyphBoundsAttrName, glyphBounds, 4)
       updateBufferAttr(this, glyphIndexAttrName, glyphAtlasIndices, 1)
@@ -112,16 +112,16 @@ const GlyphsGeometry = /*#__PURE__*/(() => {
       // Update the boundingSphere based on the total bounds
       const sphere = this.boundingSphere
       sphere.center.set(
-        (totalBounds[0] + totalBounds[2]) / 2,
-        (totalBounds[1] + totalBounds[3]) / 2,
+        (blockBounds[0] + blockBounds[2]) / 2,
+        (blockBounds[1] + blockBounds[3]) / 2,
         0
       )
-      sphere.radius = sphere.center.distanceTo(tempVec3.set(totalBounds[0], totalBounds[1], 0))
+      sphere.radius = sphere.center.distanceTo(tempVec3.set(blockBounds[0], blockBounds[1], 0))
 
       // Update the boundingBox based on the total bounds
       const box = this.boundingBox;
-      box.min.set(totalBounds[0], totalBounds[1], 0);
-      box.max.set(totalBounds[2], totalBounds[3], 0);
+      box.min.set(blockBounds[0], blockBounds[1], 0);
+      box.max.set(blockBounds[2], blockBounds[3], 0);
     }
 
     /**

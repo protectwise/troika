@@ -210,7 +210,7 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
       let glyphAtlasIndices = null
       let glyphColors = null
       let caretPositions = null
-      let totalBounds = null
+      let visibleBounds = null
       let chunkedBounds = null
       let maxLineWidth = 0
       let renderableGlyphCount = 0
@@ -318,43 +318,43 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
         }
       })
 
-      if (!metricsOnly) {
-        // Find overall position adjustments for anchoring
-        let anchorXOffset = 0
-        let anchorYOffset = 0
-        if (anchorX) {
-          if (typeof anchorX === 'number') {
-            anchorXOffset = -anchorX
-          }
-          else if (typeof anchorX === 'string') {
-            anchorXOffset = -maxLineWidth * (
-              anchorX === 'left' ? 0 :
-              anchorX === 'center' ? 0.5 :
-              anchorX === 'right' ? 1 :
-              parsePercent(anchorX)
-            )
-          }
+      // Find overall position adjustments for anchoring
+      let anchorXOffset = 0
+      let anchorYOffset = 0
+      if (anchorX) {
+        if (typeof anchorX === 'number') {
+          anchorXOffset = -anchorX
         }
-        if (anchorY) {
-          if (typeof anchorY === 'number') {
-            anchorYOffset = -anchorY
-          }
-          else if (typeof anchorY === 'string') {
-            let height = lines.length * lineHeight
-            anchorYOffset = anchorY === 'top' ? 0 :
-              anchorY === 'top-baseline' ? -topBaseline :
-              anchorY === 'middle' ? height / 2 :
-              anchorY === 'bottom' ? height :
-              anchorY === 'bottom-baseline' ? height - halfLeading + descender * fontSizeMult :
-              parsePercent(anchorY) * height
-          }
+        else if (typeof anchorX === 'string') {
+          anchorXOffset = -maxLineWidth * (
+            anchorX === 'left' ? 0 :
+            anchorX === 'center' ? 0.5 :
+            anchorX === 'right' ? 1 :
+            parsePercent(anchorX)
+          )
         }
+      }
+      if (anchorY) {
+        if (typeof anchorY === 'number') {
+          anchorYOffset = -anchorY
+        }
+        else if (typeof anchorY === 'string') {
+          let height = lines.length * lineHeight
+          anchorYOffset = anchorY === 'top' ? 0 :
+            anchorY === 'top-baseline' ? -topBaseline :
+            anchorY === 'middle' ? height / 2 :
+            anchorY === 'bottom' ? height :
+            anchorY === 'bottom-baseline' ? height - halfLeading + descender * fontSizeMult :
+            parsePercent(anchorY) * height
+        }
+      }
 
+      if (!metricsOnly) {
         // Process each line, applying alignment offsets, adding each glyph to the atlas, and
         // collecting all renderable glyphs into a single collection.
         glyphBounds = new Float32Array(renderableGlyphCount * 4)
         glyphAtlasIndices = new Float32Array(renderableGlyphCount)
-        totalBounds = [INF, INF, -INF, -INF]
+        visibleBounds = [INF, INF, -INF, -INF]
         chunkedBounds = []
         let lineYOffset = topBaseline
         if (includeCaretPositions) {
@@ -469,19 +469,25 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
                   }
                 }
 
-                // Determine final glyph bounds and add them to the glyphBounds array
+                // Determine final glyph quad bounds and add them to the glyphBounds array
                 const bounds = glyphAtlasInfo.renderingBounds
-                const start = idx * 4
-                const x0 = glyphBounds[start] = glyphInfo.x + bounds[0] * fontSizeMult + anchorXOffset
-                const y0 = glyphBounds[start + 1] = lineYOffset + bounds[1] * fontSizeMult + anchorYOffset
-                const x1 = glyphBounds[start + 2] = glyphInfo.x + bounds[2] * fontSizeMult + anchorXOffset
-                const y1 = glyphBounds[start + 3] = lineYOffset + bounds[3] * fontSizeMult + anchorYOffset
+                const startIdx = idx * 4
+                const xStart = glyphInfo.x + anchorXOffset
+                const yStart = lineYOffset + anchorYOffset
+                glyphBounds[startIdx] = xStart + bounds[0] * fontSizeMult
+                glyphBounds[startIdx + 1] = yStart + bounds[1] * fontSizeMult
+                glyphBounds[startIdx + 2] = xStart + bounds[2] * fontSizeMult
+                glyphBounds[startIdx + 3] = yStart + bounds[3] * fontSizeMult
 
-                // Track total bounds
-                if (x0 < totalBounds[0]) totalBounds[0] = x0
-                if (y0 < totalBounds[1]) totalBounds[1] = y0
-                if (x1 > totalBounds[2]) totalBounds[2] = x1
-                if (y1 > totalBounds[3]) totalBounds[3] = y1
+                // Track total visible bounds
+                const visX0 = xStart + glyphObj.xMin * fontSizeMult
+                const visY0 = yStart + glyphObj.yMin * fontSizeMult
+                const visX1 = xStart + glyphObj.xMax * fontSizeMult
+                const visY1 = yStart + glyphObj.yMax * fontSizeMult
+                if (visX0 < visibleBounds[0]) visibleBounds[0] = visX0
+                if (visY0 < visibleBounds[1]) visibleBounds[1] = visY0
+                if (visX1 > visibleBounds[2]) visibleBounds[2] = visX1
+                if (visY1 > visibleBounds[3]) visibleBounds[3] = visY1
 
                 // Track bounding rects for each chunk of N glyphs
                 if (idx % chunkedBoundsSize === 0) {
@@ -489,10 +495,11 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
                   chunkedBounds.push(chunk)
                 }
                 chunk.end++
-                if (x0 < chunk.rect[0]) chunk.rect[0] = x0
-                if (y0 < chunk.rect[1]) chunk.rect[1] = y0
-                if (x1 > chunk.rect[2]) chunk.rect[2] = x1
-                if (y1 > chunk.rect[3]) chunk.rect[3] = y1
+                const chunkRect = chunk.rect
+                if (visX0 < chunkRect[0]) chunkRect[0] = visX0
+                if (visY0 < chunkRect[1]) chunkRect[1] = visY0
+                if (visX1 > chunkRect[2]) chunkRect[2] = visX1
+                if (visY1 > chunkRect[3]) chunkRect[3] = visY1
 
                 // Add to atlas indices array
                 glyphAtlasIndices[idx] = glyphAtlasInfo.atlasIndex
@@ -531,8 +538,13 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
         descender: descender * fontSizeMult, //font descender
         lineHeight, //computed line height
         topBaseline, //y coordinate of the top line's baseline
-        totalBounds, //total rect including all glyphBounds; will be slightly larger than glyph edges due to SDF padding
-        totalBlockSize: [maxLineWidth, lines.length * lineHeight], //width and height of the text block; accurate for layout measurement
+        blockBounds: [ //bounds for the whole block of text, including vertical padding for lineHeight
+          anchorXOffset,
+          anchorYOffset - lines.length * lineHeight,
+          anchorXOffset + maxLineWidth,
+          anchorYOffset
+        ],
+        visibleBounds, //total bounds of visible text paths, may be larger or smaller than totalBounds
         newGlyphSDFs: newGlyphs, //if this request included any new SDFs for the atlas, they'll be included here
         timings
       })
@@ -548,9 +560,10 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
    */
   function measure(args, callback) {
     process(args, (result) => {
+      const [x0, y0, x1, y1] = result.blockBounds
       callback({
-        width: result.totalBlockSize[0],
-        height: result.totalBlockSize[1]
+        width: x1 - x0,
+        height: y1 - y0
       })
     }, {metricsOnly: true})
   }
