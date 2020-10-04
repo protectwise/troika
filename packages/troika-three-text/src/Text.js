@@ -300,7 +300,7 @@ const Text = /*#__PURE__*/(() => {
             this.geometry.updateGlyphs(
               textRenderInfo.glyphBounds,
               textRenderInfo.glyphAtlasIndices,
-              textRenderInfo.totalBounds,
+              textRenderInfo.blockBounds,
               textRenderInfo.chunkedBounds,
               textRenderInfo.glyphColors
             )
@@ -401,12 +401,12 @@ const Text = /*#__PURE__*/(() => {
       const uniforms = material.uniforms
       const textInfo = this.textRenderInfo
       if (textInfo) {
-        const {sdfTexture, totalBounds} = textInfo
+        const {sdfTexture, blockBounds} = textInfo
         uniforms.uTroikaSDFTexture.value = sdfTexture
         uniforms.uTroikaSDFTextureSize.value.set(sdfTexture.image.width, sdfTexture.image.height)
         uniforms.uTroikaSDFGlyphSize.value = textInfo.sdfGlyphSize
         uniforms.uTroikaSDFMinDistancePct.value = textInfo.sdfMinDistancePercent
-        uniforms.uTroikaTotalBounds.value.fromArray(totalBounds)
+        uniforms.uTroikaTotalBounds.value.fromArray(blockBounds)
         uniforms.uTroikaUseGlyphColors.value = !!textInfo.glyphColors
 
         let clipRect = this.clipRect
@@ -416,10 +416,10 @@ const Text = /*#__PURE__*/(() => {
           // no clipping - choose a finite rect that shouldn't ever be reached by overflowing glyphs or outlines
           const pad = (this.fontSize || 0.1) * 100
           uniforms.uTroikaClipRect.value.set(
-            totalBounds[0] - pad,
-            totalBounds[1] - pad,
-            totalBounds[2] + pad,
-            totalBounds[3] + pad
+            blockBounds[0] - pad,
+            blockBounds[1] - pad,
+            blockBounds[2] + pad,
+            blockBounds[3] + pad
           )
         }
         this.geometry.applyClipRect(uniforms.uTroikaClipRect.value)
@@ -467,7 +467,7 @@ const Text = /*#__PURE__*/(() => {
     raycast(raycaster, intersects) {
       const textInfo = this.textRenderInfo
       if (textInfo) {
-        const bounds = textInfo.totalBounds
+        const bounds = textInfo.blockBounds
         raycastMesh.matrixWorld.multiplyMatrices(
           this.matrixWorld,
           tempMat4.set(

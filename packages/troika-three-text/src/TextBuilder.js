@@ -84,10 +84,12 @@ const atlases = Object.create(null)
  * @property {number} descender - The font's descender metric.
  * @property {number} lineHeight - The final computed lineHeight measurement.
  * @property {number} topBaseline - The y position of the top line's baseline.
- * @property {Array<number>} totalBounds - The total [minX, minY, maxX, maxY] rect including all glyph
- *           quad bounds; this will be slightly larger than the actual glyph path edges due to SDF padding.
- * @property {Array<number>} totalBlockSize - The [width, height] of the text block; this does not include
- *           extra SDF padding so it is accurate to use for measurement.
+ * @property {Array<number>} blockBounds - The total [minX, minY, maxX, maxY] rect of the whole text block;
+ *           this can include extra vertical space beyond the visible glyphs due to lineHeight, and is
+ *           equivalent to the dimensions of a block-level text element in CSS.
+ * @property {Array<number>} visibleBounds -
+ * @property {Array<number>} totalBounds - DEPRECATED; use blockBounds instead.
+ * @property {Array<number>} totalBlockSize - DEPRECATED; use blockBounds instead
  * @property {Array<number>} chunkedBounds - List of bounding rects for each consecutive set of N glyphs,
  *           in the format `{start:N, end:N, rect:[minX, minY, maxX, maxY]}`.
  * @property {object} timings - Timing info for various parts of the rendering logic including SDF
@@ -204,9 +206,18 @@ function getTextRenderInfo(args, callback) {
       descender: result.descender,
       lineHeight: result.lineHeight,
       topBaseline: result.topBaseline,
-      totalBounds: result.totalBounds,
-      totalBlockSize: result.totalBlockSize,
-      timings: result.timings
+      blockBounds: result.blockBounds,
+      visibleBounds: result.visibleBounds,
+      timings: result.timings,
+      get totalBounds() {
+        console.log('totalBounds deprecated, use blockBounds instead')
+        return result.blockBounds
+      },
+      get totalBlockSize() {
+        console.log('totalBlockSize deprecated, use blockBounds instead')
+        const [x0, y0, x1, y1] = result.blockBounds
+        return [x1 - x0, y1 - y0]
+      }
     }))
   })
 }
