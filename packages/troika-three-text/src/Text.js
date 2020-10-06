@@ -210,6 +210,21 @@ const Text = /*#__PURE__*/(() => {
       this.colorRanges = null
 
       /**
+       * @member {number} outlineWidth
+       * NOTE: BETA FEATURE, NOT STABLE
+       * The width, in local units, of an outline drawn around each text glyph using the
+       * `outlineColor`. Defaults to `0`.
+       */
+      this.outlineWidth = 0
+
+      /**
+       * @member {string|number|THREE.Color} outlineColor
+       * NOTE: BETA FEATURE, NOT STABLE
+       * The color of the text outline, if `outlineWidth` is greater than zero. Defaults to black.
+       */
+      this.outlineColor = 0
+
+      /**
        * @member {number} depthOffset
        * This is a shortcut for setting the material's `polygonOffset` and related properties,
        * which can be useful in preventing z-fighting when this text is laid on top of another
@@ -405,9 +420,11 @@ const Text = /*#__PURE__*/(() => {
         uniforms.uTroikaSDFTexture.value = sdfTexture
         uniforms.uTroikaSDFTextureSize.value.set(sdfTexture.image.width, sdfTexture.image.height)
         uniforms.uTroikaSDFGlyphSize.value = textInfo.sdfGlyphSize
-        uniforms.uTroikaSDFMinDistancePct.value = textInfo.sdfMinDistancePercent
+        uniforms.uTroikaSDFExponent.value = textInfo.sdfExponent
         uniforms.uTroikaTotalBounds.value.fromArray(blockBounds)
         uniforms.uTroikaUseGlyphColors.value = !!textInfo.glyphColors
+        uniforms.uTroikaOutlineWidth.value = this.outlineWidth || 0
+        uniforms.uTroikaOutlineColor.value.set(this.outlineColor || 0)
 
         let clipRect = this.clipRect
         if (clipRect && Array.isArray(clipRect) && clipRect.length === 4) {

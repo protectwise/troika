@@ -39,7 +39,7 @@
 export function createFontProcessor(fontParser, sdfGenerator, config) {
 
   const {
-    defaultFontUrl
+    defaultFontURL
   } = config
 
 
@@ -78,9 +78,9 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
   function doLoadFont(url, callback) {
     function tryLoad() {
       const onError = err => {
-        console.error(`Failure loading font ${url}${url === defaultFontUrl ? '' : '; trying fallback'}`, err)
-        if (url !== defaultFontUrl) {
-          url = defaultFontUrl
+        console.error(`Failure loading font ${url}${url === defaultFontURL ? '' : '; trying fallback'}`, err)
+        if (url !== defaultFontURL) {
+          url = defaultFontURL
           tryLoad()
         }
       }
@@ -116,7 +116,7 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
    * loaded, the callback will be called synchronously.
    */
   function loadFont(fontUrl, callback) {
-    if (!fontUrl) fontUrl = defaultFontUrl
+    if (!fontUrl) fontUrl = defaultFontURL
     let font = fonts[fontUrl]
     if (font) {
       // if currently loading font, add to callbacks, otherwise execute immediately
@@ -141,7 +141,7 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
    * its atlas data objects if necessary.
    */
   function getSdfAtlas(fontUrl, sdfGlyphSize, callback) {
-    if (!fontUrl) fontUrl = defaultFontUrl
+    if (!fontUrl) fontUrl = defaultFontURL
     let atlasKey = `${fontUrl}@${sdfGlyphSize}`
     let atlas = fontAtlases[atlasKey]
     if (atlas) {
@@ -167,7 +167,7 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
   function process(
     {
       text='',
-      font=defaultFontUrl,
+      font=defaultFontURL,
       sdfGlyphSize=64,
       fontSize=1,
       letterSpacing=0,
