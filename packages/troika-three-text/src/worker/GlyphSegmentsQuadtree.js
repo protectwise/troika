@@ -115,7 +115,7 @@ export function createGlyphSegmentsQuadtree(glyphObj) {
 
   /**
    * For a given x/y, search the quadtree for the closest line segment and return
-   * its signed distance.
+   * its signed distance. Negative = inside, positive = outside, zero = on edge
    * @param x
    * @param y
    * @param maxSearchRadius
@@ -145,8 +145,8 @@ export function createGlyphSegmentsQuadtree(glyphObj) {
       }
     })
 
-    // Flip to negative distance if outside the poly
-    if (!isPointInPoly(x, y)) {
+    // Flip to negative distance if inside the poly
+    if (isPointInPoly(x, y)) {
       closestDist = -closestDist
     }
     return closestDist

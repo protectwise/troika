@@ -19,6 +19,8 @@ const TEXT_MESH_PROPS = [
   'material',
   'color',
   'colorRanges',
+  'outlineWidth',
+  'outlineColor',
   'depthOffset',
   'clipRect',
   'orientation',

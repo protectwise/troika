@@ -12,6 +12,8 @@ import fontParser from './worker/FontParser_Typr.js'
 const CONFIG = {
   defaultFontURL: 'https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff', //Roboto Regular
   sdfGlyphSize: 64,
+  sdfMargin: 1 / 16,
+  sdfExponent: 9,
   textureWidth: 2048
 }
 const tempColor = /*#__PURE__*/new Color()
@@ -30,6 +32,13 @@ let hasRequested = false
  *                 Larger sizes can improve the quality of glyph rendering by increasing the sharpness
  *                 of corners and preventing loss of very thin lines, at the expense of memory. Defaults
  *                 to 64 which is generally a good balance of size and quality.
+ * @param {Number} config.sdfExponent - The exponent used when encoding the SDF values. A higher exponent
+ *                 shifts the encoded 8-bit values to achieve higher precision/accuracy at texels nearer
+ *                 the glyph's path, with lower precision further away. Defaults to 9.
+ * @param {Number} config.sdfMargin - How much space to reserve in the SDF as margin outside the glyph's
+ *                 path, as a percentage of the SDF width. A larger margin increases the quality of
+ *                 extruded glyph outlines, but decreases the precision available for the glyph itself.
+ *                 Defaults to 1/16th of the glyph size.
  * @param {Number} config.textureWidth - The width of the SDF texture; must be a power of 2. Defaults to
  *                 2048 which is a safe maximum texture dimension according to the stats at
  *                 https://webglstats.com/webgl/parameter/MAX_TEXTURE_SIZE and should allow for a
@@ -44,18 +53,6 @@ function configureTextBuilder(config) {
     assign(CONFIG, config)
   }
 }
-
-
-/**
- * The radial distance from glyph edges over which the SDF alpha will be calculated; if the alpha
- * at distance:0 is 0.5, then the alpha at this distance will be zero. This is defined as a percentage
- * of each glyph's maximum dimension in font space units so that it maps to the same minimum number of
- * SDF texels regardless of the glyph's size. A larger value provides greater alpha gradient resolution
- * and improves readability/antialiasing quality at small display sizes, but also decreases the number
- * of texels available for encoding path details.
- */
-const SDF_DISTANCE_PERCENT = 1 / 8
-
 
 /**
  * Repository for all font SDF atlas textures
@@ -72,8 +69,8 @@ const atlases = Object.create(null)
  * @typedef {object} TroikaTextRenderInfo - Format of the result from `getTextRenderInfo`.
  * @property {object} parameters - The normalized input arguments to the render call.
  * @property {DataTexture} sdfTexture - The SDF atlas texture.
- * @property {number} sdfGlyphSize - The size of each glyph's SDF.
- * @property {number} sdfMinDistancePercent - See `SDF_DISTANCE_PERCENT`
+ * @property {number} sdfGlyphSize - The size of each glyph's SDF; see `configureTextBuilder`.
+ * @property {number} sdfExponent - The exponent used in encoding the SDF's values; see `configureTextBuilder`.
  * @property {Float32Array} glyphBounds - List of [minX, minY, maxX, maxY] quad bounds for each glyph.
  * @property {Float32Array} glyphAtlasIndices - List holding each glyph's index in the SDF atlas.
  * @property {Uint8Array} [glyphColors] - List holding each glyph's [r, g, b] color, if `colorRanges` was supplied.
@@ -109,6 +106,7 @@ const atlases = Object.create(null)
  * @param {getTextRenderInfo~callback} callback
  */
 function getTextRenderInfo(args, callback) {
+  hasRequested = true
   args = assign({}, args)
 
   // Apply default font here to avoid a 'null' atlas, and convert relative
@@ -138,7 +136,7 @@ function getTextRenderInfo(args, callback) {
   Object.freeze(args)
 
   // Init the atlas for this font if needed
-  const {textureWidth} = CONFIG
+  const {textureWidth, sdfExponent} = CONFIG
   const {sdfGlyphSize} = args
   let atlasKey = `${args.font}@${sdfGlyphSize}`
   let atlas = atlases[atlasKey]
@@ -195,7 +193,7 @@ function getTextRenderInfo(args, callback) {
       parameters: args,
       sdfTexture: atlas.sdfTexture,
       sdfGlyphSize,
-      sdfMinDistancePercent: SDF_DISTANCE_PERCENT,
+      sdfExponent,
       glyphBounds: result.glyphBounds,
       glyphAtlasIndices: result.glyphAtlasIndices,
       glyphColors: result.glyphColors,
@@ -270,22 +268,15 @@ const fontProcessorWorkerModule = /*#__PURE__*/defineWorkerModule({
   name: 'FontProcessor',
   dependencies: [
     CONFIG,
-    SDF_DISTANCE_PERCENT,
     fontParser,
     createGlyphSegmentsQuadtree,
     createSDFGenerator,
     createFontProcessor
   ],
-  init(config, sdfDistancePercent, fontParser, createGlyphSegmentsQuadtree, createSDFGenerator, createFontProcessor) {
-    const sdfGenerator = createSDFGenerator(
-      createGlyphSegmentsQuadtree,
-      {
-        sdfDistancePercent
-      }
-    )
-    return createFontProcessor(fontParser, sdfGenerator, {
-      defaultFontUrl: config.defaultFontURL
-    })
+  init(config, fontParser, createGlyphSegmentsQuadtree, createSDFGenerator, createFontProcessor) {
+    const {sdfExponent, sdfMargin, defaultFontURL} = config
+    const sdfGenerator = createSDFGenerator(createGlyphSegmentsQuadtree, { sdfExponent, sdfMargin })
+    return createFontProcessor(fontParser, sdfGenerator, { defaultFontURL })
   }
 })
 

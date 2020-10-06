@@ -99,6 +99,7 @@ class TextExample extends React.Component {
       anchorX: 'center',
       anchorY: 'middle',
       color: 0xffffff,
+      outlineWidth: 0,
       fog: false,
       animTextColor: true,
       animTilt: true,
@@ -148,8 +149,8 @@ class TextExample extends React.Component {
             {type: 'ambient', color: 0x666666},
             {
               type: 'point',
-              z: 2,
-              y: 1,
+              z: 3,
+              y: 1.5,
               x: 0,
               castShadow: state.shadows,
               shadow: {
@@ -187,6 +188,7 @@ class TextExample extends React.Component {
               anchorY: state.anchorY,
               selectable: state.selectable,
               debugSDF: state.debugSDF,
+              outlineWidth: state.outlineWidth,
               material: material,
               color: 0xffffff,
               scaleX: state.textScale || 1,
@@ -277,8 +279,9 @@ class TextExample extends React.Component {
                 {type: 'number', path: "maxWidth", min: 1, max: 5, step: 0.01},
                 {type: 'number', path: "lineHeight", min: 1, max: 2, step: 0.01},
                 {type: 'number', path: "letterSpacing", min: -0.1, max: 0.5, step: 0.01},
-                {type: 'boolean', path: "debugSDF", label: "Show SDF"},
+                {type: 'number', path: "outlineWidth", min: 0, max: 0.05, step: 0.0001},
                 {type: 'number', path: "sdfGlyphSize", label: 'SDF size (2^n):', min: 3, max: 8},
+                {type: 'boolean', path: "debugSDF", label: "Show SDF"},
               ]
             }
           ] }

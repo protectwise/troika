@@ -1,21 +1,18 @@
 /**
  * Initializes and returns a function to generate an SDF texture for a given glyph.
  * @param {function} createGlyphSegmentsQuadtree - factory for a GlyphSegmentsQuadtree implementation.
- * @param {number} config.sdfDistancePercent - see docs for SDF_DISTANCE_PERCENT in TextBuilder.js
+ * @param {number} config.sdfExponent
+ * @param {number} config.sdfMargin
  *
  * @return {function(Object): {renderingBounds: [minX, minY, maxX, maxY], textureData: Uint8Array}}
  */
 function createSDFGenerator(createGlyphSegmentsQuadtree, config) {
-  const {
-    sdfDistancePercent
-  } = config
+  const { sdfExponent, sdfMargin } = config
 
   /**
    * How many straight line segments to use when approximating a glyph's quadratic/cubic bezier curves.
    */
   const CURVE_POINTS = 16
-
-  const INF = Infinity
 
   /**
    * Find the point on a quadratic bezier curve at t where t is in the range [0, 1]
@@ -55,24 +52,28 @@ function createSDFGenerator(createGlyphSegmentsQuadtree, config) {
     const glyphW = glyphObj.xMax - glyphObj.xMin
     const glyphH = glyphObj.yMax - glyphObj.yMin
 
-    // Choose a maximum distance radius in font units, based on the glyph's max dimensions
-    const fontUnitsMaxDist = Math.max(glyphW, glyphH) * sdfDistancePercent
+    // Choose a maximum search distance radius in font units, based on the glyph's max dimensions
+    const fontUnitsMaxSearchDist = Math.max(glyphW, glyphH)
 
-    // Use that, extending to the texture edges, to find conversion ratios between texture units and font units
-    const fontUnitsPerXTexel = (glyphW + fontUnitsMaxDist * 2) / sdfSize
-    const fontUnitsPerYTexel = (glyphH + fontUnitsMaxDist * 2) / sdfSize
+    // Margin - add an extra 0.5 over the configured value because the outer 0.5 doesn't contain
+    // useful interpolated values and will be ignored anyway.
+    const fontUnitsMargin = Math.max(glyphW, glyphH) / sdfSize * (sdfMargin * sdfSize + 0.5)
 
-    const textureMinFontX = glyphObj.xMin - fontUnitsMaxDist - fontUnitsPerXTexel
-    const textureMinFontY = glyphObj.yMin - fontUnitsMaxDist - fontUnitsPerYTexel
-    const textureMaxFontX = glyphObj.xMax + fontUnitsMaxDist + fontUnitsPerXTexel
-    const textureMaxFontY = glyphObj.yMax + fontUnitsMaxDist + fontUnitsPerYTexel
+    // Metrics of the texture/quad in font units
+    const textureMinFontX = glyphObj.xMin - fontUnitsMargin
+    const textureMinFontY = glyphObj.yMin - fontUnitsMargin
+    const textureMaxFontX = glyphObj.xMax + fontUnitsMargin
+    const textureMaxFontY = glyphObj.yMax + fontUnitsMargin
+    const fontUnitsTextureWidth = textureMaxFontX - textureMinFontX
+    const fontUnitsTextureHeight = textureMaxFontY - textureMinFontY
+    const fontUnitsTextureMaxDim = Math.max(fontUnitsTextureWidth, fontUnitsTextureHeight)
 
     function textureXToFontX(x) {
-      return textureMinFontX + (textureMaxFontX - textureMinFontX) * x / sdfSize
+      return textureMinFontX + fontUnitsTextureWidth * x / sdfSize
     }
 
     function textureYToFontY(y) {
-      return textureMinFontY + (textureMaxFontY - textureMinFontY) * y / sdfSize
+      return textureMinFontY + fontUnitsTextureHeight * y / sdfSize
     }
 
     if (glyphObj.pathCommandCount) { //whitespace chars will have no commands, so we can skip all this
@@ -138,11 +139,18 @@ function createSDFGenerator(createGlyphSegmentsQuadtree, config) {
           const signedDist = lineSegmentsIndex.findNearestSignedDistance(
             textureXToFontX(sdfX + 0.5),
             textureYToFontY(sdfY + 0.5),
-            fontUnitsMaxDist
+            fontUnitsMaxSearchDist
           )
-          //if (!isFinite(signedDist)) throw 'infinite distance!'
-          let alpha = isFinite(signedDist) ? Math.round(255 * (1 + signedDist / fontUnitsMaxDist) * 0.5) : signedDist
-          alpha = Math.max(0, Math.min(255, alpha)) //clamp
+
+          // Use an exponential scale to ensure the texels very near the glyph path have adequate
+          // precision, while allowing the distance field to cover the entire texture, given that
+          // there are only 8 bits available. Formula visualized: https://www.desmos.com/calculator/uiaq5aqiam
+          let alpha = Math.pow((1 - Math.abs(signedDist) / fontUnitsTextureMaxDim), sdfExponent) / 2
+          if (signedDist < 0) {
+            alpha = 1 - alpha
+          }
+
+          alpha = Math.max(0, Math.min(255, Math.round(alpha * 255))) //clamp
           textureData[sdfY * sdfSize + sdfX] = alpha
         }
       }
