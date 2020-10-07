@@ -352,7 +352,11 @@ const Text = /*#__PURE__*/(() => {
      */
     onBeforeRender(renderer, scene, camera, geometry, material, group) {
       this.sync()
-      this._prepareForRender(material)
+
+      // This may not always be a text material, e.g. if there's a scene.overrideMaterial present
+      if (material.isTroikaTextMaterial) {
+        this._prepareForRender(material)
+      }
     }
 
     /**
@@ -397,7 +401,9 @@ const Text = /*#__PURE__*/(() => {
       if (this.outlineWidth) {
         let outlineMaterial = derivedMaterial._outlineMtl
         if (!outlineMaterial) {
-          outlineMaterial = derivedMaterial._outlineMtl = derivedMaterial.clone()
+          outlineMaterial = derivedMaterial._outlineMtl = Object.create(derivedMaterial, {
+            id: {value: derivedMaterial.id + 0.1}
+          })
           outlineMaterial.isTextOutlineMaterial = true
           outlineMaterial.depthWrite = false
           outlineMaterial.map = null //???
@@ -446,6 +452,7 @@ const Text = /*#__PURE__*/(() => {
         uniforms.uTroikaTotalBounds.value.fromArray(blockBounds)
         uniforms.uTroikaUseGlyphColors.value = !!textInfo.glyphColors
 
+        let distanceOffset = 0
         if (isOutline) {
           let {outlineWidth} = this
           if (typeof outlineWidth === 'string') {
@@ -453,8 +460,9 @@ const Text = /*#__PURE__*/(() => {
             let pct = match ? parseFloat(match[1]) : NaN
             outlineWidth = (isNaN(pct) ? 0 : pct / 100) * this.fontSize
           }
-          uniforms.uTroikaDistanceOffset.value = outlineWidth
+          distanceOffset = outlineWidth
         }
+        uniforms.uTroikaDistanceOffset.value = distanceOffset
 
         let clipRect = this.clipRect
         if (clipRect && Array.isArray(clipRect) && clipRect.length === 4) {
