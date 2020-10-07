@@ -26,6 +26,10 @@ const Text = /*#__PURE__*/(() => {
   const origin = new Vector3()
   const defaultOrient = '+x+y'
 
+  function first(o) {
+    return Array.isArray(o) ? o[0] : o
+  }
+
   const raycastMesh = new Mesh(
     new PlaneBufferGeometry(1, 1).translate(0.5, 0.5, 0),
     defaultMaterial
@@ -210,16 +214,17 @@ const Text = /*#__PURE__*/(() => {
       this.colorRanges = null
 
       /**
-       * @member {number} outlineWidth
-       * NOTE: BETA FEATURE, NOT STABLE
-       * The width, in local units, of an outline drawn around each text glyph using the
-       * `outlineColor`. Defaults to `0`.
+       * @member {number|string} outlineWidth
+       * WARNING: This API is experimental and may change.
+       * The width of an outline drawn around each text glyph using the `outlineColor`. Can be
+       * specified as either an absolute number in local units, or as a percentage string e.g.
+       * `"12%"` which is treated as a percentage of the `fontSize`. Defaults to `0`.
        */
       this.outlineWidth = 0
 
       /**
        * @member {string|number|THREE.Color} outlineColor
-       * NOTE: BETA FEATURE, NOT STABLE
+       * WARNING: This API is experimental and may change.
        * The color of the text outline, if `outlineWidth` is greater than zero. Defaults to black.
        */
       this.outlineColor = 0
@@ -345,9 +350,9 @@ const Text = /*#__PURE__*/(() => {
      * all the properties have been set.
      * @override
      */
-    onBeforeRender() {
+    onBeforeRender(renderer, scene, camera, geometry, material, group) {
       this.sync()
-      this._prepareForRender()
+      this._prepareForRender(material)
     }
 
     /**
@@ -385,6 +390,23 @@ const Text = /*#__PURE__*/(() => {
           derivedMaterial.dispose()
         })
       }
+      // If text outline is present, render it as a preliminary draw using Three's multi-material
+      // feature (see GlyphsGeometry which sets up `groups` for this purpose) Doing it with multi
+      // materials ensures the layers are always rendered consecutively in a consistent order.
+      // Each layer will trigger onBeforeRender with the appropriate material.
+      if (this.outlineWidth) {
+        let outlineMaterial = derivedMaterial._outlineMtl
+        if (!outlineMaterial) {
+          outlineMaterial = derivedMaterial._outlineMtl = derivedMaterial.clone()
+          outlineMaterial.isTextOutlineMaterial = true
+          outlineMaterial.depthWrite = false
+          outlineMaterial.map = null //???
+        }
+        derivedMaterial = [
+          outlineMaterial,
+          derivedMaterial
+        ]
+      }
       return derivedMaterial
     }
     set material(baseMaterial) {
@@ -405,14 +427,14 @@ const Text = /*#__PURE__*/(() => {
 
     // Create and update material for shadows upon request:
     get customDepthMaterial() {
-      return this.material.getDepthMaterial()
+      return first(this.material).getDepthMaterial()
     }
     get customDistanceMaterial() {
-      return this.material.getDistanceMaterial()
+      return first(this.material).getDistanceMaterial()
     }
 
-    _prepareForRender() {
-      const material = this._derivedMaterial
+    _prepareForRender(material) {
+      const isOutline = material.isTextOutlineMaterial
       const uniforms = material.uniforms
       const textInfo = this.textRenderInfo
       if (textInfo) {
@@ -423,8 +445,16 @@ const Text = /*#__PURE__*/(() => {
         uniforms.uTroikaSDFExponent.value = textInfo.sdfExponent
         uniforms.uTroikaTotalBounds.value.fromArray(blockBounds)
         uniforms.uTroikaUseGlyphColors.value = !!textInfo.glyphColors
-        uniforms.uTroikaOutlineWidth.value = this.outlineWidth || 0
-        uniforms.uTroikaOutlineColor.value.set(this.outlineColor || 0)
+
+        if (isOutline) {
+          let {outlineWidth} = this
+          if (typeof outlineWidth === 'string') {
+            let match = outlineWidth.match(/^([\d.]+)%$/)
+            let pct = match ? parseFloat(match[1]) : NaN
+            outlineWidth = (isNaN(pct) ? 0 : pct / 100) * this.fontSize
+          }
+          uniforms.uTroikaDistanceOffset.value = outlineWidth
+        }
 
         let clipRect = this.clipRect
         if (clipRect && Array.isArray(clipRect) && clipRect.length === 4) {
@@ -447,15 +477,14 @@ const Text = /*#__PURE__*/(() => {
 
       // Shortcut for setting material color via `color` prop on the mesh; this is
       // applied only to the derived material to avoid mutating a shared base material.
-      const color = this.color
+      const color = isOutline ? (this.outlineColor || 0) : this.color
       if (color == null) {
         delete material.color //inherit from base
       } else {
-        const colorObj = this._colorObj || (this._colorObj = new Color())
+        const colorObj = material.hasOwnProperty('color') ? material.color : (material.color = new Color())
         if (color !== colorObj._input || typeof color === 'object') {
           colorObj.set(colorObj._input = color)
         }
-        material.color = colorObj
       }
 
       // base orientation

@@ -59,6 +59,13 @@ const GlyphsGeometry = /*#__PURE__*/(() => {
 
       this.detail = 1
 
+      // Define groups for rendering text outline as a separate pass; these will only
+      // be used when the `material` getter returns an array, i.e. outlineWidth > 0.
+      this.groups = [
+        {start: 0, count: Infinity, materialIndex: 0},
+        {start: 0, count: Infinity, materialIndex: 1}
+      ]
+
       // Preallocate zero-radius bounding sphere
       this.boundingSphere = new Sphere()
       this.boundingBox = new Box3();
