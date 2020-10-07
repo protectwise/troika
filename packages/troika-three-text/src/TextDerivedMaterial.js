@@ -9,7 +9,7 @@ uniform vec4 uTroikaTotalBounds;
 uniform vec4 uTroikaClipRect;
 uniform mat3 uTroikaOrient;
 uniform bool uTroikaUseGlyphColors;
-uniform float uTroikaOutlineWidth;
+uniform float uTroikaDistanceOffset;
 attribute vec4 aTroikaGlyphBounds;
 attribute float aTroikaGlyphIndex;
 attribute vec3 aTroikaGlyphColor;
@@ -22,7 +22,7 @@ varying vec2 vTroikaGlyphDimensions;
 // language=GLSL prefix="void main() {" suffix="}"
 const VERTEX_TRANSFORM = `
 vec4 bounds = aTroikaGlyphBounds;
-vec4 outlineBounds = vec4(bounds.xy - uTroikaOutlineWidth, bounds.zw + uTroikaOutlineWidth);
+vec4 outlineBounds = vec4(bounds.xy - uTroikaDistanceOffset, bounds.zw + uTroikaDistanceOffset);
 vec4 clippedBounds = vec4(
   clamp(outlineBounds.xy, uTroikaClipRect.xy, uTroikaClipRect.zw),
   clamp(outlineBounds.zw, uTroikaClipRect.xy, uTroikaClipRect.zw)
@@ -47,8 +47,7 @@ uniform sampler2D uTroikaSDFTexture;
 uniform vec2 uTroikaSDFTextureSize;
 uniform float uTroikaSDFGlyphSize;
 uniform float uTroikaSDFExponent;
-uniform float uTroikaOutlineWidth;
-uniform vec3 uTroikaOutlineColor;
+uniform float uTroikaDistanceOffset;
 uniform bool uTroikaSDFDebug;
 varying vec2 vTroikaGlyphUV;
 varying float vTroikaGlyphIndex;
@@ -79,7 +78,7 @@ float troikaGlyphUvToDistance(vec2 uv) {
   return troikaSdfValueToSignedDistance(troikaGlyphUvToSdfValue(uv));
 }
 
-vec4 troikaGetTextColor(float distanceOffset, vec4 bgColor, vec4 fgColor) {
+float troikaGetTextAlpha(float distanceOffset) {
   vec2 clampedGlyphUV = clamp(vTroikaGlyphUV, 0.5 / uTroikaSDFGlyphSize, 1.0 - 0.5 / uTroikaSDFGlyphSize);
   float distance = troikaGlyphUvToDistance(clampedGlyphUV);
     
@@ -113,7 +112,7 @@ vec4 troikaGetTextColor(float distanceOffset, vec4 bgColor, vec4 fgColor) {
   }
   
   #if defined(IS_DEPTH_MATERIAL) || defined(IS_DISTANCE_MATERIAL)
-  float alpha = 1.0 - step(distanceOffset, distance);
+  float alpha = step(-distanceOffset, -distance);
   #else
   ${''/*
     When the standard derivatives extension is available, we choose an antialiasing alpha threshold based
@@ -133,27 +132,21 @@ vec4 troikaGetTextColor(float distanceOffset, vec4 bgColor, vec4 fgColor) {
   );
   #endif
   
-  return mix(bgColor, fgColor, alpha);
+  return alpha;
 }
 `
 
 // language=GLSL prefix="void main() {" suffix="}"
 const FRAGMENT_TRANSFORM = `
-vec4 outlineColor = uTroikaOutlineWidth > 0.0
-  ? troikaGetTextColor(uTroikaOutlineWidth, vec4(uTroikaOutlineColor, 0.0), vec4(uTroikaOutlineColor, 1.0))
-  : vec4(gl_FragColor.rgb, 0.0);
-gl_FragColor = troikaGetTextColor(0.0, outlineColor, gl_FragColor);
+float alpha = uTroikaSDFDebug ?
+  troikaGlyphUvToSdfValue(vTroikaGlyphUV) :
+  troikaGetTextAlpha(uTroikaDistanceOffset);
 
-// Shift depth of outlines back so they don't cover up neighboring glyphs
-// TODO must make this work in Safari and other WebGL1 impls without the extension
-#if defined(EXT_frag_depth) || __VERSION__ >= 300
-gl_FragDepth = gl_FragCoord.z + (uTroikaOutlineWidth > 0.0 && gl_FragColor == outlineColor ? 1e-6 : 0.0);
+#if !defined(IS_DEPTH_MATERIAL) && !defined(IS_DISTANCE_MATERIAL)
+gl_FragColor.a *= alpha;
 #endif
-
-// Debug raw SDF
-gl_FragColor = uTroikaSDFDebug ? vec4(1.0, 1.0, 1.0, troikaGlyphUvToSdfValue(vTroikaGlyphUV)) : gl_FragColor;
   
-if (gl_FragColor.a == 0.0) {
+if (alpha == 0.0) {
   discard;
 }
 `
@@ -176,8 +169,7 @@ export function createTextDerivedMaterial(baseMaterial) {
       uTroikaSDFExponent: {value: 0},
       uTroikaTotalBounds: {value: new Vector4(0,0,0,0)},
       uTroikaClipRect: {value: new Vector4(0,0,0,0)},
-      uTroikaOutlineWidth: {value: 0},
-      uTroikaOutlineColor: {value: new Color(0)},
+      uTroikaDistanceOffset: {value: 0},
       uTroikaOrient: {value: new Matrix3()},
       uTroikaUseGlyphColors: {value: true},
       uTroikaSDFDebug: {value: false}

@@ -8,7 +8,8 @@ import {
   TextureLoader,
   PlaneBufferGeometry,
   Mesh,
-  Color
+  Color,
+  DoubleSide
 } from 'three'
 import DatGui, {DatBoolean, DatSelect, DatNumber} from 'react-dat-gui'
 import { DatGuiFacade } from 'troika-3d-ui'
@@ -58,14 +59,18 @@ November 19, 1863`,
 
 const TEXTURE = new TextureLoader().load('shader-anim/lava.jpg')
 const MATERIALS = {
-  'MeshBasicMaterial': new MeshBasicMaterial(),
+  'MeshBasicMaterial': new MeshBasicMaterial({
+    side: DoubleSide
+  }),
   'MeshStandardMaterial': new MeshStandardMaterial({
     roughness: 0.5,
-    metalness: 0.5
+    metalness: 0.5,
+    side: DoubleSide
   }),
   'Custom Vertex Shader': createDerivedMaterial(new MeshStandardMaterial({
     roughness: 0.5,
-    metalness: 0.5
+    metalness: 0.5,
+    side: DoubleSide
   }), {
     timeUniform: 'elapsed',
     vertexTransform: `
@@ -197,6 +202,9 @@ class TextExample extends React.Component {
               rotateX: 0,
               rotateZ: 0,
               sdfGlyphSize: Math.pow(2, state.sdfGlyphSize),
+              onSyncComplete() {
+                console.log(this.textRenderInfo.timings)
+              },
               colorRanges: state.colorRanges ? TEXTS[state.text].split('').reduce((out, char, i) => {
                 if (i === 0 || /\s/.test(char)) {
                   out[i] = (Math.floor(Math.pow(Math.sin(i), 2) * 256) << 16)
@@ -237,8 +245,8 @@ class TextExample extends React.Component {
                   duration: 5000
                 } : null,
                 state.animRotate ? {
-                  from: {rotateZ: 0},
-                  to: {rotateZ: Math.PI * 2},
+                  from: {rotateY: 0},
+                  to: {rotateY: Math.PI * 2},
                   duration: 10000,
                   iterations: Infinity
                 } : null
