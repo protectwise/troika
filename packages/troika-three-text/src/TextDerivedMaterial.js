@@ -82,34 +82,32 @@ float troikaGetTextAlpha(float distanceOffset) {
   vec2 clampedGlyphUV = clamp(vTroikaGlyphUV, 0.5 / uTroikaSDFGlyphSize, 1.0 - 0.5 / uTroikaSDFGlyphSize);
   float distance = troikaGlyphUvToDistance(clampedGlyphUV);
     
-  if (clampedGlyphUV != vTroikaGlyphUV) {
-    // Naive extrapolated distance:
-    float distToUnclamped = length((vTroikaGlyphUV - clampedGlyphUV) * vTroikaGlyphDimensions);
-    distance += distToUnclamped;
+  // Extrapolate distance when outside bounds:
+  distance += clampedGlyphUV == vTroikaGlyphUV ? 0.0 : 
+    length((vTroikaGlyphUV - clampedGlyphUV) * vTroikaGlyphDimensions);
 
-    ${''/* 
-    // TODO more refined extrapolated distance by adjusting for angle of gradient at edge...
-    // This has potential but currently gives very jagged extensions, maybe due to precision issues?
-    float uvStep = 1.0 / uTroikaSDFGlyphSize;
-    vec2 neighbor1UV = clampedGlyphUV + (
-      vTroikaGlyphUV.x != clampedGlyphUV.x ? vec2(0.0, uvStep * sign(0.5 - vTroikaGlyphUV.y)) :
-      vTroikaGlyphUV.y != clampedGlyphUV.y ? vec2(uvStep * sign(0.5 - vTroikaGlyphUV.x), 0.0) :
-      vec2(0.0)
-    );
-    vec2 neighbor2UV = clampedGlyphUV + (
-      vTroikaGlyphUV.x != clampedGlyphUV.x ? vec2(0.0, uvStep * -sign(0.5 - vTroikaGlyphUV.y)) :
-      vTroikaGlyphUV.y != clampedGlyphUV.y ? vec2(uvStep * -sign(0.5 - vTroikaGlyphUV.x), 0.0) :
-      vec2(0.0)
-    );
-    float neighbor1Distance = troikaGlyphUvToDistance(neighbor1UV);
-    float neighbor2Distance = troikaGlyphUvToDistance(neighbor2UV);
-    float distToUnclamped = length((vTroikaGlyphUV - clampedGlyphUV) * vTroikaGlyphDimensions);
-    float distToNeighbor = length((clampedGlyphUV - neighbor1UV) * vTroikaGlyphDimensions);
-    float gradientAngle1 = min(asin(abs(neighbor1Distance - distance) / distToNeighbor), PI / 2.0);
-    float gradientAngle2 = min(asin(abs(neighbor2Distance - distance) / distToNeighbor), PI / 2.0);
-    distance += (cos(gradientAngle1) + cos(gradientAngle2)) / 2.0 * distToUnclamped;
-    */}
-  }
+  ${''/* 
+  // TODO more refined extrapolated distance by adjusting for angle of gradient at edge...
+  // This has potential but currently gives very jagged extensions, maybe due to precision issues?
+  float uvStep = 1.0 / uTroikaSDFGlyphSize;
+  vec2 neighbor1UV = clampedGlyphUV + (
+    vTroikaGlyphUV.x != clampedGlyphUV.x ? vec2(0.0, uvStep * sign(0.5 - vTroikaGlyphUV.y)) :
+    vTroikaGlyphUV.y != clampedGlyphUV.y ? vec2(uvStep * sign(0.5 - vTroikaGlyphUV.x), 0.0) :
+    vec2(0.0)
+  );
+  vec2 neighbor2UV = clampedGlyphUV + (
+    vTroikaGlyphUV.x != clampedGlyphUV.x ? vec2(0.0, uvStep * -sign(0.5 - vTroikaGlyphUV.y)) :
+    vTroikaGlyphUV.y != clampedGlyphUV.y ? vec2(uvStep * -sign(0.5 - vTroikaGlyphUV.x), 0.0) :
+    vec2(0.0)
+  );
+  float neighbor1Distance = troikaGlyphUvToDistance(neighbor1UV);
+  float neighbor2Distance = troikaGlyphUvToDistance(neighbor2UV);
+  float distToUnclamped = length((vTroikaGlyphUV - clampedGlyphUV) * vTroikaGlyphDimensions);
+  float distToNeighbor = length((clampedGlyphUV - neighbor1UV) * vTroikaGlyphDimensions);
+  float gradientAngle1 = min(asin(abs(neighbor1Distance - distance) / distToNeighbor), PI / 2.0);
+  float gradientAngle2 = min(asin(abs(neighbor2Distance - distance) / distToNeighbor), PI / 2.0);
+  distance += (cos(gradientAngle1) + cos(gradientAngle2)) / 2.0 * distToUnclamped;
+  */}
   
   #if defined(IS_DEPTH_MATERIAL) || defined(IS_DISTANCE_MATERIAL)
   float alpha = step(-distanceOffset, -distance);
@@ -159,8 +157,7 @@ export function createTextDerivedMaterial(baseMaterial) {
   const textMaterial = createDerivedMaterial(baseMaterial, {
     chained: true,
     extensions: {
-      derivatives: true,
-      fragDepth: true
+      derivatives: true
     },
     uniforms: {
       uTroikaSDFTexture: {value: null},
