@@ -13,8 +13,8 @@ uniform float uTroikaDistanceOffset;
 attribute vec4 aTroikaGlyphBounds;
 attribute float aTroikaGlyphIndex;
 attribute vec3 aTroikaGlyphColor;
-varying float vTroikaGlyphIndex;
 varying vec2 vTroikaGlyphUV;
+varying vec4 vTroikaTextureUVBounds;
 varying vec3 vTroikaGlyphColor;
 varying vec2 vTroikaGlyphDimensions;
 `
@@ -36,9 +36,20 @@ uv = (position.xy - uTroikaTotalBounds.xy) / (uTroikaTotalBounds.zw - uTroikaTot
 position = uTroikaOrient * position;
 normal = uTroikaOrient * normal;
 
-vTroikaGlyphIndex = aTroikaGlyphIndex;
 vTroikaGlyphUV = clippedXY.xy;
 vTroikaGlyphDimensions = vec2(bounds[2] - bounds[0], bounds[3] - bounds[1]);
+
+${''/* NOTE: it seems important to calculate the glyph's bounding texture UVs here in the
+  vertex shader, rather than in the fragment shader, as the latter gives strange artifacts
+  on some glyphs (those in the leftmost texture column) on some systems. The exact reason
+  isn't understood but doing this here, then mix()-ing in the fragment shader, seems to work. */}
+float txCols = uTroikaSDFTextureSize.x / uTroikaSDFGlyphSize;
+vec2 txUvPerGlyph = uTroikaSDFGlyphSize / uTroikaSDFTextureSize;
+vec2 txStartUV = txUvPerGlyph * vec2(
+  mod(aTroikaGlyphIndex, txCols),
+  floor(aTroikaGlyphIndex / txCols)
+);
+vTroikaTextureUVBounds = vec4(txStartUV, vec2(txStartUV) + txUvPerGlyph);
 `
 
 // language=GLSL
@@ -50,7 +61,7 @@ uniform float uTroikaSDFExponent;
 uniform float uTroikaDistanceOffset;
 uniform bool uTroikaSDFDebug;
 varying vec2 vTroikaGlyphUV;
-varying float vTroikaGlyphIndex;
+varying vec4 vTroikaTextureUVBounds;
 varying vec2 vTroikaGlyphDimensions;
 
 float troikaSdfValueToSignedDistance(float alpha) {
@@ -65,12 +76,8 @@ float troikaSdfValueToSignedDistance(float alpha) {
   return signedDist;
 }
 
-float troikaGlyphUvToSdfValue(vec2 uv) {
-  float cols = uTroikaSDFTextureSize.x / uTroikaSDFGlyphSize;
-  vec2 textureUV = vec2(
-    mod(vTroikaGlyphIndex, cols) + uv.x,
-    floor(vTroikaGlyphIndex / cols) + uv.y
-  ) * uTroikaSDFGlyphSize / uTroikaSDFTextureSize;
+float troikaGlyphUvToSdfValue(vec2 glyphUV) {
+  vec2 textureUV = mix(vTroikaTextureUVBounds.xy, vTroikaTextureUVBounds.zw, glyphUV);
   return texture2D(uTroikaSDFTexture, textureUV).r;
 }
 
