@@ -175,13 +175,13 @@ function getTextRenderInfo(args, callback) {
 
         // Insert the new glyph's data into the full texture image at the correct offsets
         const cols = texImg.width / sdfGlyphSize
+        const baseStartIndex = texImg.width * sdfGlyphSize * Math.floor(atlasIndex / cols) //full rows
+          + (atlasIndex % cols) * sdfGlyphSize //partial row
         for (let y = 0; y < sdfGlyphSize; y++) {
           const srcStartIndex = y * sdfGlyphSize
-          const tgtStartIndex = texImg.width * sdfGlyphSize * Math.floor(atlasIndex / cols) //full rows
-            + (atlasIndex % cols) * sdfGlyphSize //partial row
-            + (y * texImg.width) //row within glyph
+          const rowStartIndex = baseStartIndex + (y * texImg.width)
           for (let x = 0; x < sdfGlyphSize; x++) {
-            texImg.data[tgtStartIndex + x] = textureData[srcStartIndex + x]
+            texImg.data[rowStartIndex + x] = textureData[srcStartIndex + x]
           }
         }
       })
