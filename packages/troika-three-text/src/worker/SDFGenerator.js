@@ -1,12 +1,12 @@
 /**
  * Initializes and returns a function to generate an SDF texture for a given glyph.
- * @param {function} createGlyphSegmentsQuadtree - factory for a GlyphSegmentsQuadtree implementation.
+ * @param {function} createGlyphSegmentsIndex - factory for a GlyphSegmentsIndex implementation.
  * @param {number} config.sdfExponent
  * @param {number} config.sdfMargin
  *
  * @return {function(Object): {renderingBounds: [minX, minY, maxX, maxY], textureData: Uint8Array}}
  */
-function createSDFGenerator(createGlyphSegmentsQuadtree, config) {
+function createSDFGenerator(createGlyphSegmentsIndex, config) {
   const { sdfExponent, sdfMargin } = config
 
   /**
@@ -78,7 +78,7 @@ function createSDFGenerator(createGlyphSegmentsQuadtree, config) {
 
     if (glyphObj.pathCommandCount) { //whitespace chars will have no commands, so we can skip all this
       // Decompose all paths into straight line segments and add them to a quadtree
-      const lineSegmentsIndex = createGlyphSegmentsQuadtree(glyphObj)
+      const lineSegmentsIndex = createGlyphSegmentsIndex(glyphObj)
       let firstX, firstY, prevX, prevY
       glyphObj.forEachPathCommand((type, x0, y0, x1, y1, x2, y2) => {
         switch (type) {
