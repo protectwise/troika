@@ -37,6 +37,13 @@ const EXTERNAL_GLOBALS = SIBLING_PACKAGES.reduce((out, sib) => {
   'object-path': 'objectPath'
 })
 
+// Some packages (e.g. those with worker code) we want to transpile in the ESM
+// in addition to the UMD:
+// TODO make this more fine-grained than the whole package
+const TRANSPILE_PACKAGES_FOR_ESM = [
+  'troika-worker-utils'
+]
+
 
 const onwarn = (warning, warn) => {
   // Quiet the 'Use of eval is strongly discouraged' warnings from Yoga lib
@@ -74,9 +81,9 @@ for (let entry of Object.keys(entries)) {
         file: `dist/${outFilePrefix}.esm.js`
       },
       external: Object.keys(EXTERNAL_GLOBALS),
-      plugins: [
-        //buble()
-      ],
+      plugins: TRANSPILE_PACKAGES_FOR_ESM.includes(LERNA_PACKAGE_NAME) ? [
+        buble()
+      ] : [],
       onwarn
     },
     // UMD file
