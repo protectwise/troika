@@ -8,14 +8,16 @@ let supportsWorkers = () => {
       // TODO additional checks for things like importScripts within the worker?
       //  Would need to be an async check.
       let worker = new Worker(
-        URL.createObjectURL(
-          new Blob([''], { type: 'application/javascript' })
-        )
+        URL.createObjectURL(new Blob([''], { type: 'application/javascript' }))
       )
       worker.terminate()
       supported = true
     } catch (err) {
-      console.log(`Troika createWorkerModule: web workers not allowed; falling back to main thread execution. Cause: [${err.message}]`)
+      if (process.env.NODE_ENV !== 'test') {
+        console.log(
+          `Troika createWorkerModule: web workers not allowed; falling back to main thread execution. Cause: [${err.message}]`
+        )
+      }
     }
   }
 
