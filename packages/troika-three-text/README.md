@@ -186,7 +186,7 @@ Default: black
 
 #### `outlineWidth`
 
-Displays an outline/halo around the text glyphs, this wide in local units. Giving your text an outline with a contrasting `outlineColor` can improve readability against backgrounds of low or varying contrast.
+The width of an outline/halo to be drawn around each text glyph using the `outlineColor`. This can help improve readability when the text is displayed against a background of low or varying contrast. The width can be specified as either an absolute number in local units, or as a percentage string e.g. `"10%"` which is interpreted as a percentage of the `fontSize`.
 
 Default: `0`
 
