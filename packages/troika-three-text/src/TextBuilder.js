@@ -2,7 +2,7 @@ import { Color, DataTexture, LinearFilter, LuminanceFormat } from 'three'
 import { defineWorkerModule, ThenableWorkerModule } from 'troika-worker-utils'
 import { createSDFGenerator } from './worker/SDFGenerator.js'
 import { createFontProcessor } from './worker/FontProcessor.js'
-import { createGlyphSegmentsQuadtree } from './worker/GlyphSegmentsQuadtree.js'
+import { createGlyphSegmentsIndex } from './worker/GlyphSegmentsIndex.js'
 
 // Choose parser impl:
 import fontParser from './worker/FontParser_Typr.js'
@@ -269,13 +269,13 @@ const fontProcessorWorkerModule = /*#__PURE__*/defineWorkerModule({
   dependencies: [
     CONFIG,
     fontParser,
-    createGlyphSegmentsQuadtree,
+    createGlyphSegmentsIndex,
     createSDFGenerator,
     createFontProcessor
   ],
-  init(config, fontParser, createGlyphSegmentsQuadtree, createSDFGenerator, createFontProcessor) {
+  init(config, fontParser, createGlyphSegmentsIndex, createSDFGenerator, createFontProcessor) {
     const {sdfExponent, sdfMargin, defaultFontURL} = config
-    const sdfGenerator = createSDFGenerator(createGlyphSegmentsQuadtree, { sdfExponent, sdfMargin })
+    const sdfGenerator = createSDFGenerator(createGlyphSegmentsIndex, { sdfExponent, sdfMargin })
     return createFontProcessor(fontParser, sdfGenerator, { defaultFontURL })
   }
 })
