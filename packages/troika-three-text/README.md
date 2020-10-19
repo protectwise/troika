@@ -178,6 +178,18 @@ The maximum width of the text block, above which text may start wrapping accordi
 
 Default: `Infinity`, meaning text will never wrap
 
+#### `outlineColor`
+
+The color to use for the text outline when `outlineWidth` is greater than `0`.
+
+Default: black
+
+#### `outlineWidth`
+
+Displays an outline/halo around the text glyphs, this wide in local units. Giving your text an outline with a contrasting `outlineColor` can improve readability against backgrounds of low or varying contrast.
+
+Default: `0`
+
 #### `overflowWrap`
 
 Defines how text wraps if the `whiteSpace` property is `'normal'`. Can be either `'normal'` to break at whitespace characters, or `'break-word'` to allow breaking within words.
