@@ -13,7 +13,9 @@ let supportsWorkers = () => {
       worker.terminate()
       supported = true
     } catch (err) {
-      if (process.env.NODE_ENV !== 'test') {
+      if (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') {
+        // No console log for node env 'test' (e.g. tests with Jest)
+      } else {
         console.log(
           `Troika createWorkerModule: web workers not allowed; falling back to main thread execution. Cause: [${err.message}]`
         )
