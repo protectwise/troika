@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.34.1](https://github.com/protectwise/troika/compare/v0.34.0...v0.34.1) (2020-10-20)
+
+
+### Bug Fixes
+
+* check for process env 'test' ([4f7f8f2](https://github.com/protectwise/troika/commit/4f7f8f24a9d4f4b655b61e1e16e19061c1911b02))
+* check if process is undefined ([2b6d56a](https://github.com/protectwise/troika/commit/2b6d56af78e175a74fb03442efdc0a10d18fa4c8))
+
+
+
+
+
 # [0.34.0](https://github.com/protectwise/troika/compare/v0.33.1...v0.34.0) (2020-10-19)
 
 **Note:** Version bump only for package troika-worker-utils
