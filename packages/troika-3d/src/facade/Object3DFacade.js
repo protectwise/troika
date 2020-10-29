@@ -86,27 +86,7 @@ class Object3DFacade extends PointerEventTarget {
 
     // If any children were removed during the update, remove them from the threejs
     // object in a single batch; this avoids threejs's very expensive single-item remove.
-    if (this._removeChildIds) {
-      let threeObject = this.threeObject
-      let removeChildIds = this._removeChildIds
-      threeObject.children = threeObject.children.filter(child => {
-        if (child.id in removeChildIds) {
-          child.parent = null
-          child.dispatchEvent(removedEvent)
-          return false
-        }
-        return true
-      })
-
-      // If that resulted in a non-renderable object having no renderable children,
-      // queue it for removal it from the threejs object tree
-      let parentObj3D = this._parentObject3DFacade
-      if (canObjectBeOrphaned(threeObject) && parentObj3D && parentObj3D.threeObject === threeObject.parent) {
-        parentObj3D._queueRemoveChildObject3D(threeObject.id)
-      }
-
-      this._removeChildIds = null
-    }
+    this._flushQueuedChildRemovals()
   }
 
   /**
@@ -384,6 +364,33 @@ class Object3DFacade extends PointerEventTarget {
   _queueRemoveChildObject3D(threeObjectId) {
     let removeChildIds = this._removeChildIds || (this._removeChildIds = Object.create(null))
     removeChildIds[threeObjectId] = true
+  }
+
+  _flushQueuedChildRemovals() {
+    // If any children were queued for removal, remove them from the threejs
+    // object in a single batch; this avoids threejs's very expensive single-item remove.
+    if (this._removeChildIds) {
+      let threeObject = this.threeObject
+      let removeChildIds = this._removeChildIds
+      threeObject.children = threeObject.children.filter(child => {
+        if (child.id in removeChildIds) {
+          child.parent = null
+          child.dispatchEvent(removedEvent)
+          return false
+        }
+        return true
+      })
+
+      // If that resulted in a non-renderable object having no renderable children,
+      // remove it from the threejs object tree, recursively upward.
+      let parentObj3D = this._parentObject3DFacade
+      if (canObjectBeOrphaned(threeObject) && parentObj3D && parentObj3D.threeObject === threeObject.parent) {
+        parentObj3D._queueRemoveChildObject3D(threeObject.id)
+        parentObj3D._flushQueuedChildRemovals() //if we don't force a parent flush, tree can get in a bad state
+      }
+
+      this._removeChildIds = null
+    }
   }
 
   destructor() {
