@@ -408,12 +408,13 @@ const Text = /*#__PURE__*/(() => {
           outlineMaterial.depthWrite = false
           outlineMaterial.map = null //???
         }
-        derivedMaterial = [
+        return [
           outlineMaterial,
           derivedMaterial
         ]
+      } else {
+        return derivedMaterial
       }
-      return derivedMaterial
     }
     set material(baseMaterial) {
       if (baseMaterial && baseMaterial.isTroikaTextMaterial) { //prevent double-derivation
