@@ -407,6 +407,10 @@ const Text = /*#__PURE__*/(() => {
           outlineMaterial.isTextOutlineMaterial = true
           outlineMaterial.depthWrite = false
           outlineMaterial.map = null //???
+          derivedMaterial.addEventListener('dispose', function onDispose() {
+            derivedMaterial.removeEventListener('dispose', onDispose)
+            outlineMaterial.dispose()
+          })
         }
         return [
           outlineMaterial,
