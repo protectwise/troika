@@ -61,6 +61,30 @@ const multiTween = new MultiTween(
 )
 ```
 
+### SpringTween
+
+> See the JSDoc comments in [SpringTween.js](./src/SpringTween.js) for more details about each parameter.
+
+This is a lot like `Tween` but instead of having a fixed duration, its value is transitioned using a simple spring physics simulation.
+
+```js
+import { SpringTween } from 'troika-animation'
+
+const tween = new Tween(
+  onTweenFrame,   // callback
+  -100,           // fromValue
+  100,            // toValue
+  {               // spring simulation config, or the name of a preset
+    mass: 1,      // object mass
+    tension: 170, // spring tension force
+    friction: 26  // friction force
+  },
+  0               // delay
+)
+```
+
+The meanings of the spring configuration parameters match those from [react-spring](https://www.react-spring.io/docs/hooks/api). The [named presets](./src/SpringPresets.js) also match those defined by react-spring.
+
 ### Runner
 
 > Also see the JSDoc comments in [Runner.js](./src/Runner.js)

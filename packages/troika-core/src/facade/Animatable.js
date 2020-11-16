@@ -1,5 +1,5 @@
 import { assignIf, createClassExtender } from '../utils.js'
-import { Tween, MultiTween, Runner } from 'troika-animation'
+import { Tween, MultiTween, Runner, SpringTween } from 'troika-animation'
 
 const DEFAULT_DURATION = 750
 const DEFAULT_EASING = 'easeOutCubic'
@@ -31,18 +31,38 @@ export const extendAsAnimatable = createClassExtender('animatable', function(Bas
     /**
      * Handle the special "transition" property. The descriptor should be an object with
      * transitionable property names as keys and transition parameters as values. The
-     * transition parameters can either be `true` for a default transition, or an object
-     * of the form:
+     * transition parameters can either be objects describing the transition parameters,
+     * or `true` for a default transition.
      *
      *   transition: {
-     *     width: true, //uses default parameters
-     *     height: {
-     *       duration: n, //in ms, defaults to 750
-     *       easing: e, //easing function, defaults to 'easeOutCubic'
-     *       delay: n, //in ms, defaults to 0
-     *       interpolate: 'number' //one of the named functions in Interpolators.js ('number', 'color', etc.) or a custom Function
+     *     x: true, // uses a default duration-based transition
+     *     y: 'spring', //uses a default spring-based transition
+     *     z: {
+     *       // ...custom transition config
      *     }
      *   }
+     *
+     * The custom transition config object can take one of two forms for duration- vs.
+     * spring-based animations:
+     *
+     * Duration-based:
+     *
+     *   {
+     *     duration: n, //in ms, defaults to 750
+     *     easing: e, //easing function, defaults to 'easeOutCubic'
+     *     delay: n, //in ms, defaults to 0
+     *     interpolate: 'number' //one of the builtin named interpolators ('number', 'color', etc.) or a custom Function
+     *   }
+     *
+     * Spring-based:
+     *
+     *   {
+     *     spring: s, //either `true`, a named preset string e.g. "wobbly", or an object with {mass, tension, friction}
+     *     delay: n //in ms, defaults to 0
+     *   }
+     *
+     * Note that spring-based transitions do not currently support custom interpolations so they should only be used
+     * for numeric values.
      */
     set transition(descriptor) {
       if (descriptor) {
@@ -347,32 +367,51 @@ export const extendAsAnimatable = createClassExtender('animatable', function(Bas
           let transition = this.transition
           if (transition && transition[propName] && this[hasBeenSetKey] && transition.hasOwnProperty(propName)) {
             transition = transition[propName]
+            let springConfig = transition === 'spring' ? 'default' : transition.spring
             // If there's no active transition tween, or the new value is different than the active tween's
             // target value, initiate a new transition tween. Otherwise ignore it.
             let tween = this[activeTweenKey]
             let needsNewTween = false
             if (tween) {
-              // Active tween - start new one if new value is different than the old tween's target value
+              // Active tween - start new one if new value is different than the old tween's target
+              // value, unless they're both springs in which case update the original
               if (value !== tween.toValue) {
-                runner.stop(tween)
-                needsNewTween = true
+                if (springConfig && tween.isSpring) {
+                  // TODO allow mid-simulation modification of spring config?
+                  tween.toValue = value
+                } else {
+                  runner.stop(tween)
+                  needsNewTween = true
+                }
               }
             } else if (value !== this[propName]) {
               // No active tween - only start one if the value is changing
               needsNewTween = true
             }
             if (needsNewTween) {
-              tween = this[activeTweenKey] = new Tween(
-                actuallySet.bind(this), //callback
-                this[propName], //fromValue
-                value, //toValue
-                transition.duration || DEFAULT_DURATION, //duration
-                transition.delay || 0, //delay
-                transition.easing || DEFAULT_EASING, //easing
-                1, //iterations
-                'forward', //direction
-                transition.interpolate || 'number' //interpolate
-              )
+              tween = this[activeTweenKey] = springConfig
+                ? new SpringTween(
+                  actuallySet.bind(this), //callback
+                  this[propName], //fromValue
+                  value, //toValue
+                  springConfig, //springConfig (mass, friction, tension)
+                  0, //initialVelocity
+                  transition.delay || 0 //delay
+                )
+                : new Tween(
+                  actuallySet.bind(this), //callback
+                  this[propName], //fromValue
+                  value, //toValue
+                  transition.duration || DEFAULT_DURATION, //duration
+                  transition.delay || 0, //delay
+                  transition.easing || DEFAULT_EASING, //easing
+                  1, //iterations
+                  'forward', //direction
+                  transition.interpolate || 'number' //interpolate
+                )
+              tween.onDone = () => {
+                tween = this[activeTweenKey] = null
+              }
               runner.start(tween)
             }
             return

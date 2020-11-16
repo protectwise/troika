@@ -1,5 +1,6 @@
 import * as Easings from './Easings.js'
 import * as Interpolators from './Interpolators.js'
+import AbstractTween from './AbstractTween.js'
 
 const linear = v => v
 const maxSafeInteger = 0x1fffffffffffff
@@ -28,8 +29,9 @@ const maxSafeInteger = 0x1fffffffffffff
  *        Can be the string name for one of the built-in interpolators in Interpolators.js, or a custom function that
  *        will be passed 3 arguments: `fromValue`, `toValue`, and `progress` from 0 to 1.
  */
-class Tween {
+class Tween extends AbstractTween {
   constructor(callback, fromValue, toValue, duration=750, delay=0, easing=linear, iterations=1, direction='forward', interpolate='number') {
+    super()
     this.callback = callback
     this.fromValue = fromValue
     this.toValue = toValue
@@ -76,6 +78,15 @@ class Tween {
    */
   gotoEnd() {
     this.gotoElapsedTime(this.totalElapsed)
+  }
+
+  /**
+   * For a given elapsed time relative to the start of the tween, determines if the tween is in its completed end state.
+   * @param {number} time
+   * @return {boolean}
+   */
+  isDoneAtElapsedTime(time) {
+    return time > this.totalElapsed
   }
 }
 

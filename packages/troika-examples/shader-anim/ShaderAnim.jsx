@@ -5,10 +5,7 @@ import {LavaCube, WaterCube} from './Cube'
 import {Fireball} from './Fireball'
 import { ExampleConfigurator } from '../_shared/ExampleConfigurator.js'
 
-const TRANS = {
-  duration: 700,
-  easing: 'easeOutExpo'
-}
+const TRANS = {spring: {friction: 1e-10, tension: 10}}
 
 class ShaderAnim extends React.Component {
   constructor(props) {

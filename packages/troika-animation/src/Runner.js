@@ -148,7 +148,7 @@ class Runner {
         hasRunningTweens = true
 
         // Queue for removal if we're past its end time
-        if (elapsed > tween.totalElapsed) {
+        if (tween.isDoneAtElapsedTime(elapsed)) {
           this.stop(tween)
           if (tween.onDone) {
             tween.onDone()
