@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.34.2](https://github.com/protectwise/troika/compare/v0.34.1...v0.34.2) (2020-11-09)
+
+
+### Bug Fixes
+
+* **troika-3d:** prevent tree getting in bad state due to removal of orphanable children ([8121425](https://github.com/protectwise/troika/commit/81214255cba846c4e832ac3ada3225e1688c59bd))
+
+
+
+
+
 # [0.34.0](https://github.com/protectwise/troika/compare/v0.33.1...v0.34.0) (2020-10-19)
 
 **Note:** Version bump only for package troika-3d

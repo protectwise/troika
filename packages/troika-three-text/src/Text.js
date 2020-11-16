@@ -407,13 +407,18 @@ const Text = /*#__PURE__*/(() => {
           outlineMaterial.isTextOutlineMaterial = true
           outlineMaterial.depthWrite = false
           outlineMaterial.map = null //???
+          derivedMaterial.addEventListener('dispose', function onDispose() {
+            derivedMaterial.removeEventListener('dispose', onDispose)
+            outlineMaterial.dispose()
+          })
         }
-        derivedMaterial = [
+        return [
           outlineMaterial,
           derivedMaterial
         ]
+      } else {
+        return derivedMaterial
       }
-      return derivedMaterial
     }
     set material(baseMaterial) {
       if (baseMaterial && baseMaterial.isTroikaTextMaterial) { //prevent double-derivation
