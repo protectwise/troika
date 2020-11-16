@@ -17,6 +17,7 @@ class WorldXRFacade extends World3DFacade {
    * @property {XRSessionMode} xrSessionMode
    * @property {XRReferenceSpace} xrReferenceSpace
    * @property {XRReferenceSpaceType} xrReferenceSpaceType
+   * @property {number|string} xrFramebufferScaleFactor
    *
    * New global event types:
    * `xrframe` - fired on each frame, with the current time and XRFrame object as arguments
@@ -48,7 +49,8 @@ class WorldXRFacade extends World3DFacade {
           promise.then(() => {
             if (this.xrSession === xrSession) {
               baseLayer = new XRWebGLLayer(xrSession, gl, {
-                antialias: !!renderer.getContextAttributes().antialias
+                antialias: !!renderer.getContextAttributes().antialias,
+                framebufferScaleFactor: parseFramebufferScaleFactor(this.xrFramebufferScaleFactor, xrSession)
               })
               baseLayer._glContext = gl
               xrSession.updateRenderState({ baseLayer })
@@ -155,5 +157,23 @@ WorldXRFacade.prototype._notifyWorldHandlers = Object.create(
     }
   }
 )
+
+function parseFramebufferScaleFactor(value, xrSession) {
+  let scale = 1
+  if (value != null) {
+    if (typeof value === 'string') {
+      if (/native/.test(value)) {
+        const mult = +value.replace(/\s*native\s*/, '') || 1
+        const nativeScale = XRWebGLLayer.getNativeFramebufferScaleFactor(xrSession)
+        scale = nativeScale * mult
+      }
+    } else {
+      scale = +value
+    }
+    if (isNaN(scale)) scale = 1
+  }
+  //console.info(`WebXR: using framebufferScaleFactor ${scale}`)
+  return scale
+}
 
 export default WorldXRFacade

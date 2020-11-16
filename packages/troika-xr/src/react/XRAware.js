@@ -48,13 +48,21 @@ export const XRAwarePropTypes = {
  *        will be used for `requiredFeatures`.
  *        TODO: allow secondary spaces to be chosen by the user, rather than just as a fallback?
  *        TODO: allow different spaces to be specified for immersive-vr vs. local modes?
+ * @param {number|string} options.framebufferScaleFactor - Scaling factor for the XR framebuffer.
+ *        A number is used directly as the WebGLLayer's `framebufferScaleFactor` parameter. The
+ *        string "native" uses the device's native resolution. A string containing "native" and
+ *        a number, e.g. "0.5 native", uses the device's native resolution multiplied by that
+ *        number. Defaults to `1` per the WebXR spec.
+ *        TODO: allow 'auto' adaptive scaling to maintain frame rate
+ *        TODO: allow changing this value on the fly
  * @return {class}
  */
 export function ReactXRAware(ReactClass, options) {
   options = utils.assign({
     xrLauncherRenderer: XRLauncher,
     sessionModes: ['immersive-vr'],
-    referenceSpaces: ['bounded-floor', 'local-floor']
+    referenceSpaces: ['bounded-floor', 'local-floor'],
+    framebufferScaleFactor: 1
   }, options)
 
   class XRAware extends React.Component {
@@ -224,7 +232,8 @@ export function ReactXRAware(ReactClass, options) {
           xrSession,
           xrSessionMode,
           xrReferenceSpace,
-          xrReferenceSpaceType
+          xrReferenceSpaceType,
+          xrFramebufferScaleFactor: options.framebufferScaleFactor
         }
       }
 
