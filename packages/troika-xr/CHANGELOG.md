@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.35.0](https://github.com/protectwise/troika/compare/v0.34.2...v0.35.0) (2020-11-16)
+
+
+### Features
+
+* **troika-xr:** allow configuring framebufferScaleFactor, incl. ratios based on native ([f63c160](https://github.com/protectwise/troika/commit/f63c160cd4f57f195fc12b32a0c2e6227e7414ea))
+
+
+
+
+
 ## [0.34.2](https://github.com/protectwise/troika/compare/v0.34.1...v0.34.2) (2020-11-09)
 
 **Note:** Version bump only for package troika-xr
