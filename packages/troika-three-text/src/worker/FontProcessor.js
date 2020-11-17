@@ -424,7 +424,7 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
                 // previous glyph's info to those missing char indices. In the future we may try to
                 // use the font's LigatureCaretList table to get interior caret positions.
                 while (charIndex - prevCharIndex > 1) {
-                  caretPositions[(prevCharIndex + 1) * 3] = caretPositions[prevCharIndex * 3 + 1]
+                  caretPositions[(prevCharIndex + 1) * 3] = caretPositions[prevCharIndex * 3]
                   caretPositions[(prevCharIndex + 1) * 3 + 1] = caretPositions[prevCharIndex * 3 + 1]
                   caretPositions[(prevCharIndex + 1) * 3 + 2] = caretPositions[prevCharIndex * 3 + 2]
                   prevCharIndex++
