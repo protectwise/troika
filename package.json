@@ -44,6 +44,7 @@
     "build": "lerna exec --ignore=troika-examples -- rollup -c \\$LERNA_ROOT_PATH/rollup.config.js",
     "build-opentype": "lerna exec --scope=troika-three-text -- npm run build-opentype",
     "build-typr": "lerna exec --scope=troika-three-text -- npm run build-typr",
+    "build-woff2otf": "lerna exec --scope=troika-three-text -- npm run build-woff2otf",
     "build-yoga": "npm run bootstrap && lerna exec --scope=troika-flex-layout -- npm run build-yoga",
     "test": "jest",
     "build-examples": "lerna exec --scope=troika-examples -- npm run build",

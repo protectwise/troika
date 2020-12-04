@@ -29,7 +29,8 @@ function parserFactory(Typr, woff2otf) {
 
         const glyphIndices = Typr.U.stringToGlyphs(typrFont, text)
         let charIndex = 0
-        glyphIndices.forEach(glyphIndex => {
+        let prevGlyphIndex = -1
+        glyphIndices.forEach((glyphIndex, i) => {
           // Typr returns a glyph index per string codepoint, with -1s in place of those that
           // were omitted due to ligature substitution. So we can track original index in the
           // string via simple increment, and skip everything else when seeing a -1.
@@ -80,6 +81,11 @@ function parserFactory(Typr, woff2otf) {
               }
             }
 
+            // Kerning
+            if (prevGlyphIndex !== -1) {
+              glyphX += Typr.U.getPairAdjustment(typrFont, prevGlyphIndex, glyphIndex) * fontScale
+            }
+
             callback.call(null, glyphObj, glyphX, charIndex)
 
             if (glyphObj.advanceWidth) {
@@ -88,6 +94,8 @@ function parserFactory(Typr, woff2otf) {
             if (letterSpacing) {
               glyphX += letterSpacing * fontSize
             }
+
+            prevGlyphIndex = glyphIndex
           }
           charIndex += (text.codePointAt(charIndex) > 0xffff ? 2 : 1)
         })
