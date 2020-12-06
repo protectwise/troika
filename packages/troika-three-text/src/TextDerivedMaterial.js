@@ -42,13 +42,11 @@ vec4 clippedBounds = vec4(
   clamp(outlineBounds.zw, uTroikaClipRect.xy, uTroikaClipRect.zw)
 );
 
-vec2 clippedXY = (mix(clippedBounds.zw, clippedBounds.xy, position.xy) - offsetBounds.zw) / (offsetBounds.xy - offsetBounds.zw);
-
-
+vec2 clippedXY = (mix(clippedBounds.zw, clippedBounds.xy, position.xy) - offsetBounds.xy) / (offsetBounds.zw - offsetBounds.xy);
 
 position.xy = mix(offsetBounds.xy, offsetBounds.zw, clippedXY);
 
-uv = (uTroikaTotalBounds.xy - position.xy) / (uTroikaTotalBounds.zw - uTroikaTotalBounds.xy);
+uv = (position.xy - uTroikaTotalBounds.xy) / (uTroikaTotalBounds.zw - uTroikaTotalBounds.xy);
 
 position = uTroikaOrient * position;
 normal = uTroikaOrient * normal;
