@@ -190,6 +190,37 @@ The width of an outline/halo to be drawn around each text glyph using the `outli
 
 Default: `0`
 
+
+#### `outlineOpacity`
+
+Will change the opacity of the outline if it is visible.
+
+Default: `1`
+
+#### `outlineBlur`
+
+Allow to convert the outline to a shadow element. **If enable it will force the outline to be rendered**. Can be usefull if you want to render twice the font with an offset for example. If `outlineBlur` is enable, the `outlineWidth` parameters will update the blur ratio of the shadow.
+
+Default: `0`
+
+#### `outlineOffsetX`
+
+Require `outlineWidth` to be greater than zero or `outlineBlur` to be true. Apply a offset on x to the outline drawn around each text glyph. values are specified as either an absolute number in local units, or as a percentage string e.g. `"12%"` which is treated as a percentage of the `fontSize`.
+
+Default: `0`
+
+#### `outlineOffsetY`
+
+Require `outlineWidth` to be greater than zero or `outlineBlur` to be true. Apply a offset on y to the outline drawn around each text glyph. values are specified as either an absolute number in local units, or as a percentage string e.g. `"12%"` which is treated as a percentage of the `fontSize`.
+
+Default: `0`
+
+#### `onlyBorderThickness`
+
+If `onlyBorderThickness` is greater than zero it will render only the edge of the font **and of the outline**. values are specified as either an absolute number in local units, or as a percentage string e.g. `"12%"` which is treated as a percentage of the `fontSize`.
+
+Default: `0`
+
 #### `overflowWrap`
 
 Defines how text wraps if the `whiteSpace` property is `'normal'`. Can be either `'normal'` to break at whitespace characters, or `'break-word'` to allow breaking within words.
