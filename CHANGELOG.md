@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.36.0](https://github.com/protectwise/troika/compare/v0.35.0...v0.36.0) (2020-12-04)
+
+
+### Bug Fixes
+
+* fix font parser build scripts ([e2d88fa](https://github.com/protectwise/troika/commit/e2d88fa0b838d9e0f67c133e046dbba999ff6bb0))
+* prevent error in WristMountedUI when gripPose is null ([755d560](https://github.com/protectwise/troika/commit/755d560a0b7824e5b1acfecd0fbc89b5ad27c853))
+* use combined frustum for XR camera, using setProjectionFromUnion from three.js ([ff1b9ae](https://github.com/protectwise/troika/commit/ff1b9ae46e466e9dca2138f7ee47d96f466a548d))
+* **troika-three-text:** fix wrong caret position for collapsed ligature characters ([f220035](https://github.com/protectwise/troika/commit/f220035430787b3d178ad8cfe4b067fe9793de97))
+
+
+### Features
+
+* **troika-three-text:** fix kerning by updating from Typr.js to Typr.ts ([43144cf](https://github.com/protectwise/troika/commit/43144cfbb8f553d552a5bef179a7e5cfc8179fe3)), closes [#70](https://github.com/protectwise/troika/issues/70)
+
+
+
+
+
 # [0.35.0](https://github.com/protectwise/troika/compare/v0.34.2...v0.35.0) (2020-11-16)
 
 

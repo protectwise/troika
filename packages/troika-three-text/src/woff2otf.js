@@ -2,7 +2,7 @@
  Copyright 2012, Steffen Hanikel (https://github.com/hanikesn)
  Modified by Artemy Tregubenko, 2014 (https://github.com/arty-name/woff2otf)
  Modified by Jason Johnston, 2019 (pako --> tiny-inflate)
- 
+
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
@@ -18,7 +18,9 @@
  A tool to convert a WOFF back to a TTF/OTF font file, in pure Javascript
 */
 
-function convert_streams(bufferIn, tinyInflate) {
+import tinyInflate from 'tiny-inflate'
+
+export function convert_streams(bufferIn) {
     var dataViewIn = new DataView(bufferIn);
     var offsetIn = 0;
 

@@ -350,7 +350,7 @@ class TextExample extends React.Component {
 
         <div className="example_desc">
           <p>This demonstrates Troika's high quality text rendering, which uses Signed Distance Field ("SDF") texture atlases for crisp glyph vector edges at any scale. It can be used via <a href="https://github.com/protectwise/troika/blob/master/packages/troika-3d-text/src/facade/Text3DFacade.js">Text3DFacade</a> or outside the Troika framework as a standalone Three.js <a href="https://github.com/protectwise/troika/blob/master/packages/troika-3d-text/src/three/TextMesh.js">TextMesh</a>.</p>
-          <p>Behind the scenes it uses <a href="https://github.com/photopea/Typr.js">Typr.js</a> to parse fonts, giving it support for font features such as kerning and ligatures. It generates SDF textures for each glyph on the fly as needed, assembles a single geometry for all the glyphs, seamlessly upgrades any Material's shaders to support the SDFs with high quality antialiasing, and renders the whole thing in a single draw call. Font parsing and SDF generation is done in a web worker so frames won't be dropped during processing.</p>
+          <p>Behind the scenes it uses <a href="https://github.com/fredli74/Typr.ts">Typr</a> to parse fonts, giving it support for font features such as kerning and ligatures. It generates SDF textures for each glyph on the fly as needed, assembles a single geometry for all the glyphs, seamlessly upgrades any Material's shaders to support the SDFs with high quality antialiasing, and renders the whole thing in a single draw call. Font parsing and SDF generation is done in a web worker so frames won't be dropped during processing.</p>
         </div>
       </div>
     )

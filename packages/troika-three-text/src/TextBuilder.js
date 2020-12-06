@@ -6,7 +6,7 @@ import { createGlyphSegmentsIndex } from './worker/GlyphSegmentsIndex.js'
 
 // Choose parser impl:
 import fontParser from './worker/FontParser_Typr.js'
-//import fontParser from './FontParser_OpenType.js'
+// import fontParser from './worker/FontParser_OpenType.js'
 
 
 const CONFIG = {

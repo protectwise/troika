@@ -77,6 +77,7 @@ export class WristMountedUI extends Group3DFacade {
     let gripPose = null
     let inputSources = xrFrame.session.inputSources
     if (inputSources) {
+      let active = false
       let gripSpace = null
       for (let i = 0, len = inputSources.length; i < len; i++) {
         if (inputSources[i].handedness === this.preferredHand) {
@@ -91,17 +92,18 @@ export class WristMountedUI extends Group3DFacade {
         // treat them always as relative to default position/orientation.
         let cam = this.getCameraFacade()
         gripPose = xrFrame.getPose(gripSpace, cam.xrReferenceSpace)
-
-        // If turned to upward angle, set to active
-        // TODO: needs debouncing!
-        tempVec3.set(1, 0, 0).applyQuaternion(
-          tempQuat.setFromRotationMatrix(tempMat4.fromArray(gripPose.transform.matrix))
-        )
-        let active = tempVec3.angleTo(upVec3) < this.activeUpAngle
-        if (active !== this.active) {
-          this.active = active
-          this.afterUpdate()
+        if (gripPose) {
+          // If turned to upward angle, set to active
+          // TODO: needs debouncing!
+          tempVec3.set(1, 0, 0).applyQuaternion(
+            tempQuat.setFromRotationMatrix(tempMat4.fromArray(gripPose.transform.matrix))
+          )
+          active = tempVec3.angleTo(upVec3) < this.activeUpAngle
         }
+      }
+      if (active !== this.active) {
+        this.active = active
+        this.afterUpdate()
       }
     }
 
