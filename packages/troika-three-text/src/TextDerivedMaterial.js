@@ -163,10 +163,10 @@ float troikaGetTextAlpha(float distanceOffset) {
   #endif
 
 
-  // !!!!!!! post it 
+  // todo? render bounds feature 
   //alpha = 1.0 - alpha;
 
-  // !!!!!!! border-mode
+  // border-mode
   if (uTroikaOnlyBorderThickness != 0.0) {
     alpha -= smoothstep(
       aaDist,
@@ -175,19 +175,12 @@ float troikaGetTextAlpha(float distanceOffset) {
     );
   }
 
-  // !!!!!!! transparency outline
+  // transparency outline
   if (uTroikaOutlineOpacity > 0.0 && (distanceOffset > 0.0 || uTroikaOutlineToShadow)) {
     alpha -= uTroikaOutlineOpacity;
   }
 
-  // !!!!!!! text-shadow effect
-  // alpha -= smoothstep(
-  //   0.0001,
-  //   distanceOffset + aaDist - 0.001,
-  //   distance
-  // );
-
-  // !!!!!!! inset text-shadow effect
+  // text-shadow effect
   if (uTroikaOutlineToShadow) {
     alpha -= smoothstep(
       uTroikaOutlineInsetShadow ? distanceOffset - aaDist : 0.0,
