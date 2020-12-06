@@ -251,18 +251,18 @@ const Text = /*#__PURE__*/(() => {
       this.outlineInsetShadow = false
 
       /**
-       * @member {<number|string>} outlineOffset
+       * @member {<number|string>} outlineOffsetX
        * WARNING: This API is experimental and may change.
-       * Require `outlineWidth` to be greater than zero. Apply a offset on x to the outline drawn around each text glyph.
+       * Require `outlineWidth` to be greater than zero or `outlineToShadow` to be true. Apply a offset on x to the outline drawn around each text glyph.
        * values are specified as either an absolute number in local units, or as a percentage string e.g.
        * `"12%"` which is treated as a percentage of the `fontSize`. Defaults to `0`.
        */
       this.outlineOffsetX = 0
 
       /**
-       * @member {<number|string>} outlineOffset
+       * @member {<number|string>} outlineOffsetY
        * WARNING: This API is experimental and may change.
-       * Require `outlineWidth` to be greater than zero. Apply a offset on x to the outline drawn around each text glyph.
+       * Require `outlineWidth` to be greater than zero or `outlineToShadow` to be true. Apply a offset on x to the outline drawn around each text glyph.
        * values are specified as either an absolute number in local units, or as a percentage string e.g.
        * `"12%"` which is treated as a percentage of the `fontSize`. Defaults to `0`.
        */
