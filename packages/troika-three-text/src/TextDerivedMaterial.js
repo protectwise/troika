@@ -100,7 +100,7 @@ float troikaSdfValueToSignedDistance(float alpha) {
 
 float troikaGlyphUvToSdfValue(vec2 glyphUV) {
   vec2 textureUV = mix(vTroikaTextureUVBounds.xy, vTroikaTextureUVBounds.zw, glyphUV);
-  return texture2D(uTroikaSDFTexture, vec2(textureUV.x, textureUV.y)).r;
+  return texture2D(uTroikaSDFTexture, textureUV).r;
 }
 
 float troikaGlyphUvToDistance(vec2 uv) {
@@ -150,7 +150,7 @@ float troikaGetTextAlpha(float distanceOffset) {
     readability and edge crispness at all sizes and screen resolutions.
   */}
   #if defined(GL_OES_standard_derivatives) || __VERSION__ >= 300
-  float aaDist = length(fwidth(vTroikaGlyphUV * vTroikaGlyphDimensions)) * .5;
+  float aaDist = length(fwidth(vTroikaGlyphUV * vTroikaGlyphDimensions)) * 0.5;
   #else
   float aaDist = vTroikaGlyphDimensions.x / 64.0;
   #endif
