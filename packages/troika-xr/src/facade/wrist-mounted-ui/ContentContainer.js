@@ -17,6 +17,7 @@ export class ContentContainer extends Object3DFacade {
     this.projectionSourcePosition = null //worldspace vec3
     this.gripPose = null
     this.active = false
+    this.keepContentAlive = false
   }
 
   /**
@@ -24,6 +25,7 @@ export class ContentContainer extends Object3DFacade {
    * to avoid a full afterUpdate pass on every frame.
    */
   syncPose(gripPose) {
+    let visible = false
     if (gripPose) {
       // Get current posed camera position, relative to the parent
       let cam = this.getCameraFacade().threeObject
@@ -50,9 +52,9 @@ export class ContentContainer extends Object3DFacade {
       let pos = this.threeObject.position
       pos.lerp(targetPos, 0.05) //move by 5% of distance each frame)
       this.scale += (targetScale - this.scale) * 0.3
-      this.visible = this.scale > 0.01 //hide below a certain size
+      visible = this.scale > 0.01 //hide below a certain size
 
-      if (this.visible) {
+      if (visible) {
         // Rotate to face camera
         this.rotateY = Math.atan2(camPos.x - pos.x, camPos.z - pos.z)
 
@@ -65,16 +67,17 @@ export class ContentContainer extends Object3DFacade {
         // Sync all matrices
         this.traverse(updateMatrices)
       }
-    } else {
-      this.visible = false
+    }
+    if (visible !== this.visible) {
+      this.update({visible})
     }
   }
 
-  shouldUpdateChildren () {
-    return !!this.visible
-  }
-
   describeChildren() {
+    if (!this.visible && !this.keepContentAlive) {
+      return null
+    }
+
     let kids = this._kidsTpl || (this._kidsTpl = [
       {
         key: '$platform',

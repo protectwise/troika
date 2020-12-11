@@ -1,4 +1,4 @@
-import { Group3DFacade } from 'troika-3d'
+import { Facade, Group3DFacade } from 'troika-3d'
 import {
   Matrix4,
   Quaternion,
@@ -24,18 +24,29 @@ const upVec3 = new Vector3(0, 1, 0)
 export class WristMountedUI extends Group3DFacade {
   constructor (parent) {
     super(parent)
-    this.active = false
+    // Config:
     this.activeUpAngle = Math.PI / 7
     this.preferredHand = 'left'
     this.platformRadius = 0.25
     this.platformColor = 0x333333
     this.projectionColor = 0x3399ff
+    this.keepContentAlive = false
+    this.onActiveChange = null
+
+    // Internal state:
+    this.gripPose = null
+    this.active = false
 
     this._cogPos = new Vector3()
     this.addEventListener('xrframe', this.onXRFrame.bind(this))
   }
 
   describeChildren () {
+    // Only render children if we have a valid gripPose
+    if (!this.gripPose) {
+      return null
+    }
+
     let children = this._childTpl || (this._childTpl = [
       {
         key: 'wristband',
@@ -62,6 +73,7 @@ export class WristMountedUI extends Group3DFacade {
     contentDef.platformColor = this.platformColor
     contentDef.projectionColor = this.projectionColor
     contentDef.projectionSourcePosition = this._cogPos
+    contentDef.keepContentAlive = this.keepContentAlive
     contentDef.children = this.children
 
     return children
@@ -75,9 +87,9 @@ export class WristMountedUI extends Group3DFacade {
 
   onXRFrame (time, xrFrame) {
     let gripPose = null
+    let active = false
     let inputSources = xrFrame.session.inputSources
     if (inputSources) {
-      let active = false
       let gripSpace = null
       for (let i = 0, len = inputSources.length; i < len; i++) {
         if (inputSources[i].handedness === this.preferredHand) {
@@ -101,18 +113,22 @@ export class WristMountedUI extends Group3DFacade {
           active = tempVec3.angleTo(upVec3) < this.activeUpAngle
         }
       }
-      if (active !== this.active) {
-        this.active = active
-        this.afterUpdate()
-      }
     }
 
-    if (gripPose || !this.gripPose) {
-      this.gripPose = gripPose
+    if (active !== this.active) {
+      if (this.onActiveChange) {
+        this.onActiveChange(active)
+      }
+      this.update({active})
+    }
+
+    if (!!gripPose !== !!this.gripPose) {
+      this.update({gripPose})
+    }
+    else if (gripPose) {
       // Skip full afterUpdate pass, just give the gripPose to children - they both have
       // a syncPose method to handle syncing matrices without a full afterUpdate.
       this.forEachChild(child => child.syncPose(gripPose))
     }
   }
-
 }
