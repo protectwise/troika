@@ -41,6 +41,14 @@ export default {
   plugins: [
     nodeResolve(),
     commonjs(),
+    {
+      name: 'custom',
+      transform(source, id) {
+        // Quiet the console.warn statements added in the Typr.ts fork
+        source = source.replace(/console\.warn/g, 'console.debug')
+        return source
+      }
+    },
     terser({
       ecma: 5
     })
