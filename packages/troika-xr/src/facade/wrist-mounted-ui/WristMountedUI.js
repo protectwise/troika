@@ -1,4 +1,4 @@
-import { Facade, Group3DFacade } from 'troika-3d'
+import { Group3DFacade } from 'troika-3d'
 import {
   Matrix4,
   Quaternion,
