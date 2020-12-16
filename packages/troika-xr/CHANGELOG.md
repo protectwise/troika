@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.36.1](https://github.com/protectwise/troika/compare/v0.36.0...v0.36.1) (2020-12-16)
+
+
+### Bug Fixes
+
+* **troika-xr:** destroy WristMountedUI contents when hidden ([5589ee2](https://github.com/protectwise/troika/commit/5589ee2edac6e36f707eb4cd833d39a0e36be875))
+
+
+
+
+
 # [0.36.0](https://github.com/protectwise/troika/compare/v0.35.0...v0.36.0) (2020-12-04)
 
 

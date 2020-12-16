@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.36.1](https://github.com/protectwise/troika/compare/v0.36.0...v0.36.1) (2020-12-16)
+
+
+### Bug Fixes
+
+* **troika-three-text:** soften Typr.ts console warnings to debug level ([50d951f](https://github.com/protectwise/troika/commit/50d951fd06108194ef0a485af1fcce58c2710cde))
+
+
+
+
+
 # [0.36.0](https://github.com/protectwise/troika/compare/v0.35.0...v0.36.0) (2020-12-04)
 
 
