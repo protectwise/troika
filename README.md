@@ -10,7 +10,7 @@ It provides:
 * DOM-like interaction event handling
 * Tools for automatic and manual performance optimization
 
-Developing interactive 3D and 2D graphics should be as straighforward as developing HTML+CSS+JavaScript interfaces. Troika aims to make that a reality.
+Developing interactive 3D and 2D graphics should be as straightforward as developing HTML+CSS+JavaScript interfaces. Troika aims to make that a reality.
 
 [![3D Bar Chart Example](./docs/images/city-thumbnail.png)](https://troika-examples.netlify.com/#citygrid)&nbsp;
 [![Arcs Example](./docs/images/arcs-thumbnail.png)](https://troika-examples.netlify.com/#arcs)&nbsp;
