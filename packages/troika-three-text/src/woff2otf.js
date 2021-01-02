@@ -18,7 +18,7 @@
  A tool to convert a WOFF back to a TTF/OTF font file, in pure Javascript
 */
 
-import tinyInflate from 'tiny-inflate'
+import { inflateSync } from 'fflate'
 
 export function convert_streams(bufferIn) {
     var dataViewIn = new DataView(bufferIn);
@@ -122,7 +122,7 @@ export function convert_streams(bufferIn) {
 
         if (TableDirectoryEntry.compLength != TableDirectoryEntry.origLength) {
             var uncompressedData = new Uint8Array(TableDirectoryEntry.origLength)
-            tinyInflate(
+            inflateSync(
               new Uint8Array(compressedData, 2), //skip deflate header
               uncompressedData
             )

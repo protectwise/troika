@@ -1,5 +1,5 @@
-// This build file creates a static version of the Typr.ts library used for
-// processing fonts. It's isolated within a "factory" function wrapper so it can
+// This build file assembles a function for converting WOFF fonts to OTF fonts, so they
+// can be parsed by Typr. It's isolated within a "factory" function wrapper so it can
 // easily be marshalled into a web worker.
 
 
@@ -16,10 +16,10 @@ if (!LERNA_ROOT_PATH) {
 
 const OUTPUT_TEMPLATE = `
 /*!
-Custom bundle of woff2otf (https://github.com/arty-name/woff2otf) with tiny-inflate 
-(https://github.com/foliojs/tiny-inflate) for use in Troika text rendering. 
+Custom bundle of woff2otf (https://github.com/arty-name/woff2otf) with fflate
+(https://github.com/101arrowz/fflate) for use in Troika text rendering. 
 Original licenses apply: 
-- tiny-inflate: https://github.com/foliojs/tiny-inflate/blob/master/LICENSE (MIT)
+- fflate: https://github.com/101arrowz/fflate/blob/master/LICENSE (MIT)
 - woff2otf.js: https://github.com/arty-name/woff2otf/blob/master/woff2otf.js (Apache2)
 */
 
@@ -39,6 +39,16 @@ export default {
   plugins: [
     nodeResolve(),
     commonjs(),
+    {
+      name: 'custom',
+      transform(source, id) {
+        if (/fflate/.test(id)) {
+          // Remove stray `require` in try/catch block which doesn't get treeshaken
+          return source.replace(/try\s*{\s*Worker\s*=\s*require\('worker_threads'\)\.Worker;\s*}\s*catch\s*\(.\)\s*{\s*}/, '')
+        }
+        return source
+      }
+    },
     terser({
       ecma: 5
     })
