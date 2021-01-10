@@ -1,5 +1,5 @@
 import { createDerivedMaterial, voidMainRegExp } from 'troika-three-utils'
-import { Color, Vector2, Vector4, Matrix3 } from 'three'
+import { Color, Vector2, Vector3, Vector4, Matrix3 } from 'three'
 
 // language=GLSL
 const VERTEX_DEFS = `
@@ -10,7 +10,7 @@ uniform vec4 uTroikaClipRect;
 uniform mat3 uTroikaOrient;
 uniform bool uTroikaUseGlyphColors;
 uniform float uTroikaDistanceOffset;
-uniform bool uTroikaOutlineToShadow;
+uniform float uTroikaOutlineBlur;
 uniform vec2 uTroikaPositionOffset;
 attribute vec4 aTroikaGlyphBounds;
 attribute float aTroikaGlyphIndex;
@@ -35,7 +35,7 @@ if (uTroikaPositionOffset.y != 0.0) {
   offsetBounds.w -= uTroikaPositionOffset.y;
 }
 
-vec4 outlineBounds = vec4(offsetBounds.xy - uTroikaDistanceOffset, offsetBounds.zw + uTroikaDistanceOffset);
+vec4 outlineBounds = vec4(offsetBounds.xy - uTroikaDistanceOffset - uTroikaOutlineBlur, offsetBounds.zw + uTroikaDistanceOffset + uTroikaOutlineBlur);
 
 vec4 clippedBounds = vec4(
   clamp(outlineBounds.xy, uTroikaClipRect.xy, uTroikaClipRect.zw),
@@ -75,14 +75,23 @@ uniform vec2 uTroikaSDFTextureSize;
 uniform float uTroikaSDFGlyphSize;
 uniform float uTroikaSDFExponent;
 uniform float uTroikaDistanceOffset;
-uniform float uTroikaOnlyBorderThickness;
+
+uniform float uFillOpacity;
+
 uniform float uTroikaOutlineOpacity;
-uniform bool uTroikaOutlineToShadow;
-uniform bool uTroikaOutlineInsetShadow;
+uniform float uTroikaOutlineBlur;
+
+uniform vec3 uTroikaStrokeColor;
+uniform float uTroikaStrokeWidth;
+uniform float uTroikaStrokeOpacity;
+
 uniform bool uTroikaSDFDebug;
 varying vec2 vTroikaGlyphUV;
 varying vec4 vTroikaTextureUVBounds;
 varying vec2 vTroikaGlyphDimensions;
+
+float distance = 0.0;
+float aaDist = 0.0;
 
 float troikaSdfValueToSignedDistance(float alpha) {
   // Inverse of encoding in SDFGenerator.js
@@ -104,10 +113,9 @@ float troikaGlyphUvToSdfValue(vec2 glyphUV) {
 float troikaGlyphUvToDistance(vec2 uv) {
   return troikaSdfValueToSignedDistance(troikaGlyphUvToSdfValue(uv));
 }
-
 float troikaGetTextAlpha(float distanceOffset) {
   vec2 clampedGlyphUV = clamp(vTroikaGlyphUV, 0.5 / uTroikaSDFGlyphSize, 1.0 - 0.5 / uTroikaSDFGlyphSize);
-  float distance = troikaGlyphUvToDistance(clampedGlyphUV);
+  distance = troikaGlyphUvToDistance(clampedGlyphUV);
  
   // Extrapolate distance when outside bounds:
 
@@ -148,9 +156,9 @@ float troikaGetTextAlpha(float distanceOffset) {
     readability and edge crispness at all sizes and screen resolutions.
   */}
   #if defined(GL_OES_standard_derivatives) || __VERSION__ >= 300
-  float aaDist = length(fwidth(vTroikaGlyphUV * vTroikaGlyphDimensions)) * 0.5;
+  aaDist = length(fwidth(vTroikaGlyphUV * vTroikaGlyphDimensions)) * 0.5;
   #else
-  float aaDist = vTroikaGlyphDimensions.x / 64.0;
+  aaDist = vTroikaGlyphDimensions.x / 64.0;
   #endif
 
   float alpha = smoothstep(
@@ -161,29 +169,12 @@ float troikaGetTextAlpha(float distanceOffset) {
   #endif
 
 
-  // todo? render bounds feature 
-  //alpha = 1.0 - alpha;
-
-  // border-mode
-  if (uTroikaOnlyBorderThickness != 0.0) {
-    alpha -= smoothstep(
-      aaDist,
-      -aaDist,
-      distance + uTroikaOnlyBorderThickness
-    );
-  }
-
-  // transparency outline
-  if (uTroikaOutlineOpacity > 0.0 && (distanceOffset > 0.0 || uTroikaOutlineToShadow)) {
-    alpha -= uTroikaOutlineOpacity;
-  }
-
   // text-shadow effect
-  if (uTroikaOutlineToShadow) {
+  if (uTroikaOutlineBlur > 0.0) {
     alpha -= smoothstep(
-      uTroikaOutlineInsetShadow ? distanceOffset - aaDist : 0.0,
-      uTroikaOutlineInsetShadow ? 0.001 : distanceOffset + aaDist,
-      distance
+      distanceOffset + aaDist,
+      distanceOffset + uTroikaOutlineBlur - aaDist,
+      distance + uTroikaOutlineBlur
     );
   }
 
@@ -195,12 +186,34 @@ float troikaGetTextAlpha(float distanceOffset) {
 const FRAGMENT_TRANSFORM = `
 float alpha = uTroikaSDFDebug ?
   troikaGlyphUvToSdfValue(vTroikaGlyphUV) :
-  troikaGetTextAlpha(uTroikaDistanceOffset);
+  troikaGetTextAlpha(uTroikaDistanceOffset + uTroikaOutlineBlur);
 
 #if !defined(IS_DEPTH_MATERIAL) && !defined(IS_DISTANCE_MATERIAL)
 gl_FragColor.a *= alpha;
 #endif
-  
+
+
+
+
+if (uTroikaStrokeWidth > 0.0) {
+  vec4 fillRGBA = gl_FragColor;
+  fillRGBA.a *= uFillOpacity;
+  vec4 strokeRGBA = vec4(uTroikaStrokeColor, uTroikaStrokeOpacity);
+  float mixAmount = smoothstep(aaDist + uTroikaStrokeWidth, aaDist, -distance + (uTroikaStrokeWidth / 2.0));
+  vec4 mixedColor = mix(fillRGBA, strokeRGBA, mixAmount);
+  // mix add = ((min(fillRGBA+strokeRGBA,vec4(1.0))) * mixAmount + fillRGBA * (1.0 - mixAmount));
+ 
+  gl_FragColor = mixedColor;
+} else {
+  if (uTroikaDistanceOffset == 0.0) {
+    gl_FragColor.a *= uFillOpacity;
+  }
+}
+
+
+// gl_FragColor.a *= uTroikaOutlineOpacity;
+
+
 if (alpha == 0.0) {
   discard;
 }
@@ -225,10 +238,13 @@ export function createTextDerivedMaterial(baseMaterial) {
       uTroikaClipRect: {value: new Vector4(0,0,0,0)},
       uTroikaDistanceOffset: {value: 0},
       uTroikaOutlineOpacity: {value: 0},
-      uTroikaOnlyBorderThickness: {value: 0},
+      uFillOpacity: {value: 1},
       uTroikaPositionOffset: {value: new Vector2()},
-      uTroikaOutlineToShadow: {value: false},
-      uTroikaOutlineInsetShadow: {value: false},
+      uTroikaOutlineBlur: {value: 0},
+      uTroikaStrokeColor: {value: new Vector3(0,0,0)},
+      uTroikaStrokeWidth: {value: 0},
+      uTroikaStrokeOpacity: {value: 1},
+
       uTroikaOrient: {value: new Matrix3()},
       uTroikaUseGlyphColors: {value: true},
       uTroikaSDFDebug: {value: false}

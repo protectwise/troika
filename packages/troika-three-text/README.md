@@ -197,21 +197,21 @@ Will change the opacity of the outline if it is visible.
 
 Default: `1`
 
-#### `outlineToShadow`
+#### `outlineBlur`
 
-Allow to convert the outline to a shadow element. **If enable it will force the outline to be rendered**. Can be usefull if you want to render twice the font with an offset for example. If `outlineToShadow` is enable, the `outlineWidth` parameters will update the blur ratio of the shadow.
+Allow to convert the outline to a shadow element. **If enable it will force the outline to be rendered**. Can be usefull if you want to render twice the font with an offset for example. If `outlineBlur` is enable, the `outlineWidth` parameters will update the blur ratio of the shadow.
 
-Default: `false`
+Default: `0`
 
 #### `outlineOffsetX`
 
-Require `outlineWidth` to be greater than zero or `outlineToShadow` to be true. Apply a offset on x to the outline drawn around each text glyph. values are specified as either an absolute number in local units, or as a percentage string e.g. `"12%"` which is treated as a percentage of the `fontSize`.
+Require `outlineWidth` to be greater than zero or `outlineBlur` to be true. Apply a offset on x to the outline drawn around each text glyph. values are specified as either an absolute number in local units, or as a percentage string e.g. `"12%"` which is treated as a percentage of the `fontSize`.
 
 Default: `0`
 
 #### `outlineOffsetY`
 
-Require `outlineWidth` to be greater than zero or `outlineToShadow` to be true. Apply a offset on y to the outline drawn around each text glyph. values are specified as either an absolute number in local units, or as a percentage string e.g. `"12%"` which is treated as a percentage of the `fontSize`.
+Require `outlineWidth` to be greater than zero or `outlineBlur` to be true. Apply a offset on y to the outline drawn around each text glyph. values are specified as either an absolute number in local units, or as a percentage string e.g. `"12%"` which is treated as a percentage of the `fontSize`.
 
 Default: `0`
 

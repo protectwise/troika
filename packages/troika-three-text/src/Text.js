@@ -23,6 +23,7 @@ const Text = /*#__PURE__*/(() => {
   const tempMat4 = new Matrix4()
   const tempVec3a = new Vector3()
   const tempVec3b = new Vector3()
+  const tempStrokeColor = new Color()
   const tempArray = []
   const origin = new Vector3()
   const outlineOffsetPosition = new Vector2()
@@ -220,7 +221,14 @@ const Text = /*#__PURE__*/(() => {
        * WARNING: This API is experimental and may change.
        * The opacity of the outline.
        */
-      this.outlineOpacity = 1
+      this.outlineOpacity = 1      
+      
+      /**
+       * @member {number} outlineOpacity
+       * WARNING: This API is experimental and may change.
+       * The opacity of the outline.
+       */
+      this.fillOpacity = 1
 
       /**
        * @member {number|string} outlineWidth
@@ -232,23 +240,14 @@ const Text = /*#__PURE__*/(() => {
       this.outlineWidth = 0
 
       /**
-       * @member {boolean} outlineToShadow
+       * @member {boolean} outlineBlur
        * WARNING: This API is experimental and may change.
        * Will force to render outline !
        * The width of an outline drawn around each text glyph using the `outlineColor`. Can be
        * specified as either an absolute number in local units, or as a percentage string e.g.
        * `"12%"` which is treated as a percentage of the `fontSize`. Defaults to `0`.
        */
-      this.outlineToShadow = false
-
-     /**
-       * @member {boolean} outlineInsetShadow
-       * WARNING: This API is experimental and may change.
-       * The width of an outline drawn around each text glyph using the `outlineColor`. Can be
-       * specified as either an absolute number in local units, or as a percentage string e.g.
-       * `"12%"` which is treated as a percentage of the `fontSize`. Defaults to `0`.
-       */
-      this.outlineInsetShadow = false
+      this.outlineBlur = 0
 
       /**
        * @member {<number|string>} outlineOffsetX
@@ -276,7 +275,27 @@ const Text = /*#__PURE__*/(() => {
        * values are specified as either an absolute number in local units, or as a percentage string e.g.
        * `"12%"` which is treated as a percentage of the `fontSize`. Defaults to `0`.
        */
-      this.onlyBorderThickness = 0
+      this.strokeWidth = .2
+
+      /**
+       * @member {<number|string>} onlyBorderThickness
+       * WARNING: This API is experimental and may change.
+       * If > 0 allow to render only the edge of the font and the outline, the fill color will become transparent
+       * and the edge will inherit of the font/outline color.
+       * values are specified as either an absolute number in local units, or as a percentage string e.g.
+       * `"12%"` which is treated as a percentage of the `fontSize`. Defaults to `0`.
+       */
+      this.strokeOpacity = 1
+
+
+      /**
+       * @member {boolean} outlineInsetShadow
+       * WARNING: This API is experimental and may change.
+       * The width of an outline drawn around each text glyph using the `outlineColor`. Can be
+       * specified as either an absolute number in local units, or as a percentage string e.g.
+       * `"12%"` which is treated as a percentage of the `fontSize`. Defaults to `0`.
+       */
+      this.strokeColor = 0xff0000
 
       /**
        * @member {string|number|THREE.Color} outlineColor
@@ -454,7 +473,7 @@ const Text = /*#__PURE__*/(() => {
       // feature (see GlyphsGeometry which sets up `groups` for this purpose) Doing it with multi
       // materials ensures the layers are always rendered consecutively in a consistent order.
       // Each layer will trigger onBeforeRender with the appropriate material.
-      if (this.outlineWidth || this.outlineToShadow || this.outlineInsetShadow) {
+      if (this.outlineWidth || this.outlineBlur) {
         let outlineMaterial = derivedMaterial._outlineMtl
         if (!outlineMaterial) {
           outlineMaterial = derivedMaterial._outlineMtl = Object.create(derivedMaterial, {
@@ -520,27 +539,44 @@ const Text = /*#__PURE__*/(() => {
         uniforms.uTroikaSDFExponent.value = textInfo.sdfExponent
         uniforms.uTroikaTotalBounds.value.fromArray(blockBounds)
         uniforms.uTroikaUseGlyphColors.value = !!textInfo.glyphColors
-        uniforms.uTroikaOutlineOpacity.value = 1.0 - outlineOpacity
-        uniforms.uTroikaOnlyBorderThickness.value = this._safePercentToNumber(onlyBorderThickness)
 
         let distanceOffset = 0
-        let toShadow = 0
-        let insetShadow = 0
+        let outlineBlurOffset = 0
+        let blur = 0
+        let strokeWidth = 0
+        let outlineOpacityShader = 1
+        let fillOpacity = 1
+        let strokeOpacity = 1
 
         if (isOutline) {
-          let {outlineWidth, outlineOffsetX, outlineOffsetY, outlineToShadow, outlineInsetShadow} = this
+          let {outlineWidth, outlineOffsetX, outlineOffsetY, outlineBlur, outlineOpacity} = this
           distanceOffset = this._safePercentToNumber(outlineWidth)
+          outlineBlurOffset = this._safePercentToNumber(outlineBlur)
+          outlineOpacityShader = outlineOpacity
           outlineOffsetPosition.set(this._safePercentToNumber(outlineOffsetX), this._safePercentToNumber(outlineOffsetY))
-          toShadow = outlineToShadow
-          insetShadow = outlineInsetShadow
         } else {
           outlineOffsetPosition.set(0,0)
+          fillOpacity = this.fillOpacity
+          strokeOpacity = this.strokeOpacity
+          if (this.strokeWidth > 0.0) {
+            strokeWidth = this._safePercentToNumber(this.strokeWidth)
+  
+            if (this.strokeColor) {
+              tempStrokeColor.set(this.color instanceof Color ? this.strokeColor.getHex() : this.strokeColor)
+            }
+          }
         }
 
         uniforms.uTroikaDistanceOffset.value = distanceOffset
         uniforms.uTroikaPositionOffset.value = outlineOffsetPosition
-        uniforms.uTroikaOutlineToShadow.value = toShadow
-        uniforms.uTroikaOutlineInsetShadow.value = insetShadow
+        uniforms.uTroikaOutlineBlur.value = outlineBlurOffset
+        uniforms.uTroikaOutlineOpacity.value = outlineOpacityShader
+
+       
+        uniforms.uTroikaStrokeWidth.value = strokeWidth
+        uniforms.uTroikaStrokeOpacity.value = strokeOpacity
+        uniforms.uFillOpacity.value = fillOpacity
+        uniforms.uTroikaStrokeColor.value = tempStrokeColor
 
         let clipRect = this.clipRect
         if (clipRect && Array.isArray(clipRect) && clipRect.length === 4) {
@@ -564,6 +600,7 @@ const Text = /*#__PURE__*/(() => {
       // Shortcut for setting material color via `color` prop on the mesh; this is
       // applied only to the derived material to avoid mutating a shared base material.
       const color = isOutline ? (this.outlineColor || 0) : this.color
+
       if (color == null) {
         delete material.color //inherit from base
       } else {
