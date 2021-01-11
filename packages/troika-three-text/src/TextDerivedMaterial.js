@@ -199,8 +199,8 @@ if (uTroikaStrokeWidth > 0.0) {
   vec4 fillRGBA = gl_FragColor;
   fillRGBA.a *= uFillOpacity;
   vec4 strokeRGBA = vec4(uTroikaStrokeColor, uTroikaStrokeOpacity);
-  float mixAmount = smoothstep(-aaDist,  0.001, distance + uTroikaStrokeWidth);
-  vec4 mixedColor = mix(fillRGBA, strokeRGBA, mixAmount);
+  float mixAmount = smoothstep(aaDist,  -aaDist, distance + uTroikaStrokeWidth);
+  vec4 mixedColor = mix(strokeRGBA, fillRGBA, mixAmount - aaDist);
   // mix add = ((min(fillRGBA+strokeRGBA,vec4(1.0))) * mixAmount + fillRGBA * (1.0 - mixAmount));
  
   gl_FragColor = mixedColor;
