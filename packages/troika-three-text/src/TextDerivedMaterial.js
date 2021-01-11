@@ -211,7 +211,7 @@ if (uTroikaStrokeWidth > 0.0) {
 }
 
 
-// gl_FragColor.a *= uTroikaOutlineOpacity;
+gl_FragColor.a *= uTroikaOutlineOpacity;
 
 
 if (alpha == 0.0) {
