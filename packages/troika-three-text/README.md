@@ -215,12 +215,6 @@ Require `outlineWidth` to be greater than zero or `outlineBlur` to be true. Appl
 
 Default: `0`
 
-#### `onlyBorderThickness`
-
-If `onlyBorderThickness` is greater than zero it will render only the edge of the font **and of the outline**. values are specified as either an absolute number in local units, or as a percentage string e.g. `"12%"` which is treated as a percentage of the `fontSize`.
-
-Default: `0`
-
 #### `overflowWrap`
 
 Defines how text wraps if the `whiteSpace` property is `'normal'`. Can be either `'normal'` to break at whitespace characters, or `'break-word'` to allow breaking within words.

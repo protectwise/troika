@@ -226,7 +226,7 @@ const Text = /*#__PURE__*/(() => {
       /**
        * @member {number} outlineOpacity
        * WARNING: This API is experimental and may change.
-       * The opacity of the outline.
+       * The fill opacity of the text.
        */
       this.fillOpacity = 1
 
@@ -240,10 +240,10 @@ const Text = /*#__PURE__*/(() => {
       this.outlineWidth = 0
 
       /**
-       * @member {boolean} outlineBlur
+       * @member {number | string} outlineBlur
        * WARNING: This API is experimental and may change.
        * Will force to render outline !
-       * The width of an outline drawn around each text glyph using the `outlineColor`. Can be
+       * The width propagation of the shadow of an outline drawn around each text glyph using the `outlineColor`. Can be
        * specified as either an absolute number in local units, or as a percentage string e.g.
        * `"12%"` which is treated as a percentage of the `fontSize`. Defaults to `0`.
        */
@@ -268,22 +268,18 @@ const Text = /*#__PURE__*/(() => {
       this.outlineOffsetY = 0
 
       /**
-       * @member {<number|string>} onlyBorderThickness
+       * @member {<number|string>} strokeWidth
        * WARNING: This API is experimental and may change.
-       * If > 0 allow to render only the edge of the font and the outline, the fill color will become transparent
-       * and the edge will inherit of the font/outline color.
+       * Unlike the outline that extends the font weight, the stroke property can only be inside the font.
        * values are specified as either an absolute number in local units, or as a percentage string e.g.
        * `"12%"` which is treated as a percentage of the `fontSize`. Defaults to `0`.
        */
       this.strokeWidth = .2
 
       /**
-       * @member {<number|string>} onlyBorderThickness
+       * @member {<number>} strokeOpacity
        * WARNING: This API is experimental and may change.
-       * If > 0 allow to render only the edge of the font and the outline, the fill color will become transparent
-       * and the edge will inherit of the font/outline color.
-       * values are specified as either an absolute number in local units, or as a percentage string e.g.
-       * `"12%"` which is treated as a percentage of the `fontSize`. Defaults to `0`.
+       * The opacity of the stroke.
        */
       this.strokeOpacity = 1
 
@@ -291,11 +287,9 @@ const Text = /*#__PURE__*/(() => {
       /**
        * @member {boolean} outlineInsetShadow
        * WARNING: This API is experimental and may change.
-       * The width of an outline drawn around each text glyph using the `outlineColor`. Can be
-       * specified as either an absolute number in local units, or as a percentage string e.g.
-       * `"12%"` which is treated as a percentage of the `fontSize`. Defaults to `0`.
+       * The color of the text stroke.
        */
-      this.strokeColor = 0xff0000
+      this.strokeColor = 0
 
       /**
        * @member {string|number|THREE.Color} outlineColor

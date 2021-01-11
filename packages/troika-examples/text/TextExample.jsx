@@ -95,7 +95,7 @@ class TextExample extends React.Component {
       text: 'Lorem Ipsum',
       font: 'Noto Sans',
       fontSize: 0.1, //10cm
-      textScale: 6,
+      textScale: 3,
       lineHeight: 1.15,
       letterSpacing: 0,
       maxWidth: 2, //2m
@@ -107,8 +107,8 @@ class TextExample extends React.Component {
       onlyBorderThickness: 0,
       fillOpacity: .5,
       strokeOpacity: 1,
-      strokeColor: 0xff0000,
-      strokeWidth: .0001,
+      strokeColor: 0x000000,
+      strokeWidth: .0004,
       outlineWidth: 0.005,
       outlineOffsetX: 0.005,
       outlineOffsetY: 0.005,

@@ -5,6 +5,7 @@
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "license": "MIT",
   "engines": {
+    "node": "=10.16.0",
     "npm": "=6.11.3"
   },
   "devDependencies": {
