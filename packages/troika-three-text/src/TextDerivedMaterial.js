@@ -200,10 +200,11 @@ if (uTroikaStrokeWidth > 0.0) {
   fillRGBA.a *= uFillOpacity;
   vec4 strokeRGBA = vec4(uTroikaStrokeColor, uTroikaStrokeOpacity);
   float mixAmount = smoothstep(aaDist,  -aaDist, distance + uTroikaStrokeWidth);
-  vec4 mixedColor = mix(strokeRGBA, fillRGBA, mixAmount - aaDist);
+  // vec4 mixedColor = mix(strokeRGBA, fillRGBA, mixAmount - aaDist);
   // mix add = ((min(fillRGBA+strokeRGBA,vec4(1.0))) * mixAmount + fillRGBA * (1.0 - mixAmount));
- 
-  gl_FragColor = mixedColor;
+  gl_FragColor.rgb += mix(strokeRGBA.rgb, vec3(0.,0.,0.), mixAmount);
+  gl_FragColor.a *= mix(strokeRGBA.a, uFillOpacity, mixAmount);
+  // gl_FragColor = mixedColor;
 } else {
   if (uTroikaDistanceOffset == 0.0) {
     gl_FragColor.a *= uFillOpacity;
