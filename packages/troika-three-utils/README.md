@@ -62,6 +62,42 @@ mesh.customDepthMaterial = customMaterial.getDepthMaterial() //for shadows
 You can also declare custom `uniforms` and `defines`, inject fragment shader code to modify the output color, etc. See the JSDoc in [DerivedMaterial.js](./src/DerivedMaterial.js) for full details.
 
 
+### InstancedUniformsMesh
+
+[Source code](./src/InstancedUniformsMesh.js)
+
+This extends Three.js's [`InstancedMesh`](https://threejs.org/docs/#api/en/objects/InstancedMesh) to allow any of its material's shader uniforms to be set individually per instance. It behaves just like `InstancedMesh` but exposes a new `setUniformAt(uniformName, instanceIndex, value)` method.
+
+When you call `setUniformAt`, the geometry and the material shaders will be automatically upgraded behind the scenes to turn that uniform into an instanced buffer attribute, filling in the other indices with the uniform's default value. You can do this for any uniform of type `float`, `vec2`, `vec3`, or `vec4`. It works both for built-in Three.js materials and also for any custom ShaderMaterial.
+
+For example, here is how you could set random `emissive` and `metalness` values for each instance using a `MeshStandardMaterial`:
+
+```js
+import { InstancedUniformsMesh } from 'troika-three-utils'
+
+const count = 100
+const mesh = new InstancedUniformsMesh(
+  someGeometry,
+  new MeshStandardMaterial(),
+  count
+)
+const color = new Color()
+for (let i = 0; i < count; i++) {
+  mesh.setUniformAt('metalness', i, Math.random())
+  mesh.setUniformAt('emissive', i, color.set(Math.random() * 0xffffff))
+}
+```
+
+The type of the `value` argument should match the type of the uniform defined in the material's shader:
+
+| For uniform type: | Pass a value of this type:                |
+| ----------------- | ----------------------------------------- |
+| float             | Number                                    |
+| vec2              | `Vector2` or Array w/ length=2            |
+| vec3              | `Vector3` or `Color` or Array w/ length=3 |
+| vec4              | `Vector4` or Array w/ length=4            |
+
+
 ### BezierMesh
 
 _[Source code with JSDoc](./src/BezierMesh.js)_ | _[Online example](https://troika-examples.netlify.com/#bezier3d)_

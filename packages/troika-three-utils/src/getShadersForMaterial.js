@@ -10,7 +10,7 @@ const MATERIAL_TYPES_TO_SHADERS = {
   MeshBasicMaterial: 'basic',
   MeshLambertMaterial: 'lambert',
   MeshPhongMaterial: 'phong',
-  MeshToonMaterial: 'phong',
+  MeshToonMaterial: 'toon',
   MeshStandardMaterial: 'physical',
   MeshPhysicalMaterial: 'physical',
   MeshMatcapMaterial: 'matcap',
