@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.37.0](https://github.com/protectwise/troika/compare/v0.36.1...v0.37.0) (2021-01-18)
+
+
+### Features
+
+* add InstancedUniformsMesh class for setting shader uniforms per instance ([5fd4d79](https://github.com/protectwise/troika/commit/5fd4d797740096dc66a4da73f49961158e5bda2f))
+
+
+
+
+
+
 # [0.36.0](https://github.com/protectwise/troika/compare/v0.35.0...v0.36.0) (2020-12-04)
 
 **Note:** Version bump only for package troika-three-utils

@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.37.0](https://github.com/protectwise/troika/compare/v0.36.1...v0.37.0) (2021-01-18)
+
+
+### Features
+
+* **troika-three-text:** added inner stroke and outline blur capabilities ([e004b9d](https://github.com/protectwise/troika/commit/e004b9d2f7e2ef9e841e61156b68958076533a62))
+* add InstancedUniformsMesh class for setting shader uniforms per instance ([5fd4d79](https://github.com/protectwise/troika/commit/5fd4d797740096dc66a4da73f49961158e5bda2f))
+
+
+### Performance Improvements
+
+* **troika-three-text:** swap tiny-inflate to fflate for minor speed boost on woff fonts ([2ae29fa](https://github.com/protectwise/troika/commit/2ae29faffcec2302453ce9dabac633ade8181127))
+
+
+
+
+
+
 ## [0.36.1](https://github.com/protectwise/troika/compare/v0.36.0...v0.36.1) (2020-12-16)
 
 
