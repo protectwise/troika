@@ -55,12 +55,10 @@ a {
   overflow: hidden;
 }
 
-.example_controls, .react-dat-gui {
+.example_controls {
   position: absolute;
   top: 0;
   left: 0;
-}
-.example_controls {
   padding: 10px;
   z-index: 10;
   display: flex;
@@ -75,4 +73,12 @@ a {
   right: 0;
   padding: 10px 20px;
   background: rgba(255,255,255,.1);
+}
+
+.react-dat-gui {
+  position: absolute;
+  top: 0;
+  left: 0;
+  max-height: 80%;
+  overflow: auto;
 }

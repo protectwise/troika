@@ -117,6 +117,12 @@ Be aware that while this can help with z-fighting, it does not affect the render
 
 Default: `0`
 
+#### `fillOpacity`
+
+Controls the opacity of just the glyph's fill area, separate from any configured `strokeOpacity`, `outlineOpacity`, and the material's `opacity`. A `fillOpacity` of `0` will make the fill invisible, leaving just the stroke and/or outline.
+
+Default: `1`
+
 #### `font`
 
 The URL of a custom font file to be used. Supported font formats are:
@@ -178,46 +184,39 @@ The maximum width of the text block, above which text may start wrapping accordi
 
 Default: `Infinity`, meaning text will never wrap
 
+#### `outlineBlur`
+
+Specifies a blur radius applied to the outer edge of the text's `outlineWidth`. If the `outlineWidth` is zero, the blur will be applied at the glyph edge, like CSS's `text-shadow` blur radius. A blur plus a nonzero `outlineWidth` can give a solid outline with a fuzzy outer edge.
+
+The blur radius can be specified as either an absolute number in local units, or as a percentage string e.g. `"12%"` which is treated as a percentage of the `fontSize`.
+
+Default: `0`
+
 #### `outlineColor`
 
-The color to use for the text outline when `outlineWidth` is greater than `0`.
+The color to use for the text outline when `outlineWidth`, `outlineBlur`, and/or `outlineOffsetX/Y` are set. Accepts a ThreeJS `Color` object, or a number/string accepted by `Color#set`.
 
 Default: black
 
-#### `outlineWidth`
+#### `outlineOffsetX`, `outlineOffsetY`
 
-The width of an outline/halo to be drawn around each text glyph using the `outlineColor`. This can help improve readability when the text is displayed against a background of low or varying contrast. The width can be specified as either an absolute number in local units, or as a percentage string e.g. `"10%"` which is interpreted as a percentage of the `fontSize`.
+These define a horizontal and vertical offset of the text outline. Using an offset with `outlineWidth: 0` creates a drop-shadow effect like CSS's `text-shadow`; also see `outlineBlur`. 
+
+The offsets can be specified as either an absolute number in local units, or as a percentage string e.g. `"12%"` which is treated as a percentage of the `fontSize`.
 
 Default: `0`
-
 
 #### `outlineOpacity`
 
-Will change the opacity of the outline if it is visible.
+Sets the opacity of a configured text outline, in the range `0` to `1`.
 
 Default: `1`
 
-#### `outlineBlur`
+#### `outlineWidth`
 
-Allow to convert the outline to a shadow element. **If enable it will force the outline to be rendered**. Can be usefull if you want to render twice the font with an offset for example. If `outlineBlur` is enable, the `outlineWidth` parameters will update the blur ratio of the shadow.
+The width of an outline/halo to be drawn around each text glyph using the `outlineColor` and `outlineOpacity`. This can help improve readability when the text is displayed against a background of low or varying contrast. 
 
-Default: `0`
-
-#### `outlineOffsetX`
-
-Require `outlineWidth` to be greater than zero or `outlineBlur` to be true. Apply a offset on x to the outline drawn around each text glyph. values are specified as either an absolute number in local units, or as a percentage string e.g. `"12%"` which is treated as a percentage of the `fontSize`.
-
-Default: `0`
-
-#### `outlineOffsetY`
-
-Require `outlineWidth` to be greater than zero or `outlineBlur` to be true. Apply a offset on y to the outline drawn around each text glyph. values are specified as either an absolute number in local units, or as a percentage string e.g. `"12%"` which is treated as a percentage of the `fontSize`.
-
-Default: `0`
-
-#### `onlyBorderThickness`
-
-If `onlyBorderThickness` is greater than zero it will render only the edge of the font **and of the outline**. values are specified as either an absolute number in local units, or as a percentage string e.g. `"12%"` which is treated as a percentage of the `fontSize`.
+The width can be specified as either an absolute number in local units, or as a percentage string e.g. `"10%"` which is interpreted as a percentage of the `fontSize`.
 
 Default: `0`
 
@@ -232,6 +231,26 @@ Default: `'normal'`
 Allows overriding the default size of each glyph's SDF (signed distance field) used when rendering this text instance. This must be a power-of-two number. Larger sizes can improve the quality of glyph rendering by increasing the sharpness of corners and preventing loss of very thin lines, at the expense of increased memory footprint and longer SDF generation time.
 
 Default: `64`
+
+#### `strokeColor`
+
+The color of the text stroke, when `strokeWidth` is nonzero. Accepts a ThreeJS `Color` object, or a number/string accepted by `Color#set`.
+
+Default: grey
+
+#### `strokeOpacity`
+
+The opacity of the text stroke, when `strokeWidth` is nonzero. Accepts a number from `0` to `1`.
+
+Default: `1`
+
+#### `strokeWidth`
+
+Sets the width of a stroke drawn inside the edge of each text glyph, using the `strokeColor` and `strokeOpacity`.
+
+The width can be specified as either an absolute number in local units, or as a percentage string e.g. `"10%"` which is interpreted as a percentage of the `fontSize`.
+
+Default: `0`
 
 #### `textAlign`
 
