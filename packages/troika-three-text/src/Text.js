@@ -541,12 +541,12 @@ const Text = /*#__PURE__*/(() => {
         if (isOutline) {
           let {outlineWidth, outlineOffsetX, outlineOffsetY, outlineBlur, outlineOpacity} = this
           distanceOffset = this._parsePercent(outlineWidth) || 0
-          blurRadius = this._parsePercent(outlineBlur) || 0
+          blurRadius = Math.max(0, this._parsePercent(outlineBlur) || 0)
           fillOpacity = outlineOpacity
           offsetX = this._parsePercent(outlineOffsetX) || 0
           offsetY = this._parsePercent(outlineOffsetY) || 0
         } else {
-          strokeWidth = this._parsePercent(this.strokeWidth) || 0
+          strokeWidth = Math.max(0, this._parsePercent(this.strokeWidth) || 0)
           if (strokeWidth) {
             strokeColor = this.strokeColor
             uniforms.uTroikaStrokeColor.value.set(strokeColor == null ? defaultStrokeColor : strokeColor)
@@ -616,7 +616,7 @@ const Text = /*#__PURE__*/(() => {
 
     _parsePercent(value) {
       if (typeof value === 'string') {
-        let match = value.match(/^([\d.]+)%$/)
+        let match = value.match(/^(-?[\d.]+)%$/)
         let pct = match ? parseFloat(match[1]) : NaN
         value = (isNaN(pct) ? 0 : pct / 100) * this.fontSize
       }
