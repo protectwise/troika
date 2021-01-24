@@ -1,9 +1,7 @@
-import { createDerivedMaterial } from './DerivedMaterial.js'
-import { getShaderUniformTypes } from './getShaderUniformTypes.js'
-import { voidMainRegExp } from './voidMainRegExp.js'
+import { createDerivedMaterial, getShaderUniformTypes, voidMainRegExp } from 'troika-three-utils'
 
 const precededByUniformRE = /\buniform\s+(int|float|vec[234])\s+$/
-const attrRefReplacer = (name, index, str) => (precededByUniformRE.test(str.substr(0, index)) ? name : `troika_${name}`)
+const attrRefReplacer = (name, index, str) => (precededByUniformRE.test(str.substr(0, index)) ? name : `troika_attr_${name}`)
 const varyingRefReplacer = (name, index, str) => (precededByUniformRE.test(str.substr(0, index)) ? name : `troika_vary_${name}`)
 
 export function createInstancedUniformsDerivedMaterial (baseMaterial, uniformNames) {
@@ -21,7 +19,7 @@ export function createInstancedUniformsDerivedMaterial (baseMaterial, uniformNam
       let vertexUniforms = getShaderUniformTypes(vertexShader)
       let fragmentUniforms = getShaderUniformTypes(fragmentShader)
 
-      // Add attributes and varyings for, and rewrite references to, instanceUniforms
+      // Add attributes and varyings for, and rewrite references to, the instanced uniforms
       uniformNames.forEach((name) => {
         let vertType = vertexUniforms[name]
         let fragType = fragmentUniforms[name]

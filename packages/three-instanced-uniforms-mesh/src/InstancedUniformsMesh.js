@@ -1,8 +1,6 @@
 import { InstancedBufferAttribute, InstancedMesh, MeshBasicMaterial } from 'three'
-import { getShadersForMaterial } from './getShadersForMaterial.js'
+import { getShadersForMaterial } from 'troika-three-utils'
 import { createInstancedUniformsDerivedMaterial } from './InstancedUniformsDerivedMaterial.js'
-
-const defaultMaterial = new MeshBasicMaterial()
 
 export class InstancedUniformsMesh extends InstancedMesh {
   constructor (geometry, material, count) {
@@ -33,7 +31,7 @@ export class InstancedUniformsMesh extends InstancedMesh {
    */
   get material () {
     let derivedMaterial = this._derivedMaterial
-    const baseMaterial = this._baseMaterial || this._defaultMaterial || (this._defaultMaterial = defaultMaterial.clone())
+    const baseMaterial = this._baseMaterial || this._defaultMaterial || (this._defaultMaterial = new MeshBasicMaterial())
     const uniformNames = this._instancedUniformNames
     if (!derivedMaterial || derivedMaterial.baseMaterial !== baseMaterial || derivedMaterial._instancedUniformNames !== uniformNames) {
       derivedMaterial = this._derivedMaterial = createInstancedUniformsDerivedMaterial(baseMaterial, uniformNames)
