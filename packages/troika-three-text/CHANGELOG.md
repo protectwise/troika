@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.38.0](https://github.com/protectwise/troika/compare/v0.37.0...v0.38.0) (2021-01-24)
+
+
+### Bug Fixes
+
+* **troika-three-text:** allow negative percentages for outlineOffsetX/Y ([3a274f0](https://github.com/protectwise/troika/commit/3a274f070b30e5312e2f546f66db2ab9352962ca)), closes [#100](https://github.com/protectwise/troika/issues/100)
+
+
+
+
+
 # [0.37.0](https://github.com/protectwise/troika/compare/v0.36.1...v0.37.0) (2021-01-18)
 
 
