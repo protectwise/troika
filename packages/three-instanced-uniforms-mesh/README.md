@@ -29,7 +29,7 @@ for (let i = 0; i < count; i++) {
 }
 ```
 
-While this is obviously useful for Three.js's built in materials, it _really_ shines with custom shaders.
+While this is obviously useful for Three.js's built in materials, it _really_ shines with custom shaders. Just declare any configurable parameters as uniforms in your custom shader, and then you can use that either on a single non-instanced `Mesh` by setting the material's uniforms directly, or instance it using `InstancedUniformsMesh` by calling `setUniformAt`. Your shader doesn't need to change at all to support the instancing! 
 
 > Note: Calling `setUniformAt` automatically marks the underlying buffer attributes for upload, so unlike [`setMatrixAt`](https://threejs.org/docs/#api/en/objects/InstancedMesh.setMatrixAt) or [`setColorAt`](https://threejs.org/docs/#api/en/objects/InstancedMesh.setColorAt) you don't need to set `needsUpdate` manually.
 
