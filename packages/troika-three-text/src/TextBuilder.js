@@ -84,10 +84,11 @@ const atlases = Object.create(null)
  * @property {Array<number>} blockBounds - The total [minX, minY, maxX, maxY] rect of the whole text block;
  *           this can include extra vertical space beyond the visible glyphs due to lineHeight, and is
  *           equivalent to the dimensions of a block-level text element in CSS.
- * @property {Array<number>} visibleBounds -
+ * @property {Array<number>} visibleBounds - The total [minX, minY, maxX, maxY] rect of the whole text block;
+ *           unlike `blockBounds` this is tightly wrapped to the visible glyph paths.
  * @property {Array<number>} totalBounds - DEPRECATED; use blockBounds instead.
  * @property {Array<number>} totalBlockSize - DEPRECATED; use blockBounds instead
- * @property {Array<number>} chunkedBounds - List of bounding rects for each consecutive set of N glyphs,
+ * @property {Array<object>} chunkedBounds - List of bounding rects for each consecutive set of N glyphs,
  *           in the format `{start:N, end:N, rect:[minX, minY, maxX, maxY]}`.
  * @property {object} timings - Timing info for various parts of the rendering logic including SDF
  *           generation, layout, etc.
