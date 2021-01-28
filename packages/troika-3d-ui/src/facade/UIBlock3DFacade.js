@@ -204,6 +204,17 @@ class UIBlock3DFacade extends Group3DFacade {
         textChild.whiteSpace = getInheritable(this, 'whiteSpace')
         textChild.overflowWrap = getInheritable(this, 'overflowWrap')
         textChild.color = getInheritable(this, 'color')
+        textChild.colorRanges = this.colorRanges
+        textChild.outlineWidth = this.textOutlineWidth || 0
+        textChild.outlineColor = this.textOutlineColor
+        textChild.outlineOpacity = this.textOutlineOpacity
+        textChild.outlineBlur = this.textOutlineBlur || 0
+        textChild.outlineOffsetX = this.textOutlineOffsetX || 0
+        textChild.outlineOffsetY = this.textOutlineOffsetY || 0
+        textChild.strokeWidth = this.textStrokeWidth || 0
+        textChild.strokeColor = this.textStrokeColor
+        textChild.strokeOpacity = this.textStrokeOpacity
+        textChild.fillOpacity = this.textFillOpacity
         textChild.material = this.textMaterial
         textChild.depthOffset = -flexNodeDepth - 1
         textChild.renderOrder = flexNodeDepth + 1
