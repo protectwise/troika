@@ -169,6 +169,8 @@ export function createDerivedMaterial(baseMaterial, options) {
     isDerivedMaterial: {value: true},
 
     customProgramCacheKey: {
+      writable: true,
+      configurable: true,
       value: function () {
         return optionsKey
       }
