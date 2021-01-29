@@ -650,7 +650,11 @@ const Text = /*#__PURE__*/(() => {
     }
 
     copy(source) {
+      // Prevent copying the geometry reference so we don't end up sharing attributes between instances
+      const geom = this.geometry
       super.copy(source)
+      this.geometry = geom
+
       COPYABLE_PROPS.forEach(prop => {
         this[prop] = source[prop]
       })
