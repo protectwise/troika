@@ -16,6 +16,7 @@ import CurveAnim from './curve-anim/CurveAnimExample'
 import Canvas2DExample from './canvas2d/Canvas2DExample'
 import EasingsExample from './easings/EasingsExample'
 import InstanceableExample from './instanceable/InstanceableExample'
+import InstancedUniformsMeshExample from './instanced-uniforms-mesh/InstancedUniformsMeshExample.jsx'
 import InceptionExample from './inception/InceptionExample'
 import Bezier3DExample from './bezier-3d/Bezier3DExample'
 
@@ -40,6 +41,7 @@ const EXAMPLES = [
   {id: 'twoDee', name: 'Canvas2D', component: Canvas2DExample, disableXR:true},
   {id: 'easings', name: 'Animation Easings', component: EasingsExample, disableXR:true},
   {id: 'instanceable', name: 'Instanceable Objects', component: InstanceableExample},
+  {id: 'instancedUniformsMesh', name: 'InstancedUniformsMesh', component: InstancedUniformsMeshExample},
   {id: 'inception', name: 'Inception', component: InceptionExample}
 ]
 

@@ -23,6 +23,7 @@
     "react-dom": "^16.5.2",
     "three": "^0.121.1",
     "three-line-2d": "^1.1.6",
+    "three-instanced-uniforms-mesh": "^0.38.0",
     "troika-2d": "^0.38.0",
     "troika-3d": "^0.38.0",
     "troika-3d-text": "^0.38.0",
