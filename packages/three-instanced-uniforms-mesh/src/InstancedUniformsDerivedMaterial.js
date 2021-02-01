@@ -6,6 +6,8 @@ const varyingRefReplacer = (name, index, str) => (precededByUniformRE.test(str.s
 
 export function createInstancedUniformsDerivedMaterial (baseMaterial, uniformNames) {
   const derived = createDerivedMaterial(baseMaterial, {
+    chained: true,
+
     defines: {
       TROIKA_INSTANCED_UNIFORMS: uniformNames.sort().join('|')
     },
