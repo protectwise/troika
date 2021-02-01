@@ -10,19 +10,27 @@ export class InstancedUniformsMesh extends InstancedMesh {
 
   /*
    * Getter/setter for automatically wrapping the user-supplied geometry with one that will
-   * carry our extra InstancedBufferAttribute(s)
+   * carry our extra InstancedBufferAttribute(s). We do the wrapping lazily on _read_ rather
+   * than write to avoid unnecessary wrapping on transient values.
    */
   get geometry () {
-    return this._derivedGeometry
+    let derivedGeom = this._derivedGeometry
+    const baseGeom = this._baseGeometry
+    if (!derivedGeom || derivedGeom.baseGeometry !== baseGeom) {
+      derivedGeom = this._derivedGeometry = Object.create(baseGeom)
+      derivedGeom.baseGeometry = baseGeom
+      derivedGeom.attributes = Object.create(baseGeom.attributes)
+      // dispose the derived geometry when its base geometry is disposed:
+      baseGeom.addEventListener('dispose', function onDispose () {
+        derivedGeom.dispose()
+      })
+    }
+    return derivedGeom
   }
 
   set geometry (geometry) {
     // Extend the geometry so we can add our instancing attributes but inherit everything else
-    if (geometry) {
-      geometry = Object.create(geometry)
-      geometry.attributes = Object.create(geometry.attributes)
-    }
-    this._derivedGeometry = geometry
+    this._baseGeometry = geometry
   }
 
   /*
