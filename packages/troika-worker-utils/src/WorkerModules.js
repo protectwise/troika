@@ -146,7 +146,7 @@ function getWorker(workerId) {
         throw new Error('WorkerModule response with empty or unknown messageId')
       }
       delete openRequests[msgId]
-      openRequests.count--
+      openRequests._count--
       callback(response)
     }
   }
@@ -165,7 +165,7 @@ function callWorker(workerId, action, data) {
     }
   }
   openRequests._count++
-  if (openRequests.count > 1000) { //detect leaks
+  if (openRequests._count > 1000) { //detect leaks
     console.warn('Large number of open WorkerModule requests, some may not be returning')
   }
   getWorker(workerId).postMessage({
