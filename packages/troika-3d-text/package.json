@@ -15,6 +15,7 @@
   "module:src": "src/index.js",
   "dependencies": {
     "troika-3d": "^0.38.0",
-    "troika-three-text": "^0.38.0"
+    "troika-three-text": "^0.38.0",
+    "troika-three-utils": "^0.38.0"
   }
 }
