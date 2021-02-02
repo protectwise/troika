@@ -5,6 +5,7 @@ import { Text3DFacade } from 'troika-3d-text'
 import { UIBlock3DFacade as div } from 'troika-3d-ui'
 import { Matrix4, Plane, Vector3, MeshStandardMaterial } from 'three'
 import FlexboxGlobe from './FlexboxGlobe.js'
+import { invertMatrix4 } from 'troika-three-utils'
 
 const tempPlane = new Plane()
 const tempVec3 = new Vector3()
@@ -93,7 +94,7 @@ export default class FlexboxExample extends React.Component {
       let uiPlane = tempPlane.setComponents(0, 0, 1, 0).applyMatrix4(uiMatrix)
       let pos = ray.intersectPlane(uiPlane, tempVec3)
       if (pos) {
-        pos.applyMatrix4(tempMat4.getInverse(uiMatrix))
+        pos.applyMatrix4(invertMatrix4(uiMatrix, tempMat4))
         this.setState({
           width: Math.min(5, Math.max(0.5, target.isTopLeft ? this.state.width - pos.x : pos.x)),
           height: Math.min(5, Math.max(0.5, target.isTopLeft ? this.state.height + pos.y : -pos.y))

@@ -4,8 +4,8 @@ import UITextNode3DFacade from './UITextNode3DFacade.js'
 import UIBlockLayer3DFacade from './UIBlockLayer3DFacade.js'
 import { extendAsFlexNode } from '../flex-layout/FlexNode.js'
 import { getComputedFontSize, getInheritable, INHERITABLES } from '../uiUtils.js'
-import { utils } from 'troika-core'
 import ScrollbarsFacade from './ScrollbarsFacade.js'
+import { invertMatrix4 } from 'troika-three-utils'
 
 const raycastMesh = new Mesh(new PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0))
 const tempMat4 = new Matrix4()
@@ -427,7 +427,7 @@ function wheelHandler(e) {
 function dragHandler(e) {
   if (!e._didScroll && !e.defaultPrevented) {
     const facade = e.currentTarget
-    const ray = e.ray.clone().applyMatrix4(tempMat4.getInverse(facade.threeObject.matrixWorld))
+    const ray = e.ray.clone().applyMatrix4(invertMatrix4(facade.threeObject.matrixWorld, tempMat4))
     const localPos = ray.intersectPlane(tempPlane.setComponents(0, 0, 1, 0), new Vector3())
     const prevPos = facade._prevDragPos
     if (localPos && prevPos && e.type === 'drag') {

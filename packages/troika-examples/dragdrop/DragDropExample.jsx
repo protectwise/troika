@@ -6,6 +6,7 @@ import Planet from './Planet'
 import Sun from './Sun'
 import Orbit from './Orbit'
 import { ExampleConfigurator } from '../_shared/ExampleConfigurator.js'
+import { invertMatrix4 } from 'troika-three-utils'
 
 
 function find(arr, testFn) {
@@ -87,7 +88,7 @@ class DragDropExample extends React.Component {
     let ray = e.ray //all pointer events in a 3D world are guaranteed to have a `ray`
     let posVec3 = ray.intersectPlane(systemPlane, new Vector3())
     if (posVec3) {
-      posVec3.applyMatrix4(new Matrix4().getInverse(systemTransformMatrix))
+      posVec3.applyMatrix4(invertMatrix4(systemTransformMatrix))
 
       // Update dragged planet's current angle and distance
       let planetData = find(this.state.planets, d => d.id === e.target.id)

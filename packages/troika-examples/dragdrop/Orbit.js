@@ -1,5 +1,6 @@
 import {
-  Geometry,
+  BufferAttribute,
+  BufferGeometry,
   Line,
   LineBasicMaterial,
   Vector3
@@ -10,13 +11,13 @@ import {
 
 
 const POINTS = 128
-const geometry = new Geometry()
+const geometry = new BufferGeometry()
+const positions = new BufferAttribute(new Float32Array((POINTS + 1) * 3), 3)
 for (let i = 0; i <= POINTS; i++) {
   let angle = Math.PI * 2 * i / POINTS
-  geometry.vertices.push(
-    new Vector3(Math.cos(angle), Math.sin(angle), 0)
-  )
+  positions.setXYZ(i, Math.cos(angle), Math.sin(angle), 0)
 }
+geometry.setAttribute('position', positions)
 
 const material = new LineBasicMaterial({
   color: 0x333344

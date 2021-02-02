@@ -1,6 +1,7 @@
 import { ListFacade } from 'troika-3d'
 import { Matrix4, Plane, Vector3 } from 'three'
 import { getCaretAtPoint, getSelectionRects } from 'troika-three-text'
+import { invertMatrix4 } from 'troika-three-utils'
 import SelectionRangeRect from './SelectionRangeRect.js'
 
 const THICKNESS = 0.25 //rect depth as percentage of height
@@ -41,7 +42,7 @@ class SelectionManagerFacade extends ListFacade {
     const onDragStart = e => {
       const textRenderInfo = this.textRenderInfo
       if (textRenderInfo) {
-        const localPoint = e.intersection.point.clone().applyMatrix4(tempMat4.getInverse(textMesh.matrixWorld))
+        const localPoint = e.intersection.point.clone().applyMatrix4(invertMatrix4(textMesh.matrixWorld, tempMat4))
         const caret = getCaretAtPoint(textRenderInfo, localPoint.x, localPoint.y)
         if (caret) {
           onSelectionChange(caret.charIndex, caret.charIndex)
@@ -56,7 +57,7 @@ class SelectionManagerFacade extends ListFacade {
       const textRenderInfo = textMesh.textRenderInfo
       if (e.ray && textRenderInfo) {
         // Raycast to an infinite plane so dragging outside the text bounds will work
-        const ray = e.ray.clone().applyMatrix4(tempMat4.getInverse(textMesh.matrixWorld))
+        const ray = e.ray.clone().applyMatrix4(invertMatrix4(textMesh.matrixWorld, tempMat4))
         const localPoint = ray.intersectPlane(tempPlane.setComponents(0, 0, 1, 0), tempVec3)
         if (localPoint) {
           const caret = getCaretAtPoint(textRenderInfo, localPoint.x, localPoint.y)

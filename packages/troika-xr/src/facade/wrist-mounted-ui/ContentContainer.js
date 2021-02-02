@@ -1,6 +1,7 @@
 import { Object3DFacade, CircleFacade } from 'troika-3d'
 import { Group, Matrix4, Vector3 } from 'three'
 import { Projection } from './Projection.js'
+import { invertMatrix4 } from 'troika-three-utils'
 
 const tempMat4 = new Matrix4()
 const targetPos = new Vector3()
@@ -30,7 +31,7 @@ export class ContentContainer extends Object3DFacade {
       // Get current posed camera position, relative to the parent
       let cam = this.getCameraFacade().threeObject
       camPos.setFromMatrixPosition(cam.matrixWorld)
-        .applyMatrix4(tempMat4.getInverse(this.threeObject.parent.matrixWorld))
+        .applyMatrix4(invertMatrix4(this.threeObject.parent.matrixWorld, tempMat4))
 
       // Find target position
       let targetScale

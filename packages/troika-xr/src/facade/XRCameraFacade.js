@@ -1,6 +1,7 @@
 import { Matrix4, PerspectiveCamera, Quaternion, Vector3, Vector4 } from 'three'
 import { PerspectiveCamera3DFacade } from 'troika-3d'
 import { utils } from 'troika-core'
+import { invertMatrix4 } from 'troika-three-utils'
 
 const tempVec3 = new Vector3()
 const tempVec3b = new Vector3()
@@ -57,7 +58,7 @@ const doExtendAsXRCamera = utils.createClassExtender('xrCamera', function (BaseC
       super.updateMatrices()
       if (offsetChanging) {
         this._lastRefSpace = xrReferenceSpace
-        tempMat4.getInverse(this.threeObject.matrix).decompose(tempVec3, tempQuat, dummyObj)
+        invertMatrix4(this.threeObject.matrix, tempMat4).decompose(tempVec3, tempQuat, dummyObj)
         this.offsetReferenceSpace = xrReferenceSpace
           ? xrReferenceSpace.getOffsetReferenceSpace(new XRRigidTransform(tempVec3, tempQuat))
           : null
@@ -157,11 +158,7 @@ function setProjectionFromUnion (camera, cameraL, cameraR) {
   camera.translateX(xOffset)
   camera.translateZ(zOffset)
   camera.matrixWorld.compose(camera.position, camera.quaternion, camera.scale)
-  if (camera.matrixWorldInverse.invert) { //handles getInverse->invert API change in r123
-    camera.matrixWorldInverse.copy(camera.matrixWorld).invert()
-  } else {
-    camera.matrixWorldInverse.getInverse(camera.matrixWorld)
-  }
+  invertMatrix4(camera.matrixWorld, camera.matrixWorldInverse)
 
   // Find the union of the frustum values of the cameras and scale
   // the values so that the near plane's position does not change in world space,

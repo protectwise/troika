@@ -11,6 +11,7 @@ import {
   Quaternion
 } from 'three'
 import Object3DFacade from './Object3DFacade.js'
+import { invertMatrix4 } from 'troika-three-utils'
 
 const noop = function() {}
 const tempRaycaster = new Raycaster()
@@ -68,7 +69,7 @@ export function createCameraFacade(threeJsCameraClass, projectionProps, otherPro
       let matrixVersionBeforeUpdate = this._worldMatrixVersion
       super.updateMatrices()
       if (matrixVersionBeforeUpdate !== this._worldMatrixVersion) {
-        camObj.matrixWorldInverse.getInverse(camObj.matrixWorld)
+        invertMatrix4(camObj.matrixWorld, camObj.matrixWorldInverse)
       }
     }
 

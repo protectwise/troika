@@ -34,7 +34,9 @@ export default {
     replace({
       'process.env.NODE_ENV': '"production"'
     }),
-    buble(),
+    buble({
+      transforms: { forOf: false, asyncAwait: false }
+    }),
     commonjs({
       extensions: [ '.js', '.jsx' ],  // Default: [ '.js' ]
       namedExports: {
