@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.38.1](https://github.com/protectwise/troika/compare/v0.38.0...v0.38.1) (2021-02-03)
+
+
+### Bug Fixes
+
+* update to support up to Three r125 ([4edff04](https://github.com/protectwise/troika/commit/4edff042d13dec49377d18baf4f958de285a3f2a))
+
+
+
+
+
 # [0.38.0](https://github.com/protectwise/troika/compare/v0.37.0...v0.38.0) (2021-01-24)
 
 **Note:** Version bump only for package troika-xr

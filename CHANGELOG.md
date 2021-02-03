@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.38.1](https://github.com/protectwise/troika/compare/v0.38.0...v0.38.1) (2021-02-03)
+
+
+### Bug Fixes
+
+* hoist vertexTransform defs to top of the shader to prevent errors in chained derivations ([889ed38](https://github.com/protectwise/troika/commit/889ed38fcfb30edc630865b6e95f59c3f6322646))
+* update to support up to Three r125 ([4edff04](https://github.com/protectwise/troika/commit/4edff042d13dec49377d18baf4f958de285a3f2a))
+* **three-instanced-uniforms-mesh:** prevent creation of multiple derived geometries ([94a7f67](https://github.com/protectwise/troika/commit/94a7f67967cd72e152d7942fbcce13ed0d5078cf))
+* **three-instanced-uniforms-mesh:** the derived material is now prototype-chained to its base ([bf45d01](https://github.com/protectwise/troika/commit/bf45d01a56dac1ce3f873756109702da9a641e62))
+* **troika-worker-utils:** properly track open requests count ([a01d903](https://github.com/protectwise/troika/commit/a01d903245eee3b9798bcfac7397108fb3bb03e7))
+* make derived material's customProgramCacheKey function writable ([10289dd](https://github.com/protectwise/troika/commit/10289dd1fc700facff9ab79fb6e1cc04109fc0ff))
+* **troika-three-text:** prevent copy() from sharing geometry between instances ([8c3ba2d](https://github.com/protectwise/troika/commit/8c3ba2d8f610c045dadee17a6221ea61ab8d26d4))
+* add new text props to UI blocks ([a2d631f](https://github.com/protectwise/troika/commit/a2d631f3921263bf602282e22211bf869556f8a4))
+
+
+
+
+
 # [0.38.0](https://github.com/protectwise/troika/compare/v0.37.0...v0.38.0) (2021-01-24)
 
 

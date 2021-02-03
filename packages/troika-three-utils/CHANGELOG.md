@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.38.1](https://github.com/protectwise/troika/compare/v0.38.0...v0.38.1) (2021-02-03)
+
+
+### Bug Fixes
+
+* hoist vertexTransform defs to top of the shader to prevent errors in chained derivations ([889ed38](https://github.com/protectwise/troika/commit/889ed38fcfb30edc630865b6e95f59c3f6322646))
+* make derived material's customProgramCacheKey function writable ([10289dd](https://github.com/protectwise/troika/commit/10289dd1fc700facff9ab79fb6e1cc04109fc0ff))
+* update to support up to Three r125 ([4edff04](https://github.com/protectwise/troika/commit/4edff042d13dec49377d18baf4f958de285a3f2a))
+
+
+
+
+
 # [0.38.0](https://github.com/protectwise/troika/compare/v0.37.0...v0.38.0) (2021-01-24)
 
 

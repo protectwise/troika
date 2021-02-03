@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.38.1](https://github.com/protectwise/troika/compare/v0.38.0...v0.38.1) (2021-02-03)
+
+
+### Bug Fixes
+
+* **troika-worker-utils:** properly track open requests count ([a01d903](https://github.com/protectwise/troika/commit/a01d903245eee3b9798bcfac7397108fb3bb03e7))
+
+
+
+
+
 # [0.38.0](https://github.com/protectwise/troika/compare/v0.37.0...v0.38.0) (2021-01-24)
 
 **Note:** Version bump only for package troika-worker-utils
