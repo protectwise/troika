@@ -338,10 +338,13 @@ function upgradeShaders({vertexShader, fragmentShader}, options, key) {
 
   // Inject a function for the vertexTransform and rename all usages of position/normal/uv
   if (vertexTransform) {
-    vertexDefs = `${vertexDefs}
-vec3 troika_position_${key};
+    // Hoist these defs to the very top so they work in other function defs
+    vertexShader = `vec3 troika_position_${key};
 vec3 troika_normal_${key};
 vec2 troika_uv_${key};
+${vertexShader}
+`
+    vertexDefs = `${vertexDefs}
 void troikaVertexTransform${key}(inout vec3 position, inout vec3 normal, inout vec2 uv) {
   ${vertexTransform}
 }
