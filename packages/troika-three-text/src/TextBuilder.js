@@ -1,4 +1,4 @@
-import { Color, DataTexture, LinearFilter, LuminanceFormat } from 'three'
+import { Color, DataTexture, LinearFilter, RGBAFormat } from 'three'
 import { defineWorkerModule, ThenableWorkerModule } from 'troika-worker-utils'
 import { createSDFGenerator } from './worker/SDFGenerator.js'
 import { createFontProcessor } from './worker/FontProcessor.js'
@@ -144,10 +144,10 @@ function getTextRenderInfo(args, callback) {
   if (!atlas) {
     atlas = atlases[atlasKey] = {
       sdfTexture: new DataTexture(
-        new Uint8Array(sdfGlyphSize * textureWidth),
+        new Uint8Array(sdfGlyphSize * textureWidth * 4),
         textureWidth,
         sdfGlyphSize,
-        LuminanceFormat,
+        RGBAFormat,
         undefined,
         undefined,
         undefined,
@@ -175,14 +175,18 @@ function getTextRenderInfo(args, callback) {
         }
 
         // Insert the new glyph's data into the full texture image at the correct offsets
+        // Glyphs are packed sequentially into the R,G,B,A channels of a square, advancing
+        // to the next square every 4 glyphs.
+        const squareIndex = Math.floor(atlasIndex / 4)
         const cols = texImg.width / sdfGlyphSize
-        const baseStartIndex = texImg.width * sdfGlyphSize * Math.floor(atlasIndex / cols) //full rows
-          + (atlasIndex % cols) * sdfGlyphSize //partial row
+        const baseStartIndex = Math.floor(squareIndex / cols) * texImg.width * sdfGlyphSize * 4 //full rows
+          + (squareIndex % cols) * sdfGlyphSize * 4 //partial row
+          + (atlasIndex % 4) //color channel
         for (let y = 0; y < sdfGlyphSize; y++) {
           const srcStartIndex = y * sdfGlyphSize
-          const rowStartIndex = baseStartIndex + (y * texImg.width)
+          const rowStartIndex = baseStartIndex + (y * texImg.width * 4)
           for (let x = 0; x < sdfGlyphSize; x++) {
-            texImg.data[rowStartIndex + x] = textureData[srcStartIndex + x]
+            texImg.data[rowStartIndex + x * 4] = textureData[srcStartIndex + x]
           }
         }
       })

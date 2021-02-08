@@ -17,6 +17,7 @@ attribute float aTroikaGlyphIndex;
 attribute vec3 aTroikaGlyphColor;
 varying vec2 vTroikaGlyphUV;
 varying vec4 vTroikaTextureUVBounds;
+varying float vTroikaTextureChannel;
 varying vec3 vTroikaGlyphColor;
 varying vec2 vTroikaGlyphDimensions;
 `
@@ -53,12 +54,13 @@ ${''/* NOTE: it seems important to calculate the glyph's bounding texture UVs he
   on some glyphs (those in the leftmost texture column) on some systems. The exact reason
   isn't understood but doing this here, then mix()-ing in the fragment shader, seems to work. */}
 float txCols = uTroikaSDFTextureSize.x / uTroikaSDFGlyphSize;
-vec2 txUvPerGlyph = uTroikaSDFGlyphSize / uTroikaSDFTextureSize;
-vec2 txStartUV = txUvPerGlyph * vec2(
-  mod(aTroikaGlyphIndex, txCols),
-  floor(aTroikaGlyphIndex / txCols)
+vec2 txUvPerSquare = uTroikaSDFGlyphSize / uTroikaSDFTextureSize;
+vec2 txStartUV = txUvPerSquare * vec2(
+  mod(floor(aTroikaGlyphIndex / 4.0), txCols),
+  floor(floor(aTroikaGlyphIndex / 4.0) / txCols)
 );
-vTroikaTextureUVBounds = vec4(txStartUV, vec2(txStartUV) + txUvPerGlyph);
+vTroikaTextureUVBounds = vec4(txStartUV, vec2(txStartUV) + txUvPerSquare);
+vTroikaTextureChannel = mod(aTroikaGlyphIndex, 4.0);
 `
 
 // language=GLSL
@@ -77,6 +79,7 @@ uniform float uTroikaStrokeOpacity;
 uniform bool uTroikaSDFDebug;
 varying vec2 vTroikaGlyphUV;
 varying vec4 vTroikaTextureUVBounds;
+varying float vTroikaTextureChannel;
 varying vec2 vTroikaGlyphDimensions;
 
 float troikaSdfValueToSignedDistance(float alpha) {
@@ -93,7 +96,9 @@ float troikaSdfValueToSignedDistance(float alpha) {
 
 float troikaGlyphUvToSdfValue(vec2 glyphUV) {
   vec2 textureUV = mix(vTroikaTextureUVBounds.xy, vTroikaTextureUVBounds.zw, glyphUV);
-  return texture2D(uTroikaSDFTexture, textureUV).r;
+  vec4 rgba = texture2D(uTroikaSDFTexture, textureUV);
+  float ch = round(vTroikaTextureChannel);
+  return ch == 0.0 ? rgba.r : ch == 1.0 ? rgba.g : ch == 2.0 ? rgba.b : rgba.a;
 }
 
 float troikaGlyphUvToDistance(vec2 uv) {
