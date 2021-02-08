@@ -3,6 +3,7 @@ export {
   configureTextBuilder,
   fontProcessorWorkerModule,
   preloadFont,
+  dumpSDFTextures,
   Text as TextMesh,
   GlyphsGeometry,
   getCaretAtPoint,

@@ -1,7 +1,7 @@
 import React from 'react'
 import T from 'prop-types'
 import { Canvas3D, createDerivedMaterial, Object3DFacade } from 'troika-3d'
-import {Text3DFacade} from 'troika-3d-text'
+import {Text3DFacade, dumpSDFTextures} from 'troika-3d-text'
 import {
   MeshBasicMaterial,
   MeshStandardMaterial,
@@ -383,5 +383,7 @@ TextExample.propTypes = {
   width: T.number,
   height: T.number
 }
+
+window.dumpSDFTextures = dumpSDFTextures
 
 export default TextExample

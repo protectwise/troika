@@ -313,35 +313,32 @@ const processInWorker = /*#__PURE__*/defineWorkerModule({
   }
 })
 
-/*
-window._dumpSDFs = function() {
-  Object.values(atlases).forEach(atlas => {
-    const imgData = atlas.sdfTexture.image.data
+function dumpSDFTextures() {
+  Object.keys(atlases).forEach(font => {
+    const atlas = atlases[font]
     const canvas = document.createElement('canvas')
-    const {width, height} = atlas.sdfTexture.image
+    const {width, height, data} = atlas.sdfTexture.image
     canvas.width = width
     canvas.height = height
+    const imgData = new ImageData(new Uint8ClampedArray(data), width, height)
     const ctx = canvas.getContext('2d')
-    ctx.fillStyle = '#fff'
-    ctx.fillRect(0, 0, width, height)
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        ctx.fillStyle = `rgba(0,0,0,${imgData[y * width + x]/255})`
-        ctx.fillRect(x, y, 1, 1)
-      }
-    }
-    const img = new Image()
-    img.src = canvas.toDataURL()
-    document.body.appendChild(img)
-    console.log(img)
+    ctx.putImageData(imgData, 0, 0)
+    console.log(font, atlas, canvas.toDataURL())
+    console.log("%c.", `
+      background: url(${canvas.toDataURL()});
+      background-size: ${width}px ${height}px;
+      color: transparent;
+      font-size: 0;
+      line-height: ${height}px;
+      padding-left: ${width}px;
+    `)
   })
 }
-*/
-
 
 export {
   configureTextBuilder,
   getTextRenderInfo,
   preloadFont,
-  fontProcessorWorkerModule
+  fontProcessorWorkerModule,
+  dumpSDFTextures
 }
