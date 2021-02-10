@@ -34,7 +34,7 @@ Troika manages the Three.js renderer and common things like world matrix calcula
 
 As a very rough analogy: if Three.js provides a DOM for WebGL, then you could consider Troika to be like ReactJS for managing that DOM. It simplifies things, but you still need to know the DOM.
 
-Troika also provides some more advanced capabilities like: position-synced [HTML overlays](3d-html-overlays.md), an easy-to-use [GPU instancing](3d-instancing.md) abstraction, high quality [3D text rendering](3d-text.md), and experimental WebVR support.
+Troika 3D also provides some more advanced capabilities like: position-synced [HTML overlays](3d-html-overlays.md), an easy-to-use [GPU instancing](3d-instancing.md) abstraction, high quality [3D text rendering](3d-text.md), utilities for [manipulating shaders](3d-shader-utils.md), and [WebXR support](3d-webxr.md).
 
 [Learn more about Troika 3D.](3d-overview.md)
 
