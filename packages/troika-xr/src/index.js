@@ -21,5 +21,8 @@ export {default as OculusTouchGrip} from './facade/grip-models/OculusTouchGrip.j
 // Wrist Mounted UI Container
 export {WristMountedUI} from './facade/wrist-mounted-ui/WristMountedUI.js'
 
+// Teleport Controls
+export {TeleportControls} from './facade/teleport/TeleportControls.js'
+
 // Misc
 export * from './XRUtils.js'
