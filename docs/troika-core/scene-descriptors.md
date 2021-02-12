@@ -3,7 +3,7 @@ id: scene-descriptors
 title: Scene Descriptors
 ---
 
-The _scene descriptor_ describes the structure of your scene at a point in time. As you apply new scene descriptors over time based on the changing state of your application, Troika tracks the differences from one descriptor to the next, and creates/destroys/updates a tree of [_Facade_](facade-basics.md) instances to match.
+The _scene descriptor_ describes the structure of your scene at a point in time. As you apply new scene descriptors over time based on the changing state of your application, Troika tracks the differences from one descriptor to the next, and creates/destroys/updates a tree of [_Facade_](facades.md) instances to match.
 
 Describing your scene declaratively this way removes the mental overhead of having to track and modify individual objects over time, making your scenes much easier to understand and debug.
 
@@ -86,7 +86,7 @@ These are based very closely on [CSS Transitions](https://developer.mozilla.org/
 
 ### `pointerStates`
 
-Similarly, the presence of a `pointerStates` property will wrap the facade instance so that it automatically changes its state in response to pointer events. This gives you declarative control over styling for `hover` and `active` states, much like CSS pseudoclasses, without having to write imperative event handlers every time. This is covered in detail in [Pointer States](pointer-states.md).
+Similarly, the presence of a `pointerStates` property will wrap the facade instance so that it automatically changes its state in response to pointer events. This gives you declarative control over styling for `hover` and `active` states, much like CSS pseudoclasses, without having to write imperative event handlers every time. This is covered in detail in [Pointer States](../../../docs/pointer-states.md).
 
 ### `ref`
 

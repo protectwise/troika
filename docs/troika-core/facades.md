@@ -11,7 +11,7 @@ The **`Facade`** is the central concept in the Troika framework. It serves as th
 
 In your app, you will define Facades to represent different types of objects in your scene. You will also make use of built-in Facade types that are specialized for specific purposes. 
 
-Each Facade type is defined as a JavaScript `class`, extending the base `Facade` class. It has a few base methods, but otherwise each Facade class is free to define its own shape in the form of its public instance properties. Those properties will receive values from a [scene descriptor](./scene-descriptors.md) or manual updates later on.
+Each Facade type is defined as a JavaScript `class`, extending the base `Facade` class. It has a few base methods, but otherwise each Facade class is free to define its own shape in the form of its public instance properties. Those properties will receive values from a [scene descriptor](scene-descriptors.md) or manual updates later on.
 
 See the [base `Facade` class source](https://github.com/protectwise/troika/blob/master/packages/troika-core/src/facade/Facade.js) for some additional class and method JSDoc.
 
@@ -32,7 +32,7 @@ The Facade class's `constructor` is called, and is always passed a single argume
 
 ### 2. Update
 
-This is where the facade instance receives its state. Since "state" is defined as the facade object's properties, updating that state simply consists of assigning a set of property values. This is usually done by copying a [scene descriptor](./scene-descriptors.md)'s values directly onto the facade instance during a scene update pass. It can also be triggered manually via the facade's `.update({...values})` method.
+This is where the facade instance receives its state. Since "state" is defined as the facade object's properties, updating that state simply consists of assigning a set of property values. This is usually done by copying a [scene descriptor](scene-descriptors.md)'s values directly onto the facade instance during a scene update pass. It can also be triggered manually via the facade's `.update({...values})` method.
 
 This part of the lifecycle is also usually when the facade synchronizes its new state properties to its more complex backing object model.
 
@@ -57,15 +57,15 @@ The base `Facade` class is a superclass of all facades, but you will seldom exte
 
 ### ParentFacade 
 
-[[Source]](https://github.com/protectwise/troika/blob/master/packages/troika-core/src/facade/ParentFacade.js) - This extends `Facade` with the ability to manage not only itself but also a set of child facades. At the end of its update phase it will recursively synchronize a set of child facade instances, based on an array of [descriptor objects](./scene-descriptors.md) returned by its `describeChildren()` method (which by default returns the value of its `.children` property.)
+[[Source]](https://github.com/protectwise/troika/blob/master/packages/troika-core/src/facade/ParentFacade.js) - This extends `Facade` with the ability to manage not only itself but also a set of child facades. At the end of its update phase it will recursively synchronize a set of child facade instances, based on an array of [descriptor objects](scene-descriptors.md) returned by its `describeChildren()` method (which by default returns the value of its `.children` property.)
 
 ### ListFacade
 
-[[Source]](https://github.com/protectwise/troika/blob/master/packages/troika-core/src/facade/ListFacade.js) - Inspired by [D3](https://d3js.org/), this is an optimized way to update many of the same type of object that skips creating intermediate descriptor objects for each item. For details see [Data Lists](./scene-descriptors.md#data-lists).
+[[Source]](https://github.com/protectwise/troika/blob/master/packages/troika-core/src/facade/ListFacade.js) - Inspired by [D3](https://d3js.org/), this is an optimized way to update many of the same type of object that skips creating intermediate descriptor objects for each item. For details see [Data Lists](scene-descriptors.md#data-lists).
 
 ### Object3DFacade, Object2DFacade
 
-These are base facades for the [`troika-3d`](./3d-overview.md) and [`troika-2d`](./2d-overview.md) packages. If you are creating a 3D/2D graphical scene, you'll likely be extending these for most of your objects. See the docs for those packages for details.
+These are base facades for the [`troika-3d`](../troika-3d/3d-overview.md) and [`troika-2d`](../troika-2d/2d-overview.md) packages. If you are creating a 3D/2D graphical scene, you'll likely be extending these for most of your objects. See the docs for those packages for details.
 
 
 ## Example
@@ -77,35 +77,36 @@ import { Facade } from 'troika-core'
 
 export class MyThingFacade extends Facade {
   // Instantiation:
-  constructor(parent) {
+  constructor (parent) {
     super(parent)
 
     // Init backing object:
     this._impl = new SuperComplicatedObject()
-    
+
     // Define state properties with initial values:
     this.width = 1
     this.height = 1
     this.depth = 1
     this.color = '#123456'
   }
-  
+
   // Getter/setter for directly syncing a standalone property:
-  set color(value) {
+  set color (value) {
     this._impl.setColor(value)
   }
-  get color() {
+
+  get color () {
     return this._impl.getColor()
   }
-  
+
   // Handler for syncing interdependent properties:
-  afterUpdate() {
+  afterUpdate () {
     this._impl.setDimensions(this.width, this.height, this.depth)
     super.afterUpdate() //don't forget the super call!
   }
-  
+
   // Cleanup:
-  destructor() {
+  destructor () {
     this._impl.teardown()
     delete this._impl
     super.destructor()

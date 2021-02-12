@@ -10,4 +10,4 @@ The `troika-xr` package adds WebXR capabilities to `troika-3d` scenes. These cap
 
 > Note: while definitely usable, this package is still somewhat lacking in configurability and features. Requests and contributions are welcome.
 
-For detailed usage information, see the [troika-xr documentation file](../../docs/3d-webxr.md)
+For detailed usage information, see the [troika-xr documentation file](../../docs/troika-xr/index.md)

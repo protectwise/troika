@@ -12,8 +12,8 @@ The [typical setup for Three.js rendering](https://threejs.org/docs/index.html#m
 Troika controls when the Three.js scene is re-rendered, only doing so when:
 
 * The scene is updated
-* A facade [`animation` or `transition`](animations-and-transitions.md) is running
-* A facade changes properties due to [`pointerStates`](interactivity-and-events.md#pointer-states) interactions
+* A facade [`animation` or `transition`](../troika-core/animations-and-transitions.md) is running
+* A facade changes properties due to [`pointerStates`](../troika-core/interactivity-and-events.md#pointer-states) interactions
 * A facade indicates that it requires a re-render by calling `this.notifyWorld('needsRender')`
 
 

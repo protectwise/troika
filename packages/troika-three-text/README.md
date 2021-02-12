@@ -1,4 +1,4 @@
-# `troika-three-text`
+# Troika Text for Three.js
 
 This package provides high quality text rendering in [Three.js](https://threejs.org) scenes, using signed distance fields (SDF) and antialiasing using standard derivatives.
 
@@ -10,12 +10,13 @@ Once the SDFs are generated, it assembles a geometry that positions all the glyp
 
 * [With the Troika scene management framework](https://troika-examples.netlify.com/#text)
 * [With react-three-fiber](https://codesandbox.io/embed/troika-3d-text-via-react-three-fiber-ntfx2?fontsize=14)
+* [With a video texture](https://bfplr.csb.app/)
+* [With the Material Icons font](https://codesandbox.io/s/material-icons-in-troika-three-text-t2mu7?file=/src/index.js)
 
 ## With Other Frameworks
 
-* [In the `drei` utilities for react-three-fiber](https://github.com/react-spring/drei#%EF%B8%8F-text-)
+* [In the `drei` utilities for react-three-fiber](https://github.com/pmndrs/drei#text)
 * [As an A-Frame component](https://github.com/lojjic/aframe-troika-text)
-
 
 ## Screenshots
 
@@ -41,7 +42,7 @@ You will also need to install a compatible version of [Three.js](https://threejs
 
 ```js
 import {Text} from 'troika-three-text'
-````
+```
 
 You can then use the `Text` class like any other Three.js mesh:
 
@@ -73,35 +74,35 @@ myText.dispose()
 
 Instances of `Text` support the following configuration properties:
 
-#### `text`
+### `text`
 
 The string of text to be rendered. Newlines and repeating whitespace characters are honored.
 
 Default: _none_
 
-#### `anchor`
+### `anchor`
 
 This property is deprecated as of version 0.24.0; use `anchorX` and `anchorY` instead.
 
-#### `anchorX`
+### `anchorX`
 
 Defines the horizontal position in the text block that should line up with the local origin. Can be specified as a numeric `x` position in local units, a string percentage of the total text block width e.g. `'25%'`, or one of the following keyword strings: `'left'`, `'center'`, or `'right'`.
 
 Default: `0`
 
-#### `anchorY`
+### `anchorY`
 
 Defines the vertical position in the text block that should line up with the local origin. Can be specified as a numeric `y` position in local units (note: down is negative y), a string percentage of the total text block height e.g. `'25%'`, or one of the following keyword strings: `'top'`, `'top-baseline'`, `'middle'`, `'bottom-baseline'`, or `'bottom'`.
 
 Default: `0`
 
-#### `clipRect`
+### `clipRect`
 
 If specified, defines the `[minX, minY, maxX, maxY]` of a rectangle outside of which all pixels will be discarded. This can be used for example to clip overflowing text when `whiteSpace='nowrap'`.
 
 Default: _none_
 
-#### `color`
+### `color`
 
 This is a shortcut for setting the `color` of the text's `material`. You can use this if you don't want to specify a whole custom `material` and just want to change its color.
 
@@ -109,7 +110,7 @@ Use the `material` property if you want to control aspects of the material other
 
 Default: _none_ - uses the color of the `material`
 
-#### `depthOffset`
+### `depthOffset`
 
 This is a shortcut for setting the material's [`polygonOffset` and related properties](https://threejs.org/docs/#api/en/materials/Material.polygonOffset), which can be useful in preventing z-fighting when this text is laid on top of another plane in the scene. Positive numbers are further from the camera, negatives closer.
 
@@ -117,13 +118,13 @@ Be aware that while this can help with z-fighting, it does not affect the render
 
 Default: `0`
 
-#### `fillOpacity`
+### `fillOpacity`
 
 Controls the opacity of just the glyph's fill area, separate from any configured `strokeOpacity`, `outlineOpacity`, and the material's `opacity`. A `fillOpacity` of `0` will make the fill invisible, leaving just the stroke and/or outline.
 
 Default: `1`
 
-#### `font`
+### `font`
 
 The URL of a custom font file to be used. Supported font formats are:
 * .ttf
@@ -132,31 +133,31 @@ The URL of a custom font file to be used. Supported font formats are:
 
 Default: The *Roboto* font loaded from Google Fonts CDN
 
-#### `fontSize`
+### `fontSize`
 
 The em-height at which to render the font, in local world units.
 
 Default: `0.1`
 
-#### `glyphGeometryDetail`
+### `glyphGeometryDetail`
 
 The number of vertical/horizontal segments that make up each glyph's rectangular plane. This can be increased to provide more geometrical detail for custom vertex shader effects, for example.
 
 Default: `1`
 
-#### `letterSpacing`
+### `letterSpacing`
 
 Sets a uniform adjustment to spacing between letters after kerning is applied, in local world units. Positive numbers increase spacing and negative numbers decrease it.
 
 Default: `0`
 
-#### `lineHeight`
+### `lineHeight`
 
 Sets the height of each line of text. Can either be `'normal'` which chooses a reasonable height based on the chosen font's ascender/descender metrics, or a number that is interpreted as a multiple of the `fontSize`.
 
 Default: `'normal'`
 
-#### `material`
+### `material`
 
 Defines a Three.js Material _instance_ to be used as a base when rendering the text. This material will be automatically replaced with a new material derived from it, that adds shader code to decrease the alpha for each fragment (pixel) outside the text glyphs, with antialiasing.
 
@@ -178,13 +179,13 @@ text.material.opacity = 0.5
 
 Default: a `MeshBasicMaterial` instance
 
-#### `maxWidth`
+### `maxWidth`
 
 The maximum width of the text block, above which text may start wrapping according to the `whiteSpace` and `overflowWrap` properties.
 
 Default: `Infinity`, meaning text will never wrap
 
-#### `outlineBlur`
+### `outlineBlur`
 
 Specifies a blur radius applied to the outer edge of the text's `outlineWidth`. If the `outlineWidth` is zero, the blur will be applied at the glyph edge, like CSS's `text-shadow` blur radius. A blur plus a nonzero `outlineWidth` can give a solid outline with a fuzzy outer edge.
 
@@ -192,13 +193,13 @@ The blur radius can be specified as either an absolute number in local units, or
 
 Default: `0`
 
-#### `outlineColor`
+### `outlineColor`
 
 The color to use for the text outline when `outlineWidth`, `outlineBlur`, and/or `outlineOffsetX/Y` are set. Accepts a ThreeJS `Color` object, or a number/string accepted by `Color#set`.
 
 Default: black
 
-#### `outlineOffsetX`, `outlineOffsetY`
+### `outlineOffsetX`, `outlineOffsetY`
 
 These define a horizontal and vertical offset of the text outline. Using an offset with `outlineWidth: 0` creates a drop-shadow effect like CSS's `text-shadow`; also see `outlineBlur`. 
 
@@ -206,13 +207,13 @@ The offsets can be specified as either an absolute number in local units, or as 
 
 Default: `0`
 
-#### `outlineOpacity`
+### `outlineOpacity`
 
 Sets the opacity of a configured text outline, in the range `0` to `1`.
 
 Default: `1`
 
-#### `outlineWidth`
+### `outlineWidth`
 
 The width of an outline/halo to be drawn around each text glyph using the `outlineColor` and `outlineOpacity`. This can help improve readability when the text is displayed against a background of low or varying contrast. 
 
@@ -220,31 +221,31 @@ The width can be specified as either an absolute number in local units, or as a 
 
 Default: `0`
 
-#### `overflowWrap`
+### `overflowWrap`
 
 Defines how text wraps if the `whiteSpace` property is `'normal'`. Can be either `'normal'` to break at whitespace characters, or `'break-word'` to allow breaking within words.
 
 Default: `'normal'`
 
-#### `sdfGlyphSize`
+### `sdfGlyphSize`
 
 Allows overriding the default size of each glyph's SDF (signed distance field) used when rendering this text instance. This must be a power-of-two number. Larger sizes can improve the quality of glyph rendering by increasing the sharpness of corners and preventing loss of very thin lines, at the expense of increased memory footprint and longer SDF generation time.
 
 Default: `64`
 
-#### `strokeColor`
+### `strokeColor`
 
 The color of the text stroke, when `strokeWidth` is nonzero. Accepts a ThreeJS `Color` object, or a number/string accepted by `Color#set`.
 
 Default: grey
 
-#### `strokeOpacity`
+### `strokeOpacity`
 
 The opacity of the text stroke, when `strokeWidth` is nonzero. Accepts a number from `0` to `1`.
 
 Default: `1`
 
-#### `strokeWidth`
+### `strokeWidth`
 
 Sets the width of a stroke drawn inside the edge of each text glyph, using the `strokeColor` and `strokeOpacity`.
 
@@ -252,19 +253,19 @@ The width can be specified as either an absolute number in local units, or as a 
 
 Default: `0`
 
-#### `textAlign`
+### `textAlign`
 
 The horizontal alignment of each line of text within the overall text bounding box. Can be one of `'left'`, `'right'`, `'center'`, or `'justify'`.
 
 Default: `'left'`
 
-#### `textIndent`
+### `textIndent`
 
 An indentation applied to the first character of each _hard_ newline. Behaves like CSS `text-indent`.
 
 Default: `0`
 
-#### `whiteSpace`
+### `whiteSpace`
 
 Defines whether text should wrap when a line reaches the `maxWidth`. Can be either `'normal'`, to allow wrapping according to the `overflowWrap` property, or `'nowrap'` to prevent wrapping.
 
@@ -348,7 +349,7 @@ OverrideMaterialManager.workaroundEnabled = true
 
 In addition to rendering text, it is possible to access positioning information for caret placement and selection ranges. To access that info, use the `getCaretAtPoint` and `getSelectionRects` utility functions. Both of these functions take a `textRenderInfo` object as input, which you can get from the `Text` object's `textRenderInfo` property after sync has completed. See "Handling Asynchronous Updates" above for how to react to sync completion events.
 
-#### `getCaretAtPoint(textRenderInfo, x, y)`
+### `getCaretAtPoint(textRenderInfo, x, y)`
 
 This returns the caret position nearest to a given x/y position in the local text plane. This is useful for placing an editing caret based on a click or ther raycasted event. The return value is an object with the following properties:
 
@@ -357,6 +358,6 @@ This returns the caret position nearest to a given x/y position in the local tex
 - `height` - height of the caret, based on the current fontSize and lineHeight
 - `charIndex` - the index in the original input string of this caret's target character. The caret will be for the position _before_ that character. For the final caret position, this will be equal to the string length. For ligature glyphs, this will be for the first character in the ligature sequence.
 
-#### `getSelectionRects(textRenderInfo, start, end)`
+### `getSelectionRects(textRenderInfo, start, end)`
 
 This returns a list of rectangles covering all the characters within a given character range. This is useful for highlighting a selection range. The return value is an array of objects, each with `{left, top, right, bottom}` properties in the local text plane.

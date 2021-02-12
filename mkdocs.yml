@@ -1,0 +1,38 @@
+site_name: Troika
+site_author: Jason Johnston
+repo_url: https://github.com/protectwise/troika
+plugins:
+#  - monorepo
+  - include-markdown
+  - search
+theme:
+  name: material
+  palette:
+    primary: white
+  features:
+    - navigation.expand
+markdown_extensions:
+  - pymdownx.b64 #not working???
+  - pymdownx.highlight
+  - pymdownx.superfences
+nav:
+  - Overview: index.md
+  - Getting Started:
+    - getting-started/setup.md
+    - getting-started/examples.md
+  - Core Concepts:
+    - troika-core/facades.md
+    - troika-core/scene-descriptors.md
+    - troika-core/interactivity-and-events.md
+    - troika-core/animations-and-transitions.md
+  - Three.js Tools:
+    - Troika 3D Text: troika-three-text/index.md
+    - Derived Materials: troika-three-utils/createDerivedMaterial.md
+    - BezierMesh: troika-three-utils/BezierMesh.md
+    - InstancedUniformsMesh: three-instanced-uniforms-mesh/index.md
+
+
+
+
+#  - Troika Core: '!include ./packages/troika-core/mkdocs.yml'
+#  - Troika 3D Text: '../packages/troika-three-text/README.md' #'!include ./packages/troika-three-text/mkdocs.yml'

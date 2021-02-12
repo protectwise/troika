@@ -120,6 +120,6 @@ The tween `interpolation` parameter controls how the fractional value returned f
 Two built-in interpolation types are provided, which can be referred to by their string names (see [Interpolators.js](./src/Interpolators.js))
 
 - `"number"` - simple linear interpolation between two numeric values (the default).
-- `"color"` - interprets the start/end values as RGB colors, and interpolates each color channel independently.
+- `"color"` - interprets the start/end values as RGB colors, and interpolates each color channel independently. The start/end values can be 24-bit integers or any CSS color string value, and the interpolated values will always be returned as 24-bit integers (8 bits red, 8 bits green, 8 bits blue.)
 
-If you need a different interpolation, you can provide a custom function. It takes three parameters: the start value, the end value, and the progress between them (the output of the easing function.) It must return an in-between value of the appropriate type.
+If you need a different interpolation, you can provide a custom function. Your function will take three parameters: the start value, the end value, and the progress between them (the output of the easing function) in the range from `0` to `1`. It must return an in-between value of the appropriate type.

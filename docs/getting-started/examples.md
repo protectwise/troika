@@ -4,7 +4,7 @@ title: Examples
 ---
 
 
-The `packages/troika-examples` directory contains several example scenes. These are intended to demonstrate a wide range of Troika's capabilities and some interesting techniques that it enables.
+The [troika-examples package](https://github.com/protectwise/troika/tree/master/packages/troika-examples) contains several example scenes. These are intended to demonstrate a wide range of Troika's capabilities and some interesting techniques that it enables.
 
 
 ## Viewing the examples

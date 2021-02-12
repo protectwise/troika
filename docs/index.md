@@ -1,8 +1,7 @@
 ---
 id: overview
-title: What is Troika?
+title: Overview
 ---
-
 
 Troika is a JavaScript framework that simplifies the creation of interactive graphics in the browser, with a focus on 3D/WebGL, and optimized for data visualization use cases.
 
@@ -19,11 +18,11 @@ Troika's main goal is to take aspects of developing interactive graphics that yo
 
 ## Troika core
 
-At its core, Troika manages a simple mapping from a declarative scene descriptor to a tree of special objects called [_Facades_](facade-basics.md). Each `Facade` is a component that knows how to synchronize its state, set as flat properties by the scene descriptor, to a more complex underlying API.
+At its core, Troika manages a simple mapping from a declarative scene descriptor to a tree of special objects called [_Facades_](troika-core/facades.md). Each `Facade` is a component that knows how to synchronize its state, set as flat properties by the scene descriptor, to a more complex underlying API.
 
 On top of that, Troika builds in some things like an event subscription model and declarative animations and transitions for facade properties.
 
-[Learn more about Troika core concepts.](facade-basics.md)
+[Learn more about Troika core concepts.](troika-core/facades.md)
 
 
 ## Troika for 3D
@@ -34,9 +33,9 @@ Troika manages the Three.js renderer and common things like world matrix calcula
 
 As a very rough analogy: if Three.js provides a DOM for WebGL, then you could consider Troika to be like ReactJS for managing that DOM. It simplifies things, but you still need to know the DOM.
 
-Troika 3D also provides some more advanced capabilities like: position-synced [HTML overlays](3d-html-overlays.md), an easy-to-use [GPU instancing](3d-instancing.md) abstraction, high quality [3D text rendering](3d-text.md), utilities for [manipulating shaders](3d-shader-utils.md), and [WebXR support](3d-webxr.md).
+Troika 3D also provides some more advanced capabilities like: position-synced [HTML overlays](troika-3d/3d-html-overlays.md), an easy-to-use [GPU instancing](troika-3d/3d-instancing.md) abstraction, high quality [3D text rendering](troika-3d/3d-text.md), utilities for [manipulating shaders](troika-3d/3d-shader-utils.md), and [WebXR support](troika-xr/3d-webxr.md).
 
-[Learn more about Troika 3D.](3d-overview.md)
+[Learn more about Troika 3D.](troika-3d/3d-overview.md)
 
 
 ## Troika for 2D
@@ -45,12 +44,12 @@ As a separate package, Troika also provides the ability to define using the 2D C
 
 This can be nice on its own when you don't need 3D, but is also useful as a graceful fallback for when WebGL isn't available in the browser.
 
-[Learn more about Troika 2D.](2d-overview.md)
+[Learn more about Troika 2D.](troika-2d/2d-overview.md)
 
 
 ## Framework integration
 
-Currently Troika provides React components (`Canvas3D` and `Canvas2D`) that allow you to describe your scenes within the standard React lifecycle, using the state and event handlers from the parent React component.
+Currently, Troika provides React components (`Canvas3D` and `Canvas2D`) that allow you to describe your scenes within the standard React lifecycle, using the state and event handlers from the parent React component.
 
 The responsibilities of the wrapper layer have been kept as narrow as possible, so it should be simple to write wrappers for other frameworks as needed. Contributions are welcome.
 
