@@ -12,6 +12,7 @@ uniform bool uTroikaUseGlyphColors;
 uniform float uTroikaDistanceOffset;
 uniform float uTroikaBlurRadius;
 uniform vec2 uTroikaPositionOffset;
+uniform float uTroikaCurveRadius;
 attribute vec4 aTroikaGlyphBounds;
 attribute float aTroikaGlyphIndex;
 attribute vec3 aTroikaGlyphColor;
@@ -43,6 +44,13 @@ position.xy = mix(bounds.xy, bounds.zw, clippedXY);
 
 uv = (position.xy - uTroikaTotalBounds.xy) / (uTroikaTotalBounds.zw - uTroikaTotalBounds.xy);
 
+float rad = uTroikaCurveRadius;
+if (rad != 0.0) {
+  float angle = position.x / rad;
+  position.xz = vec2(sin(angle) * rad, rad - cos(angle) * rad);
+  normal.xz = vec2(sin(angle), cos(angle));
+}
+  
 position = uTroikaOrient * position;
 normal = uTroikaOrient * normal;
 
@@ -215,6 +223,7 @@ export function createTextDerivedMaterial(baseMaterial) {
       uTroikaOutlineOpacity: {value: 0},
       uTroikaFillOpacity: {value: 1},
       uTroikaPositionOffset: {value: new Vector2()},
+      uTroikaCurveRadius: {value: 0},
       uTroikaBlurRadius: {value: 0},
       uTroikaStrokeWidth: {value: 0},
       uTroikaStrokeColor: {value: new Color()},

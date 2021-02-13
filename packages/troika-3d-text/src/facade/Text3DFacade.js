@@ -29,6 +29,7 @@ const TEXT_MESH_PROPS = [
   'strokeColor',
   'strokeWidth',
   'strokeOpacity',
+  'curveRadius',
   'depthOffset',
   'clipRect',
   'orientation',

@@ -116,6 +116,18 @@ const Text = /*#__PURE__*/(() => {
       this.anchorY = 0
 
       /**
+       * @member {number} curveRadius
+       * Defines a cylindrical radius along which the text's plane will be curved. Positive numbers put
+       * the cylinder's centerline (oriented vertically) that distance in front of the text, for a concave
+       * curvature, while negative numbers put it behind the text for a convex curvature. The centerline
+       * will be aligned with the text's local origin; you can use `anchorX` to offset it.
+       *
+       * Since each glyph is by default rendered with a simple quad, each glyph remains a flat plane
+       * internally. You can use `glyphGeometryDetail` to add more vertices for curvature inside glyphs.
+       */
+      this.curveRadius = 0
+
+      /**
        * @member {string} font
        * URL of a custom font to be used. Font files can be any of the formats supported by
        * OpenType (see https://github.com/opentypejs/opentype.js).
@@ -562,6 +574,7 @@ const Text = /*#__PURE__*/(() => {
         uniforms.uTroikaStrokeWidth.value = strokeWidth
         uniforms.uTroikaStrokeOpacity.value = strokeOpacity
         uniforms.uTroikaFillOpacity.value = fillOpacity == null ? 1 : fillOpacity
+        uniforms.uTroikaCurveRadius.value = this.curveRadius || 0
 
         let clipRect = this.clipRect
         if (clipRect && Array.isArray(clipRect) && clipRect.length === 4) {

@@ -110,6 +110,14 @@ Use the `material` property if you want to control aspects of the material other
 
 Default: _none_ - uses the color of the `material`
 
+### `curveRadius`
+
+Defines a cylindrical radius along which the text's plane will be curved. Positive numbers put the cylinder's centerline (oriented vertically) that distance in front of the text, for a concave curvature, while negative numbers put it behind the text for a convex curvature. The centerline will be aligned with the text's local origin; you can use `anchorX` to offset it.
+
+Since each glyph is by default rendered with a simple quad, each glyph remains a flat plane internally. You can use [`glyphGeometryDetail`](#glyphgeometrydetail) to add more vertices for curvature inside glyphs.
+
+Default: `0`
+
 ### `depthOffset`
 
 This is a shortcut for setting the material's [`polygonOffset` and related properties](https://threejs.org/docs/#api/en/materials/Material.polygonOffset), which can be useful in preventing z-fighting when this text is laid on top of another plane in the scene. Positive numbers are further from the camera, negatives closer.
