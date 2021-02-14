@@ -21,6 +21,7 @@ class SelectionManagerFacade extends ListFacade {
 
     this.rangeColor = 0x00ccff
     this.clipRect = noClip
+    this.curveRadius = 0
 
     this.template = {
       key: (d, i) => `rect${i}`,
@@ -29,9 +30,9 @@ class SelectionManagerFacade extends ListFacade {
       right: d => clamp(d.right, this.clipRect[0], this.clipRect[2]),
       bottom: d => clamp(d.bottom, this.clipRect[1], this.clipRect[3]),
       left: d => clamp(d.left, this.clipRect[0], this.clipRect[2]),
-      z: d => (d.top - d.bottom) * THICKNESS / 2,
-      scaleZ: d => (d.top - d.bottom) * THICKNESS,
+      depth: d => (d.top - d.bottom) * THICKNESS,
       color: d => this.rangeColor,
+      curveRadius: d => this.curveRadius,
       visible: d => {
         let r = this.clipRect
         return d.right > r[0] && d.top > r[1] && d.left < r[2] && d.bottom < r[3]

@@ -126,6 +126,7 @@ class Text3DFacade extends Object3DFacade {
       selFacade.textRenderInfo = this.threeObject.textRenderInfo
       selFacade.selectionStart = selectionStart
       selFacade.selectionEnd = selectionEnd
+      selFacade.curveRadius = this.curveRadius || 0
       selFacade.clipRect = this.clipRect
       selFacade.renderOrder = this.renderOrder
       selFacade.afterUpdate()
