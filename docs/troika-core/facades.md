@@ -26,13 +26,13 @@ See the [base `Facade` class source](https://github.com/protectwise/troika/blob/
 
 The facade lifecycle is intentionally very simple:
 
-### 1. Instantiation
+### Instantiation
 
 The Facade class's `constructor` is called, and is always passed a single argument which is the `parent` facade instance. Troika facades are _never_ reparented, so that `parent` will remain the same for the lifetime of the instance. The `constructor` is a good place to perform any initialization for things that will remain for the facade's lifetime, such as creating backing objects, setting up event listeners, etc.
 
-### 2. Update
+### Updates
 
-This is where the facade instance receives its state. Since "state" is defined as the facade object's properties, updating that state simply consists of assigning a set of property values. This is usually done by copying a [scene descriptor](scene-descriptors.md)'s values directly onto the facade instance during a scene update pass. It can also be triggered manually via the facade's `.update({...values})` method.
+This is where the facade instance receives its state. Since "state" is defined as the facade object's properties, updating that state simply consists of assigning a set of property values. This is usually done by copying a [scene descriptor](scene-descriptors.md)'s values directly onto the facade instance during a scene update pass. It can also be triggered manually via the facade's [`update`](#updatevalues) method.
 
 This part of the lifecycle is also usually when the facade synchronizes its new state properties to its more complex backing object model.
 
@@ -40,7 +40,7 @@ For properties that are "standalone", meaning they don't rely on any other prope
 
 After all properties are updated, the special `afterUpdate()` lifecycle method will always be called. This method is where you can put any implementation code that uses multiple properties together, since you can rely on all those properties being up-to-date at this time.
 
-### 3. Destruction
+### Destruction
 
 When a facade instance is removed from the scene tree, its `destructor()` method is called. This is where you can perform teardown logic, dispose of backing objects, remove event listeners, etc.
 
@@ -51,21 +51,7 @@ Facades implement the [EventTarget](https://developer.mozilla.org/en-US/docs/Web
 
 > There is also a parallel messaging notification system that is used internally for sending large numbers of simple messages up the parent hierarchy in a highly optimized way. You likely won't need this, but see the `notifyWorld()` and `onNotifyWorld()` methods for more.
 
-## Special Facade Classes
-
-The base `Facade` class is a superclass of all facades, but you will seldom extend it directly. You'll instead most often use a more specialized facade type. Here are some you may want to be aware of:
-
-### ParentFacade 
-
-[[Source]](https://github.com/protectwise/troika/blob/master/packages/troika-core/src/facade/ParentFacade.js) - This extends `Facade` with the ability to manage not only itself but also a set of child facades. At the end of its update phase it will recursively synchronize a set of child facade instances, based on an array of [descriptor objects](scene-descriptors.md) returned by its `describeChildren()` method (which by default returns the value of its `.children` property.)
-
-### ListFacade
-
-[[Source]](https://github.com/protectwise/troika/blob/master/packages/troika-core/src/facade/ListFacade.js) - Inspired by [D3](https://d3js.org/), this is an optimized way to update many of the same type of object that skips creating intermediate descriptor objects for each item. For details see [Data Lists](scene-descriptors.md#data-lists).
-
-### Object3DFacade, Object2DFacade
-
-These are base facades for the [`troika-3d`](../troika-3d/3d-overview.md) and [`troika-2d`](../troika-2d/2d-overview.md) packages. If you are creating a 3D/2D graphical scene, you'll likely be extending these for most of your objects. See the docs for those packages for details.
+See the section on [Interactivity and Events](./interactivity-and-events.md) for more.
 
 
 ## Example
@@ -126,3 +112,55 @@ This facade would then be created and updated using a scene descriptor like so:
   color: '#336699'
 }
 ```
+
+You'll learn more about [scene descriptors](./scene-descriptors.md) in the next section.
+
+
+## Special Facade Classes
+
+The base `Facade` class is a superclass of all facades, but you will seldom extend it directly. You'll instead most often use a more specialized facade type. Here are some you may want to be aware of:
+
+### ParentFacade 
+
+[[Source]](https://github.com/protectwise/troika/blob/master/packages/troika-core/src/facade/ParentFacade.js) - This extends `Facade` with the ability to manage not only itself but also a set of child facades. At the end of its update phase it will recursively synchronize a set of child facade instances, based on an array of [descriptor objects](scene-descriptors.md) returned by its `describeChildren()` method (which by default returns the value of its `.children` property.)
+
+Most facade classes you will end up working with extend from `ParentFacade`.
+
+### ListFacade
+
+[[Source]](https://github.com/protectwise/troika/blob/master/packages/troika-core/src/facade/ListFacade.js) - Inspired by [D3](https://d3js.org/), this is an optimized way to update many of the same type of object that skips creating intermediate descriptor objects for each item. For details see [Data Lists](scene-descriptors.md#data-lists).
+
+### Object3DFacade, Object2DFacade
+
+These are base facades for the [`troika-3d`](../troika-3d/index.md) and [`troika-2d`](../troika-2d/index.md) packages. If you are creating a 3D/2D graphical scene, you'll likely be extending these for most of your objects. See the docs for those packages for details.
+
+
+## Notable Facade Methods
+
+### update({...values})
+
+This convenience method allows you to set one or more of a facade's property values, automatically invoking the [afterUpdate](#updates) lifecycle method and [requesting a render frame](#requestrender). Calling this from within an event handler, for example, allows facade components to update their own state.
+
+```js
+myFacade.update({
+  prop1: 'newValue1',
+  prop2: 'newValue2'
+})
+```
+
+### requestRender()
+
+This method notifies the top-level world manager that this object has changed in some way that affects its visible rendering, so a rendering frame will be scheduled.
+
+### getChildByKey(key)
+
+This method looks for a direct child facade that was created with a given [`key`](scene-descriptors.md#key). This is not often needed.
+
+### forEachChild(func)
+
+This method lets you iterate a ParentFacade instance's direct child facades, invoking `func` for each child. This is not often needed, since updating children is usually better served by `update`.
+
+### traverse(func)
+
+This method lets you recursively traverse a facade instance and its entire subtree, depth-first, invoking `func` for each facade. This is not often needed, since updating a subtree is usually better served by `update`.
+
