@@ -2,7 +2,7 @@
 
 **How to use Troika's `createDerivedMaterial` utility to extend existing Three.js materials with custom shader code**
 
-_[Source code with JSDoc](./src/DerivedMaterial.js)_
+_[Source code with JSDoc](https://github.com/protectwise/troika/blob/master/packages/troika-three-utils/src/DerivedMaterial.js)_
 
 One of the most powerful things about Three.js is its excellent set of built-in materials. They provide many features like physically-based reflectivity, shadows, texture maps, fog, and so on, building the very complex shaders behind the scenes.
 
@@ -46,4 +46,4 @@ mesh.castShadow = true
 mesh.customDepthMaterial = customMaterial.getDepthMaterial()
 ```
 
-You can also declare custom `uniforms` and `defines`, inject fragment shader code to modify the output color, etc. See the JSDoc in [DerivedMaterial.js](./src/DerivedMaterial.js) for full details.
+You can also declare custom `uniforms` and `defines`, inject fragment shader code to modify the output color, etc. See the JSDoc in the [DerivedMaterial.js source code](https://github.com/protectwise/troika/blob/master/packages/troika-three-utils/src/DerivedMaterial.js) for full details.

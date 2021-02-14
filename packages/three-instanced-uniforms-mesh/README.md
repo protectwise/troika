@@ -1,7 +1,5 @@
 # InstancedUniformsMesh
 
-[Source code](./src/InstancedUniformsMesh.js)
-
 This package provides a `InstancedUniformsMesh` class which extends Three.js's [`InstancedMesh`](https://threejs.org/docs/#api/en/objects/InstancedMesh) to allow its material's shader uniforms to be set individually per instance. It behaves just like `InstancedMesh` but exposes one new method:
 
 ```js

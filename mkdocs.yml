@@ -3,7 +3,7 @@ site_author: Jason Johnston
 repo_url: https://github.com/protectwise/troika
 plugins:
   # - monorepo
-  # - include-markdown
+  - include-markdown
   - search
 theme:
   name: material

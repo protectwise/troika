@@ -10,11 +10,11 @@ It can also have any `material` assigned to it, so it can have lighting, texture
 
 - _[Online example](https://troika-examples.netlify.com/#bezier3d)_
 
-  ![Example 1](./images/beziers1.png)
+  ![Example 1](../../../docs/troika-three-utils/images/beziers1.png)
 
 - _[Online example using InstancedUniformsMesh](https://ibyou.csb.app/)_
 
-  ![Example 2](./images/beziers2.png)
+  ![Example 2](../../../docs/troika-three-utils/images/beziers2.png)
 
 ## Usage:
 

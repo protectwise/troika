@@ -20,13 +20,13 @@ Once the SDFs are generated, it assembles a geometry that positions all the glyp
 
 ## Screenshots
 
-![Text Rendering](./screenshot1.png)
+![Text Rendering](../../docs/troika-three-text/images/screenshot1.png)
 
-![Zoomed-in](./screenshot2.png)
+![Zoomed-in](../../docs/troika-three-text/images/screenshot2.png)
 
-![Font with ligatures](./screenshot3.png)
+![Font with ligatures](../../docs/troika-three-text/images/screenshot3.png)
 
-![Text with a texture](./screenshot4.png)
+![Text with a texture](../../docs/troika-three-text/images/screenshot4.png)
 
 ## Installation
 
@@ -36,7 +36,7 @@ Get it from [NPM](https://www.npmjs.com/package/troika-three-text):
 npm install troika-three-text
 ```
 
-You will also need to install a compatible version of [Three.js](https://threejs.org); see the notes in the [Troika 3D Readme](../troika-3d/README.md#installation) for details.
+You will also need to install a compatible version of [Three.js](https://threejs.org); see the [notes on Three.js versions in the Getting Started docs](../../docs/getting-started/setup.md#threejs) for details.
 
 ## Usage
 

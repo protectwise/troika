@@ -86,7 +86,7 @@ These are based very closely on [CSS Transitions](https://developer.mozilla.org/
 
 ### `pointerStates`
 
-Similarly, the presence of a `pointerStates` property will wrap the facade instance so that it automatically changes its state in response to pointer events. This gives you declarative control over styling for `hover` and `active` states, much like CSS pseudoclasses, without having to write imperative event handlers every time. This is covered in detail in [Pointer States](../../../docs/pointer-states.md).
+Similarly, the presence of a `pointerStates` property will wrap the facade instance so that it automatically changes its state in response to pointer events. This gives you declarative control over styling for `hover` and `active` states, much like CSS pseudoclasses, without having to write imperative event handlers every time. This is covered in detail in [Interactivity and Events](./interactivity-and-events.md#pointer-states).
 
 ### `ref`
 

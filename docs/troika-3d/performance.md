@@ -42,7 +42,7 @@ Troika optimizes this process by maintaining an internal [Octree](https://en.wik
 
 ## Scene graph traversal
 
-On every render frame Three.js traverses the entire scene graph, deciding what to do with each type of object in the tree, if anything. This means it does several type checks for every object, even those that have no visible representation in the scene, such as empty `Group`s or the invisible objects used for tracking [HTML Overlay](3d-html-overlay.md) positions.
+On every render frame Three.js traverses the entire scene graph, deciding what to do with each type of object in the tree, if anything. This means it does several type checks for every object, even those that have no visible representation in the scene, such as empty `Group`s or the invisible objects used for tracking [HTML Overlay](./html-overlays.md) positions.
 
 To help with this, Troika performs the following optimizations for those objects it manages which it knows have no visible rendering:
 
