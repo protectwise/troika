@@ -12,10 +12,12 @@ It provides:
 
 Developing interactive 3D and 2D graphics should be as straightforward as developing HTML+CSS+JavaScript interfaces. Troika aims to make that a reality.
 
-[![3D Bar Chart Example](./docs/images/city-thumbnail.png)](https://troika-examples.netlify.com/#citygrid)&nbsp;
-[![Arcs Example](./docs/images/arcs-thumbnail.png)](https://troika-examples.netlify.com/#arcs)&nbsp;
-[![3D Text Rendering](./docs/images/text-thumbnail.png)](https://troika-examples.netlify.com/#text)&nbsp;
+[![3D Bar Chart Example](./docs/images/city-thumbnail.png)](https://troika-examples.netlify.com/#citygrid)
+[![Layered Timeline](./docs/images/globe-connections-thumbnail.png)](https://troika-examples.netlify.app/#globeConnections)
+[![ProtectWise: Protocol Threat Graph](./docs/images/pw-protocol-threats-thumbnail.png)](https://twitter.com/lojjic/status/1360290173427322883)
+[![3D Text Rendering](./docs/images/text-thumbnail.png)](https://troika-examples.netlify.com/#text)
 [![GPU Instancing](./docs/images/instancing-thumbnail.png)](https://troika-examples.netlify.com/#instanceable)
+[![Layered Timeline](./docs/images/layered-timeline-thumbnail.png)](https://twitter.com/lojjic/status/1357102689210019844)
 
 
 ## Project Status

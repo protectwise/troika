@@ -15,6 +15,12 @@ It provides:
 
 Troika's main goal is to take aspects of developing interactive graphics that you almost always need, but are difficult to manage yourself, and make them as easy as possible.
 
+[![3D Bar Chart Example](./images/city-thumbnail.png)](https://troika-examples.netlify.com/#citygrid)
+[![Layered Timeline](./images/globe-connections-thumbnail.png)](https://troika-examples.netlify.app/#globeConnections)
+[![ProtectWise: Protocol Threat Graph](./images/pw-protocol-threats-thumbnail.png)](https://twitter.com/lojjic/status/1360290173427322883)
+[![3D Text Rendering](./images/text-thumbnail.png)](https://troika-examples.netlify.com/#text)
+[![GPU Instancing](./images/instancing-thumbnail.png)](https://troika-examples.netlify.com/#instanceable)
+[![Layered Timeline](./images/layered-timeline-thumbnail.png)](https://twitter.com/lojjic/status/1357102689210019844)
 
 ## Troika core
 
@@ -25,7 +31,7 @@ On top of that, Troika builds in some things like an event subscription model an
 [Learn more about Troika core concepts.](troika-core/facades.md)
 
 
-## Troika for 3D
+## Troika 3D
 
 Creating interactive 3D scenes with WebGL is Troika's first focus. It uses [Three.js](https://threejs.org) for the heavy lifting of managing WebGL state, and for its solid scene graph model, 3D primitives and math utilities, and shader library.
 
@@ -33,18 +39,18 @@ Troika manages the Three.js renderer and common things like world matrix calcula
 
 As a very rough analogy: if Three.js provides a DOM for WebGL, then you could consider Troika to be like ReactJS for managing that DOM. It simplifies things, but you still need to know the DOM.
 
-Troika 3D also provides some more advanced capabilities like: position-synced [HTML overlays](troika-3d/3d-html-overlays.md), an easy-to-use [GPU instancing](troika-3d/3d-instancing.md) abstraction, high quality [3D text rendering](troika-3d/3d-text.md), utilities for [manipulating shaders](troika-3d/3d-shader-utils.md), and [WebXR support](troika-xr/3d-webxr.md).
+Troika 3D also provides some more advanced capabilities like: position-synced [HTML overlays](troika-3d/html-overlays.md), an easy-to-use [GPU instancing](troika-3d/instancing.md) abstraction, high quality [3D text rendering](troika-three-text/index.md), utilities for [manipulating shaders](troika-three-utils/createDerivedMaterial.md), and [WebXR support](troika-xr/index.md).
 
-[Learn more about Troika 3D.](troika-3d/3d-overview.md)
+[Learn more about Troika 3D.](troika-3d/index.md)
 
 
-## Troika for 2D
+## Troika 2D
 
 As a separate package, Troika also provides the ability to define using the 2D Canvas API, using the same scene/facade patterns and core conveniences like animations and pointer events.
 
 This can be nice on its own when you don't need 3D, but is also useful as a graceful fallback for when WebGL isn't available in the browser.
 
-[Learn more about Troika 2D.](troika-2d/2d-overview.md)
+[Learn more about Troika 2D.](troika-2d/index.md)
 
 
 ## Framework integration
