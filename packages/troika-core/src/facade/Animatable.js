@@ -24,7 +24,7 @@ export const extendAsAnimatable = createClassExtender('animatable', function(Bas
       this.animation$runner = new Runner()
       this.animation$runner.onTick = () => {
         this.afterUpdate()
-        this.notifyWorld('needsRender')
+        this.requestRender()
       }
     }
 
@@ -297,7 +297,7 @@ export const extendAsAnimatable = createClassExtender('animatable', function(Bas
           }
         }
         runner.onDone = () => {
-          this.notifyWorld('needsRender')
+          this.requestRender()
           this.destructor()
         }
       } else {

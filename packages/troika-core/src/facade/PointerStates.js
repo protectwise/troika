@@ -158,7 +158,7 @@ export const extendAsPointerStatesAware = createClassExtender('pointerStates', f
       parent = parent.parent
     }
     highestFacade.afterUpdate()
-    highestFacade.notifyWorld('needsRender')
+    highestFacade.requestRender()
   }
 
   return PointerStatesAware

@@ -417,7 +417,7 @@ function wheelHandler(e) {
       facade.scrollLeft = scrollLeft
       facade.scrollTop = scrollTop
       facade.afterUpdate()
-      facade.notifyWorld('needsRender')
+      facade.requestRender()
       e._didScroll = true
     }
     e.preventDefault()
@@ -446,7 +446,7 @@ function dragHandler(e) {
           facade.scrollLeft = scrollLeft
           facade.scrollTop = scrollTop
           facade.afterUpdate()
-          facade.notifyWorld('needsRender')
+          facade.requestRender()
           e._didScroll = true
         }
       }

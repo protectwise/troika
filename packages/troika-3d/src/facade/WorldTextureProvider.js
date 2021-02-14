@@ -86,7 +86,7 @@ export function makeWorldTextureProvider(WrappedFacadeClass) {
           // Trigger texture update whenever the inner world is rerendered
           innerWorld.onAfterRender = () => {
             this.worldTexture.needsUpdate = true
-            this.notifyWorld('needsRender')
+            this.requestRender()
           }
         }
       }

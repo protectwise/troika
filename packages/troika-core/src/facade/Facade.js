@@ -76,7 +76,7 @@ export default class Facade {
     if (props && typeof props === 'object') {
       assign(this, props)
       this.afterUpdate()
-      this.notifyWorld('needsRender')
+      this.requestRender()
     }
   }
 
@@ -130,6 +130,14 @@ export default class Facade {
         notifiableParent = notifiableParent.parent
       }
     }
+  }
+
+  /**
+   * Notifies the top-level world manager that this object has changed in some way that affects its
+   * visible rendering, so a rendering frame will be scheduled.
+   */
+  requestRender() {
+    this.notifyWorld('needsRender')
   }
 
   traverse(fn) {

@@ -177,7 +177,7 @@ export const extendAsFlexNode = createClassExtender('flexNode', BaseFacadeClass 
           // Final afterUpdate on the whole subtree
           this._hasActiveFlexRequest = false
           this.afterUpdate()
-          this.notifyWorld('needsRender')
+          this.requestRender()
         }
       })
     }

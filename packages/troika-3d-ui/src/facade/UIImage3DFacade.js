@@ -38,7 +38,7 @@ class UIImage3DFacade extends Object3DFacade {
         material.map = texture
         this.aspectRatio = texture.image.width / texture.image.height
         this.afterUpdate()
-        this.notifyWorld('needsRender')
+        this.requestRender()
       })
       this._lastSrc = src
     }

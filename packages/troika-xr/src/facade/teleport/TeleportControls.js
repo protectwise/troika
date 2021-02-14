@@ -53,7 +53,7 @@ export class TeleportControls extends Object3DFacade {
           this.targeting = true
           markerConfig.x = tempVec3.x
           markerConfig.z = tempVec3.z
-          this.notifyWorld('needsRender')
+          this.requestRender()
           // For rotation, start with the current direction of the camera. Then rotate
           // relative to that by the last controller stick/axis position.
           tempQuat.setFromRotationMatrix(this.getCameraFacade().threeObject.matrixWorld)

@@ -71,7 +71,7 @@ class Text3DFacade extends Object3DFacade {
         mesh.geometry.boundingSphere.version++
         this.afterUpdate()
         this.notifyWorld('text3DSyncComplete')
-        this.notifyWorld('needsRender')
+        this.requestRender()
         if (this.onSyncComplete) {
           this.onSyncComplete()
         }
@@ -112,7 +112,7 @@ class Text3DFacade extends Object3DFacade {
           this.selectionStart = start
           this.selectionEnd = end
           this._updateSelection()
-          this.notifyWorld('needsRender')
+          this.requestRender()
         })
       } else {
         if (selFacade) {
