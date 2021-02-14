@@ -113,6 +113,7 @@ class TextExample extends React.Component {
       outlineOffsetY: 0,
       outlineOpacity: 1,
       outlineBlur: 0,
+      curveRadius: 0,
       fog: false,
       animTextColor: true,
       animTilt: true,
@@ -210,6 +211,7 @@ class TextExample extends React.Component {
               strokeOpacity: state.strokeOpacity,
               strokeWidth: state.strokeWidth,
               strokeColor: state.strokeColor,
+              curveRadius: state.curveRadius,
               material: material,
               color: 0xffffff,
               scaleX: state.textScale || 1,
@@ -304,6 +306,7 @@ class TextExample extends React.Component {
                 {type: 'number', path: "lineHeight", min: 1, max: 2, step: 0.01},
                 {type: 'number', path: "letterSpacing", min: -0.1, max: 0.5, step: 0.01},
                 {type: 'number', path: "fillOpacity", min: 0, max: 1, step: 0.0001},
+                {type: 'number', path: "curveRadius", min: -5, max: 5, step: 0.001},
 
                 {type: 'number', path: "outlineWidth", min: 0, max: 0.05, step: 0.0001},
                 {type: 'number', path: "outlineOpacity", min: 0, max: 1, step: 0.0001},
