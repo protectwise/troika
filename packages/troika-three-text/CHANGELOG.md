@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.39.0](https://github.com/protectwise/troika/compare/v0.38.1...v0.39.0) (2021-02-15)
+
+
+### Features
+
+* **troika-three-text:** add curveRadius for applying cylindrical curvature ([6fdfbbf](https://github.com/protectwise/troika/commit/6fdfbbfcc0cdae0143555c9cb6569ba9e70150c5))
+* **troika-three-text:** export a function for debugging SDF textures ([3fb0c23](https://github.com/protectwise/troika/commit/3fb0c23bae22b3812839c0639f8278d68120fc8c))
+* **troika-three-text:** pack SDFs using all 4 color channels, to increase max glyphs in a texture ([d236caf](https://github.com/protectwise/troika/commit/d236caf9526b5b05bb14980f54f3d73a207ed874))
+
+
+
+
+
 ## [0.38.1](https://github.com/protectwise/troika/compare/v0.38.0...v0.38.1) (2021-02-03)
 
 

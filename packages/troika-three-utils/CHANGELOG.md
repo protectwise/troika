@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.39.0](https://github.com/protectwise/troika/compare/v0.38.1...v0.39.0) (2021-02-15)
+
+
+### Bug Fixes
+
+* restore compatibility with three versions <0.113.0 by copying MathUtils.generateUUID ([35856b5](https://github.com/protectwise/troika/commit/35856b555919278b1addad0d2625faaaeb379757))
+
+
+
+
+
 ## [0.38.1](https://github.com/protectwise/troika/compare/v0.38.0...v0.38.1) (2021-02-03)
 
 

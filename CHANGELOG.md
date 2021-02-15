@@ -3,6 +3,26 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.39.0](https://github.com/protectwise/troika/compare/v0.38.1...v0.39.0) (2021-02-15)
+
+
+### Bug Fixes
+
+* restore compatibility with three versions <0.113.0 by copying MathUtils.generateUUID ([35856b5](https://github.com/protectwise/troika/commit/35856b555919278b1addad0d2625faaaeb379757))
+
+
+### Features
+
+* **troika-core:** add requestRender method as nicer shortcut ([c79254c](https://github.com/protectwise/troika/commit/c79254c8be44f70f34b6c9cb9306a45892c3f4e9))
+* **troika-three-text:** add curveRadius for applying cylindrical curvature ([6fdfbbf](https://github.com/protectwise/troika/commit/6fdfbbfcc0cdae0143555c9cb6569ba9e70150c5))
+* **troika-three-text:** export a function for debugging SDF textures ([3fb0c23](https://github.com/protectwise/troika/commit/3fb0c23bae22b3812839c0639f8278d68120fc8c))
+* **troika-three-text:** pack SDFs using all 4 color channels, to increase max glyphs in a texture ([d236caf](https://github.com/protectwise/troika/commit/d236caf9526b5b05bb14980f54f3d73a207ed874))
+* **troika-xr:** add basic TeleportControls ([319ed29](https://github.com/protectwise/troika/commit/319ed2935a63fb8781410b47a6ffe3ad338f4a2b))
+
+
+
+
+
 ## [0.38.1](https://github.com/protectwise/troika/compare/v0.38.0...v0.38.1) (2021-02-03)
 
 
