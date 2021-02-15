@@ -10,7 +10,7 @@ theme:
   palette:
     primary: white
   features:
-    - navigation.expand
+    - navigation.sections
 markdown_extensions:
   - pymdownx.b64 #not working???
   - pymdownx.highlight
@@ -18,33 +18,37 @@ markdown_extensions:
 nav:
   - Overview: index.md
   - Changelog: changelog.md
-  - Getting Started:
-      - getting-started/setup.md
-      - getting-started/examples.md
-  - Core Concepts:
-      - troika-core/facades.md
-      - troika-core/scene-descriptors.md
-      - troika-core/interactivity-and-events.md
-      - troika-core/animations-and-transitions.md
-  - Troika 3D:
-      - troika-3d/index.md
-      - troika-3d/scenes.md
-      - troika-3d/objects.md
-      - troika-3d/interactivity-and-events.md
-      - troika-3d/performance.md
-      - troika-3d/instancing.md
-      - troika-3d/html-overlays.md
-      - troika-3d/text.md
-      - troika-3d-ui/index.md
-  - Three.js Tools:
+  - Troika Framework:
+      - Getting Started:
+          - getting-started/setup.md
+          - getting-started/examples.md
+      - Core Concepts:
+          - troika-core/facades.md
+          - troika-core/scene-descriptors.md
+          - troika-core/interactivity-and-events.md
+          - troika-core/animations-and-transitions.md
+      - Troika 3D:
+          - troika-3d/index.md
+          - troika-3d/scenes.md
+          - troika-3d/objects.md
+          - troika-3d/interactivity-and-events.md
+          - troika-3d/performance.md
+          - troika-3d/instancing.md
+          - troika-3d/html-overlays.md
+          - troika-3d/text.md
+          - troika-3d-ui/index.md
+          - WebXR: troika-xr/index.md
+      - Troika 2D:
+          - troika-2d/index.md
+          - troika-2d/objects.md
+          - troika-2d/html-overlays.md
+  - Troika Tools for Three.js:
       - Troika 3D Text: troika-three-text/index.md
       - Derived Materials: troika-three-utils/createDerivedMaterial.md
       - BezierMesh: troika-three-utils/BezierMesh.md
       - InstancedUniformsMesh: three-instanced-uniforms-mesh/index.md
-  - Troika 2D:
-      - troika-2d/index.md
-      - troika-2d/objects.md
-      - troika-2d/html-overlays.md
+  - Other Tools:
+      - Worker Modules: troika-worker-utils/index.md
 
 
 

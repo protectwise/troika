@@ -1,6 +1,6 @@
 # Troika Text for Three.js
 
-This package provides high quality text rendering in [Three.js](https://threejs.org) scenes, using signed distance fields (SDF) and antialiasing using standard derivatives.
+The `troika-three-text` package provides high quality text rendering in [Three.js](https://threejs.org) scenes, using signed distance fields (SDF) and antialiasing using standard derivatives.
 
 Rather than relying on pre-generated SDF textures, this parses font files (.ttf, .otf, .woff) directly using [Typr](https://github.com/fredli74/Typr.ts), and generates the SDF atlas for glyphs on-the-fly as they are used. It also handles proper kerning and ligature glyph substitution. All font parsing, SDF generation, and glyph layout is performed in a web worker to prevent frame drops.
 
@@ -17,6 +17,7 @@ Once the SDFs are generated, it assembles a geometry that positions all the glyp
 
 * [In the `drei` utilities for react-three-fiber](https://github.com/pmndrs/drei#text)
 * [As an A-Frame component](https://github.com/lojjic/aframe-troika-text)
+* [As a Web Component in three-elements](https://www.npmjs.com/package/@three-elements/text)
 
 ## Screenshots
 
