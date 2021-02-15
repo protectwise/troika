@@ -20,30 +20,11 @@ const openRequests = /*#__PURE__*/(() => {
  * among one another.
  *
  * @param {object} options
- * @param {function} options.init - The main function that initializes the module. This will be run
- *        within the worker, and will be passed the resolved dependencies as arguments. Its
- *        return value becomes the module's content, which can then be used by other modules
- *        that depend on it. This function can perform any logic using those dependencies, but
- *        must not depend on anything from its parent closures.
- * @param {array} [options.dependencies] - Provides any dependencies required by the init function:
- *        - Primitives like strings, numbers, booleans
- *        - Raw functions; these will be stringified and rehydrated within the worker so they
- *          must not depend on anything from their parent closures
- *        - Other worker modules; these will be resolved within the worker, and therefore modules
- *          that provide functions can be called without having to cross the worker/main thread
- *          boundary.
- * @param {function} [options.getTransferables] - An optional function that will be run in the worker
- *        just before posting the response value from a module call back to the main thread.
- *        It will be passed that response value, and if it returns an array then that will be
- *        used as the "transferables" parameter to `postMessage`. Use this if there are values
- *        in the response that can/should be transfered rather than cloned.
- * @param {string} [options.name] - A descriptive name for this module; this can be useful for
- *        debugging but is not currently used for anything else.
- * @param {string} [options.workerId] - By default all modules will run in the same dedicated worker,
- *        but if you want to use multiple workers you can pass a `workerId` to indicate a specific
- *        worker to spawn. Note that each worker is completely standalone and no data or state will
- *        be shared between them. If a worker module is used as a dependency by worker modules
- *        using different `workerId`s, then that dependency will be re-registered in each worker.
+ * @param {function} options.init
+ * @param {array} [options.dependencies]
+ * @param {function} [options.getTransferables]
+ * @param {string} [options.name]
+ * @param {string} [options.workerId]
  * @return {function(...[*]): {then}}
  */
 export function defineWorkerModule(options) {
