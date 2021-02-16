@@ -8,7 +8,7 @@ Troika is a collection of JavaScript tools for creating interactive graphics in 
 The provided tools fall into two main categories:
 
 - The [_Troika Framework_](#troika-framework), a fully featured framework for managing entire scenes with rich interactivity and high performance, and
-- [_Other tools for Three.js_](#troika-threejs-tools), that do not depend on the framework.
+- A growing set of [_other tools for Three.js_](#troika-threejs-tools), that do not depend on that framework.
 
 The Troika project's main goal is to take aspects of developing interactive graphics that you almost always need, but are difficult to manage yourself, and make them as easy as possible.
 
@@ -60,7 +60,7 @@ This can be nice on its own when you don't need 3D, but is also useful as a grac
 
 ## Troika Three.js Tools
 
-Over time, development of the Troika framework has produced certain tools and techniques that are generally useful for Three.js developent. It has become our goal to extract as many of these tools as possible from the Troika framework so they can be used in pure Three.js projects or within other frameworks like AFrame or react-three-fiber.
+Over time, development of the Troika framework has produced certain tools and techniques that are generally useful for Three.js development. It has become our goal to extract as many of these tools as possible from the Troika framework so they can be used in pure Three.js projects or within other frameworks like AFrame or react-three-fiber.
 
 Some of these tools include:
 
@@ -76,3 +76,9 @@ Troika's framework and tools are generally intended to support in the same brows
 
 All source files are ES2015 modules, and can be used un-transpiled in modern browsers supporting `<script type="module">`, though you'll probably still want to combine/tree-shake them with a module-aware build pipeline like [Webpack](https://webpack.js.org/) or [Rollup](https://rollupjs.org/). For older browsers, ES5-transpiled files are provided.
 
+
+## Origins
+
+Troika was developed starting in 2016 by the ProtectWise front end engineering team as an internal tool to enable rapid development of interactive 3D and 2D data visualizations in the ProtectWise Visualizer. As it matured and became an essential part of our toolkit, we realized it could be useful to the broader web developer community and decided to release it as an open source project in early 2019.
+
+Since then, ProtectWise has been acquired by [Verizon Business](https://www.verizon.com/business/products/security/managed-detection-response-services/network-detection-response/), where Troika continues to be used for developing new 3D data visualizations on screens and in immersive WebXR environments.

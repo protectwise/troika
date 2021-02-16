@@ -1,4 +1,4 @@
-site_name: Troika
+site_name: Troika JS
 site_author: Jason Johnston
 repo_url: https://github.com/protectwise/troika
 plugins:
@@ -11,6 +11,8 @@ theme:
     primary: white
   features:
     - navigation.sections
+  icon:
+    logo: fontawesome/regular/file
 markdown_extensions:
   - pymdownx.b64 #not working???
   - pymdownx.highlight
