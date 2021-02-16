@@ -51,7 +51,7 @@ Troika 3D also provides some more advanced capabilities like: position-synced [H
 
 ### Troika 2D
 
-As a separate package, Troika also provides the ability to define using the 2D Canvas API, using the same scene/facade patterns and core conveniences like animations and pointer events.
+As a separate package, Troika also provides the ability to define graphics using the 2D Canvas API, using the same scene/facade patterns and core conveniences like animations and pointer events.
 
 This can be nice on its own when you don't need 3D, but is also useful as a graceful fallback for when WebGL isn't available in the browser.
 

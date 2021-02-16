@@ -4,8 +4,8 @@ Troika is a collection of JavaScript tools for creating interactive graphics in 
 
 The provided tools fall into two main categories:
 
-- The [_Troika Framework_](#troika-framework), a fully featured framework for managing entire scenes with rich interactivity and high performance, and
-- A growing set of [_other tools for Three.js_](#troika-threejs-tools), that do not depend on that framework.
+- The [_Troika Framework_](https://protectwise.github.io/troika/#troika-framework), a fully featured framework for managing entire scenes with rich interactivity and high performance, and
+- A growing set of [_other tools for Three.js_](https://protectwise.github.io/troika/#troika-threejs-tools), that do not depend on that framework.
 
 The Troika project's main goal is to take aspects of developing interactive graphics that you almost always need, but are difficult to manage yourself, and make them as easy as possible.
 
