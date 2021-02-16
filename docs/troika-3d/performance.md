@@ -1,6 +1,6 @@
 ---
 id: 3d-auto-optimizations
-title: Automatic Optimizations
+title: Performance Optimization
 ---
 
 Compared to raw Three.js, Troika automatically performs several optimizations to reduce the CPU time spent on each render frame. Here are the most impactful:
@@ -29,6 +29,10 @@ Troika gives you the best of both worlds by automatically setting `scene.autoUpd
 * The `worldMatrix` is only remultiplied when the local `matrix` or the `worldMatrix` of its parent have changed.
 
 This results in the time taken by matrix calculations dropping to nearly zero when objects are not moving, even for very large scenes.
+
+> NOTE: This is perhaps the single most valuable optimization Troika performs. Not only does it nearly remove the per-frame matrix update cost, but knowing exactly when any object's matrix is changed opens up the possibility for other optimizations like maintaining a [raycasting octree](#raycasting) and more flexible [GPU instancing](./instancing.md) abstractions.
+> 
+> It is our goal to attempt extracting this matrix management capability from Troika's framework code, allowing it to be used in any Three.js scene, even if managed by another framework.
 
 
 ## Raycasting
