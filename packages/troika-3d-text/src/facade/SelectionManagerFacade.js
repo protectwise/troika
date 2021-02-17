@@ -41,6 +41,9 @@ class SelectionManagerFacade extends ListFacade {
     }
 
     const onDragStart = e => {
+      if(e.which===3){
+        return false
+      }
       const textRenderInfo = this.textRenderInfo
       if (textRenderInfo) {
         const localPoint = e.intersection.point.clone().applyMatrix4(invertMatrix4(textMesh.matrixWorld, tempMat4))
