@@ -58,7 +58,7 @@ export function getSelectionRects(textRenderInfo, start, end) {
       return prevResult.rects
     }
 
-    const {caretPositions, caretHeight, blockBounds} = textRenderInfo
+    const {caretPositions, caretHeight} = textRenderInfo
 
     // Normalize
     if (end < start) {
@@ -80,8 +80,8 @@ export function getSelectionRects(textRenderInfo, start, end) {
         row = {left: x1, right: x2, bottom: y, top: y + caretHeight}
         rows.set(y, row)
       } else {
-        row.left = Math.max(Math.min(row.left, x1), blockBounds[0])
-        row.right = Math.min(Math.max(row.right, x2), blockBounds[2])
+        row.left = Math.min(row.left, x1)
+        row.right = Math.max(row.right, x2)
       }
     }
     rects = []

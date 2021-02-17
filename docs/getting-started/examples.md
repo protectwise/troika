@@ -9,7 +9,7 @@ The [troika-examples package](https://github.com/protectwise/troika/tree/master/
 
 ## Viewing the examples
 
-The examples from the latest master branch are published automatically at [https://troika-examples.netlify.com].
+The examples from the latest master branch are published automatically at [https://troika-examples.netlify.com](https://troika-examples.netlify.com).
 
 
 ## Running the examples

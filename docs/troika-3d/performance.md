@@ -14,7 +14,7 @@ Troika controls when the Three.js scene is re-rendered, only doing so when:
 * The scene is updated
 * A facade [`animation` or `transition`](../troika-core/animations-and-transitions.md) is running
 * A facade changes properties due to [`pointerStates`](../troika-core/interactivity-and-events.md#pointer-states) interactions
-* A facade indicates that it requires a re-render by calling `this.notifyWorld('needsRender')`
+* A facade indicates that it requires a re-render by calling its [`requestRender` method](../troika-core/facades.md#requestrender)
 
 
 ## Matrix calculations

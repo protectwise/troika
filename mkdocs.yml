@@ -2,21 +2,27 @@ site_name: Troika JS
 site_author: Jason Johnston
 repo_url: https://github.com/protectwise/troika
 plugins:
-  # - monorepo
   - include-markdown
   - search
+  - git-revision-date
 theme:
   name: material
   palette:
     primary: white
   features:
     - navigation.sections
+    #- toc.integrate
   icon:
     logo: fontawesome/regular/file
+google_analytics:
+  - UA-189971966-1
+  - auto
 markdown_extensions:
   - pymdownx.b64 #not working???
   - pymdownx.highlight
   - pymdownx.superfences
+  - toc:
+      permalink: true
 nav:
   - Overview: index.md
   - Changelog: changelog.md
@@ -52,8 +58,3 @@ nav:
   - Other Tools:
       - Worker Modules: troika-worker-utils/index.md
 
-
-
-
-#  - Troika Core: '!include ./packages/troika-core/mkdocs.yml'
-#  - Troika 3D Text: '../packages/troika-three-text/README.md' #'!include ./packages/troika-three-text/mkdocs.yml'

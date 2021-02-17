@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.39.1](https://github.com/protectwise/troika/compare/v0.39.0...v0.39.1) (2021-02-17)
+
+
+### Bug Fixes
+
+* **troika-three-text:** selection rects no longer clip off trailing whitespace ([158305c](https://github.com/protectwise/troika/commit/158305c9f3f83aa3729b2d32c1ae2d9112540348)), closes [#78](https://github.com/protectwise/troika/issues/78)
+
+
+
+
+
 # [0.39.0](https://github.com/protectwise/troika/compare/v0.38.1...v0.39.0) (2021-02-15)
 
 
