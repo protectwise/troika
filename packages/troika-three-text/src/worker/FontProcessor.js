@@ -401,16 +401,27 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
             }
 
             for (let i = 0; i < lineGlyphCount; i++) {
-              const glyphInfo = line.glyphAt(i)
+              let glyphInfo = line.glyphAt(i)
               const glyphObj = glyphInfo.glyphObj
 
               // Apply position adjustments
               if (lineXOffset) glyphInfo.x += lineXOffset
 
-              // Expand whitespaces for justify alignment
+              // Expand non-trailing whitespaces for justify alignment
               if (justifyAdjust !== 0 && glyphObj.isWhitespace) {
-                lineXOffset += justifyAdjust
-                glyphInfo.width += justifyAdjust
+                let isTrailingWhitespace = true
+                for (let j = i + 1; j < lineGlyphCount; j++) {
+                  glyphInfo = line.glyphAt(j)
+                  if (!glyphInfo.glyphObj.isWhitespace) {
+                    isTrailingWhitespace = false
+                    break
+                  }
+                }
+                glyphInfo = line.glyphAt(i) //restore flyweight
+                if (!isTrailingWhitespace) {
+                  lineXOffset += justifyAdjust
+                  glyphInfo.width += justifyAdjust
+                }
               }
 
               // Add caret positions
