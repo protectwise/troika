@@ -5,7 +5,7 @@ import Stats from './Stats.js'
 import {assign} from '../utils.js'
 
 
-const defaultCanvasStyle = {width: '100%', height: '100%'}
+const defaultCanvasStyle = {width: '100%', height: '100%', userSelect: 'none'}
 
 
 class CanvasBase extends React.Component {
@@ -119,8 +119,7 @@ class CanvasBase extends React.Component {
             overflow: 'hidden',
             width: props.width,
             height: props.height,
-            cursor: props.cursor,
-            userSelect: 'none'
+            cursor: props.cursor
           }
         },
         this._failedWorldInit ? this.props.children : React.createElement(
