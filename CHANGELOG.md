@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.39.2](https://github.com/protectwise/troika/compare/v0.39.1...v0.39.2) (2021-02-18)
+
+
+### Bug Fixes
+
+* **troika-three-text:** fix shader error in WebGL1 ([cdbc7dc](https://github.com/protectwise/troika/commit/cdbc7dc0cac980a0317219a4736cb48ae4bc18eb)), closes [#108](https://github.com/protectwise/troika/issues/108)
+
+
+
+
+
 ## [0.39.1](https://github.com/protectwise/troika/compare/v0.39.0...v0.39.1) (2021-02-17)
 
 
