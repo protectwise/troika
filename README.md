@@ -23,6 +23,6 @@ The Troika project's main goal is to take aspects of developing interactive grap
 
 ----
 
-[![Build Status](https://travis-ci.org/protectwise/troika.svg?branch=master)](https://travis-ci.org/protectwise/troika)
+![Build Status](https://github.com/protectwise/troika/workflows/Continuous%20Integration/badge.svg?branch=master)
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/523722ef-0c71-4bdc-935d-575c73ec1838/deploy-status)](https://app.netlify.com/sites/troika-examples/deploys)
