@@ -31,6 +31,7 @@
     "troika-animation": "^0.39.0",
     "troika-core": "^0.39.0",
     "troika-three-utils": "^0.39.0",
-    "troika-xr": "^0.39.0"
+    "troika-xr": "^0.39.0",
+    "troika-three-text": "^0.39.1"
   }
 }

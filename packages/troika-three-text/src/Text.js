@@ -5,12 +5,17 @@ import {
   Mesh,
   MeshBasicMaterial,
   PlaneBufferGeometry,
+  Vector4,
   Vector3,
   Vector2,
+  BoxBufferGeometry
 } from 'three'
 import { GlyphsGeometry } from './GlyphsGeometry.js'
 import { createTextDerivedMaterial } from './TextDerivedMaterial.js'
 import { getTextRenderInfo } from './TextBuilder.js'
+import { createDerivedMaterial } from 'troika-three-utils'
+import { getSelectionRects } from './selectionUtils'
+
 
 const Text = /*#__PURE__*/(() => {
 
@@ -76,6 +81,26 @@ const Text = /*#__PURE__*/(() => {
    */
   class Text extends Mesh {
     constructor() {
+
+      this._domElSelectedText = document.createElement(this.tagName ? this.tagName : 'p')
+      this._domElText = document.createElement('p')
+      this.selectionStartIndex = null;
+      this.selectionEndIndex = null;
+      this.selectedText = null;
+
+      if(this.domContainer){
+        this.domContainer.appendChild(this._domElSelectedText)
+        this.domContainer.appendChild(this._domElText)
+      }else{
+        document.body.appendChild(this._domElSelectedText)
+        document.body.appendChild(this._domElText)
+      }
+
+      this._domElSelectedText.setAttribute('aria-hidden','true')
+      this._domElText.style = 'position:absolute;left:-99px;opacity:0;overflow:hidden;margin:0px;pointer-events:none;font-size:100vh;'
+      this._domElSelectedText.style = 'position:absolute;left:-99px;opacity:0;overflow:hidden;margin:0px;pointer-events:none;font-size:100vh;'
+
+
       const geometry = new GlyphsGeometry()
       super(geometry, null)
 
@@ -359,6 +384,7 @@ const Text = /*#__PURE__*/(() => {
       this.sdfGlyphSize = null
 
       this.debugSDF = false
+
     }
 
     /**
@@ -436,7 +462,6 @@ const Text = /*#__PURE__*/(() => {
      */
     onBeforeRender(renderer, scene, camera, geometry, material, group) {
       this.sync()
-
       // This may not always be a text material, e.g. if there's a scene.overrideMaterial present
       if (material.isTroikaTextMaterial) {
         this._prepareForRender(material)
@@ -634,6 +659,72 @@ const Text = /*#__PURE__*/(() => {
         value = (isNaN(pct) ? 0 : pct / 100) * this.fontSize
       }
       return value
+    }
+
+    updateSelection() {
+      this.selectionStartIndex = 0;
+      this.selectionEndIndex = 75;
+      this.selectedText = this.text.substring(this.selectionStartIndex,this.selectionEndIndex)
+      let data = getSelectionRects(this._textRenderInfo,this.selectionStartIndex,this.selectionEndIndex)
+      this._domElSelectedText.textContent = this.selectedText
+      this.highlightText(data)
+      this.updateDomPosition()
+    }
+
+    updateDomPosition(){
+      //access camera to project vector etc 
+      //how ? 
+      this._domElSelectedText.posi
+    }
+
+    highlightText(selectionRects) {
+      console.log('highliText')
+      console.log(selectionRects)
+      console.log(this)
+
+      let depth = 0.5;
+
+      for (let key in selectionRects) {
+        let material = createDerivedMaterial(
+        new MeshBasicMaterial({
+          transparent: true,
+          opacity: 0.3,
+          depthWrite: false
+        }),
+        {
+          uniforms: {
+            rect: {value: new Vector4(selectionRects[key].left,selectionRects[key].top,selectionRects[key].right,selectionRects[key].bottom)},
+            depthAndCurveRadius: {value: new Vector2(depth,this.curveRadius)}
+          },
+            vertexDefs: `
+            uniform vec4 rect;
+            uniform vec2 depthAndCurveRadius;
+            `,
+            vertexTransform: `
+            float depth = depthAndCurveRadius.x;
+            float rad = depthAndCurveRadius.y;
+            position.x = mix(rect.x, rect.z, position.x);
+            position.y = mix(rect.w, rect.y, position.y);
+            position.z = mix(-depth * 0.5, depth * 0.5, position.z);
+            if (rad != 0.0) {
+              float angle = position.x / rad;
+              position.xz = vec2(sin(angle) * (rad - position.z), rad - cos(angle) * (rad - position.z));
+              // TODO fix normals: normal.xz = vec2(sin(angle), cos(angle));
+            }
+            `
+          }
+        )
+        material.instanceUniforms = ['rect', 'depthAndCurveRadius', 'diffuse']
+        let selectRect = new Mesh(
+          new BoxBufferGeometry(1, 1, 0.1, 32).translate(0.5, 0.5, 0.5),
+          material
+          // new MeshBasicMaterial({color: 0xffffff,side: DoubleSide,transparent: true, opacity:0.5})
+        )
+        this.add(selectRect)
+      }
+
+
+
     }
 
     /**
