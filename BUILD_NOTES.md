@@ -2,9 +2,9 @@
 
 ## Continuous Integration
 
-All pushes to the GitHub repository will be automatically built and tested by Travis CI. See all the CI builds at [https://travis-ci.org/protectwise/troika]. The current master branch status is: 
+All pushes to the GitHub repository's master branch, as well as all PRs, will be automatically built and tested by [Github Actions](https://github.com/protectwise/troika/actions).
 
-[![Build Status](https://travis-ci.org/protectwise/troika.svg?branch=master)](https://travis-ci.org/protectwise/troika)
+Documentation will also be built and deployed to the docs site for every push to the master branch.
 
 
 ## Publishing New Versions
@@ -35,7 +35,7 @@ npx lerna version --no-push
 
 ...and then manually push to GitHub when you're ready (don't forget to push the tag!)
 
-At this point Travis CI will build and test the new tagged version, but it is _not_ currently set up to publish the results to the NPM registry; for the time being that will be a manual process. To do that:
+At this point the CI will build and test the new tagged version, but it is _not_ currently set up to publish the results to the NPM registry; for the time being that will be a manual process. To do that:
  
  - Make sure the tagged commit is checked out, with no extra files hanging around
 
