@@ -50,8 +50,8 @@
     "build-examples": "lerna exec --scope=troika-examples -- npm run build",
     "serve-examples": "lerna exec --scope=troika-examples -- npm run serve",
     "examples": "npm run serve-examples",
-    "serve-docs": "mkdocs serve",
-    "build-docs": "mkdocs build",
+    "serve-docs": "mkdocs serve --strict",
+    "build-docs": "mkdocs build --strict",
     "deploy-docs": "mkdocs gh-deploy --strict",
     "clean": "lerna exec -- rm -rf dist",
     "lint": "lerna exec -- standard src/**/*.js src/**/*.jsx"
