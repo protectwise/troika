@@ -1,5 +1,37 @@
 import { createDerivedMaterial, voidMainRegExp } from 'troika-three-utils'
-import { Color, Vector2, Vector4, Matrix3 } from 'three'
+import { Color, Vector2, Vector4, Matrix3, Vector3 } from 'three'
+
+const CHAR_WORD_LINE_VAR_DECLS = `
+float charIndex;
+float totalChars;
+float charInWordIndex;
+float totalCharsInWord;
+float charInLineIndex;
+float totalCharsInLine;
+float wordIndex;
+float totalWords;
+float wordInLineIndex;
+float totalWordsInLine;
+float lineIndex;
+float totalLines;
+`
+
+const CHAR_WORD_LINE_VAR_ASSIGNMENTS = `
+totalChars = uTroikaCharWordLineTotals.x;
+totalWords = uTroikaCharWordLineTotals.y;
+totalLines = uTroikaCharWordLineTotals.z;
+
+charIndex = vTroikaCharIndices.x;
+charInLineIndex = vTroikaCharIndices.y;
+totalCharsInLine = vTroikaCharIndices.z;
+charInWordIndex = floor(vTroikaCharIndices.w / 256.0 + 0.5);
+totalCharsInWord = mod(vTroikaCharIndices.w, 256.0);
+
+wordIndex = vTroikaWordLineIndices.x;
+wordInLineIndex = vTroikaWordLineIndices.y;
+totalWordsInLine = vTroikaWordLineIndices.z;
+lineIndex = vTroikaWordLineIndices.w;
+`
 
 // language=GLSL
 const VERTEX_DEFS = `
@@ -13,14 +45,19 @@ uniform float uTroikaDistanceOffset;
 uniform float uTroikaBlurRadius;
 uniform vec2 uTroikaPositionOffset;
 uniform float uTroikaCurveRadius;
+uniform vec3 uTroikaCharWordLineTotals;
 attribute vec4 aTroikaGlyphBounds;
-attribute float aTroikaGlyphIndex;
+attribute float aTroikaGlyphAtlasIndex;
 attribute vec3 aTroikaGlyphColor;
+attribute vec4 aTroikaCharIndices;
+attribute vec4 aTroikaWordLineIndices;
 varying vec2 vTroikaGlyphUV;
 varying vec4 vTroikaTextureUVBounds;
 varying float vTroikaTextureChannel;
 varying vec3 vTroikaGlyphColor;
 varying vec2 vTroikaGlyphDimensions;
+varying vec4 vTroikaCharIndices;
+varying vec4 vTroikaWordLineIndices;
 `
 
 // language=GLSL prefix="void main() {" suffix="}"
@@ -64,11 +101,11 @@ ${''/* NOTE: it seems important to calculate the glyph's bounding texture UVs he
 float txCols = uTroikaSDFTextureSize.x / uTroikaSDFGlyphSize;
 vec2 txUvPerSquare = uTroikaSDFGlyphSize / uTroikaSDFTextureSize;
 vec2 txStartUV = txUvPerSquare * vec2(
-  mod(floor(aTroikaGlyphIndex / 4.0), txCols),
-  floor(floor(aTroikaGlyphIndex / 4.0) / txCols)
+  mod(floor(aTroikaGlyphAtlasIndex / 4.0), txCols),
+  floor(floor(aTroikaGlyphAtlasIndex / 4.0) / txCols)
 );
 vTroikaTextureUVBounds = vec4(txStartUV, vec2(txStartUV) + txUvPerSquare);
-vTroikaTextureChannel = mod(aTroikaGlyphIndex, 4.0);
+vTroikaTextureChannel = mod(aTroikaGlyphAtlasIndex, 4.0);
 `
 
 // language=GLSL
@@ -84,11 +121,14 @@ uniform float uTroikaBlurRadius;
 uniform vec3 uTroikaStrokeColor;
 uniform float uTroikaStrokeWidth;
 uniform float uTroikaStrokeOpacity;
+uniform vec3 uTroikaCharWordLineTotals;
 uniform bool uTroikaSDFDebug;
 varying vec2 vTroikaGlyphUV;
 varying vec4 vTroikaTextureUVBounds;
 varying float vTroikaTextureChannel;
 varying vec2 vTroikaGlyphDimensions;
+varying vec4 vTroikaCharIndices;
+varying vec4 vTroikaWordLineIndices;
 
 float troikaSdfValueToSignedDistance(float alpha) {
   // Inverse of encoding in SDFGenerator.js
@@ -230,11 +270,18 @@ export function createTextDerivedMaterial(baseMaterial) {
       uTroikaStrokeOpacity: {value: 1},
       uTroikaOrient: {value: new Matrix3()},
       uTroikaUseGlyphColors: {value: true},
+      uTroikaCharWordLineTotals: {value: new Vector3()},
       uTroikaSDFDebug: {value: false}
     },
     vertexDefs: VERTEX_DEFS,
+    vertexMainIntro: `
+      vTroikaCharIndices = aTroikaCharIndices;
+      vTroikaWordLineIndices = aTroikaWordLineIndices;
+      ${CHAR_WORD_LINE_VAR_ASSIGNMENTS}
+    `,
     vertexTransform: VERTEX_TRANSFORM,
     fragmentDefs: FRAGMENT_DEFS,
+    fragmentMainIntro: CHAR_WORD_LINE_VAR_ASSIGNMENTS,
     fragmentColorTransform: FRAGMENT_TRANSFORM,
     customRewriter({vertexShader, fragmentShader}) {
       let uDiffuseRE = /\buniform\s+vec3\s+diffuse\b/
@@ -251,6 +298,10 @@ export function createTextDerivedMaterial(baseMaterial) {
           )
         }
       }
+
+      vertexShader = `${CHAR_WORD_LINE_VAR_DECLS}\n${vertexShader}`
+      fragmentShader = `${CHAR_WORD_LINE_VAR_DECLS}\n${fragmentShader}`
+
       return { vertexShader, fragmentShader }
     }
   })

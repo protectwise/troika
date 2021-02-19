@@ -180,6 +180,8 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
       anchorX = 0,
       anchorY = 0,
       includeCaretPositions=false,
+      includeCharIndices=false,
+      includeWordAndLineIndices=false,
       chunkedBoundsSize=8192,
       colorRanges=null
     },
@@ -209,6 +211,9 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
       let glyphBounds = null
       let glyphAtlasIndices = null
       let glyphColors = null
+      let charIndices = null
+      let wordAndLineIndices = null
+      let totalChars = 0, totalWords = 0, totalLines = 0
       let caretPositions = null
       let visibleBounds = null
       let chunkedBounds = null
@@ -354,6 +359,8 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
         // collecting all renderable glyphs into a single collection.
         glyphBounds = new Float32Array(renderableGlyphCount * 4)
         glyphAtlasIndices = new Float32Array(renderableGlyphCount)
+        charIndices = includeCharIndices && new Float32Array(renderableGlyphCount * 4) //index-overall, index-in-line, total-in-line, index-in-word+total-in-word
+        wordAndLineIndices = includeWordAndLineIndices && new Float32Array(renderableGlyphCount * 4) //word-overall, word-in-line, total-in-line, line
         visibleBounds = [INF, INF, -INF, -INF]
         chunkedBounds = []
         let lineYOffset = topBaseline
@@ -368,11 +375,20 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
         let colorCharIndex = -1
         let chunk
         let currentColor
+        let charIndex = 0
+        let charInWordIndex = 0
+        let charsInWordCount = 0
+        let charInLineIndex = 0
+        let wordIndex = 0
+        let wordInLineIndex = 0
+        let lineIndex = 0
         lines.forEach(line => {
           const {count:lineGlyphCount, width:lineWidth} = line
 
           // Ignore empty lines
           if (lineGlyphCount > 0) {
+            totalLines++
+
             // Find x offset for horizontal alignment
             let lineXOffset = 0
             let justifyAdjust = 0
@@ -398,6 +414,21 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
                 }
               }
               justifyAdjust = (maxLineWidth - lineWidth) / whitespaceCount
+            }
+
+            // Count visible chars and words in full line
+            let charsInLineCount = 0
+            let wordsInLineCount = 0
+            if (includeCharIndices || includeWordAndLineIndices) {
+              for (let i = 0; i < lineGlyphCount; i++) {
+                const glyphInfo = line.glyphAt(i)
+                if (!glyphInfo.glyphObj.isWhitespace) {
+                  charsInLineCount++
+                  if (i === 0 || line.glyphAt(i - 1).glyphObj.isWhitespace) {
+                    wordsInLineCount++
+                  }
+                }
+              }
             }
 
             for (let i = 0; i < lineGlyphCount; i++) {
@@ -456,6 +487,7 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
 
               // Get atlas data for renderable glyphs
               if (!glyphObj.isWhitespace && !glyphObj.isEmpty) {
+                totalChars++
                 const idx = renderableGlyphIndex++
 
                 // If we haven't seen this glyph yet, generate its SDF
@@ -515,6 +547,34 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
                 // Add to atlas indices array
                 glyphAtlasIndices[idx] = glyphAtlasInfo.atlasIndex
 
+                // Char/word/line indices
+                if (includeCharIndices) {
+                  // If this is the start of a word, step forward to count total chars in the word
+                  if (charInWordIndex === 0) {
+                    totalWords++
+                    for (let j = i; j < lineGlyphCount; j++) {
+                      if (line.glyphAt(j).glyphObj.isWhitespace) {
+                        break
+                      }
+                      charsInWordCount++
+                    }
+                    glyphInfo = line.glyphAt(i) //restore flyweight
+                  }
+
+                  // index-overall, index-in-line, total-in-line, index-in-word+total-in-word
+                  charIndices[idx * 4] = charIndex++
+                  charIndices[idx * 4 + 1] = charInLineIndex++
+                  charIndices[idx * 4 + 2] = charsInLineCount
+                  charIndices[idx * 4 + 3] = (Math.min(256, charInWordIndex++) << 8) | Math.min(256, charsInWordCount)
+                }
+                if (includeWordAndLineIndices) {
+                  //word-overall, word-in-line, total-words-in-line, line
+                  wordAndLineIndices[idx * 4] = wordIndex
+                  wordAndLineIndices[idx * 4 + 1] = wordInLineIndex
+                  wordAndLineIndices[idx * 4 + 2] = wordsInLineCount
+                  wordAndLineIndices[idx * 4 + 3] = lineIndex
+                }
+
                 // Add colors
                 if (colorRanges) {
                   const start = idx * 3
@@ -522,12 +582,23 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
                   glyphColors[start + 1] = currentColor >> 8 & 255
                   glyphColors[start + 2] = currentColor & 255
                 }
+              } else {
+                // End of word
+                wordIndex++
+                wordInLineIndex++
+                charInWordIndex = 0
+                charsInWordCount = 0
               }
             }
           }
 
           // Increment y offset for next line
           lineYOffset -= lineHeight
+
+          lineIndex++
+          wordInLineIndex = 0
+          charInLineIndex = 0
+          charInWordIndex = 0
         })
       }
 
@@ -545,6 +616,11 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
         caretHeight, //height of cursor from bottom to top
         glyphColors, //color for each glyph, if color ranges supplied
         chunkedBounds, //total rects per (n=chunkedBoundsSize) consecutive glyphs
+        charIndices,
+        wordAndLineIndices,
+        totalChars,
+        totalWords,
+        totalLines,
         ascender: ascender * fontSizeMult, //font ascender
         descender: descender * fontSizeMult, //font descender
         lineHeight, //computed line height

@@ -194,34 +194,35 @@ function getTextRenderInfo(args, callback) {
     }
 
     // Invoke callback with the text layout arrays and updated texture
-    callback(Object.freeze({
+    const textRenderInfo = {
       parameters: args,
       sdfTexture: atlas.sdfTexture,
       sdfGlyphSize,
-      sdfExponent,
-      glyphBounds: result.glyphBounds,
-      glyphAtlasIndices: result.glyphAtlasIndices,
-      glyphColors: result.glyphColors,
-      caretPositions: result.caretPositions,
-      caretHeight: result.caretHeight,
-      chunkedBounds: result.chunkedBounds,
-      ascender: result.ascender,
-      descender: result.descender,
-      lineHeight: result.lineHeight,
-      topBaseline: result.topBaseline,
-      blockBounds: result.blockBounds,
-      visibleBounds: result.visibleBounds,
-      timings: result.timings,
-      get totalBounds() {
-        console.log('totalBounds deprecated, use blockBounds instead')
-        return result.blockBounds
-      },
-      get totalBlockSize() {
-        console.log('totalBlockSize deprecated, use blockBounds instead')
-        const [x0, y0, x1, y1] = result.blockBounds
-        return [x1 - x0, y1 - y0]
-      }
-    }))
+      sdfExponent
+    }
+    ;[ //copy specific props from result object
+      'glyphBounds',
+      'glyphAtlasIndices',
+      'glyphColors',
+      'caretPositions',
+      'caretHeight',
+      'chunkedBounds',
+      'charIndices',
+      'wordAndLineIndices',
+      'totalChars',
+      'totalWords',
+      'totalLines',
+      'ascender',
+      'descender',
+      'lineHeight',
+      'topBaseline',
+      'blockBounds',
+      'visibleBounds',
+      'timings'
+    ].forEach(prop => {
+      textRenderInfo[prop] = result[prop]
+    })
+    callback(Object.freeze(textRenderInfo))
   })
 }
 

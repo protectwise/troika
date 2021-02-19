@@ -80,8 +80,33 @@ const MATERIALS = {
       normal.xyz = normalize(vec3(-cos(waveX) * waveAmplitude, 0.0, 1.0));
       position.z += waveZ;
     `
+  }),
+  'charIndex': indexAnimatorMaterial('charIndex', 'totalChars'),
+  'charInWordIndex': indexAnimatorMaterial('charInWordIndex', 'totalCharsInWord'),
+  'charInLineIndex': indexAnimatorMaterial('charInLineIndex', 'totalCharsInLine'),
+  'wordIndex': indexAnimatorMaterial('wordIndex', 'totalWords'),
+  'wordInLineIndex': indexAnimatorMaterial('wordInLineIndex', 'totalWordsInLine'),
+  'lineIndex': indexAnimatorMaterial('lineIndex', 'totalLines'),
+}
+
+function indexAnimatorMaterial(indexVar, totalVar) {
+  return createDerivedMaterial(new MeshBasicMaterial(), {
+    timeUniform: 'elapsed',
+    // vertexTransform: `
+    // // float angle = mix(0.0, PI / 2.0, ${indexVar} / ${totalVar});
+    // // position.z = position.y * cos(angle);
+    // // position.y *= sin(angle);
+    // //
+    // // position *= clamp(0.0, 1.0, (elapsed / 10.0 - ${indexVar}) / 10.0);
+    // `,
+    fragmentColorTransform: `
+    float angle = ${indexVar} / ${totalVar} * PI * 2.0;
+    gl_FragColor = vec4( sin(angle) / 2.0 + 0.5, cos(angle) / 2.0 + 0.5, tan(angle) / 2.0 + 0.5, 1.0 );
+    `
   })
 }
+
+
 const MATERIAL_OPTS = Object.keys(MATERIALS)
 Object.keys(MATERIALS).forEach(name => {
   MATERIALS[name + '+Texture'] = MATERIALS[name].clone()
@@ -116,7 +141,7 @@ class TextExample extends React.Component {
       curveRadius: 0,
       fog: false,
       animTextColor: true,
-      animTilt: true,
+      animTilt: false,
       animRotate: false,
       material: 'MeshStandardMaterial',
       useTexture: false,

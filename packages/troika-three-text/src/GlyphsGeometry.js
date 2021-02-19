@@ -20,8 +20,10 @@ const GlyphsGeometry = /*#__PURE__*/(() => {
   const tempVec3 = new Vector3()
 
   const glyphBoundsAttrName = 'aTroikaGlyphBounds'
-  const glyphIndexAttrName = 'aTroikaGlyphIndex'
+  const atlasIndexAttrName = 'aTroikaGlyphAtlasIndex'
   const glyphColorAttrName = 'aTroikaGlyphColor'
+  const charIndicesAttrName = 'aTroikaCharIndices'
+  const wordAndLineIndicesAttrName = 'aTroikaWordLineIndices'
 
   /**
   @class GlyphsGeometry
@@ -108,11 +110,13 @@ const GlyphsGeometry = /*#__PURE__*/(() => {
      *        used with `applyClipRect` to choose an optimized `instanceCount`.
      * @param {Uint8Array} [glyphColors] - An array holding r,g,b values for each glyph.
      */
-    updateGlyphs(glyphBounds, glyphAtlasIndices, blockBounds, chunkedBounds, glyphColors) {
+    updateGlyphs(glyphBounds, glyphAtlasIndices, blockBounds, chunkedBounds, glyphColors, charIndices, wordAndLineIndices) {
       // Update the instance attributes
       updateBufferAttr(this, glyphBoundsAttrName, glyphBounds, 4)
-      updateBufferAttr(this, glyphIndexAttrName, glyphAtlasIndices, 1)
+      updateBufferAttr(this, atlasIndexAttrName, glyphAtlasIndices, 1)
       updateBufferAttr(this, glyphColorAttrName, glyphColors, 3)
+      updateBufferAttr(this, charIndicesAttrName, charIndices, 4)
+      updateBufferAttr(this, wordAndLineIndicesAttrName, wordAndLineIndices, 4)
       this._chunkedBounds = chunkedBounds
       setInstanceCount(this, glyphAtlasIndices.length)
 
@@ -145,7 +149,7 @@ const GlyphsGeometry = /*#__PURE__*/(() => {
      * @param {Vector4} clipRect
      */
     applyClipRect(clipRect) {
-      let count = this.getAttribute(glyphIndexAttrName).count
+      let count = this.getAttribute(atlasIndexAttrName).count
       let chunks = this._chunkedBounds
       if (chunks) {
         for (let i = chunks.length; i--;) {
