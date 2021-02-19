@@ -393,6 +393,8 @@ const Text = /*#__PURE__*/(() => {
             anchorY: this.anchorY,
             colorRanges: this.colorRanges,
             includeCaretPositions: true, //TODO parameterize
+            includeCharIndices: true, //TODO parameterize
+            includeWordAndLineIndices: true, //TODO parameterize
             sdfGlyphSize: this.sdfGlyphSize
           }, textRenderInfo => {
             this._isSyncing = false
@@ -406,7 +408,9 @@ const Text = /*#__PURE__*/(() => {
               textRenderInfo.glyphAtlasIndices,
               textRenderInfo.blockBounds,
               textRenderInfo.chunkedBounds,
-              textRenderInfo.glyphColors
+              textRenderInfo.glyphColors,
+              textRenderInfo.charIndices,
+              textRenderInfo.wordAndLineIndices,
             )
 
             // If we had extra sync requests queued up, kick it off
@@ -540,6 +544,7 @@ const Text = /*#__PURE__*/(() => {
         uniforms.uTroikaSDFExponent.value = textInfo.sdfExponent
         uniforms.uTroikaTotalBounds.value.fromArray(blockBounds)
         uniforms.uTroikaUseGlyphColors.value = !isOutline && !!textInfo.glyphColors
+        uniforms.uTroikaCharWordLineTotals.value.set(textInfo.totalChars, textInfo.totalWords, textInfo.totalLines)
 
         let distanceOffset = 0
         let blurRadius = 0
