@@ -59,6 +59,7 @@ Canvas3D.propTypes = utils.assignIf(
     toneMapping: T.number,
     lights: T.array,
     camera: T.object,
+    fog: T.object,
     objects: T.oneOfType([T.array, T.object]).isRequired,
     antialias: T.bool,
     onBackgroundClick: T.func,

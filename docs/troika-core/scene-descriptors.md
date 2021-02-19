@@ -56,7 +56,7 @@ If omitted, Troika will generate a key internally based on the `facade` subclass
 
 ### `children`
 
-Many Troika facades (those inheriting from `ParentFacade`) allow a `children` property,pointing to an array of child descriptors, or a single child descriptor object if there is only one.
+Many Troika facades (those inheriting from [`ParentFacade`](./facades.md#parentfacade)) allow a `children` property, pointing to an array of child descriptors, or a single child descriptor object if there is only one.
 
 ```js
 {
