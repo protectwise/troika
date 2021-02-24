@@ -1,5 +1,5 @@
 import { ListFacade } from 'troika-3d'
-import { Matrix4, Plane, Vector3 } from 'three'
+import { Matrix4, Plane, Vector2, Vector3 } from 'three'
 import { getCaretAtPoint, getSelectionRects } from 'troika-three-text'
 import { invertMatrix4 } from 'troika-three-utils'
 import SelectionRangeRect from './SelectionRangeRect.js'
@@ -8,6 +8,7 @@ const THICKNESS = 0.25 //rect depth as percentage of height
 
 const tempMat4 = new Matrix4()
 const tempPlane = new Plane()
+const tempVec2 = new Vector2()
 const tempVec3 = new Vector3()
 const noClip = Object.freeze([-Infinity, -Infinity, Infinity, Infinity])
 
@@ -41,10 +42,10 @@ class SelectionManagerFacade extends ListFacade {
     }
 
     const onDragStart = e => {
-      const textRenderInfo = this.textRenderInfo
+      const textRenderInfo = textMesh.textRenderInfo
       if (textRenderInfo) {
-        const localPoint = e.intersection.point.clone().applyMatrix4(invertMatrix4(textMesh.matrixWorld, tempMat4))
-        const caret = getCaretAtPoint(textRenderInfo, localPoint.x, localPoint.y)
+        const textPos = textMesh.worldPositionToTextCoords(e.intersection.point, tempVec2)
+        const caret = getCaretAtPoint(textRenderInfo, textPos.x, textPos.y)
         if (caret) {
           onSelectionChange(caret.charIndex, caret.charIndex)
           parent.addEventListener('drag', onDrag)
@@ -57,11 +58,18 @@ class SelectionManagerFacade extends ListFacade {
     const onDrag = e => {
       const textRenderInfo = textMesh.textRenderInfo
       if (e.ray && textRenderInfo) {
-        // Raycast to an infinite plane so dragging outside the text bounds will work
-        const ray = e.ray.clone().applyMatrix4(invertMatrix4(textMesh.matrixWorld, tempMat4))
-        const localPoint = ray.intersectPlane(tempPlane.setComponents(0, 0, 1, 0), tempVec3)
-        if (localPoint) {
-          const caret = getCaretAtPoint(textRenderInfo, localPoint.x, localPoint.y)
+        // If it's hitting on the Text mesh, do an exact translation; otherwise raycast to an
+        // infinite plane so dragging outside the text bounds will work
+        let textPos
+        const ix = e.intersection
+        if (ix && ix.object === textMesh && ix.point) {
+          textPos = textMesh.worldPositionToTextCoords(ix.point, tempVec2)
+        } else {
+          const ray = e.ray.clone().applyMatrix4(invertMatrix4(textMesh.matrixWorld, tempMat4))
+          textPos = ray.intersectPlane(tempPlane.setComponents(0, 0, 1, 0), tempVec3)
+        }
+        if (textPos) {
+          const caret = getCaretAtPoint(textRenderInfo, textPos.x, textPos.y)
           if (caret) {
             onSelectionChange(this.selectionStart, caret.charIndex)
           }

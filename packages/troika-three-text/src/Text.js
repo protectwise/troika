@@ -32,10 +32,22 @@ const Text = /*#__PURE__*/(() => {
     return Array.isArray(o) ? o[0] : o
   }
 
-  const raycastMesh = new Mesh(
-    new PlaneBufferGeometry(1, 1).translate(0.5, 0.5, 0),
-    defaultMaterial
-  )
+  let getFlatRaycastMesh = () => {
+    const mesh = new Mesh(
+      new PlaneBufferGeometry(1, 1),
+      defaultMaterial
+    )
+    getFlatRaycastMesh = () => mesh
+    return mesh
+  }
+  let getCurvedRaycastMesh = () => {
+    const mesh = new Mesh(
+      new PlaneBufferGeometry(1, 1, 32, 1),
+      defaultMaterial
+    )
+    getCurvedRaycastMesh = () => mesh
+    return mesh
+  }
 
   const syncStartEvent = {type: 'syncstart'}
   const syncCompleteEvent = {type: 'synccomplete'}
@@ -62,6 +74,7 @@ const Text = /*#__PURE__*/(() => {
     'color',
     'depthOffset',
     'clipRect',
+    'curveRadius',
     'orientation',
     'glyphGeometryDetail'
   )
@@ -520,6 +533,13 @@ const Text = /*#__PURE__*/(() => {
       this.geometry.detail = detail
     }
 
+    get curveRadius() {
+      return this.geometry.curveRadius
+    }
+    set curveRadius(r) {
+      this.geometry.curveRadius = r
+    }
+
     // Create and update material for shadows upon request:
     get customDepthMaterial() {
       return first(this.material).getDepthMaterial()
@@ -637,22 +657,49 @@ const Text = /*#__PURE__*/(() => {
     }
 
     /**
+     * Translate a point in local space to an x/y in the text plane.
+     */
+    localPositionToTextCoords(position, target = new Vector2()) {
+      target.copy(position) //simple non-curved case is 1:1
+      const r = this.curveRadius
+      if (r) { //flatten the curve
+        target.x = Math.atan2(position.x, Math.abs(r) - Math.abs(position.z)) * Math.abs(r)
+      }
+      return target
+    }
+
+    /**
+     * Translate a point in world space to an x/y in the text plane.
+     */
+    worldPositionToTextCoords(position, target = new Vector2()) {
+      return this.localPositionToTextCoords(this.worldToLocal(position), target)
+    }
+
+    /**
      * @override Custom raycasting to test against the whole text block's max rectangular bounds
      * TODO is there any reason to make this more granular, like within individual line or glyph rects?
      */
     raycast(raycaster, intersects) {
-      const textInfo = this.textRenderInfo
-      if (textInfo) {
-        const bounds = textInfo.blockBounds
-        raycastMesh.matrixWorld.multiplyMatrices(
-          this.matrixWorld,
-          tempMat4.set(
-            bounds[2] - bounds[0], 0, 0, bounds[0],
-            0, bounds[3] - bounds[1], 0, bounds[1],
-            0, 0, 1, 0,
-            0, 0, 0, 1
-          )
-        )
+      const {textRenderInfo, curveRadius} = this
+      if (textRenderInfo) {
+        const bounds = textRenderInfo.blockBounds
+        const raycastMesh = curveRadius ? getCurvedRaycastMesh() : getFlatRaycastMesh()
+        const geom = raycastMesh.geometry
+        const {position, uv} = geom.attributes
+        for (let i = 0; i < uv.count; i++) {
+          let x = bounds[0] + (uv.getX(i) * (bounds[2] - bounds[0]))
+          const y = bounds[1] + (uv.getY(i) * (bounds[3] - bounds[1]))
+          let z = 0
+          if (curveRadius) {
+            z = curveRadius - Math.cos(x / curveRadius) * curveRadius
+            x = Math.sin(x / curveRadius) * curveRadius
+          }
+          position.setXYZ(i, x, y, z)
+        }
+        geom.boundingSphere = this.geometry.boundingSphere
+        geom.boundingBox = this.geometry.boundingBox
+        raycastMesh.matrixWorld = this.matrixWorld
+        raycastMesh.material.side = this.material.side
         tempArray.length = 0
         raycastMesh.raycast(raycaster, tempArray)
         for (let i = 0; i < tempArray.length; i++) {

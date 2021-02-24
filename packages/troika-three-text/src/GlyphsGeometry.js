@@ -58,6 +58,7 @@ const GlyphsGeometry = /*#__PURE__*/(() => {
       super()
 
       this.detail = 1
+      this.curveRadius = 0
 
       // Define groups for rendering text outline as a separate pass; these will only
       // be used when the `material` getter returns an array, i.e. outlineWidth > 0.
@@ -66,17 +67,17 @@ const GlyphsGeometry = /*#__PURE__*/(() => {
         {start: 0, count: Infinity, materialIndex: 1}
       ]
 
-      // Preallocate zero-radius bounding sphere
+      // Preallocate empty bounding objects
       this.boundingSphere = new Sphere()
-      this.boundingBox = new Box3();
+      this.boundingBox = new Box3()
     }
 
     computeBoundingSphere () {
-      // No-op; we'll sync the boundingSphere proactively in `updateGlyphs`.
+      // No-op; we'll sync the boundingSphere proactively when needed.
     }
 
     computeBoundingBox() {
-      // No-op; we'll sync the boundingBox proactively in `updateGlyphs`.
+      // No-op; we'll sync the boundingBox proactively when needed.
     }
 
     set detail(detail) {
@@ -96,6 +97,16 @@ const GlyphsGeometry = /*#__PURE__*/(() => {
       return this._detail
     }
 
+    set curveRadius(r) {
+      if (r !== this._curveRadius) {
+        this._curveRadius = r
+        this._updateBounds()
+      }
+    }
+    get curveRadius() {
+      return this._curveRadius
+    }
+
     /**
      * Update the geometry for a new set of glyphs.
      * @param {Float32Array} glyphBounds - An array holding the planar bounds for all glyphs
@@ -113,22 +124,37 @@ const GlyphsGeometry = /*#__PURE__*/(() => {
       updateBufferAttr(this, glyphBoundsAttrName, glyphBounds, 4)
       updateBufferAttr(this, glyphIndexAttrName, glyphAtlasIndices, 1)
       updateBufferAttr(this, glyphColorAttrName, glyphColors, 3)
+      this._blockBounds = blockBounds
       this._chunkedBounds = chunkedBounds
       setInstanceCount(this, glyphAtlasIndices.length)
+      this._updateBounds()
+    }
 
-      // Update the boundingSphere based on the total bounds
-      const sphere = this.boundingSphere
-      sphere.center.set(
-        (blockBounds[0] + blockBounds[2]) / 2,
-        (blockBounds[1] + blockBounds[3]) / 2,
-        0
-      )
-      sphere.radius = sphere.center.distanceTo(tempVec3.set(blockBounds[0], blockBounds[1], 0))
-
-      // Update the boundingBox based on the total bounds
-      const box = this.boundingBox;
-      box.min.set(blockBounds[0], blockBounds[1], 0);
-      box.max.set(blockBounds[2], blockBounds[3], 0);
+    _updateBounds() {
+      const bounds = this._blockBounds
+      if (bounds) {
+        const { curveRadius, boundingBox: bbox } = this
+        if (curveRadius) {
+          const { PI, floor, min, max, sin, cos } = Math
+          const halfPi = PI / 2
+          const twoPi = PI * 2
+          const absR = Math.abs(curveRadius)
+          const leftAngle = bounds[0] / absR
+          const rightAngle = bounds[2] / absR
+          const minX = floor((leftAngle + halfPi) / twoPi) !== floor((rightAngle + halfPi) / twoPi)
+            ? -absR : min(sin(leftAngle) * absR, sin(rightAngle) * absR)
+          const maxX = floor((leftAngle - halfPi) / twoPi) !== floor((rightAngle - halfPi) / twoPi)
+            ? absR : max(sin(leftAngle) * absR, sin(rightAngle) * absR)
+          const maxZ = floor((leftAngle + PI) / twoPi) !== floor((rightAngle + PI) / twoPi)
+            ? absR * 2 : max(absR - cos(leftAngle) * absR, absR - cos(rightAngle) * absR)
+          bbox.min.set(minX, bounds[1], curveRadius < 0 ? -maxZ : 0)
+          bbox.max.set(maxX, bounds[3], curveRadius < 0 ? 0 : maxZ)
+        } else {
+          bbox.min.set(bounds[0], bounds[1], 0)
+          bbox.max.set(bounds[2], bounds[3], 0)
+        }
+        bbox.getBoundingSphere(this.boundingSphere)
+      }
     }
 
     /**

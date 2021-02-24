@@ -223,6 +223,9 @@ class TextExample extends React.Component {
               onSyncComplete() {
                 console.log(this.textRenderInfo.timings)
               },
+              // onMouseMove: e => {
+              //   this.setState({hoverPoint: e.intersection.point})
+              // },
               colorRanges: state.colorRanges ? TEXTS[state.text].split('').reduce((out, char, i) => {
                 if (i === 0 || /\s/.test(char)) {
                   out[i] = (Math.floor(Math.pow(Math.sin(i), 2) * 256) << 16)
@@ -268,8 +271,20 @@ class TextExample extends React.Component {
                   duration: 10000,
                   iterations: Infinity
                 } : null
-              ]
+              ],
+              // children: {
+              //   key: 'bbox',
+              //   facade: TextBBoxHelper
+              // }
             },
+            // state.hoverPoint ? {
+            //   key: 'hover',
+            //   facade: SphereFacade,
+            //   radius: state.fontSize / 10,
+            //   x: state.hoverPoint.x,
+            //   y: state.hoverPoint.y,
+            //   z: state.hoverPoint.z
+            // } : null,
             state.shadows ? {
               key: 'plane',
               facade: ShadowSurface,
@@ -381,6 +396,20 @@ class ShadowSurface extends Object3DFacade {
   }
 }
 
+//Helper to show the geometry's boundingBox - add as child of the Text3DFacade
+/*
+class TextBBoxHelper extends Object3DFacade {
+  constructor (parent) {
+    const helper = new Box3Helper(new Box3())
+    super(parent, helper)
+    helper.matrixAutoUpdate = true
+  }
+  updateMatrices() {
+    this.threeObject.box = this.parent.threeObject.geometry.boundingBox || new Box3()
+    this.threeObject.updateMatrixWorld(true)
+  }
+}
+*/
 
 TextExample.propTypes = {
   width: T.number,
