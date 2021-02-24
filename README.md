@@ -19,7 +19,7 @@ The Troika project's main goal is to take aspects of developing interactive grap
 
 ----
 
-**[View the Troika Documentation](https://protectwise.github.com/troika)**
+**[View the Troika Documentation](https://protectwise.github.io/troika)**
 
 ----
 
