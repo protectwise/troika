@@ -28,7 +28,7 @@ const wallsOutlineMaterial = new LineBasicMaterial({
 })
 
 export default class Zone extends Object3DFacade {
-  constructor(parent) {
+  initThreeObject() {
     let group = new Group()
 
     // translucent walls
@@ -40,7 +40,7 @@ export default class Zone extends Object3DFacade {
     let outline = new Line(wallsOutlineGeometry, wallsOutlineMaterial)
     group.add(outline)
 
-    super(parent, group)
+    return group
   }
 
   set width(w) {

@@ -20,7 +20,7 @@ const material = new MeshPhongMaterial({
 })
 
 export default class Box extends Object3DFacade {
-  constructor(parent) {
-    super(parent, new Mesh(geometry, material))
+  initThreeObject() {
+    return new Mesh(geometry, material)
   }
 }

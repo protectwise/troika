@@ -20,9 +20,16 @@ This is just a base class, so in most cases it will be more convenient for you t
 
 ### Construction
 
-Every concrete subclass of `Object3DFacade` must create and pass a Three.js `Object3D` instance (a `Mesh`, `Line`, etc.) to the constructor `super` call. That object will be made available as `this.threeObject`, and will be guaranteed to never change during the lifetime of the facade instance. This strict contract makes it easier to reason about in other logic, and allows Troika to apply certain optimizations it couldn't otherwise.
+Every concrete subclass of `Object3DFacade` must create a Three.js `Object3D` instance (a `Mesh`, `Line`, `Group`, etc.) that will become the backing implementation for that facade. It will be stored as `this.threeObject` for use later on, and will be guaranteed to never change during the lifetime of the facade instance. This strict contract makes it easier to reason about in other logic, and allows Troika to apply certain optimizations it couldn't otherwise.
 
-An example constructor:
+To create the `Object3D`, you can either:
+
+1) Implement the `initThreeObject()` method and return the `Object3D` instance, or
+2) Override the `constructor` and pass the `Object3D` as a second argument to `super(parent, obj3D)`
+
+Generally the first method is preferred, though if you're already overriding the constructor for other purposes then the second method can be easier.
+
+An example using `initThreeObject()`:
 
 ```js
 import { Object3DFacade } from 'troika-3d'
@@ -33,19 +40,30 @@ import { Mesh, BoxBufferGeometry, MeshStandardMaterial } from 'three'
 const geometry = new BoxBufferGeometry()
 
 class MyObject extends Object3DFacade {
-  constructor(parent) {
-    const threeObj = new Mesh(
-      geometry,
-      new MeshStandardMaterial()
-    )
-    super(parent, threeObj)
+  initThreeObject() {
+    return new Mesh(geometry, new MeshStandardMaterial())
   }
   
   afterUpdate() {
-    // The underlying object can be referenced as `threeObject`:
+    // The Mesh created above can be referenced as `threeObject`:
     this.threeObject.material.color.set(this.color)
     super.afterUpdate()
   }
+}
+```
+
+Or an example `constructor` override:
+
+```js
+//...
+
+class MyObject extends Object3DFacade {
+  constructor(parent) {
+    const threeObj = new Mesh(geometry, new MeshStandardMaterial())
+    super(parent, threeObj)
+  }
+  
+  // ...
 }
 ```
 
@@ -54,7 +72,7 @@ class MyObject extends Object3DFacade {
 
 The following properties are supported by all `Object3DFacade` subclasses:
 
-- `threeObject` - This is a reference to the Three.js `Object3D` instance that was passed to the constructor. This will be a stable reference, never changing during the facade instance's lifetime. It will be deleted upon destruction, however.
+- `threeObject` - This is a reference to the Three.js `Object3D` instance that was created in the `initThreeObject` method or the constructor. This will be a stable reference, never changing during the facade instance's lifetime. It will be deleted upon destruction, however.
 
 - `parent` - This is a reference to the parent _Facade_ instance. This will be a stable reference, never changing during the facade instance's lifetime. It will be deleted upon destruction, however.
 

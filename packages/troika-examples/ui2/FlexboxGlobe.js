@@ -7,14 +7,14 @@ let geom
 
 
 class Globe extends Object3DFacade {
-  constructor(parent) {
-    super(parent, new Mesh(
+  initThreeObject() {
+    return new Mesh(
       geom || (geom = new SphereBufferGeometry(0.5, 64, 64)),
       new MeshStandardMaterial({
         roughness: 0.5,
         metalness: 0.5
       })
-    ))
+    )
   }
 
   set texture(val) {

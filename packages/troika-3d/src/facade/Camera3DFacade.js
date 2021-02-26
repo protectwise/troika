@@ -26,17 +26,20 @@ let _projectionMatrixVersion = 0
 export function createCameraFacade(threeJsCameraClass, projectionProps, otherProps) {
   class Camera3DFacade extends Object3DFacade {
     constructor(parent) {
-      const camera = new threeJsCameraClass()
-      super(parent, camera)
+      super(parent)
       this.lookAt = this.up = null
       this._projectionChanged = false
       this._frustum = new Frustum()
+    }
 
+    initThreeObject () {
+      const camera = new threeJsCameraClass()
       // Forcibly prevent updateMatrixWorld from doing anything when called; the renderer
       // likes to call this even though matrixAutoUpdate=false which can sometimes clobber
       // our optimized `updateMatrices` handling and any custom adjustments it may make.
       // TODO consider doing this at the Object3DFacade level?
       camera.updateMatrixWorld = noop
+      return camera
     }
 
     afterUpdate() {

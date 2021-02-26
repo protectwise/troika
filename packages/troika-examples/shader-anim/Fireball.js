@@ -76,7 +76,7 @@ const fragmentShader = `
 // base image texture for mesh
 var lavaTexture = new TextureLoader().load( 'shader-anim/lava.jpg' );
 lavaTexture.wrapS = lavaTexture.wrapT = RepeatWrapping;
-// multiplier for distortion speed 
+// multiplier for distortion speed
 var baseSpeed = 0.02;
 // number of times to repeat texture in each direction
 var repeatS = 4.0;
@@ -90,22 +90,22 @@ var noiseScale = 0.5;
 
 // texture to additively blend with base image texture
 var blendTexture = lavaTexture;
-// multiplier for distortion speed 
+// multiplier for distortion speed
 var blendSpeed = 0.01;
 // adjust lightness/darkness of blended texture
 var blendOffset = 0.25;
 
 // texture to determine normal displacement
 var bumpTexture = noiseTexture;
-// multiplier for distortion speed 
+// multiplier for distortion speed
 var bumpSpeed   = 0.15;
 // magnitude of normal displacement
 var bumpScale   = 40.0;
 
 
 export class Fireball extends Object3DFacade {
-  constructor(parent) {
-    super(parent, new Mesh(
+  initThreeObject() {
+    return new Mesh(
       new SphereGeometry( 60, 64, 64 ),
       new ShaderMaterial({
         uniforms: {
@@ -127,7 +127,7 @@ export class Fireball extends Object3DFacade {
         vertexShader: vertexShader,
         fragmentShader: fragmentShader
       })
-    ))
+    )
   }
 
   set time(time) {

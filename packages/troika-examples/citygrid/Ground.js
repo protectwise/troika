@@ -10,9 +10,8 @@ const groundMaterial = new MeshPhongMaterial({
 })
 
 export default class Ground extends Object3DFacade {
-  constructor(parent) {
-    let mesh = new Mesh(groundGeometry, groundMaterial)
-    super(parent, mesh)
+  initThreeObject() {
+    return new Mesh(groundGeometry, groundMaterial)
   }
 
   set width(w) {

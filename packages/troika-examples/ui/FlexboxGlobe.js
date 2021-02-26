@@ -4,15 +4,15 @@ import { Mesh, MeshStandardMaterial, SphereBufferGeometry, TextureLoader } from 
 
 
 class FlexboxGlobe extends Object3DFacade {
-  constructor(parent) {
-    super(parent, new Mesh(
+  initThreeObject() {
+    return new Mesh(
       new SphereBufferGeometry(0.5, 64, 64),
       new MeshStandardMaterial({
         map: new TextureLoader().load('globe/texture_day.jpg'),
         roughness: 0.5,
         metalness: 0.5
       })
-    ))
+    )
   }
 
   afterUpdate() {

@@ -14,7 +14,7 @@ const material = new MeshBasicMaterial({
 })
 
 export default class Sun extends Object3DFacade {
-  constructor(parent) {
-    super(parent, new Mesh(geometry, material.clone()))
+  initThreeObject() {
+    return new Mesh(geometry, material.clone())
   }
 }

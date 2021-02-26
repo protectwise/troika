@@ -48,11 +48,15 @@ export const MESH_MATERIALS = {
  */
 export class MeshFacade extends Object3DFacade {
   constructor (parent) {
-    super(parent, new Mesh(dummyGeometry, dummyMaterial))
+    super(parent)
     this.material = 'standard'
     this.autoDisposeGeometry = false
     this.autoDisposeMaterial = false
     this._dirtyMtlProps = null
+  }
+
+  initThreeObject () {
+    return new Mesh(dummyGeometry, dummyMaterial)
   }
 
   afterUpdate() {

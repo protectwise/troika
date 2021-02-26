@@ -61,13 +61,13 @@ const threatColors = {
 
 
 class Host extends Object3DFacade {
-  constructor(parent) {
+  initThreeObject() {
     let material = hostMaterials.None //.clone()
 
     let mesh = new Mesh(hostGeometry, material)
     mesh.renderOrder = 10 //prevent occlusion by translucent Zone walls
 
-    super(parent, mesh)
+    return mesh
   }
 
   set height(h) {

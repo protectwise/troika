@@ -57,15 +57,15 @@ const waterUniforms = {
 
 
 class Cube extends Object3DFacade {
-  constructor(parent) {
-    super(parent, new Mesh(
+  initThreeObject() {
+    return new Mesh(
       new BoxBufferGeometry(100, 100, 100),
       new ShaderMaterial({
         uniforms: lavaUniforms,
         vertexShader: vertexShader,
         fragmentShader: fragmentShader
       })
-    ))
+    )
   }
 
   set time(time) {

@@ -6,8 +6,8 @@ import { Mesh, MeshStandardMaterial, SphereBufferGeometry, TextureLoader } from 
  * A globe that participates in flexbox layout
  */
 class FlexboxGlobe extends Object3DFacade {
-  constructor(parent) {
-    super(parent, new Mesh(
+  initThreeObject() {
+    return new Mesh(
       new SphereBufferGeometry(0.5, 64, 64),
       new MeshStandardMaterial({
         map: new TextureLoader().load('globe/texture_day.jpg'),
@@ -17,7 +17,7 @@ class FlexboxGlobe extends Object3DFacade {
         transparent: true,
         depthTest: false
       })
-    ))
+    )
   }
 
   afterUpdate() {

@@ -47,8 +47,8 @@ class Light3DFacade extends Object3DFacade {
 
 export function createLightFacade(ThreeJsLightClass, HelperClass, customProtoDefs) {
   const Cls = class extends Light3DFacade {
-    constructor(parent) {
-      super(parent, new ThreeJsLightClass())
+    initThreeObject() {
+      return new ThreeJsLightClass()
     }
     set showHelper(showHelper) {
       let helper = this._helper

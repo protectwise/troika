@@ -1,5 +1,5 @@
 import { PointerEventTarget, Facade, utils } from 'troika-core'
-import { Vector3, Sphere } from 'three'
+import { Vector3, Sphere, Object3D } from 'three'
 
 const {assign, forOwn} = utils
 const singletonVec3 = new Vector3()
@@ -33,6 +33,10 @@ class Object3DFacade extends PointerEventTarget {
   constructor(parent, threeObject) {
     super(parent)
 
+    if (!threeObject) {
+      threeObject = this.initThreeObject()
+    }
+
     // We'll track matrix updates manually
     threeObject.matrixAutoUpdate = false
 
@@ -60,6 +64,21 @@ class Object3DFacade extends PointerEventTarget {
     }
 
     this.notifyWorld('object3DAdded')
+  }
+
+  /**
+   * Lifecycle method, called at constructor time, that creates and returns a Three.js `Object3D`
+   * instance which will become the `threeObject` for this facade. This is a more ergonomic
+   * alternative than overriding the constructor to pass the `threeObject` as a second argument
+   * to the super() call. By default it creates a plain Object3D marked as non-renderable so it
+   * is not added to the Three.js tree.
+   * @return {Object3D}
+   * @protected
+   */
+  initThreeObject() {
+    const obj = new Object3D()
+    obj.isRenderable = false //trigger optimizations
+    return obj
   }
 
   afterUpdate() {

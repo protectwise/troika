@@ -14,7 +14,7 @@ const material = new MeshPhongMaterial({
 })
 
 export default class Dot extends Object3DFacade {
-  constructor(parent) {
-    super(parent, new Mesh(geometry, material))
+  initThreeObject() {
+    return new Mesh(geometry, material)
   }
 }

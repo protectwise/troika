@@ -29,8 +29,8 @@ const material = new MeshPhongMaterial({
 })
 
 export default class Sphere extends Object3DFacade {
-  constructor(parent) {
-    super(parent, new Mesh(LOD_GEOMETRIES[0], material.clone()))
+  initThreeObject() {
+    return new Mesh(LOD_GEOMETRIES[0], material.clone())
   }
 
   afterUpdate() {

@@ -12,8 +12,8 @@ import {
 const geometry = new SphereBufferGeometry(1)
 
 class NonInstanceableSphere extends Object3DFacade {
-  constructor(parent) {
-    super(parent, new Mesh(geometry, new MeshPhongMaterial()))
+  initThreeObject() {
+    return new Mesh(geometry, new MeshPhongMaterial())
   }
 
   afterUpdate() {

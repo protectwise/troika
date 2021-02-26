@@ -8,12 +8,11 @@ const baseCountryMaterial = new MeshPhongMaterial()
 
 
 export default class Country extends Object3DFacade {
-  constructor(parent) {
-    let mesh = new Mesh(
+  initThreeObject() {
+    return new Mesh(
       new CountryBufferGeometry(),
       baseCountryMaterial.clone()
     )
-    super(parent, mesh)
   }
 
   set coords(coords) {

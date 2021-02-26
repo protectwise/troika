@@ -24,8 +24,8 @@ const material = new LineBasicMaterial({
 })
 
 export default class Orbit extends Object3DFacade {
-  constructor(parent) {
-    super(parent, new Line(geometry, material))
+  initThreeObject() {
+    return new Line(geometry, material)
   }
 
   set distance(d) {
