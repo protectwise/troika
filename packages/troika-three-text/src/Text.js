@@ -5,12 +5,17 @@ import {
   Mesh,
   MeshBasicMaterial,
   PlaneBufferGeometry,
+  Vector4,
   Vector3,
   Vector2,
+  BoxBufferGeometry
 } from 'three'
 import { GlyphsGeometry } from './GlyphsGeometry.js'
 import { createTextDerivedMaterial } from './TextDerivedMaterial.js'
 import { getTextRenderInfo } from './TextBuilder.js'
+import { createDerivedMaterial } from 'troika-three-utils'
+import { getSelectionRects, getCaretAtPoint } from './selectionUtils'
+
 
 const Text = /*#__PURE__*/(() => {
 
@@ -32,22 +37,10 @@ const Text = /*#__PURE__*/(() => {
     return Array.isArray(o) ? o[0] : o
   }
 
-  let getFlatRaycastMesh = () => {
-    const mesh = new Mesh(
-      new PlaneBufferGeometry(1, 1),
-      defaultMaterial
-    )
-    getFlatRaycastMesh = () => mesh
-    return mesh
-  }
-  let getCurvedRaycastMesh = () => {
-    const mesh = new Mesh(
-      new PlaneBufferGeometry(1, 1, 32, 1),
-      defaultMaterial
-    )
-    getCurvedRaycastMesh = () => mesh
-    return mesh
-  }
+  const raycastMesh = new Mesh(
+    new PlaneBufferGeometry(1, 1).translate(0.5, 0.5, 0),
+    defaultMaterial
+  )
 
   const syncStartEvent = {type: 'syncstart'}
   const syncCompleteEvent = {type: 'synccomplete'}
@@ -74,7 +67,6 @@ const Text = /*#__PURE__*/(() => {
     'color',
     'depthOffset',
     'clipRect',
-    'curveRadius',
     'orientation',
     'glyphGeometryDetail'
   )
@@ -89,6 +81,37 @@ const Text = /*#__PURE__*/(() => {
    */
   class Text extends Mesh {
     constructor() {
+
+      this._domElSelectedText = document.createElement('p')
+      this._domElText = document.createElement(this.tagName ? this.tagName : 'p')
+      this.selectionStartIndex = 0;
+      this.selectionEndIndex = 0;
+      this.selectedText = null;
+
+      if(this.domContainer){
+        this.domContainer.appendChild(this._domElSelectedText)
+        this.domContainer.appendChild(this._domElText)
+      }else{
+        document.body.appendChild(this._domElSelectedText)
+        document.body.appendChild(this._domElText)
+      }
+
+      this._domElSelectedText.setAttribute('aria-hidden','true')
+      this._domElText.style = 'position:absolute;left:-99px;opacity:0;overflow:hidden;margin:0px;pointer-events:none;font-size:100vh;'
+      this._domElSelectedText.style = 'position:absolute;left:-99px;opacity:0;overflow:hidden;margin:0px;pointer-events:none;font-size:100vh;'
+
+      this.startObservingMutation()
+
+      this.selectionRect = []
+
+      //TODO test html support
+
+      //syncing html on top of text can slow down the page if used with multiple Text instance
+      //sometime the text is purely decorative and it makes no sense for it to be accessible, so it should be possible to disable / enable it
+      //the default is to be discussed 
+      this.supportScreenReader = false
+      this.selectable = false
+
       const geometry = new GlyphsGeometry()
       super(geometry, null)
 
@@ -99,6 +122,8 @@ const Text = /*#__PURE__*/(() => {
        * The string of text to be rendered.
        */
       this.text = ''
+      this.prevText = ''
+      this.currentText = ''
 
       /**
        * @deprecated Use `anchorX` and `anchorY` instead
@@ -384,6 +409,15 @@ const Text = /*#__PURE__*/(() => {
       if (this._needsSync) {
         this._needsSync = false
 
+        /* detect text change coming from the component */
+        if(this.prevText !== this.text){
+          this.currentText = this.text
+          this.selectionStartIndex = this.selectionEndIndex = -1
+          this.prevText = this.text
+        }
+        
+        this.currentText = this.currentText ? this.currentText : this.text
+
         // If there's another sync still in progress, queue
         if (this._isSyncing) {
           (this._queuedSyncs || (this._queuedSyncs = [])).push(callback)
@@ -392,7 +426,7 @@ const Text = /*#__PURE__*/(() => {
           this.dispatchEvent(syncStartEvent)
 
           getTextRenderInfo({
-            text: this.text,
+            text: this.currentText,
             font: this.font,
             fontSize: this.fontSize || 0.1,
             letterSpacing: this.letterSpacing || 0,
@@ -432,12 +466,26 @@ const Text = /*#__PURE__*/(() => {
               })
             }
 
+            //update dom with latest text
+            if(this._domElText.textContent !== this.currentText){
+              this._domElText.textContent = this.currentText;
+            }
+
             this.dispatchEvent(syncCompleteEvent)
             if (callback) {
               callback()
             }
           })
         }
+      }
+    }
+
+    onAfterRender(){
+      if( this.supportScreenReader ){
+        this.updateDomPosition()
+      }
+      if( this.selectable ){
+        this.updateSelectedDomPosition()
       }
     }
 
@@ -448,6 +496,8 @@ const Text = /*#__PURE__*/(() => {
      * @override
      */
     onBeforeRender(renderer, scene, camera, geometry, material, group) {
+      this.camera = camera
+      this.renderer = renderer
       this.sync()
 
       // This may not always be a text material, e.g. if there's a scene.overrideMaterial present
@@ -531,13 +581,6 @@ const Text = /*#__PURE__*/(() => {
     }
     set glyphGeometryDetail(detail) {
       this.geometry.detail = detail
-    }
-
-    get curveRadius() {
-      return this.geometry.curveRadius
-    }
-    set curveRadius(r) {
-      this.geometry.curveRadius = r
     }
 
     // Create and update material for shadows upon request:
@@ -676,30 +719,253 @@ const Text = /*#__PURE__*/(() => {
     }
 
     /**
+     * Given a local x/y coordinate in the text block plane, set the start position of the caret 
+     * used in text selection 
+     * @param {number} x
+     * @param {number} y
+     * @return {TextCaret | null}
+     */
+    getCaret(x,y){
+      let caret = getCaretAtPoint(this.textRenderInfo, x, y)
+      this.selectionStartIndex = caret.charIndex
+      this.selectionEndIndex = caret.charIndex
+      this.updateSelection()
+      return caret
+    }
+
+    /**
+     * Given a local x/y coordinate in the text block plane, set the end position of the caret 
+     * used in text selection 
+     * @param {number} x
+     * @param {number} y
+     * @return {TextCaret | null}
+     */
+    testCaret(x,y){
+      let caret = getCaretAtPoint(this.textRenderInfo, x, y)
+      this.selectionEndIndex = caret.charIndex
+      this.updateSelection()
+      return caret
+    }
+
+    /**
+     * update the selection visually and everything related to copy /paste
+     */
+    updateSelection() {
+      if(this.selectable){
+        this.selectedText = this.text.substring(this.selectionStartIndex,this.selectionEndIndex)
+        this.selectionRect = getSelectionRects(this._textRenderInfo,this.selectionStartIndex,this.selectionEndIndex)
+        this._domElSelectedText.textContent = this.selectedText
+        this.selectDomText()
+        this.updateSelectedDomPosition()
+      }else{
+        this.selectedText = null
+        this.selectionRect = []
+      }
+    }
+
+    /**
+     * Select the text contened in _domElSelectedText in order for it to reflect what's currently selected in the Text
+     */
+    selectDomText(){
+      this.highlightText( this.selectionRect)
+        const sel = document.getSelection()
+        sel.removeAllRanges()
+        const range = document.createRange()
+        range.selectNodeContents(this._domElSelectedText); //sets Range
+        sel.removeAllRanges(); //remove all ranges from selection
+        sel.addRange(range);
+    }
+
+    /**
+     * update the position of the overlaying HTML that contain all the text that need to be accessible to screen readers
+     */
+    updateDomPosition(){
+      let bbox = this.renderer.domElement.getBoundingClientRect()
+      let width = bbox.width
+      let height = bbox.height
+      let left = bbox.left
+      let top = bbox.top
+      var widthHalf = width / 2, heightHalf = height / 2;
+
+      var max  = new Vector3(0,0,0);
+      var min  = new Vector3(0,0,0);
+      this.geometry.computeBoundingBox()
+      max.copy(this.geometry.boundingBox.max).applyMatrix4( this.matrixWorld );
+      max = max.project(this.camera);
+      min.copy(this.geometry.boundingBox.min).applyMatrix4( this.matrixWorld );
+      min = min.project(this.camera);
+
+      max.x = ( max.x * widthHalf ) + widthHalf;
+      max.y = - ( max.y * heightHalf ) + heightHalf;
+      min.x = ( min.x * widthHalf ) + widthHalf;
+      min.y = - ( min.y * heightHalf ) + heightHalf;
+
+      this._domElText.style.left = Math.min(min.x,max.x)+left+'px';
+      this._domElText.style.top = Math.min(min.y,max.y)+top+'px';
+      this._domElText.style.width = Math.abs(max.x-min.x)+'px';
+      this._domElText.style.height = Math.abs(max.y-min.y)+'px';
+    }
+
+    /**
+     * update the position of the overlaying HTML that contain
+     * the selected text in order for it to be acessible through context menu copy
+     */
+    updateSelectedDomPosition(){
+      if(this.children.length === 0){
+        return
+      }
+      
+      let bbox = this.renderer.domElement.getBoundingClientRect()
+      let width = bbox.width
+      let height = bbox.height
+      let left = bbox.left
+      let top = bbox.top
+      var widthHalf = width / 2, heightHalf = height / 2;
+
+      var max  = new Vector3(0,0,0);
+      var min  = new Vector3(0,0,0);
+
+      let i=0;
+      for (let key in this.selectionRect) {
+        if(i===0){
+          max.x  = Math.max(this.selectionRect[key].left,this.selectionRect[key].right);
+          max.y  = Math.max(this.selectionRect[key].top,this.selectionRect[key].bottom);
+          max.z  = 0;
+          min.x  = Math.min(this.selectionRect[key].left,this.selectionRect[key].right);
+          min.y  = Math.min(this.selectionRect[key].top,this.selectionRect[key].bottom);
+          min.z  = 0;
+        }else{
+          max.x  = Math.max(max.x,this.selectionRect[key].left,this.selectionRect[key].right);
+          max.y  = Math.max(max.y,this.selectionRect[key].top,this.selectionRect[key].bottom);
+          max.z  = Math.max(0,max.z);
+          min.x  = Math.min(min.x,this.selectionRect[key].left,this.selectionRect[key].right);
+          min.y  = Math.min(min.y,this.selectionRect[key].top,this.selectionRect[key].bottom);
+          min.z  = Math.min(0,min.z);
+        }
+        i++;
+      }
+
+      //todo, adjust with text position 
+      // max.x+=1
+      // min.x+=1
+      // max.y+=-1
+      // min.y+=-1
+      // max.z+=3
+      // min.z+=3
+
+      max = max.project(this.camera);
+      min = min.project(this.camera);
+      
+      max.x = ( max.x * widthHalf ) + widthHalf;
+      max.y = - ( max.y * heightHalf ) + heightHalf;
+      min.x = ( min.x * widthHalf ) + widthHalf;
+      min.y = - ( min.y * heightHalf ) + heightHalf;
+
+      this._domElSelectedText.style.left =  Math.min(min.x,max.x)+left+'px';
+      this._domElSelectedText.style.top = Math.min(min.y,max.y)+top+'px';
+      this._domElSelectedText.style.width = Math.abs(max.x-min.x)+'px';
+      this._domElSelectedText.style.height = Math.abs(max.y-min.y)+'px';
+    }
+
+    /**
+     * visually update the rendering of the text selection in the renderer context
+     */
+    highlightText(selectionRects) {
+
+      let depth = 0.5;
+
+      //todo manage rect update in a cleaner way. Currently we recreate everything everytime
+      this.children = []
+
+      for (let key in selectionRects) {
+        let material = createDerivedMaterial(
+        new MeshBasicMaterial({
+          transparent: true,
+          opacity: 0.3,
+          depthWrite: false
+        }),
+        {
+          uniforms: {
+            rect: {value: new Vector4(selectionRects[key].left,selectionRects[key].top,selectionRects[key].right,selectionRects[key].bottom)},
+            depthAndCurveRadius: {value: new Vector2(depth,this.curveRadius)}
+          },
+            vertexDefs: `
+            uniform vec4 rect;
+            uniform vec2 depthAndCurveRadius;
+            `,
+            vertexTransform: `
+            float depth = depthAndCurveRadius.x;
+            float rad = depthAndCurveRadius.y;
+            position.x = mix(rect.x, rect.z, position.x);
+            position.y = mix(rect.w, rect.y, position.y);
+            position.z = mix(-depth * 0.5, depth * 0.5, position.z);
+            if (rad != 0.0) {
+              float angle = position.x / rad;
+              position.xz = vec2(sin(angle) * (rad - position.z), rad - cos(angle) * (rad - position.z));
+              // TODO fix normals: normal.xz = vec2(sin(angle), cos(angle));
+            }
+            `
+          }
+        )
+        material.instanceUniforms = ['rect', 'depthAndCurveRadius', 'diffuse']
+        let selectRect = new Mesh(
+          new BoxBufferGeometry(1, 1, 0.1, 32).translate(0.5, 0.5, 0.5),
+          material
+          // new MeshBasicMaterial({color: 0xffffff,side: DoubleSide,transparent: true, opacity:0.5})
+        )
+        this.add(selectRect)
+      }
+
+    }
+
+    /**
+     * Start watching change on the overlaying HTML such as browser dom translation in order to reflect it in the renderer context
+     */
+    startObservingMutation(){
+      //todo right now each Text class has its own MutationObserver, maybe it cn cause issues if used with multiple Text
+      this.observer = new MutationObserver(this.mutationCallback.bind(this));
+      // Start observing the target node for change ( e.g. page translate )
+      this.observer.observe(this._domElText, { attributes: false, childList: true, subtree: false });
+    }
+
+    /**
+     * When a change occurs on the overlaying HTML, it reflect it in the renderer context
+     */
+    mutationCallback(mutationsList, observer) {
+      if(this._domElText.textContent != this.currentText){
+        this.currentText = this._domElText.textContent
+        console.log(this.currentText)
+        this._needsSync = true;
+        this.sync(()=>{
+          this.selectedText != '' ? this.updateSelection() : null
+        })
+      }
+    }
+    
+    /**
+     * stop monitoring dom change
+     */
+    stopObservingMutation(){
+      this.observer.disconnect();
+    }
+
+    /**
      * @override Custom raycasting to test against the whole text block's max rectangular bounds
      * TODO is there any reason to make this more granular, like within individual line or glyph rects?
      */
     raycast(raycaster, intersects) {
-      const {textRenderInfo, curveRadius} = this
-      if (textRenderInfo) {
-        const bounds = textRenderInfo.blockBounds
-        const raycastMesh = curveRadius ? getCurvedRaycastMesh() : getFlatRaycastMesh()
-        const geom = raycastMesh.geometry
-        const {position, uv} = geom.attributes
-        for (let i = 0; i < uv.count; i++) {
-          let x = bounds[0] + (uv.getX(i) * (bounds[2] - bounds[0]))
-          const y = bounds[1] + (uv.getY(i) * (bounds[3] - bounds[1]))
-          let z = 0
-          if (curveRadius) {
-            z = curveRadius - Math.cos(x / curveRadius) * curveRadius
-            x = Math.sin(x / curveRadius) * curveRadius
-          }
-          position.setXYZ(i, x, y, z)
-        }
-        geom.boundingSphere = this.geometry.boundingSphere
-        geom.boundingBox = this.geometry.boundingBox
-        raycastMesh.matrixWorld = this.matrixWorld
-        raycastMesh.material.side = this.material.side
+      const textInfo = this.textRenderInfo
+      if (textInfo) {
+        const bounds = textInfo.blockBounds
+        raycastMesh.matrixWorld.multiplyMatrices(
+          this.matrixWorld,
+          tempMat4.set(
+            bounds[2] - bounds[0], 0, 0, bounds[0],
+            0, bounds[3] - bounds[1], 0, bounds[1],
+            0, 0, 1, 0,
+            0, 0, 0, 1
+          )
+        )
         tempArray.length = 0
         raycastMesh.raycast(raycaster, tempArray)
         for (let i = 0; i < tempArray.length; i++) {
@@ -725,6 +991,7 @@ const Text = /*#__PURE__*/(() => {
       return new this.constructor().copy(this)
     }
   }
+
 
 
   // Create setters for properties that affect text layout:

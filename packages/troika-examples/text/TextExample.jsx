@@ -121,10 +121,11 @@ class TextExample extends React.Component {
       material: 'MeshStandardMaterial',
       useTexture: false,
       shadows: false,
-      selectable: false,
+      selectable: true,
       colorRanges: false,
       sdfGlyphSize: 6,
-      debugSDF: false
+      debugSDF: false,
+      supportScreenReader: true
     }
 
     this._onConfigUpdate = (newState) => {
@@ -212,6 +213,7 @@ class TextExample extends React.Component {
               strokeWidth: state.strokeWidth,
               strokeColor: state.strokeColor,
               curveRadius: state.curveRadius,
+              supportScreenReader: state.supportScreenReader,
               material: material,
               color: 0xffffff,
               scaleX: state.textScale || 1,
@@ -314,6 +316,7 @@ class TextExample extends React.Component {
                 {type: 'boolean', path: "shadows", label: "Shadows"},
                 {type: 'boolean', path: "colorRanges", label: "colorRanges (WIP)"},
                 {type: 'boolean', path: "selectable", label: "Selectable (WIP)"},
+                {type: 'boolean', path: "supportScreenReader", label: "Support Screen readers (WIP)"},
                 {type: 'number', path: "fontSize", label: "fontSize", min: 0.01, max: 0.2, step: 0.01},
                 {type: 'number', path: "textScale", label: "scale", min: 0.1, max: 10, step: 0.1},
                 //{type: 'number', path: "textIndent", label: "indent", min: 0.1, max: 1, step: 0.01},

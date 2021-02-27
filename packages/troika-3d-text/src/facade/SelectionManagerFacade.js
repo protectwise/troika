@@ -1,6 +1,5 @@
 import { ListFacade } from 'troika-3d'
 import { Matrix4, Plane, Vector2, Vector3 } from 'three'
-import { getCaretAtPoint, getSelectionRects } from 'troika-three-text'
 import { invertMatrix4 } from 'troika-three-utils'
 import SelectionRangeRect from './SelectionRangeRect.js'
 
@@ -42,10 +41,13 @@ class SelectionManagerFacade extends ListFacade {
     }
 
     const onDragStart = e => {
+      if(e.which===3){//contextmenu
+        return false
+      }
       const textRenderInfo = textMesh.textRenderInfo
       if (textRenderInfo) {
         const textPos = textMesh.worldPositionToTextCoords(e.intersection.point, tempVec2)
-        const caret = getCaretAtPoint(textRenderInfo, textPos.x, textPos.y)
+        const caret = textMesh.getCaret(textPos.x, textPos.y)
         if (caret) {
           onSelectionChange(caret.charIndex, caret.charIndex)
           parent.addEventListener('drag', onDrag)
@@ -56,6 +58,9 @@ class SelectionManagerFacade extends ListFacade {
     }
 
     const onDrag = e => {
+      if(e.which===3){//contextmenu
+        return false
+      }
       const textRenderInfo = textMesh.textRenderInfo
       if (e.ray && textRenderInfo) {
         // If it's hitting on the Text mesh, do an exact translation; otherwise raycast to an
@@ -69,7 +74,7 @@ class SelectionManagerFacade extends ListFacade {
           textPos = ray.intersectPlane(tempPlane.setComponents(0, 0, 1, 0), tempVec3)
         }
         if (textPos) {
-          const caret = getCaretAtPoint(textRenderInfo, textPos.x, textPos.y)
+          const caret = textMesh.testCaret(textPos.x, textPos.y)
           if (caret) {
             onSelectionChange(this.selectionStart, caret.charIndex)
           }
@@ -85,6 +90,16 @@ class SelectionManagerFacade extends ListFacade {
 
     parent.addEventListener('dragstart', onDragStart)
     parent.addEventListener('mousedown', onDragStart)
+    var canvas = parent.getSceneFacade().parent._threeRenderer.domElement;
+    canvas.addEventListener('contextmenu',(e)=>{
+      textMesh._domElSelectedText.style.pointerEvents = 'auto'
+      textMesh.updateSelection()
+      window.setTimeout(()=>{
+        textMesh._domElSelectedText.style.pointerEvents = 'none'
+        console.log('contextmenu')
+      },50)
+      console.log('contextmenu')
+    })
 
     this._cleanupEvents = () => {
       onDragEnd()
@@ -94,7 +109,6 @@ class SelectionManagerFacade extends ListFacade {
   }
 
   afterUpdate() {
-    this.data = getSelectionRects(this.textRenderInfo, this.selectionStart, this.selectionEnd)
     super.afterUpdate()
   }
 
