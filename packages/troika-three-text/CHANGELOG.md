@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.40.0](https://github.com/protectwise/troika/compare/v0.39.2...v0.40.0) (2021-02-28)
+
+
+### Bug Fixes
+
+* **troika-three-text:** fix boundingBox, boundingSphere, and raycasting with curveRadius ([7cc7c82](https://github.com/protectwise/troika/commit/7cc7c821eca8f7ae63170d9a484e806bc8814a94)), closes [#103](https://github.com/protectwise/troika/issues/103)
+
+
+
+
+
 ## [0.39.2](https://github.com/protectwise/troika/compare/v0.39.1...v0.39.2) (2021-02-18)
 
 
