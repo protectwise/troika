@@ -131,26 +131,9 @@ export class Bezier3DInstanceableFacade extends Instanceable3DFacade {
         mesh = new BezierMesh()
         mesh.castShadow = true //TODO - figure out how to control shadow casting
         mesh.material = material
-        mesh.material.instanceUniforms = this.getInstanceUniforms()
         instancingMeshes.set(material, mesh)
       }
       this.instancedThreeObject = mesh
     }
-  }
-
-  getInstanceUniforms() {
-    return [
-      'pointA',
-      'controlA',
-      'controlB',
-      'pointB',
-      'radius',
-      'dashing',
-
-      // Set up instancing for material color and opacity by default; users can specify additional
-      // material-specific uniforms by extending and overriding. TODO - find a nicer way
-      'diffuse',
-      'opacity'
-    ]
   }
 }

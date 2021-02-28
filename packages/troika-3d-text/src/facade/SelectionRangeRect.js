@@ -33,7 +33,6 @@ if (rad != 0.0) {
 `
     }
   )
-  material.instanceUniforms = ['rect', 'depthAndCurveRadius', 'diffuse']
   const meshes = {
     normal: new Mesh(
       new BoxBufferGeometry(1, 1, 1).translate(0.5, 0.5, 0.5),
