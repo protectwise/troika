@@ -25,6 +25,7 @@ const Text = /*#__PURE__*/(() => {
     transparent: true
   })
   const defaultStrokeColor = 0x808080
+  const defaultSelectionColor = 0xffffff
 
   const tempMat4 = new Matrix4()
   const tempVec3a = new Vector3()
@@ -114,7 +115,7 @@ const Text = /*#__PURE__*/(() => {
 
       this.startObservingMutation()
 
-      this.selectionRect = []
+      this.selectionRects = []
 
       //TODO test html support
 
@@ -265,6 +266,15 @@ const Text = /*#__PURE__*/(() => {
        * that same material instance is shared across multiple Text objects.
        */
       this.color = null
+
+      /**
+       * @member {string|number|THREE.Color} selectionColor
+       * This is a shortcut for setting the `color` of the text's material. You can use this
+       * if you don't want to specify a whole custom `material`. Also, if you do use a custom
+       * `material`, this color will only be used for this particuar Text instance, even if
+       * that same material instance is shared across multiple Text objects.
+       */
+      this.selectionColor = defaultSelectionColor
 
       /**
        * @member {object|null} colorRanges
@@ -776,13 +786,13 @@ const Text = /*#__PURE__*/(() => {
     updateSelection() {
       if(this.selectable){
         this.selectedText = this.text.substring(this.selectionStartIndex,this.selectionEndIndex)
-        this.selectionRect = getSelectionRects(this._textRenderInfo,this.selectionStartIndex,this.selectionEndIndex)
+        this.selectionRects = getSelectionRects(this._textRenderInfo,this.selectionStartIndex,this.selectionEndIndex)
         this._domElSelectedText.textContent = this.selectedText
         this.selectDomText()
         this.updateSelectedDomPosition()
       }else{
         this.selectedText = null
-        this.selectionRect = []
+        this.selectionRects = []
       }
     }
 
@@ -790,7 +800,7 @@ const Text = /*#__PURE__*/(() => {
      * Select the text contened in _domElSelectedText in order for it to reflect what's currently selected in the Text
      */
     selectDomText(){
-      this.highlightText( this.selectionRect)
+      this.highlightText()
         const sel = document.getSelection()
         sel.removeAllRanges()
         const range = document.createRange()
@@ -849,20 +859,20 @@ const Text = /*#__PURE__*/(() => {
       var min  = new Vector3(0,0,0);
 
       let i=0;
-      for (let key in this.selectionRect) {
+      for (let key in this.selectionRects) {
         if(i===0){
-          max.x  = Math.max(this.selectionRect[key].left,this.selectionRect[key].right);
-          max.y  = Math.max(this.selectionRect[key].top,this.selectionRect[key].bottom);
+          max.x  = Math.max(this.selectionRects[key].left,this.selectionRects[key].right);
+          max.y  = Math.max(this.selectionRects[key].top,this.selectionRects[key].bottom);
           max.z  = 0;
-          min.x  = Math.min(this.selectionRect[key].left,this.selectionRect[key].right);
-          min.y  = Math.min(this.selectionRect[key].top,this.selectionRect[key].bottom);
+          min.x  = Math.min(this.selectionRects[key].left,this.selectionRects[key].right);
+          min.y  = Math.min(this.selectionRects[key].top,this.selectionRects[key].bottom);
           min.z  = 0;
         }else{
-          max.x  = Math.max(max.x,this.selectionRect[key].left,this.selectionRect[key].right);
-          max.y  = Math.max(max.y,this.selectionRect[key].top,this.selectionRect[key].bottom);
+          max.x  = Math.max(max.x,this.selectionRects[key].left,this.selectionRects[key].right);
+          max.y  = Math.max(max.y,this.selectionRects[key].top,this.selectionRects[key].bottom);
           max.z  = Math.max(0,max.z);
-          min.x  = Math.min(min.x,this.selectionRect[key].left,this.selectionRect[key].right);
-          min.y  = Math.min(min.y,this.selectionRect[key].top,this.selectionRect[key].bottom);
+          min.x  = Math.min(min.x,this.selectionRects[key].left,this.selectionRects[key].right);
+          min.y  = Math.min(min.y,this.selectionRects[key].top,this.selectionRects[key].bottom);
           min.z  = Math.min(0,min.z);
         }
         i++;
@@ -893,23 +903,24 @@ const Text = /*#__PURE__*/(() => {
     /**
      * visually update the rendering of the text selection in the renderer context
      */
-    highlightText(selectionRects) {
+    highlightText() {
 
       let depth = 0.4;
 
       //todo manage rect update in a cleaner way. Currently we recreate everything everytime
       this.children = []
 
-      for (let key in selectionRects) {
+      for (let key in this.selectionRects) {
         let material = createDerivedMaterial(
         new MeshBasicMaterial({
+          color:this.selectionColor,
           transparent: true,
           opacity: 0.3,
           depthWrite: false
         }),
         {
           uniforms: {
-            rect: {value: new Vector4(selectionRects[key].left,selectionRects[key].top,selectionRects[key].right,selectionRects[key].bottom)},
+            rect: {value: new Vector4(this.selectionRects[key].left,this.selectionRects[key].top,this.selectionRects[key].right,this.selectionRects[key].bottom)},
             depthAndCurveRadius: {value: new Vector2(depth,this.curveRadius)}
           },
             vertexDefs: `
@@ -938,13 +949,23 @@ const Text = /*#__PURE__*/(() => {
         )
         this.add(selectRect)        
       }
-
     }
 
     updateHighlightTextUniforms(){
-      this.children.forEach((selectRect)=>{
-        selectRect.material.uniforms.depthAndCurveRadius.value.y = this.curveRadius
-      })
+      for (let key in this.selectionRects) {
+        console.log(this.children[key].material)
+        this.children[key].material.uniforms.depthAndCurveRadius.value.y = this.curveRadius
+        this.children[key].material.uniforms.rect.value.x = this.selectionRects[key].left
+        this.children[key].material.uniforms.rect.value.y = this.selectionRects[key].top
+        this.children[key].material.uniforms.rect.value.z = this.selectionRects[key].right
+        this.children[key].material.uniforms.rect.value.w = this.selectionRects[key].bottom
+        if(this.selectionColor != this.children[key].material.color){
+          //faster to check fo color change or to set needsUpdate true each time ? 
+          //to discuss
+          this.children[key].material.color.set(this.selectionColor)
+          this.children[key].material.needsUpdate = true
+        }
+      }
     }
 
     /**

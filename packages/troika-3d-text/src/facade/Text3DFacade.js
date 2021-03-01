@@ -18,6 +18,7 @@ const TEXT_MESH_PROPS = [
   'whiteSpace',
   'material',
   'color',
+  'selectionColor',
   'colorRanges',
   'fillOpacity',
   'outlineOpacity',
