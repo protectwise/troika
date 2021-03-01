@@ -37,10 +37,22 @@ const Text = /*#__PURE__*/(() => {
     return Array.isArray(o) ? o[0] : o
   }
 
-  const raycastMesh = new Mesh(
-    new PlaneBufferGeometry(1, 1).translate(0.5, 0.5, 0),
-    defaultMaterial
-  )
+  let getFlatRaycastMesh = () => {
+    const mesh = new Mesh(
+      new PlaneBufferGeometry(1, 1),
+      defaultMaterial
+    )
+    getFlatRaycastMesh = () => mesh
+    return mesh
+  }
+  let getCurvedRaycastMesh = () => {
+    const mesh = new Mesh(
+      new PlaneBufferGeometry(1, 1, 32, 1),
+      defaultMaterial
+    )
+    getCurvedRaycastMesh = () => mesh
+    return mesh
+  }
 
   const syncStartEvent = {type: 'syncstart'}
   const syncCompleteEvent = {type: 'synccomplete'}
@@ -500,6 +512,10 @@ const Text = /*#__PURE__*/(() => {
       this.renderer = renderer
       this.sync()
 
+      if( this.selectable ){
+        this.updateHighlightTextUniforms()
+      }
+
       // This may not always be a text material, e.g. if there's a scene.overrideMaterial present
       if (material.isTroikaTextMaterial) {
         this._prepareForRender(material)
@@ -581,6 +597,13 @@ const Text = /*#__PURE__*/(() => {
     }
     set glyphGeometryDetail(detail) {
       this.geometry.detail = detail
+    }
+
+    get curveRadius() {	
+      return this.geometry.curveRadius	
+    }	
+    set curveRadius(r) {	
+      this.geometry.curveRadius = r	
     }
 
     // Create and update material for shadows upon request:
@@ -872,7 +895,7 @@ const Text = /*#__PURE__*/(() => {
      */
     highlightText(selectionRects) {
 
-      let depth = 0.5;
+      let depth = 0.4;
 
       //todo manage rect update in a cleaner way. Currently we recreate everything everytime
       this.children = []
@@ -913,9 +936,15 @@ const Text = /*#__PURE__*/(() => {
           material
           // new MeshBasicMaterial({color: 0xffffff,side: DoubleSide,transparent: true, opacity:0.5})
         )
-        this.add(selectRect)
+        this.add(selectRect)        
       }
 
+    }
+
+    updateHighlightTextUniforms(){
+      this.children.forEach((selectRect)=>{
+        selectRect.material.uniforms.depthAndCurveRadius.value.y = this.curveRadius
+      })
     }
 
     /**
@@ -954,18 +983,26 @@ const Text = /*#__PURE__*/(() => {
      * TODO is there any reason to make this more granular, like within individual line or glyph rects?
      */
     raycast(raycaster, intersects) {
-      const textInfo = this.textRenderInfo
-      if (textInfo) {
-        const bounds = textInfo.blockBounds
-        raycastMesh.matrixWorld.multiplyMatrices(
-          this.matrixWorld,
-          tempMat4.set(
-            bounds[2] - bounds[0], 0, 0, bounds[0],
-            0, bounds[3] - bounds[1], 0, bounds[1],
-            0, 0, 1, 0,
-            0, 0, 0, 1
-          )
-        )
+      const {textRenderInfo, curveRadius} = this
+      if (textRenderInfo) {
+        const bounds = textRenderInfo.blockBounds
+        const raycastMesh = curveRadius ? getCurvedRaycastMesh() : getFlatRaycastMesh()
+        const geom = raycastMesh.geometry
+        const {position, uv} = geom.attributes
+        for (let i = 0; i < uv.count; i++) {
+          let x = bounds[0] + (uv.getX(i) * (bounds[2] - bounds[0]))
+          const y = bounds[1] + (uv.getY(i) * (bounds[3] - bounds[1]))
+          let z = 0
+          if (curveRadius) {
+            z = curveRadius - Math.cos(x / curveRadius) * curveRadius
+            x = Math.sin(x / curveRadius) * curveRadius
+          }
+          position.setXYZ(i, x, y, z)
+        }
+        geom.boundingSphere = this.geometry.boundingSphere
+        geom.boundingBox = this.geometry.boundingBox
+        raycastMesh.matrixWorld = this.matrixWorld
+        raycastMesh.material.side = this.material.side
         tempArray.length = 0
         raycastMesh.raycast(raycaster, tempArray)
         for (let i = 0; i < tempArray.length; i++) {
