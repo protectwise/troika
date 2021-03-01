@@ -905,7 +905,7 @@ const Text = /*#__PURE__*/(() => {
      */
     highlightText() {
 
-      let depth = 0.4;
+      let THICKNESS = 0.25;
 
       //todo manage rect update in a cleaner way. Currently we recreate everything everytime
       this.children = []
@@ -921,7 +921,10 @@ const Text = /*#__PURE__*/(() => {
         {
           uniforms: {
             rect: {value: new Vector4(this.selectionRects[key].left,this.selectionRects[key].top,this.selectionRects[key].right,this.selectionRects[key].bottom)},
-            depthAndCurveRadius: {value: new Vector2(depth,this.curveRadius)}
+            depthAndCurveRadius: {value: new Vector2(
+              (this.selectionRects[key].top - this.selectionRects[key].bottom)*THICKNESS,
+              this.curveRadius
+            )}
           },
             vertexDefs: `
             uniform vec4 rect;
@@ -953,7 +956,6 @@ const Text = /*#__PURE__*/(() => {
 
     updateHighlightTextUniforms(){
       for (let key in this.selectionRects) {
-        console.log(this.children[key].material)
         this.children[key].material.uniforms.depthAndCurveRadius.value.y = this.curveRadius
         this.children[key].material.uniforms.rect.value.x = this.selectionRects[key].left
         this.children[key].material.uniforms.rect.value.y = this.selectionRects[key].top

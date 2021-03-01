@@ -104,7 +104,7 @@ class TextExample extends React.Component {
       anchorX: 'center',
       anchorY: 'middle',
       color: 0xffffff,
-      selectionColor: 0xff0000,
+      selectionColor: 'white',
       fillOpacity: 1,
       strokeOpacity: 1,
       strokeColor: 0x808080,
