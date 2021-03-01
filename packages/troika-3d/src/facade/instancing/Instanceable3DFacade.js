@@ -24,25 +24,13 @@ import Object3DFacade from '../Object3DFacade.js'
  * uniforms such as colors to be varied per instance. This works with both custom
  * shader materials as well as the built-in materials.
  *
- * To enable per-instance uniforms:
+ * To enable per-instance uniforms, use the `setInstanceUniform(name, value)`
+ * method to set an instance's values for the enabled uniforms:
  *
- *   1) Declare which uniforms should be instanced by setting an `instanceUniforms`
- *   property on the `instancedThreeObject`'s material to an array of uniform names:
+ *     `this.setInstanceUniform('diffuse', new Color(color))`
  *
- *       `baseObj.material.instanceUniforms = ['diffuse', 'emissive']`
- *
- *   This typically only needs to be done once for each material. Note that for built-in
- *   materials, you must use the uniform names used internally by their shaders and
- *   not the more user-friendly material properties, for example use `'diffuse'` rather than
- *   `'color'` for controlling a `MeshBasicMaterial`'s color.
- *
- *   2) For each Instanceable3DFacade, use the `setInstanceUniform(name, value)`
- *   method to set that instance's values for the enabled uniforms:
- *
- *       `this.setInstanceUniform('diffuse', new Color(color))`
- *
- *   If an instance does not have a uniform value set this way, it will fall back to using
- *   the default value in the material's `uniforms` object.
+ * If an instance does not have a uniform value set this way, it will fall back to using
+ * the default value in the material's `uniforms` object.
  *
  * The uniform types that allow instancing are: `int`, `float`, `vec2`, `vec3`, and `vec4`.
  * Mapping from application value types such as `Vector2` or `Color` behaves similarly to
@@ -72,32 +60,45 @@ class Instanceable3DFacade extends Object3DFacade {
   }
 
   /**
+   * @property {Object3D} instancedThreeObject
    * Sets the Mesh instance to use for batching this instance with others that
    * reference the same Mesh.
    */
-  set instancedThreeObject(obj) {
-    if (obj !== this._instancedThreeObject) {
-      this._instancedThreeObject = obj
-      this.notifyWorld('instanceableChanged')
-      this._boundsChanged = true
-    }
-  }
-  get instancedThreeObject() {
-    return this._instancedThreeObject
-  }
 
   /**
-   * Sets this instance's value for a shader uniform. The uniform must also be declared
-   * as instanceable by setting `material.instanceUniforms = ['uniformName']`.
+   * Sets this instance's value for a shader uniform.
    * @param {String} name
    * @param {Number|Vector2|Vector3|Vector4|Color} value
    */
   setInstanceUniform(name, value) {
     let values = this._instanceUniforms || (this._instanceUniforms = Object.create(null))
     if (values[name] !== value) {
+      // If this is a new uniform value, add it to the Set of instance uniform names
+      const obj = this.instancedThreeObject
+      if (obj && !(name in values)) {
+        const names = obj._instanceUniformNames || (obj._instanceUniformNames = new Set())
+        names.add(name)
+      }
       values[name] = value
       this.notifyWorld('instanceableUniformChanged', name)
     }
+  }
+
+  afterUpdate() {
+    const newObj = this.instancedThreeObject
+    const oldObj = this._instancedObj
+    if (newObj !== oldObj) {
+      if (newObj && this._instanceUniforms) { //make sure new object tracks our instance uniforms
+        const names = newObj._instanceUniformNames || (newObj._instanceUniformNames = new Set())
+        for (let name in this._instanceUniforms) {
+          names.add(name)
+        }
+      }
+      this._instancedObj = newObj
+      this.notifyWorld('instanceableChanged')
+      this._boundsChanged = true
+    }
+    super.afterUpdate()
   }
 
   updateMatrices() {

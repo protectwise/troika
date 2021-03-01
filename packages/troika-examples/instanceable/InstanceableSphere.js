@@ -15,7 +15,6 @@ const geometry = new SphereBufferGeometry(1)
 
 // Common shared material, declaring the diffuse color as an instanceable uniform
 let material = new MeshPhongMaterial()
-material.instanceUniforms = ['diffuse']
 
 // Single mesh shared between all instanceables
 const protoObj = new Mesh(geometry, material)

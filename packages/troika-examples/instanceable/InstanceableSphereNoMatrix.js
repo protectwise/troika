@@ -25,7 +25,6 @@ let customShaderMaterial = createDerivedMaterial(new MeshPhongMaterial(), {
   vertexDefs: 'uniform float radius;',
   vertexTransform: 'position *= radius;'
 })
-customShaderMaterial.instanceUniforms = ['radius', 'diffuse']
 
 // Single mesh shared between all instanceables
 const protoObj = new Mesh(geometry, customShaderMaterial)

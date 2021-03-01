@@ -5,7 +5,6 @@ import { BoxBufferGeometry, Color, Mesh, MeshStandardMaterial } from 'three'
 
 
 const cubeMaterial = new MeshStandardMaterial({roughness: 0.7, metalness: 0.7})
-cubeMaterial.instanceUniforms = ['diffuse']
 const cubeMesh = new Mesh(
   new BoxBufferGeometry(1, 1, 1),
   cubeMaterial

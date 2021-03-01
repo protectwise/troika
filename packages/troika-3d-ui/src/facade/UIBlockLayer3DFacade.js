@@ -59,13 +59,6 @@ class UIBlockLayer3DFacade extends Instanceable3DFacade {
       let mesh = instanceMeshesByKey.get(meshKey)
       if (!mesh) {
         let derivedMaterial = createUIBlockLayerDerivedMaterial(material)
-        derivedMaterial.instanceUniforms = [
-          'diffuse',
-          'uTroikaBlockSize',
-          'uTroikaClipRect',
-          'uTroikaCornerRadii',
-          'uTroikaBorderWidth'
-        ]
         derivedMaterial.polygonOffset = !!this.depthOffset
         derivedMaterial.polygonOffsetFactor = derivedMaterial.polygonOffsetUnits = this.depthOffset || 0
         // dispose the derived material when its base material is disposed:

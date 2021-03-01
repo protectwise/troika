@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.40.0](https://github.com/protectwise/troika/compare/v0.39.2...v0.40.0) (2021-02-28)
+
+
+### Features
+
+* **troika-3d:** add `initThreeObject` lifecycle method to Object3DFacade ([230a87d](https://github.com/protectwise/troika/commit/230a87df38c392ac54732561d67fb4eb46634dd8))
+* **troika-3d:** remove need for manually defining material.instanceUniforms ([a234f8c](https://github.com/protectwise/troika/commit/a234f8c354b5fb5f54d13c58355887f02b7f32d8))
+
+
+
+
+
 # [0.39.0](https://github.com/protectwise/troika/compare/v0.38.1...v0.39.0) (2021-02-15)
 
 

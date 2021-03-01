@@ -64,8 +64,7 @@ const CACHE = new WeakMap()
  * The result is cached by baseMaterial+instanceUniforms so we always get the same instance
  * back rather than getting a clone each time and having to re-upgrade every frame.
  */
-export function getInstancingDerivedMaterial(baseMaterial) {
-  let {instanceUniforms} = baseMaterial
+export function getInstancingDerivedMaterial(baseMaterial, instanceUniforms) {
   let instanceUniformsKey = instanceUniforms ? instanceUniforms.sort().join('|') : ''
   let derived = CACHE.get(baseMaterial)
   if (!derived || derived._instanceUniformsKey !== instanceUniformsKey) {
@@ -89,7 +88,7 @@ export function getInstancingDerivedMaterial(baseMaterial) {
  * attributes for the builtin matrix uniforms as well as any other uniforms that
  * have been declared as instanceable.
  */
-export function upgradeShaders(vertexShader, fragmentShader, instanceUniforms=[]) {
+export function upgradeShaders(vertexShader, fragmentShader, instanceUniforms) {
   // See what gets used
   let usesModelMatrix = modelMatrixRefRE.test(vertexShader)
   let usesModelViewMatrix = modelViewMatrixRefRE.test(vertexShader)
@@ -122,24 +121,26 @@ export function upgradeShaders(vertexShader, fragmentShader, instanceUniforms=[]
   }
 
   // Add attributes and varyings for, and rewrite references to, instanceUniforms
-  instanceUniforms.forEach(name => {
-    let vertType = vertexUniforms[name]
-    let fragType = fragmentUniforms[name]
-    if (vertType || fragType) {
-      let finder = new RegExp(`\\b${name}\\b`, 'g')
-      vertexDeclarations.push(`attribute ${vertType || fragType} troika_${name};`)
-      if (vertType) {
-        vertexShader = vertexShader.replace(finder, attrRefReplacer)
+  if (instanceUniforms) {
+    instanceUniforms.forEach(name => {
+      let vertType = vertexUniforms[name]
+      let fragType = fragmentUniforms[name]
+      if (vertType || fragType) {
+        let finder = new RegExp(`\\b${name}\\b`, 'g')
+        vertexDeclarations.push(`attribute ${vertType || fragType} troika_${name};`)
+        if (vertType) {
+          vertexShader = vertexShader.replace(finder, attrRefReplacer)
+        }
+        if (fragType) {
+          fragmentShader = fragmentShader.replace(finder, varyingRefReplacer)
+          let varyingDecl = `varying ${fragType} troika_vary_${name};`
+          vertexDeclarations.push(varyingDecl)
+          fragmentDeclarations.push(varyingDecl)
+          vertexAssignments.push(`troika_vary_${name} = troika_${name};`)
+        }
       }
-      if (fragType) {
-        fragmentShader = fragmentShader.replace(finder, varyingRefReplacer)
-        let varyingDecl = `varying ${fragType} troika_vary_${name};`
-        vertexDeclarations.push(varyingDecl)
-        fragmentDeclarations.push(varyingDecl)
-        vertexAssignments.push(`troika_vary_${name} = troika_${name};`)
-      }
-    }
-  })
+    })
+  }
 
   // Inject vertex shader declarations and assignments
   vertexShader = `

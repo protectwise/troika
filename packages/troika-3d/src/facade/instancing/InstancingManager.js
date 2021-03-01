@@ -83,7 +83,7 @@ class InstancingManager extends Group3DFacade {
         if (protoObject && instanceObject.visible) {
           // Find or create the batch object for this facade's instancedThreeObject
           let batchKey = this._getBatchKey(protoObject)
-          let instanceUniforms = protoObject.material.instanceUniforms
+          let instanceUniforms = this._getInstanceUniformNames(protoObject)
           let batchObjects = batchObjectsByKey[batchKey] || (batchObjectsByKey[batchKey] = [])
           let batchObject = batchObjects[batchObjects.length - 1]
           let batchGeometry = batchObject && batchObject.geometry
@@ -202,8 +202,9 @@ class InstancingManager extends Group3DFacade {
     if (!this._needsRebatch) {
       let protoObject = facade.instancedThreeObject
       let batchObject = facade._instancingBatchObject
-      if (protoObject && batchObject && this._getBatchKey(protoObject) === this._getBatchKey(batchObject)) {
-        let attr = batchObject.geometry._instanceAttrs.uniforms[uniformName]
+      let attr
+      if (protoObject && batchObject && this._getBatchKey(protoObject) === this._getBatchKey(batchObject)
+        && (attr = batchObject.geometry._instanceAttrs.uniforms[uniformName])) {
         setAttributeValue(attr, facade._instancingBatchAttrOffset, facade._instanceUniforms[uniformName])
         attr.version++ //skip setter
       } else {
@@ -218,23 +219,34 @@ class InstancingManager extends Group3DFacade {
     let cache = this._batchKeysCache || (this._batchKeysCache = Object.create(null)) //cache results for duration of this frame
     let key = cache && cache[object.id]
     if (!key) {
-      let mat = object.material
-      let uniforms = mat.instanceUniforms
-      key = `${object.geometry.id}|${mat.id}|${uniforms ? uniforms.sort().join(',') : ''}`
+      let uniforms = this._getInstanceUniformNames(object)
+      key = `${object.geometry.id}|${object.material.id}|${uniforms ? uniforms.sort().join(',') : ''}`
       cache[object.id] = key
     }
     return key
   }
 
-  _getInstanceUniformSizes(material) {
+  _getInstanceUniformNames(object) {
+    let namesSet = object._instanceUniformNames
+    if (!namesSet) return null
+    let cache = this._uniformNamesCache || (this._uniformNamesCache = new Map())
+    let namesArray = cache.get(namesSet)
+    if (!namesArray) {
+      namesArray = Array.from(namesSet)
+      cache.set(namesSet, namesArray)
+    }
+    return namesArray
+  }
+
+  _getInstanceUniformSizes(material, uniformNames) {
     // Cache results per material for duration of this frame
     let cache = this._uniformSizesCache || (this._uniformSizesCache = new Map())
     let result = cache.get(material)
     if (!result) {
       result = Object.create(null)
-      if (material.instanceUniforms) {
-        material.instanceUniforms.forEach(name => {
-          let size = getUniformItemSize(material,  name)
+      if (uniformNames) {
+        uniformNames.forEach(name => {
+          let size = getUniformItemSize(material, name)
           if (size > 0) {
             result[name] = size
           } else {
@@ -255,12 +267,13 @@ class InstancingManager extends Group3DFacade {
       throw new Error('Instanceable proto object must use a BufferGeometry')
     }
     let batchKey = this._getBatchKey(instancedObject)
-    let uniformSizes = this._getInstanceUniformSizes(material)
+    let uniformNames = this._getInstanceUniformNames(instancedObject)
+    let uniformSizes = this._getInstanceUniformSizes(material, uniformNames)
     let batchGeometry = this._batchGeometryPool.borrow(batchKey, geometry, uniformSizes)
     setInstanceCount(batchGeometry, 0)
 
     // Upgrade the material to one with the shader modifications for instancing
-    let batchMaterial = getInstancingDerivedMaterial(material)
+    let batchMaterial = getInstancingDerivedMaterial(material, uniformNames)
     let depthMaterial, distanceMaterial
 
     // Create a new mesh object to hold it all
@@ -336,6 +349,7 @@ class InstancingManager extends Group3DFacade {
 
     // Clear caches from this render frame
     this._batchKeysCache = null
+    this._uniformNamesCache = null
     this._uniformSizesCache = null
 
     // Remove batch objects from scene
