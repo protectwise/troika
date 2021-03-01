@@ -18,6 +18,7 @@ class SelectionManagerFacade extends ListFacade {
   constructor (parent, onSelectionChange) {
     super(parent)
     const textMesh = parent.threeObject
+    console.log(textMesh)
 
     this.rangeColor = 0x00ccff
     this.clipRect = noClip
@@ -47,7 +48,7 @@ class SelectionManagerFacade extends ListFacade {
       const textRenderInfo = textMesh.textRenderInfo
       if (textRenderInfo) {
         const textPos = textMesh.worldPositionToTextCoords(e.intersection.point, tempVec2)
-        const caret = textMesh.getCaret(textPos.x, textPos.y)
+        const caret = textMesh.startCaret(textPos.x, textPos.y)
         if (caret) {
           onSelectionChange(caret.charIndex, caret.charIndex)
           parent.addEventListener('drag', onDrag)
@@ -74,7 +75,7 @@ class SelectionManagerFacade extends ListFacade {
           textPos = ray.intersectPlane(tempPlane.setComponents(0, 0, 1, 0), tempVec3)
         }
         if (textPos) {
-          const caret = textMesh.testCaret(textPos.x, textPos.y)
+          const caret = textMesh.moveCaret(textPos.x, textPos.y)
           if (caret) {
             onSelectionChange(this.selectionStart, caret.charIndex)
           }

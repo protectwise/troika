@@ -758,7 +758,7 @@ const Text = /*#__PURE__*/(() => {
      * @param {number} y
      * @return {TextCaret | null}
      */
-    getCaret(x,y){
+    startCaret(x,y){
       let caret = getCaretAtPoint(this.textRenderInfo, x, y)
       this.selectionStartIndex = caret.charIndex
       this.selectionEndIndex = caret.charIndex
@@ -773,7 +773,7 @@ const Text = /*#__PURE__*/(() => {
      * @param {number} y
      * @return {TextCaret | null}
      */
-    testCaret(x,y){
+    moveCaret(x,y){
       let caret = getCaretAtPoint(this.textRenderInfo, x, y)
       this.selectionEndIndex = caret.charIndex
       this.updateSelection()
@@ -920,7 +920,12 @@ const Text = /*#__PURE__*/(() => {
         }),
         {
           uniforms: {
-            rect: {value: new Vector4(this.selectionRects[key].left,this.selectionRects[key].top,this.selectionRects[key].right,this.selectionRects[key].bottom)},
+            rect: {value: new Vector4(
+              this.selectionRects[key].left ,
+              this.selectionRects[key].top ,
+              this.selectionRects[key].right ,
+              this.selectionRects[key].bottom 
+            )},
             depthAndCurveRadius: {value: new Vector2(
               (this.selectionRects[key].top - this.selectionRects[key].bottom)*THICKNESS,
               this.curveRadius
@@ -950,8 +955,11 @@ const Text = /*#__PURE__*/(() => {
           material
           // new MeshBasicMaterial({color: 0xffffff,side: DoubleSide,transparent: true, opacity:0.5})
         )
+        // selectRect.position.x = -1
+        // selectRect.position.y = -1
         this.add(selectRect)        
       }
+      this.updateWorldMatrix(false,true)
     }
 
     updateHighlightTextUniforms(){
