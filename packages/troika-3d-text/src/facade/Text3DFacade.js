@@ -38,7 +38,8 @@ const TEXT_MESH_PROPS = [
   'sdfGlyphSize',
   'debugSDF',
   'supportScreenReader',
-  'selectable'
+  'selectable',
+  'selectionMaterial'
 ]
 
 

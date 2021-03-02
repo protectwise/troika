@@ -2,6 +2,7 @@ import { ListFacade } from 'troika-3d'
 import { Matrix4, Plane, Vector2, Vector3 } from 'three'
 import { invertMatrix4 } from 'troika-three-utils'
 import SelectionRangeRect from './SelectionRangeRect.js'
+import { Mesh } from '../../../../node_modules/three/src/Three.js'
 
 const THICKNESS = 0.25 //rect depth as percentage of height
 
@@ -71,8 +72,8 @@ class SelectionManagerFacade extends ListFacade {
         if (ix && ix.object === textMesh && ix.point) {
           textPos = textMesh.worldPositionToTextCoords(ix.point, tempVec2)
         } else {
-          const ray = e.ray.clone().applyMatrix4(invertMatrix4(textMesh.matrixWorld, tempMat4))
-          textPos = ray.intersectPlane(tempPlane.setComponents(0, 0, 1, 0), tempVec3)
+          // const ray = e.ray.clone().applyMatrix4(invertMatrix4(textMesh.matrixWorld, tempMat4))
+          // textPos = ray.intersectPlane(tempPlane.setComponents(0, 0, 1, 0), tempVec3)
         }
         if (textPos) {
           const caret = textMesh.moveCaret(textPos.x, textPos.y)
@@ -88,6 +89,19 @@ class SelectionManagerFacade extends ListFacade {
       parent.removeEventListener('drag', onDrag)
       parent.removeEventListener('dragend', onDragEnd)
     }
+
+    //clear selection if missed click
+    parent.getSceneFacade().addEventListener('click',(e)=>{
+      let target = e.target
+      do {
+        if(target.$facadeId === textMesh.parent.$facade.$facadeId){
+          return
+        }
+        target = target.parent
+      } while (target !== null)
+      //clear selection
+      textMesh.startCaret(0,0)
+    })
 
     parent.addEventListener('dragstart', onDragStart)
     parent.addEventListener('mousedown', onDragStart)
