@@ -672,7 +672,8 @@ const Text = /*#__PURE__*/(() => {
      * Translate a point in world space to an x/y in the text plane.
      */
     worldPositionToTextCoords(position, target = new Vector2()) {
-      return this.localPositionToTextCoords(this.worldToLocal(position), target)
+      tempVec3a.copy(position)
+      return this.localPositionToTextCoords(this.worldToLocal(tempVec3a), target)
     }
 
     /**
