@@ -117,7 +117,7 @@ class TextExample extends React.Component {
       curveRadius: 0,
       fog: false,
       animTextColor: true,
-      animTilt: true,
+      animTilt: false,
       animRotate: false,
       material: 'MeshStandardMaterial',
       useTexture: false,

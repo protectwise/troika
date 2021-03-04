@@ -2,7 +2,6 @@ import { ListFacade } from 'troika-3d'
 import { Matrix4, Plane, Vector2, Vector3 } from 'three'
 import { invertMatrix4 } from 'troika-three-utils'
 import SelectionRangeRect from './SelectionRangeRect.js'
-import { Mesh } from '../../../../node_modules/three/src/Three.js'
 
 const THICKNESS = 0.25 //rect depth as percentage of height
 

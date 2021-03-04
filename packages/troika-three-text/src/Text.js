@@ -98,9 +98,6 @@ const Text = /*#__PURE__*/(() => {
 
       this._domElSelectedText = document.createElement('p')
       this._domElText = document.createElement(this.tagName ? this.tagName : 'p')
-      this._domElText2 = document.createElement(this.tagName ? this.tagName : 'p')
-      this._domElText3 = document.createElement(this.tagName ? this.tagName : 'p')
-      this._domElText4 = document.createElement(this.tagName ? this.tagName : 'p')
       this.selectionStartIndex = 0;
       this.selectionEndIndex = 0;
       this.selectedText = null;
@@ -111,16 +108,10 @@ const Text = /*#__PURE__*/(() => {
       }else{
         document.body.appendChild(this._domElSelectedText)
         document.body.appendChild(this._domElText)
-        document.body.appendChild(this._domElText2)
-        document.body.appendChild(this._domElText3)
-        document.body.appendChild(this._domElText4)
       }
 
       this._domElSelectedText.setAttribute('aria-hidden','true')
       this._domElText.style = 'position:absolute;left:-99px;opacity:0;overflow:hidden;margin:0px;pointer-events:none;font-size:100vh;opacity:0.5;background:#ff0000;'
-      this._domElText2.style = 'position:absolute;left:-99px;opacity:0;overflow:hidden;margin:0px;pointer-events:none;font-size:100vh;opacity:0.5;background:#ff0000;'
-      this._domElText3.style = 'position:absolute;left:-99px;opacity:0;overflow:hidden;margin:0px;pointer-events:none;font-size:100vh;opacity:0.5;background:#ff0000;'
-      this._domElText4.style = 'position:absolute;left:-99px;opacity:0;overflow:hidden;margin:0px;pointer-events:none;font-size:100vh;opacity:0.5;background:#ff0000;'
       this._domElSelectedText.style = 'position:absolute;left:-99px;opacity:0;overflow:hidden;margin:0px;pointer-events:none;font-size:100vh;'
 
       this.startObservingMutation()
@@ -860,66 +851,52 @@ const Text = /*#__PURE__*/(() => {
 
       var max  = new Vector3(0,0,0);
       var min  = new Vector3(0,0,0);
+
       this.geometry.computeBoundingBox()
       max.copy(this.geometry.boundingBox.max).applyMatrix4( this.matrixWorld );
-      max.project(this.camera);
       min.copy(this.geometry.boundingBox.min).applyMatrix4( this.matrixWorld );
-      min.project(this.camera);
 
-      max.x = ( max.x * widthHalf ) + widthHalf;
-      max.y = - ( max.y * heightHalf ) + heightHalf;
-      min.x = ( min.x * widthHalf ) + widthHalf;
-      min.y = - ( min.y * heightHalf ) + heightHalf;
+      var bboxVectors = 
+      [
+        new Vector3(max.x,max.y,max.z),
+        new Vector3(min.x,max.y,max.z),
+        new Vector3(min.x,min.y,max.z),
+        new Vector3(max.x,min.y,max.z),
+        new Vector3(max.x,max.y,min.z),
+        new Vector3(min.x,max.y,min.z),
+        new Vector3(min.x,min.y,min.z),
+        new Vector3(max.x,min.y,min.z)
+      ]
 
-      const position = this.geometry.getAttribute('position').array
-      var bottomLeftVert  = new Vector3(position[0],position[1],position[2]);
-      var bottomRightVert  = new Vector3(position[3],position[4],position[5]);
-      var topLeftVert  = new Vector3(position[6],position[7],position[8]);
-      var topRightVert  = new Vector3(position[9],position[10],position[11]);
-      bottomLeftVert.applyMatrix4(this.matrixWorld)
-      bottomRightVert.applyMatrix4(this.matrixWorld)
-      topLeftVert.applyMatrix4(this.matrixWorld)
-      topRightVert.applyMatrix4(this.matrixWorld)
-      bottomLeftVert.project(this.camera);
-      bottomRightVert.project(this.camera);
-      topLeftVert.project(this.camera);
-      topRightVert.project(this.camera);
-      // console.log(this.geometry,position,bottomLeftVert,bottomRightVert,topLeftVert,topRightVert)
-      // console.log(
-      //   Math.min(bottomLeftVert.x,bottomRightVert.x,topRightVert.x,topLeftVert.x),
-      //   widthHalf,
-      //   left,
-      //   Math.min(bottomLeftVert.x,bottomRightVert.x,topRightVert.x,topLeftVert.x)* widthHalf+widthHalf+left+'px'
-      // )
-      // console.log(min,max)
-      // debugger; 
-      // let minX = Math.min(bottomLeftVert.x,bottomRightVert.x,topRightVert.x,topLeftVert.x)* -widthHalf+widthHalf
-      // let minY = Math.min(bottomLeftVert.y,bottomRightVert.y,topRightVert.y,topLeftVert.y)*-heightHalf-heightHalf
-      // let maxX = Math.max(bottomLeftVert.x,bottomRightVert.x,topRightVert.x,topLeftVert.x)* widthHalf+widthHalf
-      // let maxY = -Math.max(bottomLeftVert.y,bottomRightVert.y,topRightVert.y,topLeftVert.y)*heightHalf+heightHalf
-      // let halfPlaneX = Math.abs(maxX-minX)/2;
-      // let halfPlaneY = Math.abs(maxY-minY)/2;
+      let xmin = null
+      let xmax = null
+      let ymin = null
+      let ymax = null
 
-      let minX = bottomLeftVert.x* widthHalf+widthHalf
-      let minY = bottomLeftVert.y*-heightHalf+heightHalf
-      this._domElText.style.left = (bottomLeftVert.x* widthHalf+widthHalf)+left+'px';
-      this._domElText.style.top = (bottomLeftVert.y*-heightHalf+heightHalf)+top+'px';
-      this._domElText2.style.left = (bottomRightVert.x* widthHalf+widthHalf)+left+'px';
-      this._domElText2.style.top = (bottomRightVert.y*-heightHalf+heightHalf)+top+'px';
-      this._domElText3.style.left = (topLeftVert.x* widthHalf+widthHalf)+left+'px';
-      this._domElText3.style.top = (topLeftVert.y*-heightHalf+heightHalf)+top+'px';
-      this._domElText4.style.left = (topRightVert.x* widthHalf+widthHalf)+left+'px';
-      this._domElText4.style.top = (topRightVert.y*-heightHalf+heightHalf)+top+'px';
-      // this._domElText.style.left = Math.min(min.x,max.x)+left+'px';
-      // this._domElText.style.top = Math.min(min.y,max.y)+top+'px';
-      this._domElText.style.width = 10+'px';
-      this._domElText.style.height = 10+'px';
-      this._domElText2.style.width = 10+'px';
-      this._domElText2.style.height = 10+'px';
-      this._domElText3.style.width = 10+'px';
-      this._domElText3.style.height = 10+'px';
-      this._domElText4.style.width = 10+'px';
-      this._domElText4.style.height = 10+'px';
+
+      bboxVectors.forEach(vec => {
+        vec.project(this.camera);
+      });
+      xmin = bboxVectors[0].x
+      xmax = bboxVectors[0].x
+      ymin = bboxVectors[0].y
+      ymax = bboxVectors[0].y
+      bboxVectors.forEach(vec => {
+        xmin = xmin > vec.x ? vec.x : xmin
+        xmax = xmax < vec.x ? vec.x : xmax
+        ymin = ymin > vec.y ? vec.y : ymin
+        ymax = ymax < vec.y ? vec.y : ymax
+      });
+
+      xmax = ( xmax * widthHalf ) + widthHalf;
+      ymax = - ( ymax * heightHalf ) + heightHalf;
+      xmin = ( xmin * widthHalf ) + widthHalf;
+      ymin = - ( ymin * heightHalf ) + heightHalf;
+
+      this._domElText.style.left = xmin+left+'px';
+      this._domElText.style.top = ymax+top+'px';
+      this._domElText.style.width = Math.abs(xmax-xmin)+'px';
+      this._domElText.style.height = Math.abs(ymax-ymin)+'px';
     }
 
     /**
