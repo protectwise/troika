@@ -8,8 +8,7 @@ import {
   Vector4,
   Vector3,
   Vector2,
-  BoxBufferGeometry,
-  BoxHelper
+  BoxBufferGeometry
 } from 'three'
 import { GlyphsGeometry } from './GlyphsGeometry.js'
 import { createTextDerivedMaterial } from './TextDerivedMaterial.js'
@@ -111,7 +110,7 @@ const Text = /*#__PURE__*/(() => {
       }
 
       this._domElSelectedText.setAttribute('aria-hidden','true')
-      this._domElText.style = 'position:absolute;left:-99px;opacity:0;overflow:hidden;margin:0px;pointer-events:none;font-size:100vh;opacity:0.5;background:#ff0000;'
+      this._domElText.style = 'position:absolute;left:-99px;opacity:0;overflow:hidden;margin:0px;pointer-events:none;font-size:100vh;display:flex;align-items: center;line-height: 0px!important;line-break: anywhere;'
       this._domElSelectedText.style = 'position:absolute;left:-99px;opacity:0;overflow:hidden;margin:0px;pointer-events:none;font-size:100vh;'
 
       this.startObservingMutation()
@@ -522,21 +521,6 @@ const Text = /*#__PURE__*/(() => {
       if( this.selectable ){
         this.updateSelectedDomPosition()
       }
-      if(!this.pasencore){
-        this.box = new BoxHelper( this, 0xffff00 );
-        this.parent.add( this.box );
-        this.pasencore=true
-
-      }else{
-        this.box.update()
-        // this.geometry.applyMatrix4(this.matrixWorld)
-        // const position = this.geometry.getAttribute('position').array
-        // var test  = new Vector3(position[0],position[1],position[2]);
-        // test.applyMatrix4(this.matrixWorld)
-        // console.log(test)
-        // console.log(this.geometry.getAttribute('position'))
-        // console.log(this.geometry.attributes.position)
-      }
     }
 
     /**
@@ -897,6 +881,7 @@ const Text = /*#__PURE__*/(() => {
       this._domElText.style.top = ymax+top+'px';
       this._domElText.style.width = Math.abs(xmax-xmin)+'px';
       this._domElText.style.height = Math.abs(ymax-ymin)+'px';
+      this._domElText.style.fontSize = Math.abs(ymax-ymin)+'px';
     }
 
     /**
@@ -905,6 +890,8 @@ const Text = /*#__PURE__*/(() => {
      */
     updateSelectedDomPosition(){
       if(this.children.length === 0){
+        this._domElSelectedText.style.width = '0px';
+        this._domElSelectedText.style.height = '0px';
         return
       }
       
@@ -918,46 +905,73 @@ const Text = /*#__PURE__*/(() => {
       var max  = new Vector3(0,0,0);
       var min  = new Vector3(0,0,0);
 
+
+      this.children[0].geometry.computeBoundingBox()
+      this.children[this.children.length-1].geometry.computeBoundingBox()
+
+      // max.copy(this.children[0].geometry.boundingBox.max)
+      // min.copy(this.children[0].geometry.boundingBox.min)
+      // max.max(this.children[this.children.length-1].geometry.boundingBox.max).applyMatrix4( this.children[this.children.length-1].matrixWorld );
+      // min.min(this.children[this.children.length-1].geometry.boundingBox.min).applyMatrix4( this.children[this.children.length-1].matrixWorld );
+
       let i=0;
       for (let key in this.selectionRects) {
         if(i===0){
           max.x  = Math.max(this.selectionRects[key].left,this.selectionRects[key].right);
           max.y  = Math.max(this.selectionRects[key].top,this.selectionRects[key].bottom);
-          max.z  = 0;
+          max.z  = this.geometry.boundingBox.max.z;
           min.x  = Math.min(this.selectionRects[key].left,this.selectionRects[key].right);
           min.y  = Math.min(this.selectionRects[key].top,this.selectionRects[key].bottom);
-          min.z  = 0;
+          min.z  = this.geometry.boundingBox.min.z;
         }else{
           max.x  = Math.max(max.x,this.selectionRects[key].left,this.selectionRects[key].right);
           max.y  = Math.max(max.y,this.selectionRects[key].top,this.selectionRects[key].bottom);
-          max.z  = Math.max(0,max.z);
           min.x  = Math.min(min.x,this.selectionRects[key].left,this.selectionRects[key].right);
           min.y  = Math.min(min.y,this.selectionRects[key].top,this.selectionRects[key].bottom);
-          min.z  = Math.min(0,min.z);
         }
         i++;
       }
 
-      //todo, adjust with text position 
-      // max.x+=1
-      // min.x+=1
-      // max.y+=-1
-      // min.y+=-1
-      // max.z+=3
-      // min.z+=3
+      var bboxVectors = 
+      [
+        new Vector3(max.x,max.y,max.z).applyMatrix4( this.matrixWorld ),
+        new Vector3(min.x,max.y,max.z).applyMatrix4( this.matrixWorld ),
+        new Vector3(min.x,min.y,max.z).applyMatrix4( this.matrixWorld ),
+        new Vector3(max.x,min.y,max.z).applyMatrix4( this.matrixWorld ),
+        new Vector3(max.x,max.y,min.z).applyMatrix4( this.matrixWorld ),
+        new Vector3(min.x,max.y,min.z).applyMatrix4( this.matrixWorld ),
+        new Vector3(min.x,min.y,min.z).applyMatrix4( this.matrixWorld ),
+        new Vector3(max.x,min.y,min.z).applyMatrix4( this.matrixWorld )
+      ]
 
-      max = max.project(this.camera);
-      min = min.project(this.camera);
-      
-      max.x = ( max.x * widthHalf ) + widthHalf;
-      max.y = - ( max.y * heightHalf ) + heightHalf;
-      min.x = ( min.x * widthHalf ) + widthHalf;
-      min.y = - ( min.y * heightHalf ) + heightHalf;
+      let xmin = null
+      let xmax = null
+      let ymin = null
+      let ymax = null
 
-      this._domElSelectedText.style.left =  Math.min(min.x,max.x)+left+'px';
-      this._domElSelectedText.style.top = Math.min(min.y,max.y)+top+'px';
-      this._domElSelectedText.style.width = Math.abs(max.x-min.x)+'px';
-      this._domElSelectedText.style.height = Math.abs(max.y-min.y)+'px';
+      bboxVectors.forEach(vec => {
+        vec.project(this.camera);
+      });
+      xmin = bboxVectors[0].x
+      xmax = bboxVectors[0].x
+      ymin = bboxVectors[0].y
+      ymax = bboxVectors[0].y
+      bboxVectors.forEach(vec => {
+        xmin = xmin > vec.x ? vec.x : xmin
+        xmax = xmax < vec.x ? vec.x : xmax
+        ymin = ymin > vec.y ? vec.y : ymin
+        ymax = ymax < vec.y ? vec.y : ymax
+      });
+
+      xmax = ( xmax * widthHalf ) + widthHalf;
+      ymax = - ( ymax * heightHalf ) + heightHalf;
+      xmin = ( xmin * widthHalf ) + widthHalf;
+      ymin = - ( ymin * heightHalf ) + heightHalf;
+
+      this._domElSelectedText.style.left = xmin+left+'px';
+      this._domElSelectedText.style.top = ymax+top+'px';
+      this._domElSelectedText.style.width = Math.abs(xmax-xmin)+'px';
+      this._domElSelectedText.style.height = Math.abs(ymax-ymin)+'px';
     }
 
     /**
