@@ -101,17 +101,14 @@ const Text = /*#__PURE__*/(() => {
       this.selectionEndIndex = 0;
       this.selectedText = null;
 
-      if(this.domContainer){
-        this.domContainer.appendChild(this._domElSelectedText)
-        this.domContainer.appendChild(this._domElText)
-      }else{
-        document.body.appendChild(this._domElSelectedText)
-        document.body.appendChild(this._domElText)
-      }
+      this.domContainer = this.domContainer ? this.domContainer : document.body
+      this.domContainer.appendChild(this._domElSelectedText)
+      this.domContainer.appendChild(this._domElText)
+      this.domContainer.style.position = 'relative'
 
       this._domElSelectedText.setAttribute('aria-hidden','true')
-      this._domElText.style = 'position:absolute;left:-99px;opacity:0;overflow:hidden;margin:0px;pointer-events:none;font-size:100vh;display:flex;align-items: center;line-height: 0px!important;line-break: anywhere;'
-      this._domElSelectedText.style = 'position:absolute;left:-99px;opacity:0;overflow:hidden;margin:0px;pointer-events:none;font-size:100vh;'
+      this._domElText.style = 'position:absolute;left:-99px;opacity:0.5;overflow:hidden;margin:0px;pointer-events:none;font-size:100vh;display:flex;align-items: center;line-height: 0px!important;line-break: anywhere;background:green;'
+      this._domElSelectedText.style = 'position:absolute;left:-99px;opacity:0.5;overflow:hidden;margin:0px;pointer-events:none;font-size:100vh;background:blue;'
 
       this.startObservingMutation()
 
@@ -826,11 +823,12 @@ const Text = /*#__PURE__*/(() => {
      * update the position of the overlaying HTML that contain all the text that need to be accessible to screen readers
      */
     updateDomPosition(){
+      let contbbox = this.domContainer.getBoundingClientRect()
       let bbox = this.renderer.domElement.getBoundingClientRect()
       let width = bbox.width
       let height = bbox.height
-      let left = bbox.left
-      let top = bbox.top
+      let left = bbox.left - contbbox.left
+      let top = bbox.top - contbbox.top
       var widthHalf = width / 2, heightHalf = height / 2;
 
       var max  = new Vector3(0,0,0);
@@ -895,11 +893,12 @@ const Text = /*#__PURE__*/(() => {
         return
       }
       
+      let contbbox = this.domContainer.getBoundingClientRect()
       let bbox = this.renderer.domElement.getBoundingClientRect()
       let width = bbox.width
       let height = bbox.height
-      let left = bbox.left
-      let top = bbox.top
+      let left = bbox.left - contbbox.left
+      let top = bbox.top - contbbox.top
       var widthHalf = width / 2, heightHalf = height / 2;
 
       var max  = new Vector3(0,0,0);
