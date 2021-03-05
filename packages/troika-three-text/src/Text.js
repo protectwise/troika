@@ -107,8 +107,8 @@ const Text = /*#__PURE__*/(() => {
       this.domContainer.style.position = 'relative'
 
       this._domElSelectedText.setAttribute('aria-hidden','true')
-      this._domElText.style = 'position:absolute;left:-99px;opacity:0.5;overflow:hidden;margin:0px;pointer-events:none;font-size:100vh;display:flex;align-items: center;line-height: 0px!important;line-break: anywhere;background:green;'
-      this._domElSelectedText.style = 'position:absolute;left:-99px;opacity:0.5;overflow:hidden;margin:0px;pointer-events:none;font-size:100vh;background:blue;'
+      this._domElText.style = 'position:absolute;left:-99px;opacity:0;overflow:hidden;margin:0px;pointer-events:none;font-size:100vh;display:flex;align-items: center;line-height: 0px!important;line-break: anywhere;'
+      this._domElSelectedText.style = 'position:absolute;left:-99px;opacity:0;overflow:hidden;margin:0px;pointer-events:none;font-size:100vh;'
 
       this.startObservingMutation()
 
@@ -134,6 +134,8 @@ const Text = /*#__PURE__*/(() => {
       this.text = ''
       this.prevText = ''
       this.currentText = ''
+      this.prevHTML = ''
+      this.currentHTML = ''
 
       /**
        * @deprecated Use `anchorX` and `anchorY` instead
@@ -443,6 +445,8 @@ const Text = /*#__PURE__*/(() => {
         /* detect text change coming from the component */
         if(this.prevText !== this.text){
           this.currentText = this.text
+          this.prevHTML = this.currentHTML
+          this.currentHTML = this.text.replace(/(?:\r\n|\r|\n)/g, '<br>')
           this.selectionStartIndex = this.selectionEndIndex = -1
           this.prevText = this.text
         }
@@ -498,8 +502,11 @@ const Text = /*#__PURE__*/(() => {
             }
 
             //update dom with latest text
-            if(this._domElText.textContent !== this.currentText){
-              this._domElText.textContent = this.currentText;
+            if(this.prevHTML !== this.currentHTML){
+              this.observer.disconnect()
+              this._domElText.innerHTML = this.currentHTML;
+              this.prevHTML = this.currentHTML
+              this.observer.observe(this._domElText, { attributes: false, childList: true, subtree: false });
             }
 
             this.dispatchEvent(syncCompleteEvent)
@@ -1065,14 +1072,12 @@ const Text = /*#__PURE__*/(() => {
      * When a change occurs on the overlaying HTML, it reflect it in the renderer context
      */
     mutationCallback(mutationsList, observer) {
-      if(this._domElText.textContent != this.currentText){
-        this.currentText = this._domElText.textContent
-        console.log(this.currentText)
+        this.currentHTML = this._domElText.innerHTML
+        this.currentText = this.currentHTML.replace(/<(?!br\s*\/?)[^>]+>/g, '').replace(/<br\s*[\/]?>/gi, "\n");
         this._needsSync = true;
         this.sync(()=>{
           this.selectedText != '' ? this.updateSelection() : null
         })
-      }
     }
     
     /**
