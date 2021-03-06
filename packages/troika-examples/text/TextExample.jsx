@@ -126,7 +126,11 @@ class TextExample extends React.Component {
       colorRanges: false,
       sdfGlyphSize: 6,
       debugSDF: false,
-      supportScreenReader: true
+      supportScreenReader: true,
+      camerax:0,
+      cameray:0,
+      cameraz:2,
+      lookAt:{x: 0, y: 0, z: 0}
     }
 
     this._onConfigUpdate = (newState) => {
@@ -157,9 +161,10 @@ class TextExample extends React.Component {
           camera={ {
             fov: 75,
             aspect: width / height,
-            x: 0,
-            y: 0,
-            z: 2
+            x: state.camerax,
+            y: state.cameray,
+            z: state.cameraz,
+            lookAt: state.lookAt
           } }
           lights={[
             {type: 'ambient', color: 0x666666},
@@ -331,6 +336,10 @@ class TextExample extends React.Component {
                 {type: 'number', path: "letterSpacing", min: -0.1, max: 0.5, step: 0.01},
                 {type: 'number', path: "fillOpacity", min: 0, max: 1, step: 0.0001},
                 {type: 'number', path: "curveRadius", min: -5, max: 5, step: 0.001},
+
+                {type: 'number', path: "camerax", min: -5, max: 5, step: 0.01},
+                {type: 'number', path: "cameray", min: -5, max: 5, step: 0.01},
+                {type: 'number', path: "cameraz", min: -5, max: 5, step: 0.01},
 
                 {type: 'number', path: "outlineWidth", min: 0, max: 0.05, step: 0.0001},
                 {type: 'number', path: "outlineOpacity", min: 0, max: 1, step: 0.0001},

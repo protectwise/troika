@@ -48,7 +48,7 @@ class SelectionManagerFacade extends ListFacade {
       const textRenderInfo = textMesh.textRenderInfo
       if (textRenderInfo) {
         const textPos = textMesh.worldPositionToTextCoords(e.intersection.point, tempVec2)
-        const caret = textMesh.startCaret(textPos.x, textPos.y)
+        const caret = textMesh.a11yManager.startCaret(textRenderInfo,textPos.x, textPos.y)
         if (caret) {
           onSelectionChange(caret.charIndex, caret.charIndex)
           parent.addEventListener('drag', onDrag)
@@ -75,7 +75,7 @@ class SelectionManagerFacade extends ListFacade {
           // textPos = ray.intersectPlane(tempPlane.setComponents(0, 0, 1, 0), tempVec3)
         }
         if (textPos) {
-          const caret = textMesh.moveCaret(textPos.x, textPos.y)
+          const caret = textMesh.a11yManager.moveCaret(textRenderInfo,textPos.x, textPos.y)
           if (caret) {
             onSelectionChange(this.selectionStart, caret.charIndex)
           }
@@ -99,17 +99,17 @@ class SelectionManagerFacade extends ListFacade {
         target = target.parent
       } while (target !== null)
       //clear selection
-      textMesh.startCaret(0,0)
+      textMesh.a11yManager.clearSelection()
     })
 
     parent.addEventListener('dragstart', onDragStart)
     parent.addEventListener('mousedown', onDragStart)
     var canvas = parent.getSceneFacade().parent._threeRenderer.domElement;
     canvas.addEventListener('contextmenu',(e)=>{
-      textMesh._domElSelectedText.style.pointerEvents = 'auto'
-      textMesh.updateSelection()
+      textMesh.a11yManager._domElSelectedText.style.pointerEvents = 'auto'
+      textMesh.a11yManager.selectDomText()
       window.setTimeout(()=>{
-        textMesh._domElSelectedText.style.pointerEvents = 'none'
+        textMesh.a11yManager._domElSelectedText.style.pointerEvents = 'none'
         console.log('contextmenu')
       },50)
       console.log('contextmenu')
