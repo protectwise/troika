@@ -90,14 +90,12 @@ const Text = /*#__PURE__*/(() => {
    */
   class Text extends Mesh {
     constructor() {
-
-      this.selectable = false
-
       const geometry = new GlyphsGeometry()
       super(geometry, null)
 
       // === Text layout properties: === //
 
+      this.selectable = false
       this.a11yManager = new AccessibleText(this)
 
       /**
@@ -465,11 +463,11 @@ const Text = /*#__PURE__*/(() => {
         }
       }
     }
-    
-    onAfterRender(){
+
+    onAfterRender(renderer, scene, camera) {
       if(this.a11yManager){
-        this.a11yManager.updateDomPosition()
-        this.a11yManager.updateSelectedDomPosition()
+        this.a11yManager.updateDomPosition(renderer, camera)
+        this.a11yManager.updateSelectedDomPosition(renderer, camera)
       }
     }
 
@@ -572,11 +570,11 @@ const Text = /*#__PURE__*/(() => {
       this.geometry.detail = detail
     }
 
-    get curveRadius() {	
-      return this.geometry.curveRadius	
-    }	
-    set curveRadius(r) {	
-      this.geometry.curveRadius = r	
+    get curveRadius() {
+      return this.geometry.curveRadius
+    }
+    set curveRadius(r) {
+      this.geometry.curveRadius = r
     }
 
     // Create and update material for shadows upon request:
