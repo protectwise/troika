@@ -69,6 +69,7 @@ const AccessibleText = /*#__PURE__*/(() => {
       this.startObservingMutation()
 
       this.selectionRects = []
+      this.selectionRectsMeshs = []
 
       this.prevText = ''
       this.currentText = ''
@@ -255,62 +256,61 @@ const AccessibleText = /*#__PURE__*/(() => {
       let THICKNESS = 0.25;
 
       //todo manage rect update in a cleaner way. Currently we recreate everything everytime
-
       //clean dispose of material no need to do it for geometry because we reuse the same
-      this.textMesh.children.forEach((child)=>{
-        child.material.dispose()
+      this.selectionRectsMeshs.forEach((rect)=>{
+        rect.parent.remove(rect)
+        rect.material.dispose()
       })
-      this.textMesh.children = []
+      this.selectionRectsMeshs=[]
 
-      for (let key in this.selectionRects) {
+      this.selectionRects.forEach((rect)=>{
         let material = createDerivedMaterial(
-        this.selectionMaterial ? this.selectionMaterial : new MeshBasicMaterial({
-          color:this.selectionColor ? this.selectionColor : defaultSelectionColor,
-          transparent: true,
-          opacity: 0.3,
-          depthWrite: false
-        }),
-        {
-          uniforms: {
-            rect: {value: new Vector4(
-              this.selectionRects[key].left ,
-              this.selectionRects[key].top ,
-              this.selectionRects[key].right ,
-              this.selectionRects[key].bottom 
-            )},
-            depthAndCurveRadius: {value: new Vector2(
-              (this.selectionRects[key].top - this.selectionRects[key].bottom)*THICKNESS,
-              this.curveRadius
-            )}
-          },
-            vertexDefs: `
-            uniform vec4 rect;
-            uniform vec2 depthAndCurveRadius;
-            `,
-            vertexTransform: `
-            float depth = depthAndCurveRadius.x;
-            float rad = depthAndCurveRadius.y;
-            position.x = mix(rect.x, rect.z, position.x);
-            position.y = mix(rect.w, rect.y, position.y);
-            position.z = mix(-depth * 0.5, depth * 0.5, position.z);
-            if (rad != 0.0) {
-              float angle = position.x / rad;
-              position.xz = vec2(sin(angle) * (rad - position.z), rad - cos(angle) * (rad - position.z));
-              // TODO fix normals: normal.xz = vec2(sin(angle), cos(angle));
+          this.selectionMaterial ? this.selectionMaterial : new MeshBasicMaterial({
+            color:this.selectionColor ? this.selectionColor : defaultSelectionColor,
+            transparent: true,
+            opacity: 0.3,
+            depthWrite: false
+          }),
+          {
+            uniforms: {
+              rect: {value: new Vector4(
+                rect.left ,
+                rect.top ,
+                rect.right ,
+                rect.bottom 
+              )},
+              depthAndCurveRadius: {value: new Vector2(
+                (rect.top - rect.bottom)*THICKNESS,
+                this.textMesh.curveRadius
+              )}
+            },
+              vertexDefs: `
+              uniform vec4 rect;
+              uniform vec2 depthAndCurveRadius;
+              `,
+              vertexTransform: `
+              float depth = depthAndCurveRadius.x;
+              float rad = depthAndCurveRadius.y;
+              position.x = mix(rect.x, rect.z, position.x);
+              position.y = mix(rect.w, rect.y, position.y);
+              position.z = mix(-depth * 0.5, depth * 0.5, position.z);
+              if (rad != 0.0) {
+                float angle = position.x / rad;
+                position.xz = vec2(sin(angle) * (rad - position.z), rad - cos(angle) * (rad - position.z));
+                // TODO fix normals: normal.xz = vec2(sin(angle), cos(angle));
+              }
+              `
             }
-            `
-          }
-        )
-        material.instanceUniforms = ['rect', 'depthAndCurveRadius', 'diffuse']
-        let selectRect = new Mesh(
-          this.textMesh.curveRadius === 0 ? this.childrenGeometry : this.childrenCurvedGeometry,
-          material
-          // new MeshBasicMaterial({color: 0xffffff,side: DoubleSide,transparent: true, opacity:0.5})
-        )
-        // selectRect.position.x = -1
-        // selectRect.position.y = -1
-        this.textMesh.add(selectRect)        
-      }
+          )
+          material.instanceUniforms = ['rect', 'depthAndCurveRadius', 'diffuse']
+          let selectRect = new Mesh(
+            this.textMesh.curveRadius === 0 ? this.childrenGeometry : this.childrenCurvedGeometry,
+            material
+            // new MeshBasicMaterial({color: 0xffffff,side: DoubleSide,transparent: true, opacity:0.5})
+          )
+          this.selectionRectsMeshs.unshift(selectRect)
+          this.textMesh.add(selectRect)    
+      })
       this.textMesh.updateWorldMatrix(false,true)
     }
 
@@ -322,19 +322,19 @@ const AccessibleText = /*#__PURE__*/(() => {
         ){
         this.prevCurveRadius = this.textMesh.curveRadius
         //update geometry
-        for (let key in this.selectionRects) {
-          this.textMesh.children[key].geometry =  this.textMesh.curveRadius === 0 ? this.childrenGeometry : this.childrenCurvedGeometry
-        }
+        this.selectionRectsMeshs.forEach((rect)=>{
+          rect.geometry =  this.textMesh.curveRadius === 0 ? this.childrenGeometry : this.childrenCurvedGeometry
+        })
       }
-      for (let key in this.selectionRects) {
-        this.textMesh.children[key].material.uniforms.depthAndCurveRadius.value.y = this.textMesh.curveRadius
-        if(this.selectionColor != this.textMesh.children[key].material.color){
+      this.selectionRectsMeshs.forEach((rect)=>{
+        rect.material.uniforms.depthAndCurveRadius.value.y = this.textMesh.curveRadius
+        if(this.selectionColor != rect.material.color){
           //faster to check fo color change or to set needsUpdate true each time ? 
-          //to discuss
-          this.textMesh.children[key].material.color.set(this.selectionColor)
-          this.textMesh.children[key].material.needsUpdate = true
+          //todo
+          rect.material.color.set(this.selectionColor)
+          rect.material.needsUpdate = true
         }
-      }
+      })
     }
 
     /**
@@ -355,47 +355,14 @@ const AccessibleText = /*#__PURE__*/(() => {
         this.textMesh._needsSync = true;
         this.textMesh.sync()
     }
-    
-    /**
-     * stop monitoring dom change
-     */
-    stopObservingMutation(){
-      this.observer.disconnect();
-    }
 
-    /**
-     * @override Custom raycasting to test against the whole text block's max rectangular bounds
-     * TODO is there any reason to make this more granular, like within individual line or glyph rects?
-     */
-    raycast(raycaster, intersects) {
-      const {textRenderInfo, curveRadius} = this
-      if (textRenderInfo) {
-        const bounds = textRenderInfo.blockBounds
-        const raycastMesh = curveRadius ? getCurvedRaycastMesh() : getFlatRaycastMesh()
-        const geom = raycastMesh.geometry
-        const {position, uv} = geom.attributes
-        for (let i = 0; i < uv.count; i++) {
-          let x = bounds[0] + (uv.getX(i) * (bounds[2] - bounds[0]))
-          const y = bounds[1] + (uv.getY(i) * (bounds[3] - bounds[1]))
-          let z = 0
-          if (curveRadius) {
-            z = curveRadius - Math.cos(x / curveRadius) * curveRadius
-            x = Math.sin(x / curveRadius) * curveRadius
-          }
-          position.setXYZ(i, x, y, z)
-        }
-        geom.boundingSphere = this.geometry.boundingSphere
-        geom.boundingBox = this.geometry.boundingBox
-        raycastMesh.matrixWorld = this.matrixWorld
-        raycastMesh.material.side = this.material.side
-        tempArray.length = 0
-        raycastMesh.raycast(raycaster, tempArray)
-        for (let i = 0; i < tempArray.length; i++) {
-          tempArray[i].object = this
-          intersects.push(tempArray[i])
-        }
-      }
-    }
+    destroy(){
+      this.observer.disconnect()
+      this._domElText.remove()
+      this._domElSelectedText.remove()
+      this.childrenGeometry.dispose()
+      this.childrenCurvedGeometry.dispose()
+    }    
 
   }
 
