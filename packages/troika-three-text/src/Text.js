@@ -96,6 +96,7 @@ const Text = /*#__PURE__*/(() => {
       // === Text layout properties: === //
 
       this.selectable = false
+      this.domContainer = null
       this.a11yManager = new AccessibleText(this)
 
       /**
@@ -478,9 +479,6 @@ const Text = /*#__PURE__*/(() => {
      * @override
      */
     onBeforeRender(renderer, scene, camera, geometry, material, group) {
-      this.camera = camera
-      this.renderer = renderer
-
       this.sync()
 
       if(this.a11yManager){

@@ -25,6 +25,13 @@ font-size:10px;
 line-height: 10px;
 `
 
+const domSRoutline = `
+  line-break: anywhere;
+  line-height: 0px;
+  display: flex;
+  align-items: center;
+`
+
 const AccessibleText = /*#__PURE__*/(() => {
 
   const defaultSelectionColor = 0xffffff
@@ -50,12 +57,14 @@ const AccessibleText = /*#__PURE__*/(() => {
       this.selectionEndIndex = 0;
       this.selectedText = null;
 
+      //todo how to pass a dom container
       this.domContainer = this.domContainer ? this.domContainer : document.documentElement
       this.domContainer.appendChild(this._domElSelectedText)
       this.domContainer.appendChild(this._domElText)
 
       this._domElSelectedText.setAttribute('aria-hidden','true')
-      this._domElText.style = this._domElSelectedText.style = domOverlayBaseStyles
+      this._domElSelectedText.style = domOverlayBaseStyles
+      this._domElText.style = domOverlayBaseStyles + domSRoutline
 
       this.startObservingMutation()
 
@@ -332,9 +341,7 @@ const AccessibleText = /*#__PURE__*/(() => {
      * Start watching change on the overlaying HTML such as browser dom translation in order to reflect it in the renderer context
      */
     startObservingMutation(){
-      //todo right now each Text class has its own MutationObserver, maybe it cn cause issues if used with multiple Text
       this.observer = new MutationObserver(this.mutationCallback.bind(this));
-      // Start observing the target node for change ( e.g. page translate )
       this.observer.observe(this._domElText, { attributes: false, childList: true, subtree: false });
     }
 
