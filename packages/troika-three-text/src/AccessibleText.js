@@ -1,4 +1,5 @@
 import {
+  Matrix4,
   Mesh,
   MeshBasicMaterial,
   Vector4,
@@ -9,9 +10,28 @@ import {
 import { createDerivedMaterial } from 'troika-three-utils'
 import { getSelectionRects, getCaretAtPoint } from './selectionUtils'
 
+const domOverlayBaseStyles = `
+position:fixed;
+top:0;
+left:0;
+opacity:0;
+overflow:hidden;
+margin:0;
+pointer-events:none;
+width:10px;
+height:10px;
+transform-origin:0 0;
+font-size:10px;
+line-height: 10px;
+`
+
 const AccessibleText = /*#__PURE__*/(() => {
 
   const defaultSelectionColor = 0xffffff
+
+  const tempMat4a = new Matrix4()
+  const tempMat4b = new Matrix4()
+  const tempVec3 = new Vector3()
 
   /**
    * @class Text
@@ -30,14 +50,12 @@ const AccessibleText = /*#__PURE__*/(() => {
       this.selectionEndIndex = 0;
       this.selectedText = null;
 
-      this.domContainer = this.domContainer ? this.domContainer : document.body
+      this.domContainer = this.domContainer ? this.domContainer : document.documentElement
       this.domContainer.appendChild(this._domElSelectedText)
       this.domContainer.appendChild(this._domElText)
-      this.domContainer.style.position = 'relative'
 
       this._domElSelectedText.setAttribute('aria-hidden','true')
-      this._domElText.style = 'position:absolute;left:-99px;opacity:0;overflow:hidden;margin:0px;pointer-events:none;font-size:100vh;display:flex;align-items: center;line-height: 0px!important;line-break: anywhere;'
-      this._domElSelectedText.style = 'position:absolute;left:-99px;opacity:0;overflow:hidden;margin:0px;pointer-events:none;font-size:100vh;'
+      this._domElText.style = this._domElSelectedText.style = domOverlayBaseStyles
 
       this.startObservingMutation()
 
@@ -117,7 +135,6 @@ const AccessibleText = /*#__PURE__*/(() => {
       this.selectionRects = []
       this._domElSelectedText.textContent = ''
       this.highlightText()
-      this.updateSelectedDomPosition()
     }
 
     /**
@@ -143,7 +160,6 @@ const AccessibleText = /*#__PURE__*/(() => {
       this._domElSelectedText.textContent = this.selectedText
       this.highlightText()
       this.selectDomText()
-      this.updateSelectedDomPosition()
     }
 
     /**
@@ -161,155 +177,65 @@ const AccessibleText = /*#__PURE__*/(() => {
     /**
      * update the position of the overlaying HTML that contain all the text that need to be accessible to screen readers
      */
-    updateDomPosition(){
-      let contbbox = this.domContainer.getBoundingClientRect()
-      let bbox = this.textMesh.renderer.domElement.getBoundingClientRect()
-      let width = bbox.width
-      let height = bbox.height
-      let left = bbox.left - contbbox.left
-      let top = bbox.top - contbbox.top
-      var widthHalf = width / 2, heightHalf = height / 2;
-
-      var max  = new Vector3(0,0,0);
-      var min  = new Vector3(0,0,0);
-
-      this.textMesh.geometry.computeBoundingBox()
-      max.copy(this.textMesh.geometry.boundingBox.max).applyMatrix4( this.textMesh.matrixWorld );
-      min.copy(this.textMesh.geometry.boundingBox.min).applyMatrix4( this.textMesh.matrixWorld );
-
-      var bboxVectors = 
-      [
-        new Vector3(max.x,max.y,max.z),
-        new Vector3(min.x,max.y,max.z),
-        new Vector3(min.x,min.y,max.z),
-        new Vector3(max.x,min.y,max.z),
-        new Vector3(max.x,max.y,min.z),
-        new Vector3(min.x,max.y,min.z),
-        new Vector3(min.x,min.y,min.z),
-        new Vector3(max.x,min.y,min.z)
-      ]
-
-      let xmin = null
-      let xmax = null
-      let ymin = null
-      let ymax = null
-
-
-      bboxVectors.forEach(vec => {
-        vec.project(this.textMesh.camera);
-      });
-      xmin = bboxVectors[0].x
-      xmax = bboxVectors[0].x
-      ymin = bboxVectors[0].y
-      ymax = bboxVectors[0].y
-      bboxVectors.forEach(vec => {
-        xmin = xmin > vec.x ? vec.x : xmin
-        xmax = xmax < vec.x ? vec.x : xmax
-        ymin = ymin > vec.y ? vec.y : ymin
-        ymax = ymax < vec.y ? vec.y : ymax
-      });
-
-      xmax = ( xmax * widthHalf ) + widthHalf;
-      ymax = - ( ymax * heightHalf ) + heightHalf;
-      xmin = ( xmin * widthHalf ) + widthHalf;
-      ymin = - ( ymin * heightHalf ) + heightHalf;
-
-      this._domElText.style.left = xmin+left+'px';
-      this._domElText.style.top = ymax+top+'px';
-      this._domElText.style.width = Math.abs(xmax-xmin)+'px';
-      this._domElText.style.height = Math.abs(ymax-ymin)+'px';
-      this._domElText.style.fontSize = Math.abs(ymax-ymin)+'px';
+    updateDomPosition(renderer, camera) {
+      const {min, max} = this.textMesh.geometry.boundingBox
+      this._domElText.style.transform = this._textRectToCssMatrix(min.x, min.y, max.x, max.y, max.z, renderer, camera)
     }
 
     /**
      * update the position of the overlaying HTML that contain
      * the selected text in order for it to be acessible through context menu copy
      */
-    updateSelectedDomPosition(){
-      if(this.textMesh.children.length === 0){
-        this._domElSelectedText.style.width = '0px';
-        this._domElSelectedText.style.height = '0px';
-        return
-      }
-      
-      let contbbox = this.domContainer.getBoundingClientRect()
-      let bbox = this.textMesh.renderer.domElement.getBoundingClientRect()
-      let width = bbox.width
-      let height = bbox.height
-      let left = bbox.left - contbbox.left
-      let top = bbox.top - contbbox.top
-      var widthHalf = width / 2, heightHalf = height / 2;
-
-      var max  = new Vector3(0,0,0);
-      var min  = new Vector3(0,0,0);
-
-
-      this.textMesh.children[0].geometry.computeBoundingBox()
-      this.textMesh.children[this.textMesh.children.length-1].geometry.computeBoundingBox()
-
-      // max.copy(this.children[0].geometry.boundingBox.max)
-      // min.copy(this.children[0].geometry.boundingBox.min)
-      // max.max(this.children[this.children.length-1].geometry.boundingBox.max).applyMatrix4( this.children[this.children.length-1].matrixWorld );
-      // min.min(this.children[this.children.length-1].geometry.boundingBox.min).applyMatrix4( this.children[this.children.length-1].matrixWorld );
-
-      let i=0;
-      for (let key in this.selectionRects) {
-        if(i===0){
-          max.x  = Math.max(this.selectionRects[key].left,this.selectionRects[key].right);
-          max.y  = Math.max(this.selectionRects[key].top,this.selectionRects[key].bottom);
-          max.z  = this.textMesh.geometry.boundingBox.max.z;
-          min.x  = Math.min(this.selectionRects[key].left,this.selectionRects[key].right);
-          min.y  = Math.min(this.selectionRects[key].top,this.selectionRects[key].bottom);
-          min.z  = this.textMesh.geometry.boundingBox.min.z;
-        }else{
-          max.x  = Math.max(max.x,this.selectionRects[key].left,this.selectionRects[key].right);
-          max.y  = Math.max(max.y,this.selectionRects[key].top,this.selectionRects[key].bottom);
-          min.x  = Math.min(min.x,this.selectionRects[key].left,this.selectionRects[key].right);
-          min.y  = Math.min(min.y,this.selectionRects[key].top,this.selectionRects[key].bottom);
+    updateSelectedDomPosition(renderer, camera) {
+      const rects = this.selectionRects
+      const el = this._domElSelectedText
+      if (rects && rects.length) {
+        // Find local space rect containing all selection rects
+        // TODO can we wrap this even tighter to multiline selections where top/bottom lines are partially selected?
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+        for (let i = 0; i < rects.length; i++) {
+          minX = Math.min(minX, rects[i].left)
+          minY = Math.min(minY, rects[i].bottom)
+          maxX = Math.max(maxX, rects[i].right)
+          maxY = Math.max(maxY, rects[i].top)
         }
-        i++;
+
+        const z = this.textMesh.geometry.boundingBox.max.z
+        el.style.transform = this._textRectToCssMatrix(minX, minY, maxX, maxY, z, renderer, camera)
+        el.style.display = 'block'
+      } else {
+        el.style.display = 'none'
       }
+    }
 
-      var bboxVectors = 
-      [
-        new Vector3(max.x,max.y,max.z).applyMatrix4( this.textMesh.matrixWorld ),
-        new Vector3(min.x,max.y,max.z).applyMatrix4( this.textMesh.matrixWorld ),
-        new Vector3(min.x,min.y,max.z).applyMatrix4( this.textMesh.matrixWorld ),
-        new Vector3(max.x,min.y,max.z).applyMatrix4( this.textMesh.matrixWorld ),
-        new Vector3(max.x,max.y,min.z).applyMatrix4( this.textMesh.matrixWorld ),
-        new Vector3(min.x,max.y,min.z).applyMatrix4( this.textMesh.matrixWorld ),
-        new Vector3(min.x,min.y,min.z).applyMatrix4( this.textMesh.matrixWorld ),
-        new Vector3(max.x,min.y,min.z).applyMatrix4( this.textMesh.matrixWorld )
-      ]
+    /**
+     * Given a rect in local text coordinates, build a CSS matrix3d that will transform
+     * a 10x10 DOM element to line up exactly with that rect on the screen.
+     * @private
+     */
+    _textRectToCssMatrix(minX, minY, maxX, maxY, z, renderer, camera) {
+      const canvasRect = renderer.domElement.getBoundingClientRect()
 
-      let xmin = null
-      let xmax = null
-      let ymin = null
-      let ymax = null
+      // element dimensions to geometry dimensions (flipping the y)
+      tempMat4a.makeScale((maxX - minX) / 10, (minY - maxY) / 10, 1)
+        .setPosition(tempVec3.set(minX, maxY, z))
 
-      bboxVectors.forEach(vec => {
-        vec.project(this.textMesh.camera);
-      });
-      xmin = bboxVectors[0].x
-      xmax = bboxVectors[0].x
-      ymin = bboxVectors[0].y
-      ymax = bboxVectors[0].y
-      bboxVectors.forEach(vec => {
-        xmin = xmin > vec.x ? vec.x : xmin
-        xmax = xmax < vec.x ? vec.x : xmax
-        ymin = ymin > vec.y ? vec.y : ymin
-        ymax = ymax < vec.y ? vec.y : ymax
-      });
+      // geometry to world
+      tempMat4a.premultiply(this.textMesh.matrixWorld)
 
-      xmax = ( xmax * widthHalf ) + widthHalf;
-      ymax = - ( ymax * heightHalf ) + heightHalf;
-      xmin = ( xmin * widthHalf ) + widthHalf;
-      ymin = - ( ymin * heightHalf ) + heightHalf;
+      // world to camera
+      tempMat4a.premultiply(camera.matrixWorldInverse)
 
-      this._domElSelectedText.style.left = xmin+left+'px';
-      this._domElSelectedText.style.top = ymax+top+'px';
-      this._domElSelectedText.style.width = Math.abs(xmax-xmin)+'px';
-      this._domElSelectedText.style.height = Math.abs(ymax-ymin)+'px';
+      // camera to projection
+      tempMat4a.premultiply(camera.projectionMatrix)
+
+      // projection coords (-1 to 1) to screen pixels
+      tempMat4a.premultiply(
+        tempMat4b.makeScale(canvasRect.width / 2, -canvasRect.height / 2, 1)
+          .setPosition(canvasRect.left + canvasRect.width / 2, canvasRect.top + canvasRect.height / 2, 0)
+      )
+
+      return `matrix3d(${tempMat4a.elements.join(',')})`
     }
 
     /**
