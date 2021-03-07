@@ -357,6 +357,7 @@ const AccessibleText = /*#__PURE__*/(() => {
     }
 
     destroy(){
+      this.clearSelection()
       this.observer.disconnect()
       this._domElText.remove()
       this._domElSelectedText.remove()

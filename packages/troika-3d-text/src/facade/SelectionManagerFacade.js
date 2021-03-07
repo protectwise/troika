@@ -18,7 +18,6 @@ class SelectionManagerFacade extends ListFacade {
   constructor (parent, onSelectionChange) {
     super(parent)
     const textMesh = parent.threeObject
-    console.log(textMesh)
 
     this.rangeColor = 0x00ccff
     this.clipRect = noClip
@@ -89,8 +88,7 @@ class SelectionManagerFacade extends ListFacade {
       parent.removeEventListener('dragend', onDragEnd)
     }
 
-    //clear selection if missed click
-    parent.getSceneFacade().addEventListener('click',(e)=>{
+    const onMissClick = e => {
       let target = e.target
       do {
         if(target.$facadeId === textMesh.parent.$facade.$facadeId){
@@ -100,7 +98,10 @@ class SelectionManagerFacade extends ListFacade {
       } while (target !== null)
       //clear selection
       textMesh.a11yManager.clearSelection()
-    })
+    }
+
+    //clear selection if missed click
+    parent.getSceneFacade().addEventListener('click',onMissClick)
 
     parent.addEventListener('dragstart', onDragStart)
     parent.addEventListener('mousedown', onDragStart)
@@ -110,13 +111,12 @@ class SelectionManagerFacade extends ListFacade {
       textMesh.a11yManager.selectDomText()
       window.setTimeout(()=>{
         textMesh.a11yManager._domElSelectedText.style.pointerEvents = 'none'
-        console.log('contextmenu')
       },50)
-      console.log('contextmenu')
     })
 
     this._cleanupEvents = () => {
       onDragEnd()
+      parent.getSceneFacade().removeEventListener('click',onMissClick)
       parent.removeEventListener('dragstart', onDragStart)
       parent.removeEventListener('mousedown', onDragStart)
     }

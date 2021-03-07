@@ -68,7 +68,8 @@ const Text = /*#__PURE__*/(() => {
     'anchorX',
     'anchorY',
     'colorRanges',
-    'sdfGlyphSize'
+    'sdfGlyphSize',
+    'selectable'
   ]
 
   const COPYABLE_PROPS = SYNCABLE_PROPS.concat(
@@ -97,7 +98,6 @@ const Text = /*#__PURE__*/(() => {
 
       this.selectable = false
       this.domContainer = null
-      this.a11yManager = new AccessibleText(this)
 
       /**
        * @member {string} text
@@ -401,6 +401,15 @@ const Text = /*#__PURE__*/(() => {
     sync(callback) {
       if (this._needsSync) {
         this._needsSync = false
+
+        if (this.selectable) {
+          this.a11yManager = new AccessibleText(this)
+        }else{
+          if(this.a11yManager){
+            this.a11yManager.destroy()
+            this.a11yManager = null
+          }
+        }
 
         // If there's another sync still in progress, queue
         if (this._isSyncing) {
