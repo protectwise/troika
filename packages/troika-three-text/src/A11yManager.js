@@ -23,16 +23,17 @@ height:10px;
 transform-origin:0 0;
 font-size:10px;
 line-height: 10px;
+user-select: all;
 `
 
 const domSRoutline = `
-  line-break: anywhere;
-  line-height: 0px;
-  display: flex;
-  align-items: center;
+line-break: anywhere;
+line-height: 0px;
+display: flex;
+align-items: center;
 `
 
-const AccessibleText = /*#__PURE__*/(() => {
+const A11yManager = /*#__PURE__*/(() => {
 
   const defaultSelectionColor = 0xffffff
 
@@ -46,7 +47,7 @@ const AccessibleText = /*#__PURE__*/(() => {
    * A ThreeJS Mesh that renders a string of text on a plane in 3D space using signed distance
    * fields (SDF).
    */
-  class AccessibleText {
+  class A11yManager {
     constructor(textMesh) {
 
       this.textMesh = textMesh
@@ -58,7 +59,7 @@ const AccessibleText = /*#__PURE__*/(() => {
       this.selectedText = null;
 
       //todo how to pass a dom container
-      this.domContainer = this.domContainer ? this.domContainer : document.documentElement
+      this.domContainer = this.textMesh.domContainer ? this.textMesh.domContainer : document.documentElement
       this.domContainer.appendChild(this._domElSelectedText)
       this.domContainer.appendChild(this._domElText)
 
@@ -122,6 +123,9 @@ const AccessibleText = /*#__PURE__*/(() => {
         this.prevHTML = this.currentHTML
         this.observer.observe(this._domElText, { attributes: false, childList: true, subtree: false });
       }
+
+      if(!this.textMesh.selectable && this.selectionRects.length != 0)
+      this.clearSelection()
     }
 
     /**
@@ -258,6 +262,7 @@ const AccessibleText = /*#__PURE__*/(() => {
       //todo manage rect update in a cleaner way. Currently we recreate everything everytime
       //clean dispose of material no need to do it for geometry because we reuse the same
       this.selectionRectsMeshs.forEach((rect)=>{
+        if(rect.parent)
         rect.parent.remove(rect)
         rect.material.dispose()
       })
@@ -367,9 +372,9 @@ const AccessibleText = /*#__PURE__*/(() => {
 
   }
 
-  return AccessibleText
+  return A11yManager
 })()
 
 export {
-  AccessibleText
+  A11yManager
 }

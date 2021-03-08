@@ -11,7 +11,7 @@ import {
 import { GlyphsGeometry } from './GlyphsGeometry.js'
 import { createTextDerivedMaterial } from './TextDerivedMaterial.js'
 import { getTextRenderInfo } from './TextBuilder.js'
-import { AccessibleText } from './AccessibleText'
+import { A11yManager } from './A11yManager'
 
 
 const Text = /*#__PURE__*/(() => {
@@ -69,7 +69,8 @@ const Text = /*#__PURE__*/(() => {
     'anchorY',
     'colorRanges',
     'sdfGlyphSize',
-    'selectable'
+    'selectable',
+    'accessible'
   ]
 
   const COPYABLE_PROPS = SYNCABLE_PROPS.concat(
@@ -97,6 +98,7 @@ const Text = /*#__PURE__*/(() => {
       // === Text layout properties: === //
 
       this.selectable = false
+      this.accessible = false
       this.domContainer = null
 
       /**
@@ -402,8 +404,9 @@ const Text = /*#__PURE__*/(() => {
       if (this._needsSync) {
         this._needsSync = false
 
-        if (this.selectable) {
-          this.a11yManager = new AccessibleText(this)
+        if (this.selectable || this.accessible) {
+          if(!this.a11yManager)
+          this.a11yManager = new A11yManager(this)
         }else{
           if(this.a11yManager){
             this.a11yManager.destroy()

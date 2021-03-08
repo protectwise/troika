@@ -37,8 +37,8 @@ const TEXT_MESH_PROPS = [
   'glyphGeometryDetail',
   'sdfGlyphSize',
   'debugSDF',
-  'supportScreenReader',
   'selectable',
+  'accessible',
   'selectionMaterial'
 ]
 
