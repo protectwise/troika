@@ -82,27 +82,6 @@ const A11yManager = /*#__PURE__*/(() => {
       this.childrenGeometry = new BoxBufferGeometry(1, 1, 0.1).translate(0.5, 0.5, 0.5)
       /* create it only once */
       this.childrenCurvedGeometry = new BoxBufferGeometry(1, 1, 0.1,32).translate(0.5, 0.5, 0.5)
-
-      /**
-       * @member {THREE.Material} selectionMaterial
-       * Defines a _base_ material to be used when rendering the text. This material will be
-       * automatically replaced with a material derived from it, that adds shader code to
-       * decrease the alpha for each fragment (pixel) outside the text glyphs, with antialiasing.
-       * By default it will derive from a simple white MeshBasicMaterial, but you can use any
-       * of the other mesh materials to gain other features like lighting, texture maps, etc.
-       *
-       * Also see the `selectionColor` shortcut property.
-       */
-      this.selectionMaterial = null
-
-      /**
-       * @member {string|number|THREE.Color} selectionColor
-       * This is a shortcut for setting the `color` of the text's material. You can use this
-       * if you don't want to specify a whole custom `material`. Also, if you do use a custom
-       * `material`, this color will only be used for this particuar Text instance, even if
-       * that same material instance is shared across multiple Text objects.
-       */
-      this.selectionColor = defaultSelectionColor
     }
 
    
@@ -258,7 +237,6 @@ const A11yManager = /*#__PURE__*/(() => {
     highlightText() {
 
       let THICKNESS = 0.25;
-
       //todo manage rect update in a cleaner way. Currently we recreate everything everytime
       //clean dispose of material no need to do it for geometry because we reuse the same
       this.selectionRectsMeshs.forEach((rect)=>{
@@ -270,8 +248,8 @@ const A11yManager = /*#__PURE__*/(() => {
 
       this.selectionRects.forEach((rect)=>{
         let material = createDerivedMaterial(
-          this.selectionMaterial ? this.selectionMaterial : new MeshBasicMaterial({
-            color:this.selectionColor ? this.selectionColor : defaultSelectionColor,
+          this.textMesh.selectionMaterial ? this.textMesh.selectionMaterial : new MeshBasicMaterial({
+            color:this.textMesh.selectionColor ? this.textMesh.selectionColor : defaultSelectionColor,
             transparent: true,
             opacity: 0.3,
             depthWrite: false
@@ -333,10 +311,10 @@ const A11yManager = /*#__PURE__*/(() => {
       }
       this.selectionRectsMeshs.forEach((rect)=>{
         rect.material.uniforms.depthAndCurveRadius.value.y = this.textMesh.curveRadius
-        if(this.selectionColor != rect.material.color){
+        if(this.textMesh.selectionColor != rect.material.color){
           //faster to check fo color change or to set needsUpdate true each time ? 
           //todo
-          rect.material.color.set(this.selectionColor)
+          rect.material.color.set(this.textMesh.selectionColor)
           rect.material.needsUpdate = true
         }
       })

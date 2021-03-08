@@ -225,7 +225,7 @@ class TextExample extends React.Component {
               material: material,
               color: 0xffffff,
               selectionMaterial: null,
-              selectionColor: 0xfffff,
+              selectionColor: state.selectionColor,
               scaleX: state.textScale || 1,
               scaleY: state.textScale || 1,
               scaleZ: state.textScale || 1,
