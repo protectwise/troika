@@ -1,7 +1,7 @@
 import React from 'react'
 import T from 'prop-types'
 import { Canvas3D, createDerivedMaterial, Object3DFacade } from 'troika-3d'
-import {Text3DFacade, dumpSDFTextures} from 'troika-3d-text'
+import { Text3DFacade, dumpSDFTextures } from 'troika-3d-text'
 import {
   MeshBasicMaterial,
   MeshStandardMaterial,
@@ -11,7 +11,7 @@ import {
   Color,
   DoubleSide
 } from 'three'
-import DatGui, {DatBoolean, DatSelect, DatNumber} from 'react-dat-gui'
+import DatGui, { DatBoolean, DatSelect, DatNumber } from 'react-dat-gui'
 import { DatGuiFacade } from 'troika-3d-ui'
 import { ExampleConfigurator } from '../_shared/ExampleConfigurator.js'
 
@@ -127,10 +127,10 @@ class TextExample extends React.Component {
       colorRanges: false,
       sdfGlyphSize: 6,
       debugSDF: false,
-      camerax:0,
-      cameray:0,
-      cameraz:2,
-      lookAt:{x: 0, y: 0, z: 0}
+      camerax: 0,
+      cameray: 0,
+      cameraz: 2,
+      lookAt: { x: 0, y: 0, z: 0 }
     }
 
     this._onConfigUpdate = (newState) => {
@@ -144,7 +144,7 @@ class TextExample extends React.Component {
 
   render() {
     let state = this.state
-    let {width, height} = this.props
+    let { width, height } = this.props
 
     let material = state.material
     if (state.useTexture) material += '+Texture'
@@ -154,20 +154,20 @@ class TextExample extends React.Component {
       <div>
         <Canvas3D
           antialias
-          shadows={ state.shadows }
-          stats={ this.props.stats }
-          width={ width }
-          height={ height }
-          camera={ {
+          shadows={state.shadows}
+          stats={this.props.stats}
+          width={width}
+          height={height}
+          camera={{
             fov: 75,
             aspect: width / height,
             x: state.camerax,
             y: state.cameray,
             z: state.cameraz,
             lookAt: state.lookAt
-          } }
+          }}
           lights={[
-            {type: 'ambient', color: 0x666666},
+            { type: 'ambient', color: 0x666666 },
             {
               type: 'point',
               z: 3,
@@ -175,12 +175,12 @@ class TextExample extends React.Component {
               x: 0,
               castShadow: state.shadows,
               shadow: {
-                mapSize: {width: 1024, height: 1024},
+                mapSize: { width: 1024, height: 1024 },
                 // camera: {far: 10, near: 0.1, left: -3, right: 3, top: 3, bottom: -3}
               },
               animation: {
-                from: {x: 1},
-                to: {x: -1},
+                from: { x: 1 },
+                to: { x: -1 },
                 iterations: Infinity,
                 direction: 'alternate',
                 easing: 'easeInOutSine',
@@ -192,14 +192,14 @@ class TextExample extends React.Component {
             color: 0x222222,
             density: 0.75
           } : null}
-          objects={ [
+          objects={[
             {
               key: 'text',
               facade: Text3DFacade,
               castShadow: state.shadows,
               text: TEXTS[state.text],
-              x:0,
-              y:0,
+              x: 0,
+              y: 0,
               font: FONTS[state.font],
               fontSize: state.fontSize,
               maxWidth: state.maxWidth,
@@ -260,26 +260,26 @@ class TextExample extends React.Component {
               // },
               animation: [
                 state.animTilt ? {
-                  from: {rotateX: 0},
-                  25: {rotateX: Math.PI / 5},
-                  50: {rotateX: 0},
-                  75: {rotateX: Math.PI / -5},
-                  to: {rotateX: 0},
+                  from: { rotateX: 0 },
+                  25: { rotateX: Math.PI / 5 },
+                  50: { rotateX: 0 },
+                  75: { rotateX: Math.PI / -5 },
+                  to: { rotateX: 0 },
                   duration: 10000,
                   iterations: Infinity
                 } : null,
                 state.animTextColor ? {
-                  from: {color: 0x6666ff},
-                  33: {color: 0x66ff66},
-                  66: {color: 0xff6666},
-                  to: {color: 0x6666ff},
-                  interpolate: {color: 'color'},
+                  from: { color: 0x6666ff },
+                  33: { color: 0x66ff66 },
+                  66: { color: 0xff6666 },
+                  to: { color: 0x6666ff },
+                  interpolate: { color: 'color' },
                   iterations: Infinity,
                   duration: 5000
                 } : null,
                 state.animRotate ? {
-                  from: {rotateY: 0},
-                  to: {rotateY: Math.PI * 2},
+                  from: { rotateY: 0 },
+                  to: { rotateY: Math.PI * 2 },
                   duration: 10000,
                   iterations: Infinity
                 } : null
@@ -312,49 +312,49 @@ class TextExample extends React.Component {
               data: state,
               onUpdate: this._onConfigUpdate,
               items: [
-                {type: 'select', path: 'text', options: Object.keys(TEXTS)},
-                {type: 'select', path: 'font', options: Object.keys(FONTS).sort()},
-                {type: 'select', path: 'textAlign', options: ['left', 'right', 'center', 'justify']},
-                {type: 'select', path: 'anchorX', options: ['left', 'right', 'center']},
-                {type: 'select', path: 'anchorY', options: ['top', 'top-baseline', 'middle', 'bottom-baseline', 'bottom']},
-                {type: 'select', path: "material", options: MATERIAL_OPTS},
-                {type: 'boolean', path: "useTexture", label: "Texture"},
-                {type: 'boolean', path: "animTextColor", label: "Cycle Colors"},
-                {type: 'boolean', path: "animTilt", label: "Tilt"},
-                {type: 'boolean', path: "animRotate", label: "Rotate"},
-                {type: 'boolean', path: "fog", label: "Fog"},
-                {type: 'boolean', path: "shadows", label: "Shadows"},
-                {type: 'boolean', path: "colorRanges", label: "colorRanges (WIP)"},
-                {type: 'boolean', path: "selectable", label: "Selectable (WIP)"},
-                {type: 'boolean', path: "accessible", label: "Accessible (WIP)"},
-                {type: 'select', path: 'selectionColor', label: "Selection Color (WIP)", options: ['white','red','blue']},
-                {type: 'number', path: "fontSize", label: "fontSize", min: 0.01, max: 0.2, step: 0.01},
-                {type: 'number', path: "textScale", label: "scale", min: 0.1, max: 10, step: 0.1},
+                { type: 'select', path: 'text', options: Object.keys(TEXTS) },
+                { type: 'select', path: 'font', options: Object.keys(FONTS).sort() },
+                { type: 'select', path: 'textAlign', options: ['left', 'right', 'center', 'justify'] },
+                { type: 'select', path: 'anchorX', options: ['left', 'right', 'center'] },
+                { type: 'select', path: 'anchorY', options: ['top', 'top-baseline', 'middle', 'bottom-baseline', 'bottom'] },
+                { type: 'select', path: "material", options: MATERIAL_OPTS },
+                { type: 'boolean', path: "useTexture", label: "Texture" },
+                { type: 'boolean', path: "animTextColor", label: "Cycle Colors" },
+                { type: 'boolean', path: "animTilt", label: "Tilt" },
+                { type: 'boolean', path: "animRotate", label: "Rotate" },
+                { type: 'boolean', path: "fog", label: "Fog" },
+                { type: 'boolean', path: "shadows", label: "Shadows" },
+                { type: 'boolean', path: "colorRanges", label: "colorRanges (WIP)" },
+                { type: 'boolean', path: "selectable", label: "Selectable (WIP)" },
+                { type: 'boolean', path: "accessible", label: "Accessible (WIP)" },
+                { type: 'select', path: 'selectionColor', label: "Selection Color (WIP)", options: ['white', 'red', 'blue'] },
+                { type: 'number', path: "fontSize", label: "fontSize", min: 0.01, max: 0.2, step: 0.01 },
+                { type: 'number', path: "textScale", label: "scale", min: 0.1, max: 10, step: 0.1 },
                 //{type: 'number', path: "textIndent", label: "indent", min: 0.1, max: 1, step: 0.01},
-                {type: 'number', path: "maxWidth", min: 1, max: 5, step: 0.01},
-                {type: 'number', path: "lineHeight", min: 1, max: 2, step: 0.01},
-                {type: 'number', path: "letterSpacing", min: -0.1, max: 0.5, step: 0.01},
-                {type: 'number', path: "fillOpacity", min: 0, max: 1, step: 0.0001},
-                {type: 'number', path: "curveRadius", min: -5, max: 5, step: 0.001},
+                { type: 'number', path: "maxWidth", min: 1, max: 5, step: 0.01 },
+                { type: 'number', path: "lineHeight", min: 1, max: 2, step: 0.01 },
+                { type: 'number', path: "letterSpacing", min: -0.1, max: 0.5, step: 0.01 },
+                { type: 'number', path: "fillOpacity", min: 0, max: 1, step: 0.0001 },
+                { type: 'number', path: "curveRadius", min: -5, max: 5, step: 0.001 },
 
-                {type: 'number', path: "camerax", min: -5, max: 5, step: 0.01},
-                {type: 'number', path: "cameray", min: -5, max: 5, step: 0.01},
-                {type: 'number', path: "cameraz", min: -5, max: 5, step: 0.01},
+                { type: 'number', path: "camerax", min: -5, max: 5, step: 0.01 },
+                { type: 'number', path: "cameray", min: -5, max: 5, step: 0.01 },
+                { type: 'number', path: "cameraz", min: -5, max: 5, step: 0.01 },
 
-                {type: 'number', path: "outlineWidth", min: 0, max: 0.05, step: 0.0001},
-                {type: 'number', path: "outlineOpacity", min: 0, max: 1, step: 0.0001},
-                {type: 'number', path: "outlineOffsetX", min: -0.05, max: 0.05, step: 0.0001},
-                {type: 'number', path: "outlineOffsetY", min: -0.05, max: 0.05, step: 0.0001},
-                {type: 'number', path: "outlineBlur", min: 0, max: 0.05, step: 0.0001},
+                { type: 'number', path: "outlineWidth", min: 0, max: 0.05, step: 0.0001 },
+                { type: 'number', path: "outlineOpacity", min: 0, max: 1, step: 0.0001 },
+                { type: 'number', path: "outlineOffsetX", min: -0.05, max: 0.05, step: 0.0001 },
+                { type: 'number', path: "outlineOffsetY", min: -0.05, max: 0.05, step: 0.0001 },
+                { type: 'number', path: "outlineBlur", min: 0, max: 0.05, step: 0.0001 },
 
-                {type: 'number', path: "strokeOpacity", min: 0, max: 1, step: 0.0001},
-                {type: 'number', path: "strokeWidth", min: 0, max: 0.01, step: 0.0001},
+                { type: 'number', path: "strokeOpacity", min: 0, max: 1, step: 0.0001 },
+                { type: 'number', path: "strokeWidth", min: 0, max: 0.01, step: 0.0001 },
 
-                {type: 'number', path: "sdfGlyphSize", label: 'SDF size (2^n):', min: 3, max: 8},
-                {type: 'boolean', path: "debugSDF", label: "Show SDF"},
+                { type: 'number', path: "sdfGlyphSize", label: 'SDF size (2^n):', min: 3, max: 8 },
+                { type: 'boolean', path: "debugSDF", label: "Show SDF" },
               ]
             }
-          ] }
+          ]}
         />
 
         {/*<DatGui data={state} onUpdate={this._onConfigUpdate}>

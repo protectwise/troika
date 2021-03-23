@@ -11,8 +11,6 @@ import {
 import { GlyphsGeometry } from './GlyphsGeometry.js'
 import { createTextDerivedMaterial } from './TextDerivedMaterial.js'
 import { getTextRenderInfo } from './TextBuilder.js'
-import { A11yManager } from './A11yManager'
-
 
 const Text = /*#__PURE__*/(() => {
 
@@ -51,8 +49,10 @@ const Text = /*#__PURE__*/(() => {
     return mesh
   }
 
-  const syncStartEvent = {type: 'syncstart'}
-  const syncCompleteEvent = {type: 'synccomplete'}
+  const syncStartEvent = { type: 'syncstart' }
+  const syncCompleteEvent = { type: 'synccomplete' }
+  const beforeRenderEvent = { type: 'beforerender' }
+  const afterRenderEvent = { type: 'afterrender' }
 
   const SYNCABLE_PROPS = [
     'font',
@@ -432,26 +432,12 @@ const Text = /*#__PURE__*/(() => {
       if (this._needsSync) {
         this._needsSync = false
 
-        if (this.selectable || this.accessible) {
-          if(!this.a11yManager)
-          this.a11yManager = new A11yManager(this)
-        }else{
-          if(this.a11yManager){
-            this.a11yManager.destroy()
-            this.a11yManager = null
-          }
-        }
-
         // If there's another sync still in progress, queue
         if (this._isSyncing) {
           (this._queuedSyncs || (this._queuedSyncs = [])).push(callback)
         } else {
           this._isSyncing = true
           this.dispatchEvent(syncStartEvent)
-
-          if(this.a11yManager){
-            this.a11yManager.sync()
-          }
 
           this.currentText = this.currentText ? this.currentText : this.text
 
@@ -505,13 +491,6 @@ const Text = /*#__PURE__*/(() => {
       }
     }
 
-    onAfterRender(renderer, scene, camera) {
-      if(this.a11yManager){
-        this.a11yManager.updateDomPosition(renderer, camera)
-        this.a11yManager.updateSelectedDomPosition(renderer, camera)
-      }
-    }
-
     /**
      * Initiate a sync if needed - note it won't complete until next frame at the
      * earliest so if possible it's a good idea to call sync() manually as soon as
@@ -521,14 +500,18 @@ const Text = /*#__PURE__*/(() => {
     onBeforeRender(renderer, scene, camera, geometry, material, group) {
       this.sync()
 
-      if(this.a11yManager){
-        this.a11yManager.updateHighlightTextUniforms()
-      }
+      this.dispatchEvent(beforeRenderEvent)
 
       // This may not always be a text material, e.g. if there's a scene.overrideMaterial present
       if (material.isTroikaTextMaterial) {
         this._prepareForRender(material)
       }
+    }
+
+    onAfterRender(renderer, scene, camera) {
+      this.renderer = renderer
+      this.camera = camera
+      this.dispatchEvent(afterRenderEvent)
     }
 
     /**
@@ -574,7 +557,7 @@ const Text = /*#__PURE__*/(() => {
         let outlineMaterial = derivedMaterial._outlineMtl
         if (!outlineMaterial) {
           outlineMaterial = derivedMaterial._outlineMtl = Object.create(derivedMaterial, {
-            id: {value: derivedMaterial.id + 0.1}
+            id: { value: derivedMaterial.id + 0.1 }
           })
           outlineMaterial.isTextOutlineMaterial = true
           outlineMaterial.depthWrite = false
@@ -628,7 +611,7 @@ const Text = /*#__PURE__*/(() => {
       const uniforms = material.uniforms
       const textInfo = this.textRenderInfo
       if (textInfo) {
-        const {sdfTexture, blockBounds} = textInfo
+        const { sdfTexture, blockBounds } = textInfo
         uniforms.uTroikaSDFTexture.value = sdfTexture
         uniforms.uTroikaSDFTextureSize.value.set(sdfTexture.image.width, sdfTexture.image.height)
         uniforms.uTroikaSDFGlyphSize.value = textInfo.sdfGlyphSize
@@ -646,7 +629,7 @@ const Text = /*#__PURE__*/(() => {
         let offsetY = 0
 
         if (isOutline) {
-          let {outlineWidth, outlineOffsetX, outlineOffsetY, outlineBlur, outlineOpacity} = this
+          let { outlineWidth, outlineOffsetX, outlineOffsetY, outlineBlur, outlineOpacity } = this
           distanceOffset = this._parsePercent(outlineWidth) || 0
           blurRadius = Math.max(0, this._parsePercent(outlineBlur) || 0)
           fillOpacity = outlineOpacity
@@ -756,12 +739,12 @@ const Text = /*#__PURE__*/(() => {
      * TODO is there any reason to make this more granular, like within individual line or glyph rects?
      */
     raycast(raycaster, intersects) {
-      const {textRenderInfo, curveRadius} = this
+      const { textRenderInfo, curveRadius } = this
       if (textRenderInfo) {
         const bounds = textRenderInfo.blockBounds
         const raycastMesh = curveRadius ? getCurvedRaycastMesh() : getFlatRaycastMesh()
         const geom = raycastMesh.geometry
-        const {position, uv} = geom.attributes
+        const { position, uv } = geom.attributes
         for (let i = 0; i < uv.count; i++) {
           let x = bounds[0] + (uv.getX(i) * (bounds[2] - bounds[0]))
           const y = bounds[1] + (uv.getY(i) * (bounds[3] - bounds[1]))
