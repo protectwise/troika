@@ -1,14 +1,9 @@
 import {
   Matrix4,
-  Mesh,
-  MeshBasicMaterial,
-  Vector4,
   Vector3,
-  Vector2,
-  BoxBufferGeometry
 } from 'three'
-import { createDerivedMaterial } from 'troika-three-utils'
 import { getSelectionRects, getCaretAtPoint } from './selectionUtils'
+import { TextHighlighter } from './TextHighlighter.js'
 
 const domOverlayBaseStyles = `
 position:fixed;
@@ -28,8 +23,6 @@ user-select: all;
 
 const makeSelectable = (textInstance, eventEmitter) => {
 
-  const defaultSelectionColor = 0xffffff
-
   const tempMat4a = new Matrix4()
   const tempMat4b = new Matrix4()
   const tempVec3 = new Vector3()
@@ -48,16 +41,14 @@ const makeSelectable = (textInstance, eventEmitter) => {
   textInstance.selectionRects = []
   textInstance.selectionRectsMeshs = []
 
-  textInstance.prevCurveRadius = 0
   textInstance.isSelectable = true
-
-  textInstance.childrenGeometry = new BoxBufferGeometry(1, 1, 0.1).translate(0.5, 0.5, 0.5)
-  textInstance.childrenCurvedGeometry = new BoxBufferGeometry(1, 1, 0.1, 32).translate(0.5, 0.5, 0.5)
 
   textInstance.addEventListener('syncstart', function () {
     if (!this.selectable && this.selectionRects.length != 0)
       this.clearSelection()
   })
+
+  textInstance.TextHighlighter = new TextHighlighter(textInstance)
 
   /**
    * Given a local x/y coordinate in the text block plane, set the start position of the caret 
@@ -79,7 +70,7 @@ const makeSelectable = (textInstance, eventEmitter) => {
     this.selectionEndIndex = 0
     this.selectionRects = []
     this._domElSelectedText.textContent = ''
-    this.highlightText()
+    this.TextHighlighter.highlightText()
   }
 
   /**
@@ -103,7 +94,7 @@ const makeSelectable = (textInstance, eventEmitter) => {
     this.selectedText = this.text.substring(this.selectionStartIndex, this.selectionEndIndex)
     this.selectionRects = getSelectionRects(textRenderInfo, this.selectionStartIndex, this.selectionEndIndex)
     this._domElSelectedText.textContent = this.selectedText
-    this.highlightText()
+    this.TextHighlighter.highlightText()
     this.selectDomText()
   }
 
@@ -124,7 +115,6 @@ const makeSelectable = (textInstance, eventEmitter) => {
    * the selected text in order for it to be acessible through context menu copy
    */
   textInstance.updateSelectedDomPosition = function (renderer, camera) {
-    console.log('updateSelectedDomPosition')
     const rects = this.selectionRects
     const el = this._domElSelectedText
     if (rects && rects.length) {
@@ -176,100 +166,8 @@ const makeSelectable = (textInstance, eventEmitter) => {
     return `matrix3d(${tempMat4a.elements.join(',')})`
   }
 
-  /**
-   * visually update the rendering of the text selection in the renderer context
-   */
-  textInstance.highlightText = function () {
-    let THICKNESS = 0.25;
-    //todo manage rect update in a cleaner way. Currently we recreate everything everytime
-    //clean dispose of material no need to do it for geometry because we reuse the same
-    this.selectionRectsMeshs.forEach((rect) => {
-      if (rect.parent)
-        rect.parent.remove(rect)
-      rect.material.dispose()
-    })
-    this.selectionRectsMeshs = []
-
-    this.selectionRects.forEach((rect) => {
-      let material = createDerivedMaterial(
-        this.selectionMaterial ? this.selectionMaterial : new MeshBasicMaterial({
-          color: this.selectionColor ? this.selectionColor : defaultSelectionColor,
-          transparent: true,
-          opacity: 0.3,
-          depthWrite: false
-        }),
-        {
-          uniforms: {
-            rect: {
-              value: new Vector4(
-                rect.left,
-                rect.top,
-                rect.right,
-                rect.bottom
-              )
-            },
-            depthAndCurveRadius: {
-              value: new Vector2(
-                (rect.top - rect.bottom) * THICKNESS,
-                this.curveRadius
-              )
-            }
-          },
-          vertexDefs: `
-              uniform vec4 rect;
-              uniform vec2 depthAndCurveRadius;
-              `,
-          vertexTransform: `
-              float depth = depthAndCurveRadius.x;
-              float rad = depthAndCurveRadius.y;
-              position.x = mix(rect.x, rect.z, position.x);
-              position.y = mix(rect.w, rect.y, position.y);
-              position.z = mix(-depth * 0.5, depth * 0.5, position.z);
-              if (rad != 0.0) {
-                float angle = position.x / rad;
-                position.xz = vec2(sin(angle) * (rad - position.z), rad - cos(angle) * (rad - position.z));
-                // TODO fix normals: normal.xz = vec2(sin(angle), cos(angle));
-              }
-              `
-        }
-      )
-      material.instanceUniforms = ['rect', 'depthAndCurveRadius', 'diffuse']
-      let selectRect = new Mesh(
-        this.curveRadius === 0 ? this.childrenGeometry : this.childrenCurvedGeometry,
-        material
-        // new MeshBasicMaterial({color: 0xffffff,side: DoubleSide,transparent: true, opacity:0.5})
-      )
-      this.selectionRectsMeshs.unshift(selectRect)
-      this.add(selectRect)
-    })
-    this.updateWorldMatrix(false, true)
-  }
-
-  textInstance.updateHighlightTextUniforms = function () {
-    if (
-      this.prevCurveRadius === 0 && this.curveRadius !== 0
-      ||
-      this.prevCurveRadius !== 0 && this.curveRadius === 0
-    ) {
-      this.prevCurveRadius = this.curveRadius
-      //update geometry
-      this.selectionRectsMeshs.forEach((rect) => {
-        rect.geometry = this.curveRadius === 0 ? this.childrenGeometry : this.childrenCurvedGeometry
-      })
-    }
-    this.selectionRectsMeshs.forEach((rect) => {
-      rect.material.uniforms.depthAndCurveRadius.value.y = this.curveRadius
-      if (this.selectionColor != rect.material.color) {
-        //faster to check fo color change or to set needsUpdate true each time ? 
-        //todo
-        rect.material.color.set(this.selectionColor)
-        rect.material.needsUpdate = true
-      }
-    })
-  }
-
   textInstance.addEventListener('beforerender', function () {
-    this.updateHighlightTextUniforms()
+    this.TextHighlighter.updateHighlightTextUniforms()
   })
 
   textInstance.addEventListener('afterrender', function () {
