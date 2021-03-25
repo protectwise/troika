@@ -3,7 +3,7 @@ import {
   Vector3,
 } from 'three'
 import { getSelectionRects, getCaretAtPoint } from './selectionUtils'
-import { TextHighlighter } from './TextHighlighter.js'
+import { TextHighlight } from './TextHighlight.js'
 
 const domOverlayBaseStyles = `
 position:fixed;
@@ -48,7 +48,8 @@ const makeSelectable = (textInstance, eventEmitter) => {
       this.clearSelection()
   })
 
-  textInstance.TextHighlighter = new TextHighlighter(textInstance)
+  textInstance.highlight = new TextHighlight()
+  textInstance.add(textInstance.highlight)
 
   /**
    * Given a local x/y coordinate in the text block plane, set the start position of the caret 
@@ -61,6 +62,8 @@ const makeSelectable = (textInstance, eventEmitter) => {
     let caret = getCaretAtPoint(textRenderInfo, x, y)
     this.selectionStartIndex = caret.charIndex
     this.selectionEndIndex = caret.charIndex
+    this.highlight.startIndex = caret.charIndex
+    this.highlight.endIndex = caret.charIndex
     this.updateSelection(textRenderInfo)
     return caret
   }
@@ -68,9 +71,11 @@ const makeSelectable = (textInstance, eventEmitter) => {
   textInstance.clearSelection = function () {
     this.selectionStartIndex = 0
     this.selectionEndIndex = 0
+    this.highlight.startIndex = 0
+    this.highlight.endIndex = 0
     this.selectionRects = []
     this._domElSelectedText.textContent = ''
-    this.TextHighlighter.highlightText()
+    this.highlight.highlightText()
   }
 
   /**
@@ -83,6 +88,7 @@ const makeSelectable = (textInstance, eventEmitter) => {
   textInstance.moveCaret = function (textRenderInfo, x, y) {
     let caret = getCaretAtPoint(textRenderInfo, x, y)
     this.selectionEndIndex = caret.charIndex
+    this.highlight.endIndex = caret.charIndex
     this.updateSelection(textRenderInfo)
     return caret
   }
@@ -94,7 +100,7 @@ const makeSelectable = (textInstance, eventEmitter) => {
     this.selectedText = this.text.substring(this.selectionStartIndex, this.selectionEndIndex)
     this.selectionRects = getSelectionRects(textRenderInfo, this.selectionStartIndex, this.selectionEndIndex)
     this._domElSelectedText.textContent = this.selectedText
-    this.TextHighlighter.highlightText()
+    this.highlight.highlightText()
     this.selectDomText()
   }
 
@@ -167,7 +173,7 @@ const makeSelectable = (textInstance, eventEmitter) => {
   }
 
   textInstance.addEventListener('beforerender', function () {
-    this.TextHighlighter.updateHighlightTextUniforms()
+    this.highlight.updateHighlightTextUniforms()
   })
 
   textInstance.addEventListener('afterrender', function () {
