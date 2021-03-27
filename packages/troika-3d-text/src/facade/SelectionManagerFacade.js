@@ -1,7 +1,6 @@
 import { ListFacade } from 'troika-3d'
 import { Matrix4, Plane, Vector2, Vector3 } from 'three'
-import { getCaretAtPoint, getSelectionRects } from 'troika-three-text'
-import { invertMatrix4 } from 'troika-three-utils'
+import { getCaretAtPoint } from 'troika-three-text'
 import SelectionRangeRect from './SelectionRangeRect.js'
 
 const THICKNESS = 0.25 //rect depth as percentage of height
@@ -50,8 +49,8 @@ class SelectionManagerFacade extends ListFacade {
         const textPos = textMesh.worldPositionToTextCoords(e.intersection.point, tempVec2)
         const caret = getCaretAtPoint(textRenderInfo, textPos.x, textPos.y)
         if (caret) {
-          textMesh.selectionStartIndex = caret.charIndex
-          textMesh.selectionEndIndex = caret.charIndex
+          textMesh.highlight.startIndex = caret.charIndex
+          textMesh.highlight.endIndex = caret.charIndex
           textMesh.updateSelection(textRenderInfo)
           onSelectionChange(caret.charIndex, caret.charIndex)
           parent.addEventListener('drag', onDrag)
@@ -80,7 +79,7 @@ class SelectionManagerFacade extends ListFacade {
         if (textPos) {
           const caret = getCaretAtPoint(textRenderInfo, textPos.x, textPos.y)
           if (caret) {
-            textMesh.selectionEndIndex = caret.charIndex
+            textMesh.highlight.endIndex = caret.charIndex
             textMesh.updateSelection(textRenderInfo)
             onSelectionChange(this.selectionStart, caret.charIndex)
           }
@@ -105,8 +104,8 @@ class SelectionManagerFacade extends ListFacade {
       //clear selection
       const textRenderInfo = textMesh.textRenderInfo
       if (textRenderInfo) {
-        textMesh.selectionStartIndex = 0
-        textMesh.selectionEndIndex = 0
+        textMesh.highlight.startIndex = 0
+        textMesh.highlight.endIndex = 0
         textMesh.updateSelection(textRenderInfo)
       }
     }

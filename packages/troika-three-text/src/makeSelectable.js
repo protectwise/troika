@@ -24,8 +24,6 @@ const makeSelectable = (textInstance, options = {}) => {
   }, options);
 
   textInstance._domElSelectedText = document.createElement('p')
-  textInstance.selectionStartIndex = 0;
-  textInstance.selectionEndIndex = 0;
   textInstance.selectedText = null;
 
   _options.domContainer.appendChild(textInstance._domElSelectedText)
@@ -66,11 +64,9 @@ const makeSelectable = (textInstance, options = {}) => {
    * update the selection visually and everything related to copy /paste
    */
   textInstance.updateSelection = function (textRenderInfo) {
-    this.selectedText = this.text.substring(this.selectionStartIndex, this.selectionEndIndex)
-    this.selectionRects = getSelectionRects(textRenderInfo, this.selectionStartIndex, this.selectionEndIndex)
+    this.selectedText = this.text.substring(this.highlight.startIndex, this.highlight.endIndex)
+    this.selectionRects = getSelectionRects(textRenderInfo, this.highlight.startIndex, this.highlight.endIndex)
     this._domElSelectedText.textContent = this.selectedText
-    this.highlight.startIndex = this.selectionStartIndex
-    this.highlight.endIndex = this.selectionEndIndex
     this.highlight.highlightText()
     this.selectDomText()
   }
