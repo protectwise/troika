@@ -49,7 +49,6 @@ const Text = /*#__PURE__*/(() => {
     return mesh
   }
 
-  const syncStartEvent = { type: 'syncstart' }
   const syncCompleteEvent = { type: 'synccomplete' }
   const beforeRenderEvent = { type: 'beforerender' }
   const afterRenderEvent = { type: 'afterrender' }
@@ -68,9 +67,7 @@ const Text = /*#__PURE__*/(() => {
     'anchorX',
     'anchorY',
     'colorRanges',
-    'sdfGlyphSize',
-    'selectable',
-    'accessible'
+    'sdfGlyphSize'
   ]
 
   const COPYABLE_PROPS = SYNCABLE_PROPS.concat(
@@ -375,50 +372,6 @@ const Text = /*#__PURE__*/(() => {
        */
       this.sdfGlyphSize = null
 
-      // === dom related properties === //
-
-      /**
-       * @member {boolean} selectable
-       * Defines whether the displayed text can be selected by the user in order to be copied to its 
-       * clipboard for instance. This will automatically enable the accessible mode. 
-       */
-      this.selectable = false
-
-      /**
-       * @member {boolean} accessible
-       * Defines whether the displayed text can be read by screen readers or not. 
-       * Enabling this also allow the user to visually translate the text using browser translating tools.
-       * This setting use overlaying HTML that is kept above the rendered text.
-       */
-      this.accessible = false
-
-      /**
-       * @member {THREE.Material} selectionMaterial
-       * Defines a _base_ material to be used when rendering the text selection. This material will be
-       * automatically replaced with a material derived from it, that adds shader code to manage
-       * curved text.
-       * By default it will derive from a simple white MeshBasicMaterial with alpha of 0.3, but you can use any
-       * of the other mesh materials to gain other features like lighting, texture maps, etc.
-       *
-       * Also see the `selectionColor` shortcut property.
-       */
-      this.selectionMaterial = null
-
-      /**
-       * @member {string|number|THREE.Color} selectionColor
-       * This is a shortcut for setting the `color` of the text selection's material. You can use this
-       * if you don't want to specify a whole custom `material`. Also, if you do use a custom
-       * `material`, this color will only be used for this particuar Text instance, even if
-       * that same material instance is shared across multiple Text objects.
-       */
-      this.selectionColor = null
-
-      /**
-       * @member {element} domContainer
-       * When set, the overlaying HTML of the selection or accessible feature will be a child of this container.
-       */
-      this.domContainer = null
-
       this.debugSDF = false
     }
 
@@ -437,7 +390,6 @@ const Text = /*#__PURE__*/(() => {
           (this._queuedSyncs || (this._queuedSyncs = [])).push(callback)
         } else {
           this._isSyncing = true
-          this.dispatchEvent(syncStartEvent)
 
           this.currentText = this.currentText ? this.currentText : this.text
 

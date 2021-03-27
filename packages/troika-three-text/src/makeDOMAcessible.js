@@ -40,8 +40,7 @@ const makeDOMAcessible = (textInstance, options = {}) => {
 
   textInstance._domElText = document.createElement(_options.tagName)
 
-  textInstance.domContainer = _options.domContainer
-  textInstance.domContainer.appendChild(textInstance._domElText)
+  _options.domContainer.appendChild(textInstance._domElText)
   textInstance._domElText.style = domOverlayBaseStyles + domSRoutline
   textInstance.isDOMAccessible = true
 

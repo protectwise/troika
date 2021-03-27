@@ -21,19 +21,22 @@ line-height: 10px;
 user-select: all;
 `
 
-const makeSelectable = (textInstance, eventEmitter) => {
+const makeSelectable = (textInstance, options = {}) => {
 
   const tempMat4a = new Matrix4()
   const tempMat4b = new Matrix4()
   const tempVec3 = new Vector3()
+
+  const _options = Object.assign({
+    domContainer: document.documentElement
+  }, options);
 
   textInstance._domElSelectedText = document.createElement('p')
   textInstance.selectionStartIndex = 0;
   textInstance.selectionEndIndex = 0;
   textInstance.selectedText = null;
 
-  textInstance.domContainer = document.documentElement
-  textInstance.domContainer.appendChild(textInstance._domElSelectedText)
+  _options.domContainer.appendChild(textInstance._domElSelectedText)
 
   textInstance._domElSelectedText.setAttribute('aria-hidden', 'true')
   textInstance._domElSelectedText.style = domOverlayBaseStyles
@@ -43,55 +46,29 @@ const makeSelectable = (textInstance, eventEmitter) => {
 
   textInstance.isSelectable = true
 
-  textInstance.addEventListener('syncstart', function () {
-    if (!this.selectable && this.selectionRects.length != 0)
-      this.clearSelection()
-  })
+  /**
+ * @member {THREE.Material} selectionMaterial
+ * Defines a _base_ material to be used when rendering the text selection. This material will be
+ * automatically replaced with a material derived from it, that adds shader code to manage
+ * curved text.
+ * By default it will derive from a simple white MeshBasicMaterial with alpha of 0.3, but you can use any
+ * of the other mesh materials to gain other features like lighting, texture maps, etc.
+ *
+ * Also see the `selectionColor` shortcut property.
+ */
+  textInstance.selectionMaterial = null
+
+  /**
+   * @member {string|number|THREE.Color} selectionColor
+   * This is a shortcut for setting the `color` of the text selection's material. You can use this
+   * if you don't want to specify a whole custom `material`. Also, if you do use a custom
+   * `material`, this color will only be used for this particuar Text instance, even if
+   * that same material instance is shared across multiple Text objects.
+   */
+  textInstance.selectionColor = null
 
   textInstance.highlight = new TextHighlight()
   textInstance.add(textInstance.highlight)
-
-  /**
-   * Given a local x/y coordinate in the text block plane, set the start position of the caret 
-   * used in text selection 
-   * @param {number} x
-   * @param {number} y
-   * @return {TextCaret | null}
-   */
-  textInstance.startCaret = function (textRenderInfo, x, y) {
-    let caret = getCaretAtPoint(textRenderInfo, x, y)
-    this.selectionStartIndex = caret.charIndex
-    this.selectionEndIndex = caret.charIndex
-    this.highlight.startIndex = caret.charIndex
-    this.highlight.endIndex = caret.charIndex
-    this.updateSelection(textRenderInfo)
-    return caret
-  }
-
-  textInstance.clearSelection = function () {
-    this.selectionStartIndex = 0
-    this.selectionEndIndex = 0
-    this.highlight.startIndex = 0
-    this.highlight.endIndex = 0
-    this.selectionRects = []
-    this._domElSelectedText.textContent = ''
-    this.highlight.highlightText()
-  }
-
-  /**
-   * Given a local x/y coordinate in the text block plane, set the end position of the caret 
-   * used in text selection 
-   * @param {number} x
-   * @param {number} y
-   * @return {TextCaret | null}
-   */
-  textInstance.moveCaret = function (textRenderInfo, x, y) {
-    let caret = getCaretAtPoint(textRenderInfo, x, y)
-    this.selectionEndIndex = caret.charIndex
-    this.highlight.endIndex = caret.charIndex
-    this.updateSelection(textRenderInfo)
-    return caret
-  }
 
   /**
    * update the selection visually and everything related to copy /paste
@@ -100,6 +77,8 @@ const makeSelectable = (textInstance, eventEmitter) => {
     this.selectedText = this.text.substring(this.selectionStartIndex, this.selectionEndIndex)
     this.selectionRects = getSelectionRects(textRenderInfo, this.selectionStartIndex, this.selectionEndIndex)
     this._domElSelectedText.textContent = this.selectedText
+    this.highlight.startIndex = this.selectionStartIndex
+    this.highlight.endIndex = this.selectionEndIndex
     this.highlight.highlightText()
     this.selectDomText()
   }

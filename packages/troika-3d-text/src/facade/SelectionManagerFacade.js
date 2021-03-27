@@ -1,5 +1,6 @@
 import { ListFacade } from 'troika-3d'
 import { Matrix4, Plane, Vector2, Vector3 } from 'three'
+import { getCaretAtPoint, getSelectionRects } from 'troika-three-text'
 import { invertMatrix4 } from 'troika-three-utils'
 import SelectionRangeRect from './SelectionRangeRect.js'
 
@@ -47,8 +48,11 @@ class SelectionManagerFacade extends ListFacade {
       const textRenderInfo = textMesh.textRenderInfo
       if (textRenderInfo) {
         const textPos = textMesh.worldPositionToTextCoords(e.intersection.point, tempVec2)
-        const caret = textMesh.startCaret(textRenderInfo, textPos.x, textPos.y)
+        const caret = getCaretAtPoint(textRenderInfo, textPos.x, textPos.y)
         if (caret) {
+          textMesh.selectionStartIndex = caret.charIndex
+          textMesh.selectionEndIndex = caret.charIndex
+          textMesh.updateSelection(textRenderInfo)
           onSelectionChange(caret.charIndex, caret.charIndex)
           parent.addEventListener('drag', onDrag)
           parent.addEventListener('dragend', onDragEnd)
@@ -74,8 +78,10 @@ class SelectionManagerFacade extends ListFacade {
           // textPos = ray.intersectPlane(tempPlane.setComponents(0, 0, 1, 0), tempVec3)
         }
         if (textPos) {
-          const caret = textMesh.moveCaret(textRenderInfo, textPos.x, textPos.y)
+          const caret = getCaretAtPoint(textRenderInfo, textPos.x, textPos.y)
           if (caret) {
+            textMesh.selectionEndIndex = caret.charIndex
+            textMesh.updateSelection(textRenderInfo)
             onSelectionChange(this.selectionStart, caret.charIndex)
           }
         }
@@ -97,7 +103,12 @@ class SelectionManagerFacade extends ListFacade {
         target = target.parent
       } while (target !== null)
       //clear selection
-      textMesh.clearSelection()
+      const textRenderInfo = textMesh.textRenderInfo
+      if (textRenderInfo) {
+        textMesh.selectionStartIndex = 0
+        textMesh.selectionEndIndex = 0
+        textMesh.updateSelection(textRenderInfo)
+      }
     }
 
     //clear selection if missed click
