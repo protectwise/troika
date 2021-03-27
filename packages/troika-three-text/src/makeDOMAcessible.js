@@ -1,7 +1,5 @@
-import {
-  Matrix4,
-  Vector3,
-} from 'three'
+import { textRectToCssMatrix } from './selectionUtils'
+
 
 const domOverlayBaseStyles = `
 position:fixed;
@@ -27,10 +25,6 @@ align-items: center;
 `
 
 const makeDOMAcessible = (textInstance, options = {}) => {
-
-  const tempMat4a = new Matrix4()
-  const tempMat4b = new Matrix4()
-  const tempVec3 = new Vector3()
 
   const _options = Object.assign({
     domContainer: document.documentElement,
@@ -101,7 +95,7 @@ const makeDOMAcessible = (textInstance, options = {}) => {
   textInstance.updateDomPosition = function (renderer, camera) {
     if (!this.pauseDomSync) {
       const { min, max } = this.geometry.boundingBox
-      this._domElText.style.transform = this._textRectToCssMatrix(min.x, min.y, max.x, max.y, max.z, renderer, camera)
+      this._domElText.style.transform = textRectToCssMatrix(min.x, min.y, max.x, max.y, max.z, renderer, camera, this.matrixWorld)
     }
   }
 
@@ -110,36 +104,6 @@ const makeDOMAcessible = (textInstance, options = {}) => {
     const camera = this.camera
     this.updateDomPosition(renderer, camera)
   })
-
-  /**
-   * Given a rect in local text coordinates, build a CSS matrix3d that will transform
-   * a 10x10 DOM element to line up exactly with that rect on the screen.
-   * @private
-   */
-  textInstance._textRectToCssMatrix = function (minX, minY, maxX, maxY, z, renderer, camera) {
-    const canvasRect = renderer.domElement.getBoundingClientRect()
-
-    // element dimensions to geometry dimensions (flipping the y)
-    tempMat4a.makeScale((maxX - minX) / 10, (minY - maxY) / 10, 1)
-      .setPosition(tempVec3.set(minX, maxY, z))
-
-    // geometry to world
-    tempMat4a.premultiply(this.matrixWorld)
-
-    // world to camera
-    tempMat4a.premultiply(camera.matrixWorldInverse)
-
-    // camera to projection
-    tempMat4a.premultiply(camera.projectionMatrix)
-
-    // projection coords (-1 to 1) to screen pixels
-    tempMat4a.premultiply(
-      tempMat4b.makeScale(canvasRect.width / 2, -canvasRect.height / 2, 1)
-        .setPosition(canvasRect.left + canvasRect.width / 2, canvasRect.top + canvasRect.height / 2, 0)
-    )
-
-    return `matrix3d(${tempMat4a.elements.join(',')})`
-  }
 
   textInstance.pause = function () {
     this.pauseDomSync = true

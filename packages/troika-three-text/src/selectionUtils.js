@@ -1,3 +1,7 @@
+import {
+  Matrix4,
+  Vector3,
+} from 'three'
 //=== Utility functions for dealing with carets and selection ranges ===//
 
 /**
@@ -9,6 +13,10 @@
  *   character; the caret will be for the position _before_ that character.
  */
 
+const tempMat4a = new Matrix4()
+const tempMat4b = new Matrix4()
+const tempVec3 = new Vector3()
+
 /**
  * Given a local x/y coordinate in the text block plane, find the nearest caret position.
  * @param {TroikaTextRenderInfo} textRenderInfo - a result object from TextBuilder#getTextRenderInfo
@@ -18,7 +26,7 @@
  */
 export function getCaretAtPoint(textRenderInfo, x, y) {
   let closestCaret = null
-  const {caretHeight} = textRenderInfo
+  const { caretHeight } = textRenderInfo
   const caretsByRow = groupCaretsByRow(textRenderInfo)
 
   // Find nearest row by y first
@@ -58,7 +66,7 @@ export function getSelectionRects(textRenderInfo, start, end) {
       return prevResult.rects
     }
 
-    const {caretPositions, caretHeight} = textRenderInfo
+    const { caretPositions, caretHeight } = textRenderInfo
 
     // Normalize
     if (end < start) {
@@ -77,7 +85,7 @@ export function getSelectionRects(textRenderInfo, start, end) {
       const y = caretPositions[i * 3 + 2]
       let row = rows.get(y)
       if (!row) {
-        row = {left: x1, right: x2, bottom: y, top: y + caretHeight}
+        row = { left: x1, right: x2, bottom: y, top: y + caretHeight }
         rows.set(y, row)
       } else {
         row.left = Math.min(row.left, x1)
@@ -89,7 +97,7 @@ export function getSelectionRects(textRenderInfo, start, end) {
       rects.push(rect)
     })
 
-    _rectsCache.set(textRenderInfo, {start, end, rects})
+    _rectsCache.set(textRenderInfo, { start, end, rects })
   }
   return rects
 }
@@ -100,7 +108,7 @@ function groupCaretsByRow(textRenderInfo) {
   // textRenderInfo is frozen so it's safe to cache based on it
   let caretsByRow = _caretsByRowCache.get(textRenderInfo)
   if (!caretsByRow) {
-    const {caretPositions, caretHeight} = textRenderInfo
+    const { caretPositions, caretHeight } = textRenderInfo
     caretsByRow = new Map()
     for (let i = 0; i < caretPositions.length; i += 3) {
       const rowY = caretPositions[i + 2]
@@ -127,4 +135,34 @@ function groupCaretsByRow(textRenderInfo) {
   }
   _caretsByRowCache.set(textRenderInfo, caretsByRow)
   return caretsByRow
+}
+
+/**
+ * Given a rect in local text coordinates, build a CSS matrix3d that will transform
+ * a 10x10 DOM element to line up exactly with that rect on the screen.
+ * @private
+ */
+export function textRectToCssMatrix(minX, minY, maxX, maxY, z, renderer, camera, matrixWorld) {
+  const canvasRect = renderer.domElement.getBoundingClientRect()
+
+  // element dimensions to geometry dimensions (flipping the y)
+  tempMat4a.makeScale((maxX - minX) / 10, (minY - maxY) / 10, 1)
+    .setPosition(tempVec3.set(minX, maxY, z))
+
+  // geometry to world
+  tempMat4a.premultiply(matrixWorld)
+
+  // world to camera
+  tempMat4a.premultiply(camera.matrixWorldInverse)
+
+  // camera to projection
+  tempMat4a.premultiply(camera.projectionMatrix)
+
+  // projection coords (-1 to 1) to screen pixels
+  tempMat4a.premultiply(
+    tempMat4b.makeScale(canvasRect.width / 2, -canvasRect.height / 2, 1)
+      .setPosition(canvasRect.left + canvasRect.width / 2, canvasRect.top + canvasRect.height / 2, 0)
+  )
+
+  return `matrix3d(${tempMat4a.elements.join(',')})`
 }

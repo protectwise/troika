@@ -1,8 +1,4 @@
-import {
-  Matrix4,
-  Vector3,
-} from 'three'
-import { getSelectionRects, getCaretAtPoint } from './selectionUtils'
+import { getSelectionRects, textRectToCssMatrix } from './selectionUtils'
 import { TextHighlight } from './TextHighlight.js'
 
 const domOverlayBaseStyles = `
@@ -22,10 +18,6 @@ user-select: all;
 `
 
 const makeSelectable = (textInstance, options = {}) => {
-
-  const tempMat4a = new Matrix4()
-  const tempMat4b = new Matrix4()
-  const tempVec3 = new Vector3()
 
   const _options = Object.assign({
     domContainer: document.documentElement
@@ -114,41 +106,11 @@ const makeSelectable = (textInstance, options = {}) => {
       }
 
       const z = this.geometry.boundingBox.max.z
-      el.style.transform = this._textRectToCssMatrix(minX, minY, maxX, maxY, z, renderer, camera)
+      el.style.transform = textRectToCssMatrix(minX, minY, maxX, maxY, z, renderer, camera, this.matrixWorld)
       el.style.display = 'block'
     } else {
       el.style.display = 'none'
     }
-  }
-
-  /**
-   * Given a rect in local text coordinates, build a CSS matrix3d that will transform
-   * a 10x10 DOM element to line up exactly with that rect on the screen.
-   * @private
-   */
-  textInstance._textRectToCssMatrix = function (minX, minY, maxX, maxY, z, renderer, camera) {
-    const canvasRect = renderer.domElement.getBoundingClientRect()
-
-    // element dimensions to geometry dimensions (flipping the y)
-    tempMat4a.makeScale((maxX - minX) / 10, (minY - maxY) / 10, 1)
-      .setPosition(tempVec3.set(minX, maxY, z))
-
-    // geometry to world
-    tempMat4a.premultiply(this.matrixWorld)
-
-    // world to camera
-    tempMat4a.premultiply(camera.matrixWorldInverse)
-
-    // camera to projection
-    tempMat4a.premultiply(camera.projectionMatrix)
-
-    // projection coords (-1 to 1) to screen pixels
-    tempMat4a.premultiply(
-      tempMat4b.makeScale(canvasRect.width / 2, -canvasRect.height / 2, 1)
-        .setPosition(canvasRect.left + canvasRect.width / 2, canvasRect.top + canvasRect.height / 2, 0)
-    )
-
-    return `matrix3d(${tempMat4a.elements.join(',')})`
   }
 
   textInstance.addEventListener('beforerender', function () {
