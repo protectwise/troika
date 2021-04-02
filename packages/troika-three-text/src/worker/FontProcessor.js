@@ -173,6 +173,7 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
       letterSpacing=0,
       lineHeight='normal',
       maxWidth=INF,
+      direction='ltr',
       textAlign='left',
       textIndent=0,
       whiteSpace='normal',
@@ -215,6 +216,7 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
       let maxLineWidth = 0
       let renderableGlyphCount = 0
       let canWrap = whiteSpace !== 'nowrap'
+      const rtl = direction === 'rtl'
       const {ascender, descender, unitsPerEm} = fontObj
       timings.fontLoad = now() - mainStart
       const layoutStart = now()
@@ -369,7 +371,7 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
         let chunk
         let currentColor
         lines.forEach(line => {
-          const {count:lineGlyphCount, width:lineWidth} = line
+          let {count:lineGlyphCount, width:lineWidth} = line
 
           // Ignore empty lines
           if (lineGlyphCount > 0) {
@@ -398,14 +400,18 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
                 }
               }
               justifyAdjust = (maxLineWidth - lineWidth) / whitespaceCount
+              lineWidth = maxLineWidth
             }
 
+            let justifyOffset = 0
             for (let i = 0; i < lineGlyphCount; i++) {
               let glyphInfo = line.glyphAt(i)
               const glyphObj = glyphInfo.glyphObj
 
               // Apply position adjustments
-              if (lineXOffset) glyphInfo.x += lineXOffset
+              if (lineXOffset || justifyOffset) {
+                glyphInfo.x += lineXOffset + justifyOffset
+              }
 
               // Expand non-trailing whitespaces for justify alignment
               if (justifyAdjust !== 0 && glyphObj.isWhitespace) {
@@ -419,16 +425,23 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
                 }
                 glyphInfo = line.glyphAt(i) //restore flyweight
                 if (!isTrailingWhitespace) {
-                  lineXOffset += justifyAdjust
+                  justifyOffset += justifyAdjust
                   glyphInfo.width += justifyAdjust
                 }
+              }
+
+              // Apply rtl flip
+              if (rtl) {
+                glyphInfo.x = (lineXOffset + lineWidth) - (glyphInfo.x - lineXOffset) - glyphInfo.width
               }
 
               // Add caret positions
               if (includeCaretPositions) {
                 const {charIndex} = glyphInfo
-                caretPositions[charIndex * 3] = glyphInfo.x + anchorXOffset //left edge x
-                caretPositions[charIndex * 3 + 1] = glyphInfo.x + glyphInfo.width + anchorXOffset //right edge x
+                const caretLeft = glyphInfo.x + anchorXOffset
+                const caretRight = glyphInfo.x + glyphInfo.width + anchorXOffset
+                caretPositions[charIndex * 3] = rtl ? caretRight : caretLeft //start edge x
+                caretPositions[charIndex * 3 + 1] = rtl ? caretLeft : caretRight //end edge x
                 caretPositions[charIndex * 3 + 2] = lineYOffset + caretBottomOffset + anchorYOffset //common bottom y
 
                 // If we skipped any chars from the previous glyph (due to ligature subs), copy the

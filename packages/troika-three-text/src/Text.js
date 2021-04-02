@@ -60,6 +60,7 @@ const Text = /*#__PURE__*/(() => {
     'maxWidth',
     'overflowWrap',
     'text',
+    'direction',
     'textAlign',
     'textIndent',
     'whiteSpace',
@@ -139,6 +140,16 @@ const Text = /*#__PURE__*/(() => {
        * internally. You can use `glyphGeometryDetail` to add more vertices for curvature inside glyphs.
        */
       this.curveRadius = 0
+
+      /**
+       * @member {string} direction
+       * Sets the text directionality; supported values are "ltr" and "rtl". Currently only a single
+       * direction is supported for the whole text block -- no "bidi" direction switching will occur.
+       *
+       * Note: this is currently an extremely simplistic implementation and may not be correct in all
+       * cases.
+       */
+      this.direction = 'ltr'
 
       /**
        * @member {string} font
@@ -398,6 +409,7 @@ const Text = /*#__PURE__*/(() => {
             letterSpacing: this.letterSpacing || 0,
             lineHeight: this.lineHeight || 'normal',
             maxWidth: this.maxWidth,
+            direction: this.direction || 'ltr',
             textAlign: this.textAlign,
             textIndent: this.textIndent,
             whiteSpace: this.whiteSpace,
