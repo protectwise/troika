@@ -50,6 +50,7 @@ const Text = /*#__PURE__*/(() => {
   }
 
   const syncCompleteEvent = { type: 'synccomplete' }
+  const textChangeEvent = { type: 'textChange' }
   const beforeRenderEvent = { type: 'beforerender' }
   const afterRenderEvent = { type: 'afterrender' }
 
@@ -384,6 +385,13 @@ const Text = /*#__PURE__*/(() => {
     sync(callback) {
       if (this._needsSync) {
         this._needsSync = false
+
+        /* detect text change coming from the component */
+        if (this.prevText !== this.text) {
+          this.currentText = this.text
+          this.dispatchEvent(textChangeEvent)
+          this.prevText = this.text
+        }
 
         // If there's another sync still in progress, queue
         if (this._isSyncing) {

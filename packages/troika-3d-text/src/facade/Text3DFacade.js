@@ -101,13 +101,6 @@ class Text3DFacade extends Object3DFacade {
       makeSelectable(this.threeObject)
     }
 
-    if (this.text !== this._prevText) {
-      // TODO mirror to DOM... this._domEl.textContent = this.text
-      // Clear selection when text changes
-      this.selectionStart = this.selectionEnd = -1
-      this._prevText = this.text
-    }
-
     this._updateSelection()
   }
 

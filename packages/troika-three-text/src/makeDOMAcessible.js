@@ -67,25 +67,16 @@ const makeDOMAcessible = (textInstance, options = {}) => {
   textInstance.pauseDomSync = false
 
   textInstance.syncDOM = function () {
-    if (this.prevText !== this.text) {
-      this.currentText = this.text
-      this.prevHTML = this.currentHTML
-      this.currentHTML = this.text.replace(/(?:\r\n|\r|\n)/g, '<br>')
-      this.prevText = this.text
-    }
-
-    this.currentText = this.currentText ? this.currentText : this.text
-
-    //update dom with latest text
-    if (this.prevHTML !== this.currentHTML) {
-      this.observer.disconnect()
-      this._domElText.innerHTML = this.currentHTML;
-      this.prevHTML = this.currentHTML
-      this.observer.observe(this._domElText, { attributes: false, childList: true, subtree: false });
-    }
+    this.currentText = this.text
+    this.prevText = this.text
+    this.currentHTML = this.text.replace(/(?:\r\n|\r|\n)/g, '<br>')
+    this.observer.disconnect()
+    this._domElText.innerHTML = this.currentHTML;
+    this.prevHTML = this.currentHTML
+    this.observer.observe(this._domElText, { attributes: false, childList: true, subtree: false });
   }
 
-  textInstance.addEventListener('syncstart', textInstance.syncDOM)
+  textInstance.addEventListener('textChange', textInstance.syncDOM)
 
   textInstance.syncDOM()
 
