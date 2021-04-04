@@ -46,7 +46,7 @@ const TextHighlight = /*#__PURE__*/(() => {
 
       this.parent.selectionRects.forEach((rect) => {
         let material = createDerivedMaterial(
-          this.parent.selectionMaterial ? this.parent.selectionMaterial : new MeshBasicMaterial({
+          this.parent.selectionMaterial ? this.parent.selectionMaterial.clone() : new MeshBasicMaterial({
             color: this.parent.selectionColor ? this.parent.selectionColor : defaultSelectionColor,
             transparent: true,
             opacity: 0.3,
