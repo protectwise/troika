@@ -25,6 +25,7 @@ align-items: center;
 `
 
 const makeDOMAcessible = (textInstance, options = {}) => {
+  console.log(options)
 
   const _options = Object.assign({
     domContainer: document.documentElement,
@@ -49,6 +50,7 @@ const makeDOMAcessible = (textInstance, options = {}) => {
   }
 
   if (_options.observeMutation) {
+    console.log(_options.observeMutation)
     /**
      * Start watching change on the overlaying HTML such as browser dom translation in order to reflect it in the renderer context
      */
@@ -70,10 +72,12 @@ const makeDOMAcessible = (textInstance, options = {}) => {
     this.currentText = this.text
     this.prevText = this.text
     this.currentHTML = this.text.replace(/(?:\r\n|\r|\n)/g, '<br>')
-    this.observer.disconnect()
+    if (_options.observeMutation)
+      this.observer.disconnect()
     this._domElText.innerHTML = this.currentHTML;
     this.prevHTML = this.currentHTML
-    this.observer.observe(this._domElText, { attributes: false, childList: true, subtree: false });
+    if (_options.observeMutation)
+      this.observer.observe(this._domElText, { attributes: false, childList: true, subtree: false });
   }
 
   textInstance.addEventListener('textChange', textInstance.syncDOM)
