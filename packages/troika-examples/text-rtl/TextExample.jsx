@@ -86,7 +86,7 @@ class TextExample extends React.Component {
       lineHeight: 1.15,
       letterSpacing: 0,
       maxWidth: 2, //2m
-      textAlign: 'justify',
+      textAlign: 'right',
       textIndent: 0,
       anchorX: 'center',
       anchorY: 'middle',
