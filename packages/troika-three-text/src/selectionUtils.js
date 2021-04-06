@@ -88,8 +88,8 @@ export function getSelectionRects(textRenderInfo, start, end) {
         row = { left: Math.min(x1, x2), right: Math.max(x1, x2), bottom: y, top: y + caretHeight }
         rows.set(y, row)
       } else {
-        row.left = Math.min(row.left, x1)
-        row.right = Math.max(row.right, x2)
+        row.left = Math.min(row.left, x1, x2)
+        row.right = Math.max(row.right, x2, x2)
       }
     }
     rects = []

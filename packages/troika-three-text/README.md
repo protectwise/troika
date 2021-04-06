@@ -127,6 +127,12 @@ Be aware that while this can help with z-fighting, it does not affect the render
 
 Default: `0`
 
+### `direction`
+
+If set to `'rtl'`, enables basic right-to-left text layout. This is currently a very naive implementation, only supporting a single direction for the whole text block (no bidirectional "bidi" support.) Also, it doesn't support other features of certain right-to-left languages such as positional glyph substitutions.
+
+Default: `'ltr'`
+
 ### `fillOpacity`
 
 Controls the opacity of just the glyph's fill area, separate from any configured `strokeOpacity`, `outlineOpacity`, and the material's `opacity`. A `fillOpacity` of `0` will make the fill invisible, leaving just the stroke and/or outline.

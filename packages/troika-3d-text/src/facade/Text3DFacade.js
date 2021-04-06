@@ -13,6 +13,7 @@ const TEXT_MESH_PROPS = [
   'lineHeight',
   'maxWidth',
   'overflowWrap',
+  'direction',
   'textAlign',
   'textIndent',
   'whiteSpace',
