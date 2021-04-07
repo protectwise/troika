@@ -21,6 +21,7 @@ const FONTS = {
   'Cairo': 'https://fonts.gstatic.com/s/cairo/v10/SLXGc1nY6HkvamIl.woff',
   'Lemonada': 'https://fonts.gstatic.com/s/lemonada/v12/0QI-MXFD9oygTWy_R-FFlwV-bgfR7QJGeut2mg.woff',
   'Mirza': 'https://fonts.gstatic.com/s/mirza/v10/co3ImWlikiN5Eure.woff',
+  //'Reem Kufi': 'https://fonts.gstatic.com/s/reemkufi/v10/2sDcZGJLip7W2J7v7wQDbA.woff',
   'Scheherazade': 'https://fonts.gstatic.com/s/scheherazade/v20/YA9Ur0yF4ETZN60keViq1kQgtA.woff',
   'Roboto': 'https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff',
   'Noto Sans': 'https://fonts.gstatic.com/s/notosans/v7/o-0IIpQlx3QUlC5A4PNr5TRG.woff',
@@ -37,7 +38,10 @@ const TEXTS = {
 
   Three: 'وللناس مذاهبهم المختلفة في التخفف من الهموم والتخلص من الأحزان، فمنهم من يتسلى عنها بالقراءة، ومنهم من يتسلى عنها بالرياضة، ومنهم من يتسلى عنها بالاستماع للموسيقى والغناء، ومنهم من يذهب غير هذه المذاهب كلها لينسى نفسه ويفر من حياته الحاضرة وما تثقله به من الأعباء.',
 
+  'BiDi 1': `ان عدة الشهور عند الله اثنا عشر شهرا في كتاب الله يوم خلق السماوات والارض \u202DSOME LATIN TEXT HERE\u202C منها اربعة حرم ذلك الدين القيم فلاتظلموا فيهن انفسكم وقاتلوا المشركين كافة كما يقاتلونكم كافة واعلموا ان الله مع المتقين `,
+
   [CUSTOM_LBL]: 'نص'
+  //[CUSTOM_LBL]: 'abc def ghi jkl mno pqr stu vwx yz \u202EABC DEF GHI JKL MNO \u202Dabc def ghi jkl \u202E123 456 7890\u202C mno pqr stu vwx yz\u202C PQR STU VWX YZ\u202C abc def ghi jkl mno pqr stu vwx yz'
 }
 
 const TEXTURE = new TextureLoader().load('shader-anim/lava.jpg')
@@ -330,7 +334,7 @@ class TextExample extends React.Component {
 
         { state.text === CUSTOM_LBL ? (
           <textarea
-            style={{position:'absolute', left:280, top:0, width:300, height: 120}}
+            style={{position:'absolute', left:280, top:0, width:300, height: 120, fontFamily: 'serif'}}
             value={TEXTS[CUSTOM_LBL]}
             onChange={e => {
               TEXTS[CUSTOM_LBL] = e.target.value
