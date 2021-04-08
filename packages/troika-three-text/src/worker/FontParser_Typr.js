@@ -16,6 +16,47 @@ function parserFactory(Typr, woff2otf) {
     Z: 0
   }
 
+  // Override Typr.U._getWPFeature with an implementation that more correctly handles
+  // tashkeel diacritics and non-Arabic characters. Logic adapted from opentype.js.
+  function isArabicChar(c) {
+    return /[\u0600-\u065F\u066A-\u06D2\u06FA-\u06FF]/.test(c);
+  }
+  function isIsolatedArabicChar(c) {
+    return "ذڐءر١ٱآزٲڒۂأٳړۃؤڔۄإٵڕۅۥٶږۆاٷڗۇوڈژۈډڙۉڊۊ٫ڋۋڌڍۍ۽ڎۮ۾دڏۏۯ".indexOf(c) !== -1;
+  }
+  function isTashkeelArabicChar(c) {
+    return /[\u0600-\u0605\u060C-\u060E\u0610-\u061B\u061E\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED]/.test(c);
+  }
+  Typr.U._getWPfeature = function(str, ci) {  // get Word Position feature
+    const char = str[ci]
+    if (isArabicChar(char) && !isTashkeelArabicChar(char)) {
+      let connectPrev = false
+      for (let i = ci - 1; i >= 0; i--) {
+        if (!isArabicChar(str[i]) || isIsolatedArabicChar(str[i])) {
+          break
+        }
+        else if (!isTashkeelArabicChar(str[i])) {
+          connectPrev = true
+          break
+        }
+      }
+      let connectNext = false
+      if (!isIsolatedArabicChar(char)) {
+        for (let i = ci + 1; i < str.length; i++) {
+          if (!isArabicChar(str[i])) {
+            break
+          }
+          if (!isTashkeelArabicChar(str[i])) {
+            connectNext = true
+            break
+          }
+        }
+      }
+      return connectPrev ? (connectNext ? 'medi' : 'fina') : (connectNext ? 'init' : 'isol')
+    }
+    return null
+  }
+
   function wrapFontObj(typrFont) {
     const glyphMap = Object.create(null)
 
