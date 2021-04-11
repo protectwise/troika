@@ -77,8 +77,10 @@ export function getSelectionRects(textRenderInfo, start, end) {
     start = Math.max(start, 0)
     end = Math.min(end, caretPositions.length + 1)
 
-    // Collect into one rect per row
-    let rows = new Map()
+    // Build list of rects, expanding the current rect for all characters in a run and starting
+    // a new rect whenever reaching a new line or a new bidi direction
+    rects = []
+    let currentRect = null
     for (let i = start; i < end; i++) {
       const x1 = caretPositions[i * 3]
       const x2 = caretPositions[i * 3 + 1]
@@ -92,10 +94,6 @@ export function getSelectionRects(textRenderInfo, start, end) {
         row.right = Math.max(row.right, x2, x2)
       }
     }
-    rects = []
-    rows.forEach(rect => {
-      rects.push(rect)
-    })
 
     _rectsCache.set(textRenderInfo, { start, end, rects })
   }

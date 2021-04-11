@@ -71,6 +71,10 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
 
   const INF = Infinity
 
+  const CHAR_LRO = '\u202D'
+  const CHAR_RLO = '\u202E'
+  const CHAR_PDF = '\u202C'
+  const BIDI_CHARS = CHAR_LRO + CHAR_RLO + CHAR_PDF
 
   /**
    * Load a given font url
@@ -173,7 +177,7 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
       letterSpacing=0,
       lineHeight='normal',
       maxWidth=INF,
-      direction='ltr',
+      direction,
       textAlign='left',
       textIndent=0,
       whiteSpace='normal',
@@ -216,7 +220,6 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
       let maxLineWidth = 0
       let renderableGlyphCount = 0
       let canWrap = whiteSpace !== 'nowrap'
-      const rtl = direction === 'rtl'
       const {ascender, descender, unitsPerEm} = fontObj
       timings.fontLoad = now() - mainStart
       const layoutStart = now()
@@ -242,16 +245,38 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
       let lineXOffset = textIndent
       let currentLine = new TextLine()
       const lines = [currentLine]
+      let rtl = direction === 'rtl'
+      let curBidiSpan = {rtl, start: 0, end: text.length}
+      const bidiSpans = [curBidiSpan]
       fontObj.forEachGlyph(text, fontSize, letterSpacing, (glyphObj, glyphX, charIndex) => {
         const char = text.charAt(charIndex)
         const glyphWidth = glyphObj.advanceWidth * fontSizeMult
         const curLineCount = currentLine.count
         let nextLine
 
+        // Track bidi ranges
+        // TODO currently this only supports a few of the explicit command characters,
+        //   need to expand that and handle implicit character directionality
+        const isBidiCommand = BIDI_CHARS.indexOf(char) !== -1
+        if (isBidiCommand) {
+          if (char === CHAR_PDF) {
+            if (curBidiSpan.parent) { //ignore PDF without opener
+              curBidiSpan.end = charIndex + 1
+              curBidiSpan = curBidiSpan.parent
+            }
+          } else {
+            rtl = char === CHAR_RLO
+            curBidiSpan = {rtl, parent: curBidiSpan, start: charIndex, end: text.length}
+            if (rtl !== curBidiSpan.parent.rtl) {
+              bidiSpans.push(curBidiSpan)
+            }
+          }
+        }
+
         // Calc isWhitespace and isEmpty once per glyphObj
         if (!('isEmpty' in glyphObj)) {
           glyphObj.isWhitespace = !!char && /\s/.test(char)
-          glyphObj.isEmpty = glyphObj.xMin === glyphObj.xMax || glyphObj.yMin === glyphObj.yMax
+          glyphObj.isEmpty = glyphObj.xMin === glyphObj.xMax || glyphObj.yMin === glyphObj.yMax || isBidiCommand
         }
         if (!glyphObj.isWhitespace && !glyphObj.isEmpty) {
           renderableGlyphCount++
@@ -297,6 +322,7 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
         fly.x = glyphX + lineXOffset
         fly.width = glyphWidth
         fly.charIndex = charIndex
+        fly.rtl = rtl
 
         // Handle hard line breaks
         if (char === '\n') {
@@ -370,12 +396,22 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
         let colorCharIndex = -1
         let chunk
         let currentColor
-        lines.forEach(line => {
+        const bidiSpansByStartIndex = bidiSpans.reduce((out, span) => {
+          out[span.start] = span
+          return out
+        }, {})
+        lines.forEach((line, lineIndex) => {
           let {count:lineGlyphCount, width:lineWidth} = line
 
           // Ignore empty lines
           if (lineGlyphCount > 0) {
-            // Find x offset for horizontal alignment
+            // Count trailing whitespaces, we want to ignore these for certain things
+            let trailingWhitespaceCount = 0
+            for (let i = lineGlyphCount; i-- && line.glyphAt(i).glyphObj.isWhitespace;) {
+              trailingWhitespaceCount++
+            }
+
+            // Apply horizontal alignment adjustments
             let lineXOffset = 0
             let justifyAdjust = 0
             if (textAlign === 'center') {
@@ -383,65 +419,76 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
             } else if (textAlign === 'right') {
               lineXOffset = maxLineWidth - lineWidth
             } else if (textAlign === 'justify' && line.isSoftWrapped) {
-              // just count the non-trailing whitespace characters, and we'll adjust the offsets per
-              // character in the next loop
+              // count non-trailing whitespace characters, and we'll adjust the offsets per character in the next loop
               let whitespaceCount = 0
-              for (let i = lineGlyphCount; i--;) {
-                if (!line.glyphAt(i).glyphObj.isWhitespace) {
-                  while (i--) {
-                    if (!line.glyphAt(i).glyphObj) {
-                      debugger
-                    }
-                    if (line.glyphAt(i).glyphObj.isWhitespace) {
-                      whitespaceCount++
-                    }
-                  }
-                  break
+              for (let i = lineGlyphCount - trailingWhitespaceCount; i--;) {
+                if (line.glyphAt(i).glyphObj.isWhitespace) {
+                  whitespaceCount++
                 }
               }
               justifyAdjust = (maxLineWidth - lineWidth) / whitespaceCount
-              lineWidth = maxLineWidth
             }
-
-            let justifyOffset = 0
-            for (let i = 0; i < lineGlyphCount; i++) {
-              let glyphInfo = line.glyphAt(i)
-              const glyphObj = glyphInfo.glyphObj
-
-              // Apply position adjustments
-              if (lineXOffset || justifyOffset) {
+            if (justifyAdjust || lineXOffset) {
+              let justifyOffset = 0
+              for (let i = 0; i < lineGlyphCount; i++) {
+                let glyphInfo = line.glyphAt(i)
+                const glyphObj = glyphInfo.glyphObj
                 glyphInfo.x += lineXOffset + justifyOffset
-              }
-
-              // Expand non-trailing whitespaces for justify alignment
-              if (justifyAdjust !== 0 && glyphObj.isWhitespace) {
-                let isTrailingWhitespace = true
-                for (let j = i + 1; j < lineGlyphCount; j++) {
-                  glyphInfo = line.glyphAt(j)
-                  if (!glyphInfo.glyphObj.isWhitespace) {
-                    isTrailingWhitespace = false
-                    break
-                  }
-                }
-                glyphInfo = line.glyphAt(i) //restore flyweight
-                if (!isTrailingWhitespace) {
+                // Expand non-trailing whitespaces for justify alignment
+                if (justifyAdjust !== 0 && glyphObj.isWhitespace && i < lineGlyphCount - trailingWhitespaceCount) {
                   justifyOffset += justifyAdjust
                   glyphInfo.width += justifyAdjust
                 }
               }
+            }
 
-              // Apply rtl flip
-              if (rtl) {
-                glyphInfo.x = (lineXOffset + lineWidth) - (glyphInfo.x - lineXOffset) - glyphInfo.width
+            // Perform bidi range flipping
+            if (bidiSpans.length > 1 || bidiSpans[0].rtl) {
+              rtl = false
+              const visitBidiSpan = function(start, span) {
+                if (span.rtl !== rtl) {
+                  rtl = span.rtl
+                  let end = 0
+                  while (end < lineGlyphCount - trailingWhitespaceCount && line.glyphAt(end).charIndex < span.end) {end++}
+                  const {x: startX, width: startW} = line.glyphAt(start)
+                  const {x: endX, width: endW} = line.glyphAt(end - 1)
+                  const left = Math.min(startX, endX)
+                  const right = Math.max(startX + startW, endX + endW)
+                  for (let i = start; i < end; i++) {
+                    const glyphInfo = line.glyphAt(i)
+                    glyphInfo.x = right - (glyphInfo.x + glyphInfo.width - left)
+                  }
+                  //console.log(`line ${lineIndex}: flipped ${start} - ${end}`)
+                }
               }
+              const lineFirstIndex = line.glyphAt(0).charIndex
+              bidiSpans.forEach(span => {
+                if (lineFirstIndex >= span.start && lineFirstIndex < span.end) {
+                  // TODO this can result in redundant whole-line flips. Also iterates more
+                  //  members than strictly necessary, could optimize.
+                  visitBidiSpan(0, span)
+                }
+              })
+              for (let i = 1; i < lineGlyphCount - trailingWhitespaceCount; i++) {
+                const span = bidiSpansByStartIndex[line.glyphAt(i).charIndex]
+                if (span) {
+                  visitBidiSpan(i, span)
+                }
+              }
+            }
+
+            // Assemble final data arrays
+            for (let i = 0; i < lineGlyphCount; i++) {
+              let glyphInfo = line.glyphAt(i)
+              const glyphObj = glyphInfo.glyphObj
 
               // Add caret positions
               if (includeCaretPositions) {
                 const {charIndex} = glyphInfo
                 const caretLeft = glyphInfo.x + anchorXOffset
                 const caretRight = glyphInfo.x + glyphInfo.width + anchorXOffset
-                caretPositions[charIndex * 3] = rtl ? caretRight : caretLeft //start edge x
-                caretPositions[charIndex * 3 + 1] = rtl ? caretLeft : caretRight //end edge x
+                caretPositions[charIndex * 3] = glyphInfo.rtl ? caretRight : caretLeft //start edge x
+                caretPositions[charIndex * 3 + 1] = glyphInfo.rtl ? caretLeft : caretRight //end edge x
                 caretPositions[charIndex * 3 + 2] = lineYOffset + caretBottomOffset + anchorYOffset //common bottom y
 
                 // If we skipped any chars from the previous glyph (due to ligature subs), copy the
@@ -606,11 +653,12 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
   function TextLine() {
     this.data = []
   }
+  const textLineProps = ['glyphObj', 'x', 'width', 'charIndex', 'rtl']
   TextLine.prototype = {
     width: 0,
     isSoftWrapped: false,
     get count() {
-      return Math.ceil(this.data.length / 4)
+      return Math.ceil(this.data.length / textLineProps.length)
     },
     glyphAt(i) {
       let fly = TextLine.flyweight
@@ -620,17 +668,17 @@ export function createFontProcessor(fontParser, sdfGenerator, config) {
     },
     splitAt(i) {
       let newLine = new TextLine()
-      newLine.data = this.data.splice(i * 4)
+      newLine.data = this.data.splice(i * textLineProps.length)
       return newLine
     }
   }
-  TextLine.flyweight = ['glyphObj', 'x', 'width', 'charIndex'].reduce((obj, prop, i, all) => {
+  TextLine.flyweight = textLineProps.reduce((obj, prop, i, all) => {
     Object.defineProperty(obj, prop, {
       get() {
-        return this.data[this.index * 4 + i]
+        return this.data[this.index * textLineProps.length + i]
       },
       set(val) {
-        this.data[this.index * 4 + i] = val
+        this.data[this.index * textLineProps.length + i] = val
       }
     })
     return obj
