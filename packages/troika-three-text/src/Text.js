@@ -143,13 +143,10 @@ const Text = /*#__PURE__*/(() => {
 
       /**
        * @member {string} direction
-       * Sets the text directionality; supported values are "ltr" and "rtl". Currently only a single
-       * direction is supported for the whole text block -- no "bidi" direction switching will occur.
-       *
-       * Note: this is currently an extremely simplistic implementation and may not be correct in all
-       * cases.
+       * Sets the base direction for the text. The default value of "auto" will choose a direction based
+       * on the text's content according to the bidi spec. A value of "ltr" or "rtl" will force the direction.
        */
-      this.direction = 'ltr'
+      this.direction = 'auto'
 
       /**
        * @member {string} font
@@ -409,7 +406,7 @@ const Text = /*#__PURE__*/(() => {
             letterSpacing: this.letterSpacing || 0,
             lineHeight: this.lineHeight || 'normal',
             maxWidth: this.maxWidth,
-            direction: this.direction || 'ltr',
+            direction: this.direction || 'auto',
             textAlign: this.textAlign,
             textIndent: this.textIndent,
             whiteSpace: this.whiteSpace,

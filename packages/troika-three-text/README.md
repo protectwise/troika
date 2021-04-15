@@ -129,9 +129,9 @@ Default: `0`
 
 ### `direction`
 
-If set to `'rtl'`, enables basic right-to-left text layout. This is currently a very naive implementation, only supporting a single direction for the whole text block (no bidirectional "bidi" support.) Also, it doesn't support other features of certain right-to-left languages such as positional glyph substitutions.
+Sets the base direction for the text. The default value of "auto" will choose a direction based on the text's content according to the bidi spec. A value of "ltr" or "rtl" will force the direction.
 
-Default: `'ltr'`
+Default: `'auto'`
 
 ### `fillOpacity`
 
