@@ -14,7 +14,7 @@
   "module": "dist/troika-three-text.esm.js",
   "module:src": "src/index.js",
   "dependencies": {
-    "bidi-js": "^0.9.1",
+    "bidi-js": "^1.0.0",
     "troika-three-utils": "^0.40.0",
     "troika-worker-utils": "^0.40.0"
   },

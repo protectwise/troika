@@ -352,7 +352,7 @@ export function createFontProcessor(fontParser, sdfGenerator, bidi, config) {
 
       if (!metricsOnly) {
         // Resolve bidi levels
-        const {levels: bidiEmbedLevels, paragraphs} = bidi.getEmbeddingLevels(text, direction)
+        const bidiLevelsResult = bidi.getEmbeddingLevels(text, direction)
 
         // Process each line, applying alignment offsets, adding each glyph to the atlas, and
         // collecting all renderable glyphs into a single collection.
@@ -415,12 +415,11 @@ export function createFontProcessor(fontParser, sdfGenerator, bidi, config) {
             }
 
             // Perform bidi range flipping
-            const firstCharIndex = line.glyphAt(0).charIndex
-            let paragraphLevel = paragraphs.find(p => firstCharIndex >= p.start && firstCharIndex <= p.end).level //TODO optimize this
             const flips = bidi.getReorderSegments(
-              text, bidiEmbedLevels, line.glyphAt(0).charIndex, line.glyphAt(line.count - 1).charIndex, paragraphLevel
+              text, bidiLevelsResult, line.glyphAt(0).charIndex, line.glyphAt(line.count - 1).charIndex
             )
-            flips.forEach(([start, end]) => {
+            for (let fi = 0; fi < flips.length; fi++) {
+              const [start, end] = flips[fi]
               // Map start/end string indices to indices in the line
               let left = Infinity, right = -Infinity
               for (let i = 0; i < lineGlyphCount; i++) {
@@ -443,7 +442,7 @@ export function createFontProcessor(fontParser, sdfGenerator, bidi, config) {
                   break
                 }
               }
-            })
+            }
 
             // Assemble final data arrays
             let glyphObj
@@ -453,7 +452,7 @@ export function createFontProcessor(fontParser, sdfGenerator, bidi, config) {
               glyphObj = glyphInfo.glyphObj
 
               // Replace mirrored characters in rtl
-              const rtl = bidiEmbedLevels[glyphInfo.charIndex] & 1 //odd level means rtl
+              const rtl = bidiLevelsResult.levels[glyphInfo.charIndex] & 1 //odd level means rtl
               if (rtl) {
                 const mirrored = bidi.getMirroredCharacter(text[glyphInfo.charIndex])
                 if (mirrored) {
