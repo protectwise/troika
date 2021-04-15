@@ -46,7 +46,25 @@ export default {
       transform(source, id) {
         // Quiet the console.warn statements added in the Typr.ts fork
         source = source.replace(/console\.warn/g, 'console.debug')
+
+        // Replace some unneeded property assignments with unused stub vars so they get pruned out
+        // SVG fonts are unsupported by browsers anyway
+        removeMethodAssignment('Typr.SVG')
+        removeMethodAssignment('Typr.SVG.parse')
+        removeMethodAssignment('Typr.SVG.toPath')
+        removeMethodAssignment('Typr.SVG._toPath')
+        removeMethodAssignment('Typr.SVG._tokens')
+        removeMethodAssignment('Typr.SVG._toksToPath')
+        removeMethodAssignment('Typr.SVG._reps')
+        removeMethodAssignment('Typr.U.pathToSVG')
+        removeMethodAssignment('Typr.U.pathToContext')
+
         return source
+
+        function removeMethodAssignment(name) {
+          const re = new RegExp(`(${name}\\s*=)`)
+          source = source.replace(re, `var prunable${Math.round(Math.random()*1e12)}=`)
+        }
       }
     },
     terser({
