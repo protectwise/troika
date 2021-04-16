@@ -23,8 +23,10 @@ const FONTS = {
   'Mirza': 'https://fonts.gstatic.com/s/mirza/v10/co3ImWlikiN5Eure.woff',
   //'Reem Kufi': 'https://fonts.gstatic.com/s/reemkufi/v10/2sDcZGJLip7W2J7v7wQDbA.woff',
   'Scheherazade': 'https://fonts.gstatic.com/s/scheherazade/v20/YA9Ur0yF4ETZN60keViq1kQgtA.woff',
-  'Roboto': 'https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff',
-  'Noto Sans': 'https://fonts.gstatic.com/s/notosans/v7/o-0IIpQlx3QUlC5A4PNr5TRG.woff',
+  'Tinos (Hebrew)': 'https://fonts.gstatic.com/s/tinos/v16/buE4poGnedXvwgX_.woff',
+  'Arimo (Hebrew)': 'https://fonts.gstatic.com/s/arimo/v17/P5sfzZCDf9_T_3cV7NCUECyoxNk37cxsBA.woff'
+  // 'Roboto': 'https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff',
+  // 'Noto Sans': 'https://fonts.gstatic.com/s/notosans/v7/o-0IIpQlx3QUlC5A4PNr5TRG.woff',
 }
 
 const CUSTOM_LBL = '(Custom...)'
