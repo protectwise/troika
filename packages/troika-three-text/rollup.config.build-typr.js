@@ -59,6 +59,11 @@ export default {
         removeMethodAssignment('Typr.U.pathToSVG')
         removeMethodAssignment('Typr.U.pathToContext')
 
+        // We provide our own implementation for stringToGlyphs that fixes joining-type shaping
+        // and improves performance, so don't need the original
+        removeMethodAssignment('Typr.U.stringToGlyphs')
+        removeMethodAssignment('Typr.U._getWPfeature')
+
         return source
 
         function removeMethodAssignment(name) {
