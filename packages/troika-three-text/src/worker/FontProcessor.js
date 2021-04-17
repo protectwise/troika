@@ -71,6 +71,9 @@ export function createFontProcessor(fontParser, sdfGenerator, bidi, config) {
 
   const INF = Infinity
 
+  // Set of Unicode Default_Ignorable_Code_Point characters, these will not produce visible glyphs
+  const DEFAULT_IGNORABLE_CHARS = /[\u00AD\u034F\u061C\u115F-\u1160\u17B4-\u17B5\u180B-\u180E\u200B-\u200F\u202A-\u202E\u2060-\u206F\u3164\uFE00-\uFE0F\uFEFF\uFFA0\uFFF0-\uFFF8]/
+
   /**
    * Load a given font url
    */
@@ -250,7 +253,7 @@ export function createFontProcessor(fontParser, sdfGenerator, bidi, config) {
         // Calc isWhitespace and isEmpty once per glyphObj
         if (!('isEmpty' in glyphObj)) {
           glyphObj.isWhitespace = !!char && /\s/.test(char)
-          glyphObj.isEmpty = glyphObj.xMin === glyphObj.xMax || glyphObj.yMin === glyphObj.yMax
+          glyphObj.isEmpty = glyphObj.xMin === glyphObj.xMax || glyphObj.yMin === glyphObj.yMax || DEFAULT_IGNORABLE_CHARS.test(char)
         }
         if (!glyphObj.isWhitespace && !glyphObj.isEmpty) {
           renderableGlyphCount++
