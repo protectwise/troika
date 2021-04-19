@@ -3,6 +3,34 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.41.0](https://github.com/protectwise/troika/compare/v0.40.0...v0.41.0) (2021-04-19)
+
+
+### Bug Fixes
+
+* **troika-core:** set animation/transition first when using .update() ([8ebf59d](https://github.com/protectwise/troika/commit/8ebf59dc9e933400f8302c0e5d99d15411b248c0))
+* **troika-three-text:** fix Arabic word position letter forms ([480ee97](https://github.com/protectwise/troika/commit/480ee97426c219195d80733b04092018f9bbca86))
+* **troika-three-text:** formatting characters no longer produce visible glyphs ([c0d28e8](https://github.com/protectwise/troika/commit/c0d28e8c05a2482c06f67a6d6fe9ea45fff39cd4))
+* **troika-three-text:** more correct impl for character joining types ([2ce519a](https://github.com/protectwise/troika/commit/2ce519aa9b8f502f3f4af5cdd5447456958d036b))
+* **troika-three-text:** prevent mutation of input to worldPositionToTextCoords method ([d487b8a](https://github.com/protectwise/troika/commit/d487b8aeaf3ca6831192587ee4d4c1bee978f90f))
+
+
+### Features
+
+* update support up to threejs r127 ([5b512f0](https://github.com/protectwise/troika/commit/5b512f04843f15bdaadd7297d6ab1d964c67333b))
+* **troika-three-text:** add full bidi text support ([3fde850](https://github.com/protectwise/troika/commit/3fde850d28524393538e2bac8920f7a4ee0e1fb4))
+* **troika-three-text:** simple bidi layout support, using explicit LRO/RLO/PDF chars only ([d511655](https://github.com/protectwise/troika/commit/d511655926f53262abb4b6c990c5102180f23f64))
+* **troika-three-text:** very basic support for right-to-left text layout ([ce887be](https://github.com/protectwise/troika/commit/ce887beed7976ec23fa0590d5199457182c6e6bf))
+
+
+### Performance Improvements
+
+* prune some unused functions out of the Typr build ([26e669f](https://github.com/protectwise/troika/commit/26e669f5382fd8a160d1f9814e4329620ae2879b))
+
+
+
+
+
 # [0.40.0](https://github.com/protectwise/troika/compare/v0.39.2...v0.40.0) (2021-02-28)
 
 
