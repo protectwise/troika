@@ -43,7 +43,7 @@ class WorldXRFacade extends World3DFacade {
         // If the session has an existing valid XRWebGLLayer, just grab its framebuffer.
         // Otherwise, create a new XRWebGLLayer
         if (baseLayer && baseLayer._glContext === gl) {
-          renderer.setFramebuffer(baseLayer.framebuffer)
+          bindFramebuffer(renderer, baseLayer.framebuffer)
         } else {
           const promise = gl.makeXRCompatible ? gl.makeXRCompatible() : Promise.resolve() //not always implemented?
           promise.then(() => {
@@ -54,13 +54,13 @@ class WorldXRFacade extends World3DFacade {
               })
               baseLayer._glContext = gl
               xrSession.updateRenderState({ baseLayer })
-              renderer.setFramebuffer(baseLayer.framebuffer)
+              bindFramebuffer(renderer, baseLayer.framebuffer)
               this._queueRender()
             }
           })
         }
       } else {
-        renderer.setFramebuffer(null)
+        bindFramebuffer(renderer, null)
         renderer.setRenderTarget(renderer.getRenderTarget()) //see https://github.com/mrdoob/three.js/pull/15830
         // reset canvas/viewport size in case something changed it (cough cough polyfill)
         renderer.getSize(tempVec2)
@@ -174,6 +174,15 @@ function parseFramebufferScaleFactor(value, xrSession) {
   }
   //console.info(`WebXR: using framebufferScaleFactor ${scale}`)
   return scale
+}
+
+// Smooth out r127 framebuffer state refactor
+function bindFramebuffer(renderer, framebuffer) {
+  if (renderer.setFramebuffer) { //pre-r127
+    renderer.setFramebuffer(framebuffer)
+  } else {
+    renderer.state.bindFramebuffer(framebuffer)
+  }
 }
 
 export default WorldXRFacade
