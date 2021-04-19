@@ -99,7 +99,7 @@ class ExamplesApp extends React.Component {
   }
 
   _onExampleSelect(e) {
-    location.hash = EXAMPLES[e.target.selectedIndex].id
+    location.hash = e.target.value
   }
 
   _onToggleStats() {
