@@ -181,7 +181,7 @@ function bindFramebuffer(renderer, framebuffer) {
   if (renderer.setFramebuffer) { //pre-r127
     renderer.setFramebuffer(framebuffer)
   } else {
-    renderer.state.bindFramebuffer(framebuffer)
+    renderer.state.bindXRFramebuffer(framebuffer)
   }
 }
 
