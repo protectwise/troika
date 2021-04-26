@@ -32,6 +32,7 @@ const EXTERNAL_GLOBALS = SIBLING_PACKAGES.reduce((out, sib) => {
 },{
   react: 'React',
   three: 'THREE',
+  'bidi-js': 'bidi_js',
   'three/examples/jsm/loaders/GLTFLoader.js': 'THREE.GLTFLoader',
   'prop-types': 'PropTypes',
   'object-path': 'objectPath'

@@ -3,6 +3,7 @@ import { defineWorkerModule, ThenableWorkerModule } from 'troika-worker-utils'
 import { createSDFGenerator } from './worker/SDFGenerator.js'
 import { createFontProcessor } from './worker/FontProcessor.js'
 import { createGlyphSegmentsIndex } from './worker/GlyphSegmentsIndex.js'
+import bidiFactory from 'bidi-js'
 
 // Choose parser impl:
 import fontParser from './worker/FontParser_Typr.js'
@@ -276,12 +277,13 @@ const fontProcessorWorkerModule = /*#__PURE__*/defineWorkerModule({
     fontParser,
     createGlyphSegmentsIndex,
     createSDFGenerator,
-    createFontProcessor
+    createFontProcessor,
+    bidiFactory
   ],
-  init(config, fontParser, createGlyphSegmentsIndex, createSDFGenerator, createFontProcessor) {
+  init(config, fontParser, createGlyphSegmentsIndex, createSDFGenerator, createFontProcessor, bidiFactory) {
     const {sdfExponent, sdfMargin, defaultFontURL} = config
     const sdfGenerator = createSDFGenerator(createGlyphSegmentsIndex, { sdfExponent, sdfMargin })
-    return createFontProcessor(fontParser, sdfGenerator, { defaultFontURL })
+    return createFontProcessor(fontParser, sdfGenerator, bidiFactory(), { defaultFontURL })
   }
 })
 

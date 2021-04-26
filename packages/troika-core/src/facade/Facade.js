@@ -70,14 +70,21 @@ export default class Facade {
    * render. This can be called in event handlers, for example, to affect changes to this facade and its
    * subtree. This process is synchronous. Never override this method as a way to react to updates, as it
    * is not the only way a component is updated; instead override `afterUpdate` or use setters.
-   * @param {object} props - A set of properties to be copied to the facade
+   * @param {object} [props] - A set of properties to be copied to the facade
    */
   update(props) {
     if (props && typeof props === 'object') {
-      assign(this, props)
-      this.afterUpdate()
-      this.requestRender()
+      // Always assign transition and animation first
+      this.transition = props.transition
+      this.animation = props.animation
+      for (let prop in props) {
+        if (props.hasOwnProperty(prop) && !Facade.isSpecialDescriptorProperty(prop)) {
+          this[prop] = props[prop]
+        }
+      }
     }
+    this.afterUpdate()
+    this.requestRender()
   }
 
   /**

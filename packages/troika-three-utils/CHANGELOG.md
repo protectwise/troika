@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.41.0](https://github.com/protectwise/troika/compare/v0.40.0...v0.41.0) (2021-04-19)
+
+
+### Features
+
+* update support up to threejs r127 ([5b512f0](https://github.com/protectwise/troika/commit/5b512f04843f15bdaadd7297d6ab1d964c67333b))
+
+
+
+
+
 # [0.40.0](https://github.com/protectwise/troika/compare/v0.39.2...v0.40.0) (2021-02-28)
 
 **Note:** Version bump only for package troika-three-utils
