@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.41.1](https://github.com/protectwise/troika/compare/v0.41.0...v0.41.1) (2021-04-26)
+
+
+### Bug Fixes
+
+* update bidi-js for fix removing type:module from package.json ([394c371](https://github.com/protectwise/troika/commit/394c37117042c28f6245aa3d1aa9a180ff8250bf))
+
+
+
+
+
 # [0.41.0](https://github.com/protectwise/troika/compare/v0.40.0...v0.41.0) (2021-04-19)
 
 
