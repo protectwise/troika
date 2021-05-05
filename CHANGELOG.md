@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.41.2](https://github.com/protectwise/troika/compare/v0.41.1...v0.41.2) (2021-05-05)
+
+
+### Bug Fixes
+
+* update bidi-js for its ES5 build files ([49ce5f2](https://github.com/protectwise/troika/commit/49ce5f2244e8a108f1c07fe32b9e8ce77f4afebb))
+
+
+
+
+
 ## [0.41.1](https://github.com/protectwise/troika/compare/v0.41.0...v0.41.1) (2021-04-26)
 
 
