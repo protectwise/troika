@@ -1,5 +1,5 @@
 import { getSelectionRects, textRectToCssMatrix } from './selectionUtils'
-import { TextHighlight } from './TextHighlight.js'
+import { RangeHighlight } from './selection/RangeHighlight.js'
 
 const domOverlayBaseStyles = `
 position:fixed;
@@ -57,7 +57,7 @@ const makeSelectable = (textInstance, options = {}) => {
    */
   textInstance.selectionColor = null
 
-  textInstance.highlight = new TextHighlight()
+  textInstance.highlight = new RangeHighlight()
   textInstance.add(textInstance.highlight)
 
   /**

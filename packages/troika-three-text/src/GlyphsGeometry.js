@@ -1,11 +1,11 @@
 import {
   PlaneBufferGeometry,
   InstancedBufferGeometry,
-  InstancedBufferAttribute,
   Sphere,
   Box3,
   Vector3
 } from 'three'
+import { setInstanceCount, updateInstancedBufferAttribute } from './utils.js'
 
 const GlyphsGeometry = /*#__PURE__*/(() => {
 
@@ -17,7 +17,6 @@ const GlyphsGeometry = /*#__PURE__*/(() => {
     }
     return geom
   }
-  const tempVec3 = new Vector3()
 
   const glyphBoundsAttrName = 'aTroikaGlyphBounds'
   const glyphIndexAttrName = 'aTroikaGlyphIndex'
@@ -121,9 +120,9 @@ const GlyphsGeometry = /*#__PURE__*/(() => {
      */
     updateGlyphs(glyphBounds, glyphAtlasIndices, blockBounds, chunkedBounds, glyphColors) {
       // Update the instance attributes
-      updateBufferAttr(this, glyphBoundsAttrName, glyphBounds, 4)
-      updateBufferAttr(this, glyphIndexAttrName, glyphAtlasIndices, 1)
-      updateBufferAttr(this, glyphColorAttrName, glyphColors, 3)
+      updateInstancedBufferAttribute(this, glyphBoundsAttrName, glyphBounds, 4)
+      updateInstancedBufferAttribute(this, glyphIndexAttrName, glyphAtlasIndices, 1)
+      updateInstancedBufferAttribute(this, glyphColorAttrName, glyphColors, 3)
       this._blockBounds = blockBounds
       this._chunkedBounds = chunkedBounds
       setInstanceCount(this, glyphAtlasIndices.length)
@@ -193,35 +192,6 @@ const GlyphsGeometry = /*#__PURE__*/(() => {
       this.attributes[ name ] = attribute
       return this
     }
-  }
-
-
-  function updateBufferAttr(geom, attrName, newArray, itemSize) {
-    const attr = geom.getAttribute(attrName)
-    if (newArray) {
-      // If length isn't changing, just update the attribute's array data
-      if (attr && attr.array.length === newArray.length) {
-        attr.array.set(newArray)
-        attr.needsUpdate = true
-      } else {
-        geom.setAttribute(attrName, new InstancedBufferAttribute(newArray, itemSize))
-        // If the new attribute has a different size, we also have to (as of r117) manually clear the
-        // internal cached max instance count. See https://github.com/mrdoob/three.js/issues/19706
-        // It's unclear if this is a threejs bug or a truly unsupported scenario; discussion in
-        // that ticket is ambiguous as to whether replacing a BufferAttribute with one of a
-        // different size is supported, but https://github.com/mrdoob/three.js/pull/17418 strongly
-        // implies it should be supported. It's possible we need to
-        delete geom._maxInstanceCount //for r117+, could be fragile
-        geom.dispose() //for r118+, more robust feeling, but more heavy-handed than I'd like
-      }
-    } else if (attr) {
-      geom.deleteAttribute(attrName)
-    }
-  }
-
-  // Handle maxInstancedCount -> instanceCount rename that happened in three r117
-  function setInstanceCount(geom, count) {
-    geom[geom.hasOwnProperty('instanceCount') ? 'instanceCount' : 'maxInstancedCount'] = count
   }
 
   return GlyphsGeometry

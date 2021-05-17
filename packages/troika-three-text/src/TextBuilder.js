@@ -3,6 +3,7 @@ import { defineWorkerModule, ThenableWorkerModule } from 'troika-worker-utils'
 import { createSDFGenerator } from './worker/SDFGenerator.js'
 import { createFontProcessor } from './worker/FontProcessor.js'
 import { createGlyphSegmentsIndex } from './worker/GlyphSegmentsIndex.js'
+import { assign, toAbsoluteURL } from './utils.js'
 import bidiFactory from 'bidi-js'
 
 // Choose parser impl:
@@ -246,27 +247,6 @@ function getTextRenderInfo(args, callback) {
 function preloadFont({font, characters, sdfGlyphSize}, callback) {
   let text = Array.isArray(characters) ? characters.join('\n') : '' + characters
   getTextRenderInfo({ font, sdfGlyphSize, text }, callback)
-}
-
-
-// Local assign impl so we don't have to import troika-core
-function assign(toObj, fromObj) {
-  for (let key in fromObj) {
-    if (fromObj.hasOwnProperty(key)) {
-      toObj[key] = fromObj[key]
-    }
-  }
-  return toObj
-}
-
-// Utility for making URLs absolute
-let linkEl
-function toAbsoluteURL(path) {
-  if (!linkEl) {
-    linkEl = typeof document === 'undefined' ? {} : document.createElement('a')
-  }
-  linkEl.href = path
-  return linkEl.href
 }
 
 

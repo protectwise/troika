@@ -11,6 +11,7 @@ import {
 import { GlyphsGeometry } from './GlyphsGeometry.js'
 import { createTextDerivedMaterial } from './TextDerivedMaterial.js'
 import { getTextRenderInfo } from './TextBuilder.js'
+import { Selection } from './selection/Selection.js'
 
 const Text = /*#__PURE__*/(() => {
 
@@ -53,6 +54,7 @@ const Text = /*#__PURE__*/(() => {
   const textChangeEvent = { type: 'textChange' }
   const beforeRenderEvent = { type: 'beforerender' }
   const afterRenderEvent = { type: 'afterrender' }
+  const disposeEvent = { type: 'dispose' }
 
   const SYNCABLE_PROPS = [
     'font',
@@ -381,6 +383,14 @@ const Text = /*#__PURE__*/(() => {
        */
       this.sdfGlyphSize = null
 
+      Object.defineProperty(this, 'selection', {
+        enumerable: true,
+        value: new Selection(this)
+      })
+
+      this.selectionMaterial = null
+      this.selectionColor = null
+
       this.debugSDF = false
     }
 
@@ -492,6 +502,7 @@ const Text = /*#__PURE__*/(() => {
      */
     dispose() {
       this.geometry.dispose()
+      this.dispatchEvent(disposeEvent)
     }
 
     /**
@@ -708,12 +719,13 @@ const Text = /*#__PURE__*/(() => {
      * TODO is there any reason to make this more granular, like within individual line or glyph rects?
      */
     raycast(raycaster, intersects) {
-      const { textRenderInfo, curveRadius } = this
-      if (textRenderInfo) {
+      const { textRenderInfo, curveRadius, geometry } = this
+      if (textRenderInfo && raycaster.ray.intersectsBox(geometry.boundingBox)) {
+        // TODO honor clipRect
         const bounds = textRenderInfo.blockBounds
         const raycastMesh = curveRadius ? getCurvedRaycastMesh() : getFlatRaycastMesh()
-        const geom = raycastMesh.geometry
-        const { position, uv } = geom.attributes
+        const raycastGeom = raycastMesh.geometry
+        const { position, uv } = raycastGeom.attributes
         for (let i = 0; i < uv.count; i++) {
           let x = bounds[0] + (uv.getX(i) * (bounds[2] - bounds[0]))
           const y = bounds[1] + (uv.getY(i) * (bounds[3] - bounds[1]))
@@ -724,8 +736,8 @@ const Text = /*#__PURE__*/(() => {
           }
           position.setXYZ(i, x, y, z)
         }
-        geom.boundingSphere = this.geometry.boundingSphere
-        geom.boundingBox = this.geometry.boundingBox
+        raycastGeom.boundingSphere = geometry.boundingSphere
+        raycastGeom.boundingBox = geometry.boundingBox
         raycastMesh.matrixWorld = this.matrixWorld
         raycastMesh.material.side = this.material.side
         tempArray.length = 0
