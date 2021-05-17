@@ -23,17 +23,14 @@ etc...
 
 #### Three.js
 
-The `troika-3d` package requires `three` ([Three.js](https://threejs.org)) as a _peer_ dependency, which means you will have to declare `three` as a dependency in your own project. 
+The packages related to 3D require `three` ([Three.js](https://threejs.org)) as a _peer_ dependency, which means you will have to declare `three` as a dependency in your own project. 
 
 ```sh
 npm install --save three
 ```
 
-You'll need to make sure that you keep your `three` dependency matches the range of supported versions declared in `troika-three-utils/package.json`, and keep that up to date in the future as you update Troika. You should see messages from `npm` in your terminal to remind you if you get behind.
+The allowed version range for `three` is open-ended, so you _should_ be able to use any relatively recent version without issues. However, Three.js releases do often contain [breaking changes](https://github.com/mrdoob/three.js/wiki/Migration-Guide) which may introduce incompatibilities in the future. While we try to test against recent `three` versions on a regular basis, some of these may slip by our notice; if you find one, please [open an issue](https://github.com/protectwise/troika/issues) for us.
 
-Because the Three.js API tends to have rather [significant changes between releases](https://github.com/mrdoob/three.js/wiki/Migration-Guide), Troika has to be specific about the range of versions it currently works with. We try to keep that at the largest possible range that we know won't break. You _may_ try using a later version of `three` than officially supported, just no guarantees with that.
-
-(It's a tad inconvenient that you have to manage this yourself, but we went this route because it makes it more obvious which version of Three.js your project uses and decreases the chance of multiple conflicting versions being installed together.)
 
 #### React
 

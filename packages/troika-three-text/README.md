@@ -39,6 +39,10 @@ npm install troika-three-text
 
 You will also need to install a compatible version of [Three.js](https://threejs.org); see the [notes on Three.js versions in the Getting Started docs](../../docs/getting-started/setup.md#threejs) for details.
 
+```sh
+npm install three
+```
+
 ## Usage
 
 ```js

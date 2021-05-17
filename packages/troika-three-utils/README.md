@@ -11,13 +11,11 @@ Get it from [NPM](https://www.npmjs.com/package/troika-three-utils):
 npm install troika-three-utils
 ```
 
-You will also need to install a compatible version of [Three.js](https://threejs.org), which is declared with a wide version range in `peerDependencies` rather than a direct dependency on a specific version, to give you flexibility in choosing a specific version for your application.
+You will also need to install a compatible version of [Three.js](https://threejs.org); see the [notes on Three.js versions in the Getting Started docs](../../docs/getting-started/setup.md#threejs) for details.
 
 ```sh
 npm install three
 ```
-
-You can look in the [package.json](./package.json) under `"peerDependencies"` for a range of Three.js versions that has been verified to work with this and all other Troika packages. Other versions that have not been specifically tested may also work depending on the features you use, they just haven't been explicitly tested.
 
 
 ## Provided Utilities
