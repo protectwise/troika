@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.42.0](https://github.com/protectwise/troika/compare/v0.41.2...v0.42.0) (2021-05-17)
+
+**Note:** Version bump only for package troika-worker-utils
+
+
+
+
+
 # [0.41.0](https://github.com/protectwise/troika/compare/v0.40.0...v0.41.0) (2021-04-19)
 
 **Note:** Version bump only for package troika-worker-utils

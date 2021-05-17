@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.42.0](https://github.com/protectwise/troika/compare/v0.41.2...v0.42.0) (2021-05-17)
+
+
+### Features
+
+* open up 'three' peer dependency to include future versions ([d4a5b23](https://github.com/protectwise/troika/commit/d4a5b2376fffb3681750761f757b684ab798315a))
+
+
+
+
+
 # [0.41.0](https://github.com/protectwise/troika/compare/v0.40.0...v0.41.0) (2021-04-19)
 
 

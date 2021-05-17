@@ -1,6 +1,6 @@
 {
   "name": "troika-flex-layout",
-  "version": "0.41.2",
+  "version": "0.42.0",
   "description": "Utility for calculating flexbox layouts in a web worker",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "repository": {
@@ -14,8 +14,8 @@
   "module": "dist/troika-flex-layout.esm.js",
   "module:src": "src/index.js",
   "dependencies": {
-    "troika-three-text": "^0.41.2",
-    "troika-worker-utils": "^0.41.0"
+    "troika-three-text": "^0.42.0",
+    "troika-worker-utils": "^0.42.0"
   },
   "devDependencies": {
     "terser": "^4.2.0",
