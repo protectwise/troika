@@ -16,5 +16,8 @@
   "dependencies": {
     "troika-core": "^0.41.0",
     "troika-three-utils": "^0.41.0"
+  },
+  "peerDependencies": {
+    "three": ">=0.103.0"
   }
 }

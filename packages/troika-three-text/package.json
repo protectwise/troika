@@ -18,6 +18,9 @@
     "troika-three-utils": "^0.41.0",
     "troika-worker-utils": "^0.41.0"
   },
+  "peerDependencies": {
+    "three": ">=0.103.0"
+  },
   "devDependencies": {
     "@fredli74/typr": "0.3.3",
     "fflate": "0.4.8",

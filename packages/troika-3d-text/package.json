@@ -17,5 +17,8 @@
     "troika-3d": "^0.41.0",
     "troika-three-text": "^0.41.2",
     "troika-three-utils": "^0.41.0"
+  },
+  "peerDependencies": {
+    "three": ">=0.103.0"
   }
 }
