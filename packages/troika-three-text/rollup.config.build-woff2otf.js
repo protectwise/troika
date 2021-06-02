@@ -10,7 +10,7 @@ import { terser } from 'rollup-plugin-terser'
 
 const {LERNA_ROOT_PATH} = process.env
 if (!LERNA_ROOT_PATH) {
-  throw new Error("Please execute `npm run build-typr` from the repository root.")
+  throw new Error("Please execute `npm run build-woff2otf` from the repository root.")
 }
 
 
@@ -39,16 +39,6 @@ export default {
   plugins: [
     nodeResolve(),
     commonjs(),
-    {
-      name: 'custom',
-      transform(source, id) {
-        if (/fflate/.test(id)) {
-          // Remove stray `require` in try/catch block which doesn't get treeshaken
-          return source.replace(/try\s*{\s*Worker\s*=\s*require\('worker_threads'\)\.Worker;\s*}\s*catch\s*\(.\)\s*{\s*}/, '')
-        }
-        return source
-      }
-    },
     terser({
       ecma: 5
     })
