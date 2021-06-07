@@ -41,7 +41,7 @@ const EXTERNAL_GLOBALS = SIBLING_PACKAGES.reduce((out, sib) => {
 // Some packages (e.g. those with worker code) we want to transpile in the ESM
 // in addition to the UMD:
 // TODO make this more fine-grained than the whole package
-const TRANSPILE_PACKAGES_FOR_ESM = [
+const TRANSPILE_PACKAGES = [
   'troika-worker-utils'
 ]
 
@@ -82,9 +82,9 @@ for (let entry of Object.keys(entries)) {
         file: `dist/${outFilePrefix}.esm.js`
       },
       external: Object.keys(EXTERNAL_GLOBALS),
-      plugins: TRANSPILE_PACKAGES_FOR_ESM.includes(LERNA_PACKAGE_NAME) ? [
-        buble()
-      ] : [],
+      plugins: [
+        TRANSPILE_PACKAGES.includes(LERNA_PACKAGE_NAME) ? buble() : null
+      ],
       onwarn
     },
     // UMD file
@@ -98,7 +98,7 @@ for (let entry of Object.keys(entries)) {
       },
       external: Object.keys(EXTERNAL_GLOBALS),
       plugins: [
-        buble()
+        TRANSPILE_PACKAGES.includes(LERNA_PACKAGE_NAME) ? buble() : null
       ],
       onwarn
     },
@@ -113,7 +113,7 @@ for (let entry of Object.keys(entries)) {
       },
       external: Object.keys(EXTERNAL_GLOBALS),
       plugins: [
-        buble(),
+        TRANSPILE_PACKAGES.includes(LERNA_PACKAGE_NAME) ? buble() : null,
         closureCompiler()
       ],
       onwarn

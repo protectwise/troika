@@ -35,6 +35,7 @@ export default {
       'process.env.NODE_ENV': '"production"'
     }),
     buble({
+      target: {chrome: 50, safari: 10},
       transforms: { forOf: false, asyncAwait: false }
     }),
     commonjs({
