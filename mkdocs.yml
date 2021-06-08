@@ -1,5 +1,6 @@
 site_name: Troika JS
 site_author: Jason Johnston
+site_url: https://protectwise.github.io/troika/
 repo_url: https://github.com/protectwise/troika
 plugins:
   - include-markdown
