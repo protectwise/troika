@@ -74,6 +74,10 @@ export function createFontProcessor(fontParser, sdfGenerator, bidi, config) {
   // Set of Unicode Default_Ignorable_Code_Point characters, these will not produce visible glyphs
   const DEFAULT_IGNORABLE_CHARS = /[\u00AD\u034F\u061C\u115F-\u1160\u17B4-\u17B5\u180B-\u180E\u200B-\u200F\u202A-\u202E\u2060-\u206F\u3164\uFE00-\uFE0F\uFEFF\uFFA0\uFFF0-\uFFF8]/
 
+  // Incomplete set of characters that allow line breaking after them
+  // In the future we may consider a full Unicode line breaking algorithm impl: https://www.unicode.org/reports/tr14
+  const BREAK_AFTER_CHARS = /[\s\-\u007C\u00AD\u2010\u2012-\u2014\u2027\u2056\u2E17\u2E40]/
+
   /**
    * Load a given font url
    */
@@ -253,6 +257,7 @@ export function createFontProcessor(fontParser, sdfGenerator, bidi, config) {
         // Calc isWhitespace and isEmpty once per glyphObj
         if (!('isEmpty' in glyphObj)) {
           glyphObj.isWhitespace = !!char && /\s/.test(char)
+          glyphObj.canBreakAfter = !!char && BREAK_AFTER_CHARS.test(char)
           glyphObj.isEmpty = glyphObj.xMin === glyphObj.xMax || glyphObj.yMin === glyphObj.yMax || DEFAULT_IGNORABLE_CHARS.test(char)
         }
         if (!glyphObj.isWhitespace && !glyphObj.isEmpty) {
@@ -262,7 +267,7 @@ export function createFontProcessor(fontParser, sdfGenerator, bidi, config) {
         // If a non-whitespace character overflows the max width, we need to soft-wrap
         if (canWrap && hasMaxWidth && !glyphObj.isWhitespace && glyphX + glyphWidth + lineXOffset > maxWidth && curLineCount) {
           // If it's the first char after a whitespace, start a new line
-          if (currentLine.glyphAt(curLineCount - 1).glyphObj.isWhitespace) {
+          if (currentLine.glyphAt(curLineCount - 1).glyphObj.canBreakAfter) {
             nextLine = new TextLine()
             lineXOffset = -glyphX
           } else {
@@ -275,7 +280,7 @@ export function createFontProcessor(fontParser, sdfGenerator, bidi, config) {
                 break
               }
               // Found a soft break point; move all chars since it to a new line
-              else if (currentLine.glyphAt(i).glyphObj.isWhitespace) {
+              else if (currentLine.glyphAt(i).glyphObj.canBreakAfter) {
                 nextLine = currentLine.splitAt(i + 1)
                 const adjustX = nextLine.glyphAt(0).x
                 lineXOffset -= adjustX
