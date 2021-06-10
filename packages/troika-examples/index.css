@@ -4,6 +4,9 @@ html, body {
   color: #FFF;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 14px;
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
 }
 
 .examples {

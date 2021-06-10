@@ -1,7 +1,6 @@
 import { ListFacade } from 'troika-3d'
 import { Matrix4, Plane, Vector2, Vector3 } from 'three'
-import { getCaretAtPoint, getSelectionRects } from 'troika-three-text'
-import { invertMatrix4 } from 'troika-three-utils'
+import { getCaretAtPoint } from 'troika-three-text'
 import SelectionRangeRect from './SelectionRangeRect.js'
 
 const THICKNESS = 0.25 //rect depth as percentage of height
@@ -16,7 +15,7 @@ const noClip = Object.freeze([-Infinity, -Infinity, Infinity, Infinity])
  * Manager facade for selection rects and user selection behavior
  */
 class SelectionManagerFacade extends ListFacade {
-  constructor (parent, onSelectionChange) {
+  constructor(parent, onSelectionChange) {
     super(parent)
     const textMesh = parent.threeObject
 
@@ -42,11 +41,17 @@ class SelectionManagerFacade extends ListFacade {
     }
 
     const onDragStart = e => {
+      if (e.which === 3) {//contextmenu
+        return false
+      }
       const textRenderInfo = textMesh.textRenderInfo
       if (textRenderInfo) {
         const textPos = textMesh.worldPositionToTextCoords(e.intersection.point, tempVec2)
         const caret = getCaretAtPoint(textRenderInfo, textPos.x, textPos.y)
         if (caret) {
+          textMesh.highlight.startIndex = caret.charIndex
+          textMesh.highlight.endIndex = caret.charIndex
+          textMesh.updateSelection(textRenderInfo)
           onSelectionChange(caret.charIndex, caret.charIndex)
           parent.addEventListener('drag', onDrag)
           parent.addEventListener('dragend', onDragEnd)
@@ -56,6 +61,9 @@ class SelectionManagerFacade extends ListFacade {
     }
 
     const onDrag = e => {
+      if (e.which === 3) {//contextmenu
+        return false
+      }
       const textRenderInfo = textMesh.textRenderInfo
       if (e.ray && textRenderInfo) {
         // If it's hitting on the Text mesh, do an exact translation; otherwise raycast to an
@@ -65,12 +73,14 @@ class SelectionManagerFacade extends ListFacade {
         if (ix && ix.object === textMesh && ix.point) {
           textPos = textMesh.worldPositionToTextCoords(ix.point, tempVec2)
         } else {
-          const ray = e.ray.clone().applyMatrix4(invertMatrix4(textMesh.matrixWorld, tempMat4))
-          textPos = ray.intersectPlane(tempPlane.setComponents(0, 0, 1, 0), tempVec3)
+          // const ray = e.ray.clone().applyMatrix4(invertMatrix4(textMesh.matrixWorld, tempMat4))
+          // textPos = ray.intersectPlane(tempPlane.setComponents(0, 0, 1, 0), tempVec3)
         }
         if (textPos) {
           const caret = getCaretAtPoint(textRenderInfo, textPos.x, textPos.y)
           if (caret) {
+            textMesh.highlight.endIndex = caret.charIndex
+            textMesh.updateSelection(textRenderInfo)
             onSelectionChange(this.selectionStart, caret.charIndex)
           }
         }
@@ -83,18 +93,46 @@ class SelectionManagerFacade extends ListFacade {
       parent.removeEventListener('dragend', onDragEnd)
     }
 
+    const onMissClick = e => {
+      let target = e.target
+      do {
+        if (target.$facadeId === textMesh.parent.$facade.$facadeId) {
+          return
+        }
+        target = target.parent
+      } while (target !== null)
+      //clear selection
+      const textRenderInfo = textMesh.textRenderInfo
+      if (textRenderInfo) {
+        textMesh.highlight.startIndex = 0
+        textMesh.highlight.endIndex = 0
+        textMesh.updateSelection(textRenderInfo)
+      }
+    }
+
+    //clear selection if missed click
+    parent.getSceneFacade().addEventListener('click', onMissClick)
+
     parent.addEventListener('dragstart', onDragStart)
     parent.addEventListener('mousedown', onDragStart)
+    var canvas = parent.getSceneFacade().parent._threeRenderer.domElement;
+    canvas.addEventListener('contextmenu', (e) => {
+      textMesh._domElSelectedText.style.pointerEvents = 'auto'
+      textMesh.selectDomText()
+      window.setTimeout(() => {
+        textMesh._domElSelectedText.style.pointerEvents = 'none'
+      }, 50)
+    })
 
     this._cleanupEvents = () => {
       onDragEnd()
+      parent.getSceneFacade().removeEventListener('click', onMissClick)
       parent.removeEventListener('dragstart', onDragStart)
       parent.removeEventListener('mousedown', onDragStart)
     }
   }
 
   afterUpdate() {
-    this.data = getSelectionRects(this.textRenderInfo, this.selectionStart, this.selectionEnd)
     super.afterUpdate()
   }
 
@@ -106,7 +144,7 @@ class SelectionManagerFacade extends ListFacade {
     return this._clipRect
   }
 
-  destructor () {
+  destructor() {
     this._cleanupEvents()
     super.destructor()
   }
