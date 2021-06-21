@@ -2,7 +2,7 @@
  * Index for performing fast spatial searches of a glyph's line segments.
  * @return {{addLineSegment:function, findNearestSignedDistance:function}}
  */
-export function createGlyphSegmentsIndex() {
+export function createGlyphSegmentsIndex(bounds) {
   let needsSort = false
   const segments = []
 

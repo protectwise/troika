@@ -305,7 +305,7 @@ Since the text processing occurs in a web worker, it is by definition asynchrono
     })
     ```
    
-   This is best when you want to only react to _that specific_ sync call. Keep in mind that the callback will not execute if the text is already fully synced.
+    This is best when you want to only react to _that specific_ sync call. Keep in mind that the callback will not execute if the text is already fully synced.
    
 2. Add a listener for the `synccomplete` event:
 

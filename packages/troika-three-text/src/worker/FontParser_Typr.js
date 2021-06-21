@@ -164,6 +164,17 @@ function parserFactory(Typr, woff2otf) {
             if (!glyphObj) {
               const {cmds, crds} = Typr.U.glyphToPath(typrFont, glyphIndex)
 
+              // Build path string
+              let path = ''
+              let crdsIdx = 0
+              for (let i = 0, len = cmds.length; i < len; i++) {
+                const numArgs = cmdArgLengths[cmds[i]]
+                path += cmds[i]
+                for (let j = 1; j <= numArgs; j++) {
+                  path += (j > 1 ? ',' : '') + crds[crdsIdx++]
+                }
+              }
+
               // Find extents - Glyf gives this in metadata but not CFF, and Typr doesn't
               // normalize the two, so it's simplest just to iterate ourselves.
               let xMin, yMin, xMax, yMax
@@ -189,20 +200,21 @@ function parserFactory(Typr, woff2otf) {
                 yMin,
                 xMax,
                 yMax,
+                path,
                 pathCommandCount: cmds.length,
-                forEachPathCommand(callback) {
-                  let argsIndex = 0
-                  const argsArray = []
-                  for (let i = 0, len = cmds.length; i < len; i++) {
-                    const numArgs = cmdArgLengths[cmds[i]]
-                    argsArray.length = 1 + numArgs
-                    argsArray[0] = cmds[i]
-                    for (let j = 1; j <= numArgs; j++) {
-                      argsArray[j] = crds[argsIndex++]
-                    }
-                    callback.apply(null, argsArray)
-                  }
-                }
+                // forEachPathCommand(callback) {
+                //   let argsIndex = 0
+                //   const argsArray = []
+                //   for (let i = 0, len = cmds.length; i < len; i++) {
+                //     const numArgs = cmdArgLengths[cmds[i]]
+                //     argsArray.length = 1 + numArgs
+                //     argsArray[0] = cmds[i]
+                //     for (let j = 1; j <= numArgs; j++) {
+                //       argsArray[j] = crds[argsIndex++]
+                //     }
+                //     callback.apply(null, argsArray)
+                //   }
+                // }
               }
             }
 

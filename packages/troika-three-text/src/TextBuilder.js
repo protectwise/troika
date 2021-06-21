@@ -1,7 +1,7 @@
 import { Color, DataTexture, LinearFilter, RGBAFormat } from 'three'
-import { defineWorkerModule, ThenableWorkerModule } from 'troika-worker-utils'
+import { defineWorkerModule, ThenableWorkerModule, Thenable } from 'troika-worker-utils'
 import { createSDFGenerator } from './worker/SDFGenerator.js'
-import { createFontProcessor } from './worker/FontProcessor.js'
+import { createTypesetter } from './worker/Typesetter.js'
 import { createGlyphSegmentsIndex } from './worker/GlyphSegmentsIndex.js'
 import bidiFactory from 'bidi-js'
 
@@ -19,6 +19,10 @@ const CONFIG = {
 }
 const tempColor = /*#__PURE__*/new Color()
 let hasRequested = false
+
+function now() {
+  return (self.performance || Date).now()
+}
 
 /**
  * Customizes the text builder configuration. This must be called prior to the first font processing
@@ -92,7 +96,7 @@ const atlases = Object.create(null)
  * @property {Array<object>} chunkedBounds - List of bounding rects for each consecutive set of N glyphs,
  *           in the format `{start:N, end:N, rect:[minX, minY, maxX, maxY]}`.
  * @property {object} timings - Timing info for various parts of the rendering logic including SDF
- *           generation, layout, etc.
+ *           generation, typesetting, etc.
  * @frozen
  */
 
@@ -110,6 +114,7 @@ const atlases = Object.create(null)
 function getTextRenderInfo(args, callback) {
   hasRequested = true
   args = assign({}, args)
+  const totalStart = now()
 
   // Apply default font here to avoid a 'null' atlas, and convert relative
   // URLs to absolute so they can be resolved in the worker
@@ -144,6 +149,8 @@ function getTextRenderInfo(args, callback) {
   let atlas = atlases[atlasKey]
   if (!atlas) {
     atlas = atlases[atlasKey] = {
+      count: 0,
+      glyphs: new Map(), //glyphId->{}
       sdfTexture: new DataTexture(
         new Uint8Array(sdfGlyphSize * textureWidth * 4),
         textureWidth,
@@ -160,69 +167,131 @@ function getTextRenderInfo(args, callback) {
     atlas.sdfTexture.font = args.font
   }
 
-  // Issue request to the FontProcessor in the worker
-  processInWorker(args).then(result => {
-    // If the response has newGlyphs, copy them into the atlas texture at the specified indices
-    if (result.newGlyphSDFs) {
-      result.newGlyphSDFs.forEach(({textureData, atlasIndex}) => {
-        const texImg = atlas.sdfTexture.image
+  // Issue request to the typesetting engine in the worker
+  typesetInWorker(args).then(result => {
+    const {glyphIds, glyphPositions, fontSize, unitsPerEm, timings} = result
+    const neededSDFs = []
+    const glyphBounds = new Float32Array(glyphIds.length * 4)
+    const fontSizeMult = fontSize / unitsPerEm
+    let boundsIdx = 0
+    let positionsIdx = 0
+    const quadsStart = now()
+    glyphIds.forEach((glyphId, i) => {
+      let glyphInfo = atlas.glyphs.get(glyphId)
 
-        // Grow the texture by power of 2 if needed
-        while (texImg.data.length < (atlasIndex + 1) * sdfGlyphSize * sdfGlyphSize) {
-          const biggerArray = new Uint8Array(texImg.data.length * 2)
-          biggerArray.set(texImg.data)
-          texImg.data = biggerArray
-          texImg.height *= 2
-        }
+      // If this is a glyphId not seen before, add it to the atlas
+      if (!glyphInfo) {
+        const {path, pathBounds} = result.glyphData[glyphId]
 
-        // Insert the new glyph's data into the full texture image at the correct offsets
-        // Glyphs are packed sequentially into the R,G,B,A channels of a square, advancing
-        // to the next square every 4 glyphs.
-        const squareIndex = Math.floor(atlasIndex / 4)
-        const cols = texImg.width / sdfGlyphSize
-        const baseStartIndex = Math.floor(squareIndex / cols) * texImg.width * sdfGlyphSize * 4 //full rows
-          + (squareIndex % cols) * sdfGlyphSize * 4 //partial row
-          + (atlasIndex % 4) //color channel
-        for (let y = 0; y < sdfGlyphSize; y++) {
-          const srcStartIndex = y * sdfGlyphSize
-          const rowStartIndex = baseStartIndex + (y * texImg.width * 4)
-          for (let x = 0; x < sdfGlyphSize; x++) {
-            texImg.data[rowStartIndex + x * 4] = textureData[srcStartIndex + x]
-          }
-        }
-      })
-      atlas.sdfTexture.needsUpdate = true
-    }
+        // Margin around path edges in SDF, based on a percentage of the glyph's max dimension.
+        // Note we add an extra 0.5 px over the configured value because the outer 0.5 doesn't contain
+        // useful interpolated values and will be ignored anyway.
+        const fontUnitsMargin = Math.max(pathBounds[2] - pathBounds[0], pathBounds[3] - pathBounds[1])
+          / sdfGlyphSize * (CONFIG.sdfMargin * sdfGlyphSize + 0.5)
 
-    // Invoke callback with the text layout arrays and updated texture
-    callback(Object.freeze({
-      parameters: args,
-      sdfTexture: atlas.sdfTexture,
-      sdfGlyphSize,
-      sdfExponent,
-      glyphBounds: result.glyphBounds,
-      glyphAtlasIndices: result.glyphAtlasIndices,
-      glyphColors: result.glyphColors,
-      caretPositions: result.caretPositions,
-      caretHeight: result.caretHeight,
-      chunkedBounds: result.chunkedBounds,
-      ascender: result.ascender,
-      descender: result.descender,
-      lineHeight: result.lineHeight,
-      topBaseline: result.topBaseline,
-      blockBounds: result.blockBounds,
-      visibleBounds: result.visibleBounds,
-      timings: result.timings,
-      get totalBounds() {
-        console.log('totalBounds deprecated, use blockBounds instead')
-        return result.blockBounds
-      },
-      get totalBlockSize() {
-        console.log('totalBlockSize deprecated, use blockBounds instead')
-        const [x0, y0, x1, y1] = result.blockBounds
-        return [x1 - x0, y1 - y0]
+        const atlasIndex = atlas.count++
+        const sdfViewBox = [
+          pathBounds[0] - fontUnitsMargin,
+          pathBounds[1] - fontUnitsMargin,
+          pathBounds[2] + fontUnitsMargin,
+          pathBounds[3] + fontUnitsMargin,
+        ]
+        atlas.glyphs.set(glyphId, (glyphInfo = { path, atlasIndex, sdfViewBox }))
+
+        // Collect those that need SDF generation
+        neededSDFs.push(glyphInfo)
       }
-    }))
+
+      // Calculate bounds for renderable quads
+      // TODO can we get this back off the main thread?
+      const {sdfViewBox} = glyphInfo
+      const posX = glyphPositions[positionsIdx++]
+      const posY = glyphPositions[positionsIdx++]
+      glyphBounds[boundsIdx++] = posX + sdfViewBox[0] * fontSizeMult
+      glyphBounds[boundsIdx++] = posY + sdfViewBox[1] * fontSizeMult
+      glyphBounds[boundsIdx++] = posX + sdfViewBox[2] * fontSizeMult
+      glyphBounds[boundsIdx++] = posY + sdfViewBox[3] * fontSizeMult
+
+      // Convert glyphId to SDF index for the shader
+      glyphIds[i] = glyphInfo.atlasIndex
+    })
+    timings.quads = (timings.quads || 0) + (now() - quadsStart)
+
+    const sdfStart = now()
+    timings.sdf = {}
+
+    Thenable.all(neededSDFs.map(({path, atlasIndex, sdfViewBox}) => {
+      const maxDist = Math.max(sdfViewBox[2] - sdfViewBox[0], sdfViewBox[3] - sdfViewBox[1])
+      return generateSDFInWorker(sdfGlyphSize, sdfGlyphSize, path, sdfViewBox, maxDist, CONFIG.sdfExponent)
+        .then(({textureData, timing}) => {
+          timings.sdf[atlasIndex] = timing
+          return { atlasIndex, textureData, timing }
+        })
+    })).then(sdfResults => {
+      // If we have new SDFs, copy them into the atlas texture at the specified indices
+      if (sdfResults.length) {
+        sdfResults.forEach(({ atlasIndex, textureData, timing }) => {
+          const texImg = atlas.sdfTexture.image
+
+          // Grow the texture by power of 2 if needed
+          while (texImg.data.length < (atlasIndex + 1) * sdfGlyphSize * sdfGlyphSize) {
+            const biggerArray = new Uint8Array(texImg.data.length * 2)
+            biggerArray.set(texImg.data)
+            texImg.data = biggerArray
+            texImg.height *= 2
+          }
+
+          // Insert the new glyph's data into the full texture image at the correct offsets
+          // Glyphs are packed sequentially into the R,G,B,A channels of a square, advancing
+          // to the next square every 4 glyphs.
+          const squareIndex = Math.floor(atlasIndex / 4)
+          const cols = texImg.width / sdfGlyphSize
+          const baseStartIndex = Math.floor(squareIndex / cols) * texImg.width * sdfGlyphSize * 4 //full rows
+            + (squareIndex % cols) * sdfGlyphSize * 4 //partial row
+            + (atlasIndex % 4) //color channel
+          for (let y = 0; y < sdfGlyphSize; y++) {
+            const srcStartIndex = y * sdfGlyphSize
+            const rowStartIndex = baseStartIndex + (y * texImg.width * 4)
+            for (let x = 0; x < sdfGlyphSize; x++) {
+              texImg.data[rowStartIndex + x * 4] = textureData[srcStartIndex + x]
+            }
+          }
+        })
+        atlas.sdfTexture.needsUpdate = true
+      }
+      timings.sdfTotal = now() - sdfStart
+      timings.total = now() - totalStart
+
+      // Invoke callback with the text layout arrays and updated texture
+      callback(Object.freeze({
+        parameters: args,
+        sdfTexture: atlas.sdfTexture,
+        sdfGlyphSize,
+        sdfExponent,
+        glyphBounds,
+        glyphAtlasIndices: glyphIds,
+        glyphColors: result.glyphColors,
+        caretPositions: result.caretPositions,
+        caretHeight: result.caretHeight,
+        chunkedBounds: result.chunkedBounds,
+        ascender: result.ascender,
+        descender: result.descender,
+        lineHeight: result.lineHeight,
+        topBaseline: result.topBaseline,
+        blockBounds: result.blockBounds,
+        visibleBounds: result.visibleBounds,
+        timings: result.timings,
+        get totalBounds() {
+          console.log('totalBounds deprecated, use blockBounds instead')
+          return result.blockBounds
+        },
+        get totalBlockSize() {
+          console.log('totalBlockSize deprecated, use blockBounds instead')
+          const [x0, y0, x1, y1] = result.blockBounds
+          return [x1 - x0, y1 - y0]
+        }
+      }))
+    })
   })
 }
 
@@ -270,46 +339,88 @@ function toAbsoluteURL(path) {
 }
 
 
-const fontProcessorWorkerModule = /*#__PURE__*/defineWorkerModule({
-  name: 'FontProcessor',
+const typesetterWorkerModule = /*#__PURE__*/defineWorkerModule({
+  name: 'Typesetter',
   dependencies: [
     CONFIG,
     fontParser,
-    createGlyphSegmentsIndex,
-    createSDFGenerator,
-    createFontProcessor,
+    createTypesetter,
     bidiFactory
   ],
-  init(config, fontParser, createGlyphSegmentsIndex, createSDFGenerator, createFontProcessor, bidiFactory) {
-    const {sdfExponent, sdfMargin, defaultFontURL} = config
-    const sdfGenerator = createSDFGenerator(createGlyphSegmentsIndex, { sdfExponent, sdfMargin })
-    return createFontProcessor(fontParser, sdfGenerator, bidiFactory(), { defaultFontURL })
+  init(config, fontParser, createTypesetter, bidiFactory) {
+    const {defaultFontURL} = config
+    return createTypesetter(fontParser, bidiFactory(), { defaultFontURL })
   }
 })
 
-const processInWorker = /*#__PURE__*/defineWorkerModule({
-  name: 'TextBuilder',
-  dependencies: [fontProcessorWorkerModule, ThenableWorkerModule],
-  init(fontProcessor, Thenable) {
+// Fan-out to multiple worker threads: (TODO? needs analysis.)
+// let generateSDFInWorker = function(...args) {
+//   const threadCount = 2
+//   const workers = []
+//
+//   let callNum = 0
+//   generateSDFInWorker = function(...args) {
+//     const workerIdx = (callNum++) % threadCount
+//     if (!workers[workerIdx]) {
+//       workers[workerIdx] = defineWorkerModule({
+//         name: 'SDFGenerator_' + workerIdx,
+//         workerId: 'TroikaTextSDF_' + workerIdx,
+//         dependencies: [
+//           CONFIG,
+//           createGlyphSegmentsIndex,
+//           createSDFGenerator
+//         ],
+//         init(config, createGlyphSegmentsIndex, createSDFGenerator) {
+//           const {sdfExponent, sdfMargin} = config
+//           return createSDFGenerator(createGlyphSegmentsIndex, { sdfExponent, sdfMargin })
+//         },
+//         getTransferables(result) {
+//           return [result.textureData.buffer]
+//         }
+//       })
+//     }
+//     return workers[workerIdx](...args)
+//   }
+//   return generateSDFInWorker(...args)
+// }
+
+const generateSDFInWorker = /*#__PURE__*/defineWorkerModule({
+  name: 'SDFGenerator',
+  dependencies: [
+    CONFIG,
+    createGlyphSegmentsIndex,
+    createSDFGenerator
+  ],
+  init(config, createGlyphSegmentsIndex, createSDFGenerator) {
+    const {sdfExponent, sdfMargin} = config
+    return createSDFGenerator(createGlyphSegmentsIndex, { sdfExponent, sdfMargin })
+  },
+  getTransferables(result) {
+    return [result.textureData.buffer]
+  }
+})
+
+const typesetInWorker = /*#__PURE__*/defineWorkerModule({
+  name: 'Typesetter',
+  dependencies: [
+    typesetterWorkerModule,
+    ThenableWorkerModule
+  ],
+  init(typesetter, Thenable) {
     return function(args) {
       const thenable = new Thenable()
-      fontProcessor.process(args, thenable.resolve)
+      typesetter.typeset(args, thenable.resolve)
       return thenable
     }
   },
   getTransferables(result) {
     // Mark array buffers as transferable to avoid cloning during postMessage
     const transferables = [
-      result.glyphBounds.buffer,
-      result.glyphAtlasIndices.buffer
+      result.glyphPositions.buffer,
+      result.glyphIds.buffer
     ]
     if (result.caretPositions) {
       transferables.push(result.caretPositions.buffer)
-    }
-    if (result.newGlyphSDFs) {
-      result.newGlyphSDFs.forEach(d => {
-        transferables.push(d.textureData.buffer)
-      })
     }
     return transferables
   }
@@ -341,6 +452,6 @@ export {
   configureTextBuilder,
   getTextRenderInfo,
   preloadFont,
-  fontProcessorWorkerModule,
+  typesetterWorkerModule,
   dumpSDFTextures
 }

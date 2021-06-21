@@ -1,7 +1,7 @@
 // Proxy exports from troika-three-text for convenience:
 export {
   configureTextBuilder,
-  fontProcessorWorkerModule,
+  typesetterWorkerModule,
   preloadFont,
   dumpSDFTextures,
   Text as TextMesh,

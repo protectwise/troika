@@ -1,5 +1,5 @@
 /**
- * Creates a self-contained environment for processing text rendering requests.
+ * Factory function that creates a self-contained environment for processing text typesetting requests.
  *
  * It is important that this function has no closure dependencies, so that it can be easily injected
  * into the source for a Worker without requiring a build step or complex dependency loading. All its
@@ -31,38 +31,15 @@
  *       })
  *     }
  *   }
- * @param {function} sdfGenerator - a function that accepts a glyph object and generates an SDF texture
- * from it.
+ * @param {object} bidi - the bidi.js implementation object
  * @param {Object} config
  * @return {Object}
  */
-export function createFontProcessor(fontParser, sdfGenerator, bidi, config) {
+export function createTypesetter(fontParser, bidi, config) {
 
   const {
     defaultFontURL
   } = config
-
-
-  /**
-   * @private
-   * Holds data about font glyphs and how they relate to SDF atlases
-   *
-   * {
-   *   'fontUrl@sdfSize': {
-   *     fontObj: {}, //result of the fontParser
-   *     glyphs: {
-   *       [glyphIndex]: {
-   *         atlasIndex: 0,
-   *         glyphObj: {}, //glyph object from the fontParser
-   *         renderingBounds: [x0, y0, x1, y1]
-   *       },
-   *       ...
-   *     },
-   *     glyphCount: 123
-   *   }
-   * }
-   */
-  const fontAtlases = Object.create(null)
 
   /**
    * Holds parsed font objects by url
@@ -143,34 +120,11 @@ export function createFontProcessor(fontParser, sdfGenerator, bidi, config) {
 
 
   /**
-   * Get the atlas data for a given font url, loading it from the network and initializing
-   * its atlas data objects if necessary.
-   */
-  function getSdfAtlas(fontUrl, sdfGlyphSize, callback) {
-    if (!fontUrl) fontUrl = defaultFontURL
-    let atlasKey = `${fontUrl}@${sdfGlyphSize}`
-    let atlas = fontAtlases[atlasKey]
-    if (atlas) {
-      callback(atlas)
-    } else {
-      loadFont(fontUrl, fontObj => {
-        atlas = fontAtlases[atlasKey] || (fontAtlases[atlasKey] = {
-          fontObj: fontObj,
-          glyphs: {},
-          glyphCount: 0
-        })
-        callback(atlas)
-      })
-    }
-  }
-
-
-  /**
    * Main entry point.
    * Process a text string with given font and formatting parameters, and return all info
    * necessary to render all its glyphs.
    */
-  function process(
+  function typeset(
     {
       text='',
       font=defaultFontURL,
@@ -194,11 +148,11 @@ export function createFontProcessor(fontParser, sdfGenerator, bidi, config) {
     metricsOnly=false
   ) {
     const mainStart = now()
-    const timings = {total: 0, fontLoad: 0, layout: 0, sdf: {}, sdfTotal: 0}
+    const timings = {fontLoad: 0, typesetting: 0}
 
     // Ensure newlines are normalized
     if (text.indexOf('\r') > -1) {
-      console.warn('FontProcessor.process: got text with \\r chars; normalizing to \\n')
+      console.info('Typesetter: got text with \\r chars; normalizing to \\n')
       text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
     }
 
@@ -209,12 +163,11 @@ export function createFontProcessor(fontParser, sdfGenerator, bidi, config) {
     lineHeight = lineHeight || 'normal'
     textIndent = +textIndent
 
-    getSdfAtlas(font, sdfGlyphSize, atlas => {
-      const fontObj = atlas.fontObj
+    loadFont(font, fontObj => {
       const hasMaxWidth = isFinite(maxWidth)
-      let newGlyphs = null
-      let glyphBounds = null
-      let glyphAtlasIndices = null
+      let glyphIds = null
+      let glyphPositions = null
+      let glyphData = null
       let glyphColors = null
       let caretPositions = null
       let visibleBounds = null
@@ -224,7 +177,7 @@ export function createFontProcessor(fontParser, sdfGenerator, bidi, config) {
       let canWrap = whiteSpace !== 'nowrap'
       const {ascender, descender, unitsPerEm} = fontObj
       timings.fontLoad = now() - mainStart
-      const layoutStart = now()
+      const typesetStart = now()
 
       // Find conversion between native font units and fontSize units; this will already be done
       // for the gx/gy values below but everything else we'll need to convert
@@ -364,8 +317,9 @@ export function createFontProcessor(fontParser, sdfGenerator, bidi, config) {
 
         // Process each line, applying alignment offsets, adding each glyph to the atlas, and
         // collecting all renderable glyphs into a single collection.
-        glyphBounds = new Float32Array(renderableGlyphCount * 4)
-        glyphAtlasIndices = new Float32Array(renderableGlyphCount)
+        glyphIds = new Uint16Array(renderableGlyphCount)
+        glyphPositions = new Float32Array(renderableGlyphCount * 2)
+        glyphData = {}
         visibleBounds = [INF, INF, -INF, -INF]
         chunkedBounds = []
         let lineYOffset = topBaseline
@@ -458,6 +412,7 @@ export function createFontProcessor(fontParser, sdfGenerator, bidi, config) {
             for (let i = 0; i < lineGlyphCount; i++) {
               let glyphInfo = line.glyphAt(i)
               glyphObj = glyphInfo.glyphObj
+              const glyphId = glyphObj.index
 
               // Replace mirrored characters in rtl
               const rtl = bidiLevelsResult.levels[glyphInfo.charIndex] & 1 //odd level means rtl
@@ -504,43 +459,25 @@ export function createFontProcessor(fontParser, sdfGenerator, bidi, config) {
               if (!glyphObj.isWhitespace && !glyphObj.isEmpty) {
                 const idx = renderableGlyphIndex++
 
-                // If we haven't seen this glyph yet, generate its SDF
-                let glyphAtlasInfo = atlas.glyphs[glyphObj.index]
-                if (!glyphAtlasInfo) {
-                  const sdfStart = now()
-                  const glyphSDFData = sdfGenerator(glyphObj, sdfGlyphSize)
-                  timings.sdf[text.charAt(glyphInfo.charIndex)] = now() - sdfStart
-
-                  // Assign this glyph the next available atlas index
-                  glyphSDFData.atlasIndex = atlas.glyphCount++
-
-                  // Queue it up in the response's newGlyphs list
-                  if (!newGlyphs) newGlyphs = []
-                  newGlyphs.push(glyphSDFData)
-
-                  // Store its metadata (not the texture) in our atlas info
-                  glyphAtlasInfo = atlas.glyphs[glyphObj.index] = {
-                    atlasIndex: glyphSDFData.atlasIndex,
-                    glyphObj: glyphObj,
-                    renderingBounds: glyphSDFData.renderingBounds
+                // Add this glyph's path data
+                if (!glyphData[glyphId]) {
+                  glyphData[glyphId] = {
+                    path: glyphObj.path,
+                    pathBounds: [glyphObj.xMin, glyphObj.yMin, glyphObj.xMax, glyphObj.yMax]
                   }
                 }
 
-                // Determine final glyph quad bounds and add them to the glyphBounds array
-                const bounds = glyphAtlasInfo.renderingBounds
-                const startIdx = idx * 4
-                const xStart = glyphInfo.x + anchorXOffset
-                const yStart = lineYOffset + anchorYOffset
-                glyphBounds[startIdx] = xStart + bounds[0] * fontSizeMult
-                glyphBounds[startIdx + 1] = yStart + bounds[1] * fontSizeMult
-                glyphBounds[startIdx + 2] = xStart + bounds[2] * fontSizeMult
-                glyphBounds[startIdx + 3] = yStart + bounds[3] * fontSizeMult
+                // Determine final glyph position and add to glyphPositions array
+                const glyphX = glyphInfo.x + anchorXOffset
+                const glyphY = lineYOffset + anchorYOffset
+                glyphPositions[idx * 2] = glyphX
+                glyphPositions[idx * 2 + 1] = glyphY
 
                 // Track total visible bounds
-                const visX0 = xStart + glyphObj.xMin * fontSizeMult
-                const visY0 = yStart + glyphObj.yMin * fontSizeMult
-                const visX1 = xStart + glyphObj.xMax * fontSizeMult
-                const visY1 = yStart + glyphObj.yMax * fontSizeMult
+                const visX0 = glyphX + glyphObj.xMin * fontSizeMult
+                const visY0 = glyphY + glyphObj.yMin * fontSizeMult
+                const visX1 = glyphX + glyphObj.xMax * fontSizeMult
+                const visY1 = glyphY + glyphObj.yMax * fontSizeMult
                 if (visX0 < visibleBounds[0]) visibleBounds[0] = visX0
                 if (visY0 < visibleBounds[1]) visibleBounds[1] = visY0
                 if (visX1 > visibleBounds[2]) visibleBounds[2] = visX1
@@ -558,8 +495,8 @@ export function createFontProcessor(fontParser, sdfGenerator, bidi, config) {
                 if (visX1 > chunkRect[2]) chunkRect[2] = visX1
                 if (visY1 > chunkRect[3]) chunkRect[3] = visY1
 
-                // Add to atlas indices array
-                glyphAtlasIndices[idx] = glyphAtlasInfo.atlasIndex
+                // Add to glyph ids array
+                glyphIds[idx] = glyphId
 
                 // Add colors
                 if (colorRanges) {
@@ -578,19 +515,18 @@ export function createFontProcessor(fontParser, sdfGenerator, bidi, config) {
       }
 
       // Timing stats
-      for (let ch in timings.sdf) {
-        timings.sdfTotal += timings.sdf[ch]
-      }
-      timings.layout = now() - layoutStart - timings.sdfTotal
-      timings.total = now() - mainStart
+      timings.typesetting = now() - typesetStart
 
       callback({
-        glyphBounds, //rendering quad bounds for each glyph [x1, y1, x2, y2]
-        glyphAtlasIndices, //atlas indices for each glyph
+        glyphIds, //font indices for each glyph
+        glyphPositions, //x,y of each glyph's origin in layout
+        glyphData, //dict holding data about each glyph appearing in the text
         caretPositions, //x,y of bottom of cursor position before each char, plus one after last char
         caretHeight, //height of cursor from bottom to top
         glyphColors, //color for each glyph, if color ranges supplied
         chunkedBounds, //total rects per (n=chunkedBoundsSize) consecutive glyphs
+        fontSize, //calculated em height
+        unitsPerEm, //font units per em
         ascender: ascender * fontSizeMult, //font ascender
         descender: descender * fontSizeMult, //font descender
         lineHeight, //computed line height
@@ -602,7 +538,6 @@ export function createFontProcessor(fontParser, sdfGenerator, bidi, config) {
           anchorYOffset
         ],
         visibleBounds, //total bounds of visible text paths, may be larger or smaller than totalBounds
-        newGlyphSDFs: newGlyphs, //if this request included any new SDFs for the atlas, they'll be included here
         timings
       })
     })
@@ -616,7 +551,7 @@ export function createFontProcessor(fontParser, sdfGenerator, bidi, config) {
    * @param callback
    */
   function measure(args, callback) {
-    process(args, (result) => {
+    typeset(args, (result) => {
       const [x0, y0, x1, y1] = result.blockBounds
       callback({
         width: x1 - x0,
@@ -672,7 +607,7 @@ export function createFontProcessor(fontParser, sdfGenerator, bidi, config) {
 
 
   return {
-    process,
+    typeset,
     measure,
     loadFont
   }

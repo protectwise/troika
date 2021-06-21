@@ -1,13 +1,12 @@
 /**
  * Basic quadtree impl for performing fast spatial searches of a glyph's line segments.
  */
-export function createGlyphSegmentsQuadtree(glyphObj) {
+export function createGlyphSegmentsQuadtree(bounds) {
   // Pick a good initial power-of-two bounding box that will hold all possible segments
-  const {xMin, yMin, xMax, yMax} = glyphObj
-  const dx = xMax - xMin
-  const dy = yMax - yMin
-  const cx = Math.round(xMin + dx / 2)
-  const cy = Math.round(yMin + dy / 2)
+  const dx = bounds[2] - bounds[0]
+  const dy = bounds[3] - bounds[1]
+  const cx = Math.round(bounds[0] + dx / 2)
+  const cy = Math.round(bounds[1] + dy / 2)
   const r = Math.pow(2, Math.floor(Math.log(Math.max(dx, dy)) * Math.LOG2E))
   const INF = Infinity
 

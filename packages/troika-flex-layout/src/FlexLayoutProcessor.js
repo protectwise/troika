@@ -1,5 +1,5 @@
 import { defineWorkerModule, ThenableWorkerModule } from 'troika-worker-utils'
-import { fontProcessorWorkerModule } from 'troika-three-text'
+import { typesetterWorkerModule } from 'troika-three-text'
 import yogaFactory from '../libs/yoga.factory.js'
 
 
@@ -228,7 +228,7 @@ function createFlexLayoutProcessor(Yoga, loadFontFn, measureFunction) {
                 }
                 // NOTE: this assumes the measureFunction will exec the callback synchronously; this works
                 // with current impl since we preload all needed fonts above, but it would be good to
-                // formalize that contract in the FontProcessor
+                // formalize that contract in the LayoutEngine
                 let result = measureFunction(params)
                 if (result) {
                   // Apply a fudge factor to avoid issues where the flexbox layout result using this
@@ -283,18 +283,18 @@ export const flexLayoutProcessorWorkerModule = defineWorkerModule({
   name: 'FlexLayoutProcessor',
   dependencies: [
     yogaFactory,
-    fontProcessorWorkerModule,
+    typesetterWorkerModule,
     createFlexLayoutProcessor,
     ThenableWorkerModule
   ],
-  init(yogaFactory, fontProcessor, create, Thenable) {
+  init(yogaFactory, layoutEngine, create, Thenable) {
     const Yoga = yogaFactory()
     function measure(params) {
       let result = null
-      fontProcessor.measure(params, r => {result = r})
+      layoutEngine.measure(params, r => {result = r})
       return result
     }
-    const process = create(Yoga, fontProcessor.loadFont, measure)
+    const process = create(Yoga, layoutEngine.loadFont, measure)
     return function(styleTree) {
       const thenable = new Thenable()
       process(styleTree, thenable.resolve)

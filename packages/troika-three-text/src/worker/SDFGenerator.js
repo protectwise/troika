@@ -1,13 +1,15 @@
 /**
+ * @typedef {object} SDFGeneratorResult
+ * @property {Uint8Array} textureData
+ * @property {number} timing
+ */
+
+/**
  * Initializes and returns a function to generate an SDF texture for a given glyph.
  * @param {function} createGlyphSegmentsIndex - factory for a GlyphSegmentsIndex implementation.
- * @param {number} config.sdfExponent
- * @param {number} config.sdfMargin
- *
- * @return {function(Object): {renderingBounds: [minX, minY, maxX, maxY], textureData: Uint8Array}}
+ * @return {function(Object): SDFGeneratorResult}
  */
-function createSDFGenerator(createGlyphSegmentsIndex, config) {
-  const { sdfExponent, sdfMargin } = config
+function createSDFGenerator(createGlyphSegmentsIndex) {
 
   /**
    * How many straight line segments to use when approximating a glyph's quadratic/cubic bezier curves.
@@ -36,140 +38,113 @@ function createSDFGenerator(createGlyphSegmentsIndex, config) {
     }
   }
 
+  function now() {
+    return (self.performance || Date).now()
+  }
+
   /**
    * Generate an SDF texture segment for a single glyph.
-   * @param {object} glyphObj
-   * @param {number} sdfSize - the length of one side of the SDF image.
-   *        Larger images encode more details. Must be a power of 2.
-   * @return {{textureData: Uint8Array, renderingBounds: *[]}}
+   * @param {number} sdfWidth - width of the SDF texture in pixels
+   * @param {number} sdfHeight - height of the SDF texture in pixels
+   * @param {string} path - an SVG path string describing the glyph; should only contain commands: M/L/Q/C/Z.
+   * @param {number[]} viewBox - [minX, minY, maxX, maxY] in font units aligning with the texture's edges
+   * @param {number} maxDistance - the maximum distance from the glyph path in font units that will be encoded
+   * @param {number} [sdfExponent] - specifies an exponent for encoding the SDF's distance values; higher exponents
+   *        will give greater precision nearer the glyph's path.
+   * @return {SDFGeneratorResult}
    */
-  function generateSDF(glyphObj, sdfSize) {
-    //console.time('glyphSDF')
+  function generateSDF(sdfWidth, sdfHeight, path, viewBox, maxDistance, sdfExponent = 1) {
+    const start = now()
+    const textureData = new Uint8Array(sdfWidth * sdfHeight)
 
-    const textureData = new Uint8Array(sdfSize * sdfSize)
+    const viewBoxWidth = viewBox[2] - viewBox[0]
+    const viewBoxHeight = viewBox[3] - viewBox[1]
 
-    // Determine mapping between glyph grid coords and sdf grid coords
-    const glyphW = glyphObj.xMax - glyphObj.xMin
-    const glyphH = glyphObj.yMax - glyphObj.yMin
-
-    // Choose a maximum search distance radius in font units, based on the glyph's max dimensions
-    const fontUnitsMaxSearchDist = Math.max(glyphW, glyphH)
-
-    // Margin - add an extra 0.5 over the configured value because the outer 0.5 doesn't contain
-    // useful interpolated values and will be ignored anyway.
-    const fontUnitsMargin = Math.max(glyphW, glyphH) / sdfSize * (sdfMargin * sdfSize + 0.5)
-
-    // Metrics of the texture/quad in font units
-    const textureMinFontX = glyphObj.xMin - fontUnitsMargin
-    const textureMinFontY = glyphObj.yMin - fontUnitsMargin
-    const textureMaxFontX = glyphObj.xMax + fontUnitsMargin
-    const textureMaxFontY = glyphObj.yMax + fontUnitsMargin
-    const fontUnitsTextureWidth = textureMaxFontX - textureMinFontX
-    const fontUnitsTextureHeight = textureMaxFontY - textureMinFontY
-    const fontUnitsTextureMaxDim = Math.max(fontUnitsTextureWidth, fontUnitsTextureHeight)
-
-    function textureXToFontX(x) {
-      return textureMinFontX + fontUnitsTextureWidth * x / sdfSize
-    }
-
-    function textureYToFontY(y) {
-      return textureMinFontY + fontUnitsTextureHeight * y / sdfSize
-    }
-
-    if (glyphObj.pathCommandCount) { //whitespace chars will have no commands, so we can skip all this
-      // Decompose all paths into straight line segments and add them to a quadtree
-      const lineSegmentsIndex = createGlyphSegmentsIndex(glyphObj)
-      let firstX, firstY, prevX, prevY
-      glyphObj.forEachPathCommand((type, x0, y0, x1, y1, x2, y2) => {
-        switch (type) {
-          case 'M':
-            prevX = firstX = x0
-            prevY = firstY = y0
-            break
-          case 'L':
-            if (x0 !== prevX || y0 !== prevY) { //yup, some fonts have zero-length line commands
-              lineSegmentsIndex.addLineSegment(prevX, prevY, (prevX = x0), (prevY = y0))
-            }
-            break
-          case 'Q': {
-            let prevPoint = {x: prevX, y: prevY}
-            for (let i = 1; i < CURVE_POINTS; i++) {
-              let nextPoint = pointOnQuadraticBezier(
-                prevX, prevY,
-                x0, y0,
-                x1, y1,
-                i / (CURVE_POINTS - 1)
-              )
-              lineSegmentsIndex.addLineSegment(prevPoint.x, prevPoint.y, nextPoint.x, nextPoint.y)
-              prevPoint = nextPoint
-            }
-            prevX = x1
-            prevY = y1
-            break
+    // Decompose all paths into straight line segments and add them to an index
+    const lineSegmentsIndex = createGlyphSegmentsIndex(viewBox)
+    const segmentRE = /([MLQCZ])([^MLQCZ]*)/g
+    let match, firstX, firstY, prevX, prevY
+    while (match = segmentRE.exec(path)) {
+      const args = match[2].replace(/^\s*|\s*$/g, '').split(/[,\s]+/).map(v => parseFloat(v))
+      switch (match[1]) {
+        case 'M':
+          prevX = firstX = args[0]
+          prevY = firstY = args[1]
+          break
+        case 'L':
+          if (args[0] !== prevX || args[1] !== prevY) { //yup, some fonts have zero-length line commands
+            lineSegmentsIndex.addLineSegment(prevX, prevY, (prevX = args[0]), (prevY = args[1]))
           }
-          case 'C': {
-            let prevPoint = {x: prevX, y: prevY}
-            for (let i = 1; i < CURVE_POINTS; i++) {
-              let nextPoint = pointOnCubicBezier(
-                prevX, prevY,
-                x0, y0,
-                x1, y1,
-                x2, y2,
-                i / (CURVE_POINTS - 1)
-              )
-              lineSegmentsIndex.addLineSegment(prevPoint.x, prevPoint.y, nextPoint.x, nextPoint.y)
-              prevPoint = nextPoint
-            }
-            prevX = x2
-            prevY = y2
-            break
+          break
+        case 'Q': {
+          let prevPoint = {x: prevX, y: prevY}
+          for (let i = 1; i < CURVE_POINTS; i++) {
+            let nextPoint = pointOnQuadraticBezier(
+              prevX, prevY,
+              args[0], args[1],
+              args[2], args[3],
+              i / (CURVE_POINTS - 1)
+            )
+            lineSegmentsIndex.addLineSegment(prevPoint.x, prevPoint.y, nextPoint.x, nextPoint.y)
+            prevPoint = nextPoint
           }
-          case 'Z':
-            if (prevX !== firstX || prevY !== firstY) {
-              lineSegmentsIndex.addLineSegment(prevX, prevY, firstX, firstY)
-            }
-            break
+          prevX = args[2]
+          prevY = args[3]
+          break
         }
-      })
-
-      // For each target SDF texel, find the distance from its center to its nearest line segment,
-      // map that distance to an alpha value, and write that alpha to the texel
-      for (let sdfX = 0; sdfX < sdfSize; sdfX++) {
-        for (let sdfY = 0; sdfY < sdfSize; sdfY++) {
-          const signedDist = lineSegmentsIndex.findNearestSignedDistance(
-            textureXToFontX(sdfX + 0.5),
-            textureYToFontY(sdfY + 0.5),
-            fontUnitsMaxSearchDist
-          )
-
-          // Use an exponential scale to ensure the texels very near the glyph path have adequate
-          // precision, while allowing the distance field to cover the entire texture, given that
-          // there are only 8 bits available. Formula visualized: https://www.desmos.com/calculator/uiaq5aqiam
-          let alpha = Math.pow((1 - Math.abs(signedDist) / fontUnitsTextureMaxDim), sdfExponent) / 2
-          if (signedDist < 0) {
-            alpha = 1 - alpha
+        case 'C': {
+          let prevPoint = {x: prevX, y: prevY}
+          for (let i = 1; i < CURVE_POINTS; i++) {
+            let nextPoint = pointOnCubicBezier(
+              prevX, prevY,
+              args[0], args[1],
+              args[2], args[3],
+              args[4], args[5],
+              i / (CURVE_POINTS - 1)
+            )
+            lineSegmentsIndex.addLineSegment(prevPoint.x, prevPoint.y, nextPoint.x, nextPoint.y)
+            prevPoint = nextPoint
           }
-
-          alpha = Math.max(0, Math.min(255, Math.round(alpha * 255))) //clamp
-          textureData[sdfY * sdfSize + sdfX] = alpha
+          prevX = args[4]
+          prevY = args[5]
+          break
         }
+        case 'Z':
+          if (prevX !== firstX || prevY !== firstY) {
+            lineSegmentsIndex.addLineSegment(prevX, prevY, firstX, firstY)
+          }
+          break
       }
     }
 
-    //console.timeEnd('glyphSDF')
+    // For each target SDF texel, find the distance from its center to its nearest line segment,
+    // map that distance to an alpha value, and write that alpha to the texel
+    for (let sdfX = 0; sdfX < sdfWidth; sdfX++) {
+      for (let sdfY = 0; sdfY < sdfHeight; sdfY++) {
+        const signedDist = lineSegmentsIndex.findNearestSignedDistance(
+          viewBox[0] + viewBoxWidth * (sdfX + 0.5) / sdfWidth,
+          viewBox[1] + viewBoxHeight * (sdfY + 0.5) / sdfHeight,
+          maxDistance
+        )
+
+        // Use an exponential scale to ensure the texels very near the glyph path have adequate
+        // precision, while allowing the distance field to cover the entire texture, given that
+        // there are only 8 bits available. Formula visualized: https://www.desmos.com/calculator/uiaq5aqiam
+        let alpha = Math.pow((1 - Math.abs(signedDist) / maxDistance), sdfExponent) / 2
+        if (signedDist < 0) {
+          alpha = 1 - alpha
+        }
+
+        alpha = Math.max(0, Math.min(255, Math.round(alpha * 255))) //clamp
+        textureData[sdfY * sdfWidth + sdfX] = alpha
+      }
+    }
 
     return {
-      textureData: textureData,
-
-      renderingBounds: [
-        textureMinFontX,
-        textureMinFontY,
-        textureMaxFontX,
-        textureMaxFontY
-      ]
+      textureData,
+      timing: now() - start
     }
   }
-
 
   return generateSDF
 }
