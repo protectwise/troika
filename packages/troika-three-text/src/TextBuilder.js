@@ -1,5 +1,5 @@
 import { Color, DataTexture, LinearFilter, RGBAFormat } from 'three'
-import { defineWorkerModule, ThenableWorkerModule, Thenable } from 'troika-worker-utils'
+import { defineWorkerModule, terminateWorker, ThenableWorkerModule, Thenable } from 'troika-worker-utils'
 import { createSDFGenerator } from './worker/SDFGenerator.js'
 import { createTypesetter } from './worker/Typesetter.js'
 import { createGlyphSegmentsIndex } from './worker/GlyphSegmentsIndex.js'
@@ -353,52 +353,52 @@ const typesetterWorkerModule = /*#__PURE__*/defineWorkerModule({
   }
 })
 
-// Fan-out to multiple worker threads: (TODO? needs analysis.)
-// let generateSDFInWorker = function(...args) {
-//   const threadCount = 2
-//   const workers = []
-//
-//   let callNum = 0
-//   generateSDFInWorker = function(...args) {
-//     const workerIdx = (callNum++) % threadCount
-//     if (!workers[workerIdx]) {
-//       workers[workerIdx] = defineWorkerModule({
-//         name: 'SDFGenerator_' + workerIdx,
-//         workerId: 'TroikaTextSDF_' + workerIdx,
-//         dependencies: [
-//           CONFIG,
-//           createGlyphSegmentsIndex,
-//           createSDFGenerator
-//         ],
-//         init(config, createGlyphSegmentsIndex, createSDFGenerator) {
-//           const {sdfExponent, sdfMargin} = config
-//           return createSDFGenerator(createGlyphSegmentsIndex, { sdfExponent, sdfMargin })
-//         },
-//         getTransferables(result) {
-//           return [result.textureData.buffer]
-//         }
-//       })
-//     }
-//     return workers[workerIdx](...args)
-//   }
-//   return generateSDFInWorker(...args)
-// }
+/**
+ * SDF generator function wrapper that fans out requests to a number of worker
+ * threads for parallelism
+ */
+const generateSDFInWorker = /*#__PURE__*/function() {
+  const threadCount = 4 //how many workers to spawn
+  const idleTimeout = 2000 //workers will be terminated after being idle this many milliseconds
+  const threads = {}
+  let callNum = 0
+  return function(...args) {
+    const workerId = 'TroikaTextSDFGenerator_' + ((callNum++) % threadCount)
+    let thread = threads[workerId]
+    if (!thread) {
+      thread = threads[workerId] = {
+        workerModule: defineWorkerModule({
+          name: workerId,
+          workerId,
+          dependencies: [
+            CONFIG,
+            createGlyphSegmentsIndex,
+            createSDFGenerator
+          ],
+          init(config, createGlyphSegmentsIndex, createSDFGenerator) {
+            const {sdfExponent, sdfMargin} = config
+            return createSDFGenerator(createGlyphSegmentsIndex, { sdfExponent, sdfMargin })
+          },
+          getTransferables(result) {
+            return [result.textureData.buffer]
+          }
+        }),
+        requests: 0,
+        idleTimer: null
+      }
+    }
 
-const generateSDFInWorker = /*#__PURE__*/defineWorkerModule({
-  name: 'SDFGenerator',
-  dependencies: [
-    CONFIG,
-    createGlyphSegmentsIndex,
-    createSDFGenerator
-  ],
-  init(config, createGlyphSegmentsIndex, createSDFGenerator) {
-    const {sdfExponent, sdfMargin} = config
-    return createSDFGenerator(createGlyphSegmentsIndex, { sdfExponent, sdfMargin })
-  },
-  getTransferables(result) {
-    return [result.textureData.buffer]
+    thread.requests++
+    clearTimeout(thread.idleTimer)
+    return thread.workerModule(...args)
+      .then(result => {
+        if (--thread.requests === 0) {
+          thread.idleTimer = setTimeout(() => { terminateWorker(workerId) }, idleTimeout)
+        }
+        return result
+      })
   }
-})
+}()
 
 const typesetInWorker = /*#__PURE__*/defineWorkerModule({
   name: 'Typesetter',
