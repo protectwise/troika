@@ -7,6 +7,7 @@ let _workerModuleId = 0
 let _messageId = 0
 let _allowInitAsString = false
 const workers = Object.create(null)
+const registeredModules = Object.create(null) //workerId -> Set<unregisterFn>
 const openRequests = /*#__PURE__*/(() => {
   const obj = Object.create(null)
   obj._count = 0
@@ -66,6 +67,11 @@ export function defineWorkerModule(options) {
     // Register this module if needed
     if (!registrationThenable) {
       registrationThenable = callWorker(workerId,'registerModule', moduleFunc.workerModuleData)
+      const unregister = () => {
+        registrationThenable = null
+        registeredModules[workerId].delete(unregister)
+      }
+      ;(registeredModules[workerId] || (registeredModules[workerId] = new Set())).add(unregister)
     }
 
     // Invoke the module, returning a thenable
@@ -86,6 +92,26 @@ export function defineWorkerModule(options) {
     getTransferables: getTransferables && stringifyFunction(getTransferables)
   }
   return moduleFunc
+}
+
+/**
+ * Terminate an active Worker by a workerId that was passed to defineWorkerModule.
+ * This only terminates the Worker itself; the worker module will remain available
+ * and if you call it again its Worker will be respawned.
+ * @param {string} workerId
+ */
+export function terminateWorker(workerId) {
+  // Unregister all modules that were registered in that worker
+  if (registeredModules[workerId]) {
+    registeredModules[workerId].forEach(unregister => {
+      unregister()
+    })
+  }
+  // Terminate the Worker object
+  if (workers[workerId]) {
+    workers[workerId].terminate()
+    delete workers[workerId]
+  }
 }
 
 /**
