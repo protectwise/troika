@@ -8,11 +8,7 @@ let _messageId = 0
 let _allowInitAsString = false
 const workers = Object.create(null)
 const registeredModules = Object.create(null) //workerId -> Set<unregisterFn>
-const openRequests = /*#__PURE__*/(() => {
-  const obj = Object.create(null)
-  obj._count = 0
-  return obj
-})()
+const openRequests = Object.create(null)
 
 
 /**
@@ -153,7 +149,6 @@ function getWorker(workerId) {
         throw new Error('WorkerModule response with empty or unknown messageId')
       }
       delete openRequests[msgId]
-      openRequests._count--
       callback(response)
     }
   }
@@ -170,10 +165,6 @@ function callWorker(workerId, action, data) {
     } else {
       thenable.reject(new Error(`Error in worker ${action} call: ${response.error}`))
     }
-  }
-  openRequests._count++
-  if (openRequests._count > 1000) { //detect leaks
-    console.warn('Large number of open WorkerModule requests, some may not be returning')
   }
   getWorker(workerId).postMessage({
     messageId,
