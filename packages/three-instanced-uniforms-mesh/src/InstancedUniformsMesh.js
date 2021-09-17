@@ -40,16 +40,15 @@ export class InstancedUniformsMesh extends InstancedMesh {
   get material () {
     let derivedMaterial = this._derivedMaterial
     const baseMaterial = this._baseMaterial || this._defaultMaterial || (this._defaultMaterial = new MeshBasicMaterial())
-    const uniformNames = this._instancedUniformNames
-    if (!derivedMaterial || derivedMaterial.baseMaterial !== baseMaterial || derivedMaterial._instancedUniformNames !== uniformNames) {
-      derivedMaterial = this._derivedMaterial = createInstancedUniformsDerivedMaterial(baseMaterial, uniformNames)
-      derivedMaterial._instancedUniformNames = uniformNames
+    if (!derivedMaterial || derivedMaterial.baseMaterial !== baseMaterial) {
+      derivedMaterial = this._derivedMaterial = createInstancedUniformsDerivedMaterial(baseMaterial)
       // dispose the derived material when its base material is disposed:
       baseMaterial.addEventListener('dispose', function onDispose () {
         baseMaterial.removeEventListener('dispose', onDispose)
         derivedMaterial.dispose()
       })
     }
+    derivedMaterial.setUniformNames(this._instancedUniformNames)
     return derivedMaterial
   }
 

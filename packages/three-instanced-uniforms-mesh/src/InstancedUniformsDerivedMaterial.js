@@ -4,13 +4,12 @@ const precededByUniformRE = /\buniform\s+(int|float|vec[234])\s+$/
 const attrRefReplacer = (name, index, str) => (precededByUniformRE.test(str.substr(0, index)) ? name : `troika_attr_${name}`)
 const varyingRefReplacer = (name, index, str) => (precededByUniformRE.test(str.substr(0, index)) ? name : `troika_vary_${name}`)
 
-export function createInstancedUniformsDerivedMaterial (baseMaterial, uniformNames) {
+export function createInstancedUniformsDerivedMaterial (baseMaterial) {
+  let _uniformNames = []
+  let _uniformNamesKey = ''
+
   const derived = createDerivedMaterial(baseMaterial, {
     chained: true,
-
-    defines: {
-      TROIKA_INSTANCED_UNIFORMS: uniformNames.sort().join('|')
-    },
 
     customRewriter ({ vertexShader, fragmentShader }) {
       let vertexDeclarations = []
@@ -22,7 +21,7 @@ export function createInstancedUniformsDerivedMaterial (baseMaterial, uniformNam
       let fragmentUniforms = getShaderUniformTypes(fragmentShader)
 
       // Add attributes and varyings for, and rewrite references to, the instanced uniforms
-      uniformNames.forEach((name) => {
+      _uniformNames.forEach((name) => {
         let vertType = vertexUniforms[name]
         let fragType = fragmentUniforms[name]
         if (vertType || fragType) {
@@ -52,6 +51,26 @@ export function createInstancedUniformsDerivedMaterial (baseMaterial, uniformNam
       return { vertexShader, fragmentShader }
     }
   })
+
+  /**
+   * Update the set of uniform names that will be enabled for per-instance values. This
+   * can be changed dynamically after instantiation.
+   * @param {string[]} uniformNames
+   */
+  derived.setUniformNames = function(uniformNames) {
+    _uniformNames = uniformNames || []
+    const key = _uniformNames.sort().join('|')
+    if (key !== _uniformNamesKey) {
+      _uniformNamesKey = key
+      this.needsUpdate = true
+    }
+  }
+
+  // Custom program cache key that allows for changing instanced uniforms
+  const baseKey = derived.customProgramCacheKey()
+  derived.customProgramCacheKey = function() {
+    return baseKey + '|' + _uniformNamesKey
+  }
 
   derived.isInstancedUniformsMaterial = true
   return derived

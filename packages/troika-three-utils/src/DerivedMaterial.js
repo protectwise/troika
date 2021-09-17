@@ -113,7 +113,7 @@ export function createDerivedMaterial(baseMaterial, options) {
     baseMaterial.onBeforeCompile.call(this, shaderInfo)
 
     // Upgrade the shaders, caching the result by incoming source code
-    const cacheKey = optionsKey + '|||' + shaderInfo.vertexShader + '|||' + shaderInfo.fragmentShader
+    const cacheKey = this.customProgramCacheKey() + '|' + shaderInfo.vertexShader + '|' + shaderInfo.fragmentShader
     let upgradedShaders = SHADER_UPGRADE_CACHE[cacheKey]
     if (!upgradedShaders) {
       const upgraded = upgradeShaders(shaderInfo, options, optionsKey)
