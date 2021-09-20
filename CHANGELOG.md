@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.43.0](https://github.com/protectwise/troika/compare/v0.42.0...v0.43.0) (2021-09-20)
+
+
+### Bug Fixes
+
+* **InstancedUniformsMesh:** reuse same derived material instance when uniform names change ([bd7cea6](https://github.com/protectwise/troika/commit/bd7cea6116556f9fb4ba3e6710ed07f871739e93)), closes [#154](https://github.com/protectwise/troika/issues/154)
+* remove warnings about many open worker module requests ([164fb8f](https://github.com/protectwise/troika/commit/164fb8fe836b95fffe7ca94fcf96d536c7281f7e)), closes [#156](https://github.com/protectwise/troika/issues/156)
+
+
+### Features
+
+* **troika-three-text:** allow line wrapping after some common non-whitespace chars like hyphens ([1b20e34](https://github.com/protectwise/troika/commit/1b20e34e13fd6de7aa8257b8e50f0db671e4c964)), closes [#136](https://github.com/protectwise/troika/issues/136)
+* **troika-worker-utils:** add a terminateWorker function ([33b8455](https://github.com/protectwise/troika/commit/33b8455c3794e13a342a7910d6c2c4beddd295da))
+* don't transpile UMD build files, fixing usage with Three.js r128 ([e380b0d](https://github.com/protectwise/troika/commit/e380b0d582c1edd2a024a8d3201ecf498579d2b7)), closes [#130](https://github.com/protectwise/troika/issues/130)
+
+
+### Performance Improvements
+
+* **troika-three-text:** parallelize SDF generation with multiple worker threads ([c2bf886](https://github.com/protectwise/troika/commit/c2bf886f280ca1c587bc3ae80a41d30ce8cb6dce))
+
+
+
+
+
+
 # [0.42.0](https://github.com/protectwise/troika/compare/v0.41.2...v0.42.0) (2021-05-17)
 
 

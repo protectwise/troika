@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.43.0](https://github.com/protectwise/troika/compare/v0.42.0...v0.43.0) (2021-09-20)
+
+
+### Bug Fixes
+
+* **InstancedUniformsMesh:** reuse same derived material instance when uniform names change ([bd7cea6](https://github.com/protectwise/troika/commit/bd7cea6116556f9fb4ba3e6710ed07f871739e93)), closes [#154](https://github.com/protectwise/troika/issues/154)
+
+
+
+
+
+
 # [0.42.0](https://github.com/protectwise/troika/compare/v0.41.2...v0.42.0) (2021-05-17)
 
 

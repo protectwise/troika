@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.43.0](https://github.com/protectwise/troika/compare/v0.42.0...v0.43.0) (2021-09-20)
+
+
+### Features
+
+* **troika-three-text:** allow line wrapping after some common non-whitespace chars like hyphens ([1b20e34](https://github.com/protectwise/troika/commit/1b20e34e13fd6de7aa8257b8e50f0db671e4c964)), closes [#136](https://github.com/protectwise/troika/issues/136)
+
+
+### Performance Improvements
+
+* **troika-three-text:** parallelize SDF generation with multiple worker threads ([c2bf886](https://github.com/protectwise/troika/commit/c2bf886f280ca1c587bc3ae80a41d30ce8cb6dce))
+
+
+
+
+
+
 # [0.42.0](https://github.com/protectwise/troika/compare/v0.41.2...v0.42.0) (2021-05-17)
 
 

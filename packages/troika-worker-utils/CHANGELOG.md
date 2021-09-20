@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.43.0](https://github.com/protectwise/troika/compare/v0.42.0...v0.43.0) (2021-09-20)
+
+
+### Bug Fixes
+
+* remove warnings about many open worker module requests ([164fb8f](https://github.com/protectwise/troika/commit/164fb8fe836b95fffe7ca94fcf96d536c7281f7e)), closes [#156](https://github.com/protectwise/troika/issues/156)
+
+
+### Features
+
+* **troika-worker-utils:** add a terminateWorker function ([33b8455](https://github.com/protectwise/troika/commit/33b8455c3794e13a342a7910d6c2c4beddd295da))
+
+
+
+
+
+
 # [0.42.0](https://github.com/protectwise/troika/compare/v0.41.2...v0.42.0) (2021-05-17)
 
 **Note:** Version bump only for package troika-worker-utils
