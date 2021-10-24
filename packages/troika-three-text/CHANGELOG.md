@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.43.1-alpha.0](https://github.com/protectwise/troika/compare/v0.43.0...v0.43.1-alpha.0) (2021-10-24)
+
+
+### Bug Fixes
+
+* **troika-three-text:** fix font parsing failures in iOS Safari ([a542b42](https://github.com/protectwise/troika/commit/a542b42f0cc198fe2e9d46e4840fb8984279034b))
+
+
+
+
+
 # [0.43.0](https://github.com/protectwise/troika/compare/v0.42.0...v0.43.0) (2021-09-20)
 
 
