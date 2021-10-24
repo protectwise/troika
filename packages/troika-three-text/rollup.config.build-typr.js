@@ -36,7 +36,6 @@ const [banner, footer] = OUTPUT_TEMPLATE.split('$$CONTENT$$')
 
 
 export default {
-  // Starting from the src modules rather than dist as that gives us more fine-grained control
   input: LERNA_ROOT_PATH + '/node_modules/@fredli74/typr/dist/Typr.js',
   plugins: [
     nodeResolve(),
