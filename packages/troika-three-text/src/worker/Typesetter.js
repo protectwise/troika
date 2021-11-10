@@ -511,6 +511,14 @@ export function createTypesetter(fontParser, bidi, config) {
           // Increment y offset for next line
           lineYOffset -= lineHeight
         })
+
+        // Fill in remaining caret positions in case the final character was a ligature
+        if (caretPositions) {
+          const ligCount = text.length - prevCharIndex;
+          if (ligCount > 1) {
+            fillLigatureCaretPositions(caretPositions, prevCharIndex, ligCount)
+          }
+        }
       }
 
       // Timing stats
