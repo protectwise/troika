@@ -1,6 +1,6 @@
 # InstancedUniformsMesh
 
-This package provides a `InstancedUniformsMesh` class which extends Three.js's [`InstancedMesh`](https://threejs.org/docs/#api/en/objects/InstancedMesh) to allow its material's shader uniforms to be set individually per instance. It behaves just like `InstancedMesh` but exposes one new method:
+This package provides a `InstancedUniformsMesh` class which extends Three.js's [`InstancedMesh`](https://threejs.org/docs/#api/en/objects/InstancedMesh) to allow its material's shader uniforms to be set individually per instance. It behaves just like `InstancedMesh` but exposes a new method:
 
 ```js
 mesh.setUniformAt(uniformName, instanceIndex, value)
@@ -43,6 +43,14 @@ The type of the `value` argument should match the type of the uniform defined in
 | vec3                   | `THREE.Vector3` or `THREE.Color` |
 | vec4                   | `THREE.Vector4`                  |
 
+
+### Resetting to defaults
+
+If you have set instance-specific values for a given uniform but you want to revert all those to the single original uniform value, you can call:
+
+```js
+mesh.unsetUniform(uniformName)
+```
 
 ### Examples
 

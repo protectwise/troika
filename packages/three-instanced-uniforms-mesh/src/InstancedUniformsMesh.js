@@ -96,6 +96,16 @@ export class InstancedUniformsMesh extends InstancedMesh {
     setAttributeValue(attr, index, value)
     attr.needsUpdate = true
   }
+
+  /**
+   * Unset all instance-specific values for a given uniform, reverting back to the original
+   * uniform value for all.
+   * @param {string} name
+   */
+  unsetUniform (name) {
+    this.geometry.deleteAttribute(`troika_attr_${name}`)
+    this._instancedUniformNames = this._instancedUniformNames.filter(n => n !== name)
+  }
 }
 
 function setAttributeValue (attr, index, value) {
