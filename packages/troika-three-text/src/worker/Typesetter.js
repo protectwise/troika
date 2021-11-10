@@ -432,14 +432,13 @@ export function createTypesetter(fontParser, bidi, config) {
                 caretPositions[charIndex * 3 + 1] = rtl ? caretLeft : caretRight //end edge x
                 caretPositions[charIndex * 3 + 2] = lineYOffset + caretBottomOffset + anchorYOffset //common bottom y
 
-                // If we skipped any chars from the previous glyph (due to ligature subs), copy the
-                // previous glyph's info to those missing char indices. In the future we may try to
-                // use the font's LigatureCaretList table to get interior caret positions.
-                while (charIndex - prevCharIndex > 1) {
-                  caretPositions[(prevCharIndex + 1) * 3] = caretPositions[prevCharIndex * 3]
-                  caretPositions[(prevCharIndex + 1) * 3 + 1] = caretPositions[prevCharIndex * 3 + 1]
-                  caretPositions[(prevCharIndex + 1) * 3 + 2] = caretPositions[prevCharIndex * 3 + 2]
-                  prevCharIndex++
+                // If we skipped any chars from the previous glyph (due to ligature subs), fill in caret
+                // positions for those missing char indices; currently this uses a best-guess by dividing
+                // the ligature's width evenly. In the future we may try to use the font's LigatureCaretList
+                // table to get better interior caret positions.
+                const ligCount = charIndex - prevCharIndex
+                if (ligCount > 1) {
+                  fillLigatureCaretPositions(caretPositions, prevCharIndex, ligCount)
                 }
                 prevCharIndex = charIndex
               }
@@ -521,7 +520,7 @@ export function createTypesetter(fontParser, bidi, config) {
         glyphIds, //font indices for each glyph
         glyphPositions, //x,y of each glyph's origin in layout
         glyphData, //dict holding data about each glyph appearing in the text
-        caretPositions, //x,y of bottom of cursor position before each char, plus one after last char
+        caretPositions, //startX,endX,bottomY caret positions for each char
         caretHeight, //height of cursor from bottom to top
         glyphColors, //color for each glyph, if color ranges supplied
         chunkedBounds, //total rects per (n=chunkedBoundsSize) consecutive glyphs
@@ -564,6 +563,19 @@ export function createTypesetter(fontParser, bidi, config) {
     let match = str.match(/^([\d.]+)%$/)
     let pct = match ? parseFloat(match[1]) : NaN
     return isNaN(pct) ? 0 : pct / 100
+  }
+
+  function fillLigatureCaretPositions(caretPositions, ligStartIndex, ligCount) {
+    const ligStartX = caretPositions[ligStartIndex * 3]
+    const ligEndX = caretPositions[ligStartIndex * 3 + 1]
+    const ligY = caretPositions[ligStartIndex * 3 + 2]
+    const guessedAdvanceX = (ligEndX - ligStartX) / ligCount
+    for (let i = 0; i < ligCount; i++) {
+      const startIndex = (ligStartIndex + i) * 3
+      caretPositions[startIndex] = ligStartX + guessedAdvanceX * i
+      caretPositions[startIndex + 1] = ligStartX + guessedAdvanceX * (i + 1)
+      caretPositions[startIndex + 2] = ligY
+    }
   }
 
   function now() {

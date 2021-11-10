@@ -79,8 +79,8 @@ const atlases = Object.create(null)
  * @property {Float32Array} glyphBounds - List of [minX, minY, maxX, maxY] quad bounds for each glyph.
  * @property {Float32Array} glyphAtlasIndices - List holding each glyph's index in the SDF atlas.
  * @property {Uint8Array} [glyphColors] - List holding each glyph's [r, g, b] color, if `colorRanges` was supplied.
- * @property {Float32Array} [caretPositions] - A list of caret positions for all glyphs; this is
- *           the bottom [x,y] of the cursor position before each char, plus one after the last char.
+ * @property {Float32Array} [caretPositions] - A list of caret positions for all characters in the string; each is
+ *           three elements: the starting X, the ending X, and the bottom Y for the caret.
  * @property {number} [caretHeight] - An appropriate height for all selection carets.
  * @property {number} ascender - The font's ascender metric.
  * @property {number} descender - The font's descender metric.
