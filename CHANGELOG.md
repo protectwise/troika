@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.44.0](https://github.com/protectwise/troika/compare/v0.43.1-alpha.0...v0.44.0) (2021-11-14)
+
+
+### Bug Fixes
+
+* **troika-three-text:** fill in missing caret positions when the final glyph is a ligature - [#165](https://github.com/protectwise/troika/issues/165) ([ad2eda6](https://github.com/protectwise/troika/commit/ad2eda657a65fc01511daf52c1cfb7ccac2a03b0))
+
+
+
+
+
 ## [0.43.1-alpha.0](https://github.com/protectwise/troika/compare/v0.43.0...v0.43.1-alpha.0) (2021-10-24)
 
 
