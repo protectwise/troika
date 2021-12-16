@@ -75,7 +75,7 @@ export class InstancedUniformsMesh extends InstancedMesh {
    * Set the value of a shader uniform for a single instance.
    * @param {string} name - the name of the shader uniform
    * @param {number} index - the index of the instance to set the value for
-   * @param {number|Vector2|Vector3|Vector4|Color|Array} value - the uniform value for this instance
+   * @param {number|Vector2|Vector3|Vector4|Color|Array|Matrix3|Matrix4|Quaternion} value - the uniform value for this instance
    */
   setUniformAt (name, index, value) {
     const attrs = this.geometry.attributes
@@ -122,6 +122,10 @@ function setAttributeValue (attr, index, value) {
     }
   } else if (size === 4) {
     attr.setXYZW(index, value.x, value.y, value.z, value.w)
+  } else if (value?.toArray) {
+    value.toArray(attr, index)
+  } else {
+    attr.set(index, value)
   }
 }
 
@@ -143,7 +147,8 @@ function getItemSizeForValue (value) {
     : typeof value === 'number' ? 1
     : value.isVector2 ? 2
     : value.isVector3 || value.isColor ? 3
-    : value.isVector4 ? 4
+    : value.isVector4 || value.isQuaternion ? 4
+    : value?.elements ? value.elements.length
     : Array.isArray(value) ? value.length
     : 0
 }
