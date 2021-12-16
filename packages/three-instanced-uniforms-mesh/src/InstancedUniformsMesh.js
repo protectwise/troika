@@ -123,9 +123,9 @@ function setAttributeValue (attr, index, value) {
   } else if (size === 4) {
     attr.setXYZW(index, value.x, value.y, value.z, value.w)
   } else if (value?.toArray) {
-    value.toArray(attr, index)
+    value.toArray(attr, index * size)
   } else {
-    attr.set(index, value)
+    attr.set(value, index * size)
   }
 }
 
