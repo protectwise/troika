@@ -47,9 +47,9 @@ function now() {
  * @param {Number} config.textureWidth - The width of the SDF texture; must be a power of 2. Defaults to
  *                 2048 which is a safe maximum texture dimension according to the stats at
  *                 https://webglstats.com/webgl/parameter/MAX_TEXTURE_SIZE and should allow for a
- *                 reasonably large number of glyphs (default glyph size of 64 and safe texture size of
- *                 2048^2 allows for 1024 glyphs.) This can be increased if you need to increase the
- *                 glyph size and/or have an extraordinary number of glyphs.
+ *                 reasonably large number of glyphs (default glyph size of 64^2 and safe texture size of
+ *                 2048^2, times 4 channels, allows for 4096 glyphs.) This can be increased if you need to
+ *                 increase the glyph size and/or have an extraordinary number of glyphs.
  */
 function configureTextBuilder(config) {
   if (hasRequested) {
@@ -60,11 +60,16 @@ function configureTextBuilder(config) {
 }
 
 /**
- * Repository for all font SDF atlas textures
+ * Repository for all font SDF atlas textures and their glyph mappings. There is a separate atlas for
+ * each sdfGlyphSize. Each atlas has a single Texture that holds all glyphs for all fonts.
  *
  *   {
- *     [font]: {
- *       sdfTexture: DataTexture
+ *     [sdfGlyphSize]: {
+ *       glyphCount: number,
+ *       sdfTexture: Texture,
+ *       fonts: Map<fontURL, {
+ *         glyphs: Map<glyphID, {path, atlasIndex, sdfViewBox}>
+ *       }>
  *     }
  *   }
  */
@@ -142,15 +147,13 @@ function getTextRenderInfo(args, callback) {
 
   Object.freeze(args)
 
-  // Init the atlas for this font if needed
+  // Init the atlas if needed
   const {textureWidth, sdfExponent} = CONFIG
   const {sdfGlyphSize} = args
-  let atlasKey = `${args.font}@${sdfGlyphSize}`
-  let atlas = atlases[atlasKey]
+  let atlas = atlases[sdfGlyphSize]
   if (!atlas) {
-    atlas = atlases[atlasKey] = {
-      count: 0,
-      glyphs: new Map(), //glyphId->{}
+    atlas = atlases[sdfGlyphSize] = {
+      glyphCount: 0,
       sdfTexture: new DataTexture(
         new Uint8Array(sdfGlyphSize * textureWidth * 4),
         textureWidth,
@@ -162,9 +165,14 @@ function getTextRenderInfo(args, callback) {
         undefined,
         LinearFilter,
         LinearFilter
-      )
+      ),
+      glyphsByFont: new Map()
     }
-    atlas.sdfTexture.font = args.font
+  }
+
+  let fontGlyphs = atlas.glyphsByFont.get(args.font)
+  if (!fontGlyphs) {
+    atlas.glyphsByFont.set(args.font, fontGlyphs = new Map())
   }
 
   // Issue request to the typesetting engine in the worker
@@ -177,7 +185,7 @@ function getTextRenderInfo(args, callback) {
     let positionsIdx = 0
     const quadsStart = now()
     glyphIds.forEach((glyphId, i) => {
-      let glyphInfo = atlas.glyphs.get(glyphId)
+      let glyphInfo = fontGlyphs.get(glyphId)
 
       // If this is a glyphId not seen before, add it to the atlas
       if (!glyphInfo) {
@@ -189,14 +197,14 @@ function getTextRenderInfo(args, callback) {
         const fontUnitsMargin = Math.max(pathBounds[2] - pathBounds[0], pathBounds[3] - pathBounds[1])
           / sdfGlyphSize * (CONFIG.sdfMargin * sdfGlyphSize + 0.5)
 
-        const atlasIndex = atlas.count++
+        const atlasIndex = atlas.glyphCount++
         const sdfViewBox = [
           pathBounds[0] - fontUnitsMargin,
           pathBounds[1] - fontUnitsMargin,
           pathBounds[2] + fontUnitsMargin,
           pathBounds[3] + fontUnitsMargin,
         ]
-        atlas.glyphs.set(glyphId, (glyphInfo = { path, atlasIndex, sdfViewBox }))
+        fontGlyphs.set(glyphId, (glyphInfo = { path, atlasIndex, sdfViewBox }))
 
         // Collect those that need SDF generation
         neededSDFs.push(glyphInfo)
@@ -230,7 +238,7 @@ function getTextRenderInfo(args, callback) {
     })).then(sdfResults => {
       // If we have new SDFs, copy them into the atlas texture at the specified indices
       if (sdfResults.length) {
-        sdfResults.forEach(({ atlasIndex, textureData, timing }) => {
+        sdfResults.forEach(({ atlasIndex, textureData }) => {
           const texImg = atlas.sdfTexture.image
 
           // Grow the texture by power of 2 if needed
