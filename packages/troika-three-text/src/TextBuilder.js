@@ -1,8 +1,8 @@
-import { Color, DataTexture, LinearFilter, RGBAFormat } from 'three'
-import { defineWorkerModule, terminateWorker, ThenableWorkerModule, Thenable } from 'troika-worker-utils'
-import { createSDFGenerator } from './worker/SDFGenerator.js'
+import { Color, CanvasTexture, DataTexture, LinearFilter } from 'three'
+import { defineWorkerModule, ThenableWorkerModule, Thenable } from 'troika-worker-utils'
 import { createTypesetter } from './worker/Typesetter.js'
-import { createGlyphSegmentsIndex } from './worker/GlyphSegmentsIndex.js'
+import { generateSDF, warmUpSDFCanvas, resizeWebGLCanvasWithoutClearing } from './worker/SDFGenerator.js'
+
 import bidiFactory from 'bidi-js'
 
 // Choose parser impl:
@@ -150,16 +150,16 @@ function getTextRenderInfo(args, callback) {
   // Init the atlas if needed
   const {textureWidth, sdfExponent} = CONFIG
   const {sdfGlyphSize} = args
+  const glyphsPerRow = (textureWidth / sdfGlyphSize * 4)
   let atlas = atlases[sdfGlyphSize]
   if (!atlas) {
+    const canvas = document.createElement('canvas')
+    canvas.width = textureWidth
+    canvas.height = sdfGlyphSize * 256 / glyphsPerRow // start tall enough to fit 256 glyphs
     atlas = atlases[sdfGlyphSize] = {
       glyphCount: 0,
-      sdfTexture: new DataTexture(
-        new Uint8Array(sdfGlyphSize * textureWidth * 4),
-        textureWidth,
-        sdfGlyphSize,
-        RGBAFormat,
-        undefined,
+      sdfTexture: new CanvasTexture(
+        canvas,
         undefined,
         undefined,
         undefined,
@@ -170,6 +170,7 @@ function getTextRenderInfo(args, callback) {
     }
   }
 
+  const {sdfTexture} = atlas
   let fontGlyphs = atlas.glyphsByFont.get(args.font)
   if (!fontGlyphs) {
     atlas.glyphsByFont.set(args.font, fontGlyphs = new Map())
@@ -228,52 +229,37 @@ function getTextRenderInfo(args, callback) {
     const sdfStart = now()
     timings.sdf = {}
 
+    // Grow the texture height by power of 2 if needed
+    const currentHeight = sdfTexture.image.height
+    const neededRows = Math.ceil(atlas.glyphCount / glyphsPerRow)
+    const neededHeight = Math.pow(2, Math.ceil(Math.log2(neededRows * sdfGlyphSize)))
+    if (neededHeight > currentHeight) {
+      // Since resizing the canvas clears its render buffer, it needs special handling to copy the old contents over
+      console.info(`Increasing SDF texture size ${currentHeight}->${neededHeight}`)
+      resizeWebGLCanvasWithoutClearing(sdfTexture.image, textureWidth, neededHeight)
+    }
+
     Thenable.all(neededSDFs.map(({path, atlasIndex, sdfViewBox}) => {
       const maxDist = Math.max(sdfViewBox[2] - sdfViewBox[0], sdfViewBox[3] - sdfViewBox[1])
-      return generateSDFInWorker(sdfGlyphSize, sdfGlyphSize, path, sdfViewBox, maxDist, CONFIG.sdfExponent)
-        .then(({textureData, timing}) => {
+      const squareIndex = Math.floor(atlasIndex / 4)
+      const x = squareIndex % (textureWidth / sdfGlyphSize) * sdfGlyphSize
+      const y = Math.floor(squareIndex / (textureWidth / sdfGlyphSize)) * sdfGlyphSize
+      const channel = atlasIndex % 4
+      return generateSDF(sdfGlyphSize, sdfGlyphSize, path, sdfViewBox, maxDist, CONFIG.sdfExponent, sdfTexture.image, x, y, channel)
+        .then(({timing}) => {
           timings.sdf[atlasIndex] = timing
-          return { atlasIndex, textureData, timing }
         })
-    })).then(sdfResults => {
-      // If we have new SDFs, copy them into the atlas texture at the specified indices
-      if (sdfResults.length) {
-        sdfResults.forEach(({ atlasIndex, textureData }) => {
-          const texImg = atlas.sdfTexture.image
-
-          // Grow the texture by power of 2 if needed
-          while (texImg.data.length < (atlasIndex + 1) * sdfGlyphSize * sdfGlyphSize) {
-            const biggerArray = new Uint8Array(texImg.data.length * 2)
-            biggerArray.set(texImg.data)
-            texImg.data = biggerArray
-            texImg.height *= 2
-          }
-
-          // Insert the new glyph's data into the full texture image at the correct offsets
-          // Glyphs are packed sequentially into the R,G,B,A channels of a square, advancing
-          // to the next square every 4 glyphs.
-          const squareIndex = Math.floor(atlasIndex / 4)
-          const cols = texImg.width / sdfGlyphSize
-          const baseStartIndex = Math.floor(squareIndex / cols) * texImg.width * sdfGlyphSize * 4 //full rows
-            + (squareIndex % cols) * sdfGlyphSize * 4 //partial row
-            + (atlasIndex % 4) //color channel
-          for (let y = 0; y < sdfGlyphSize; y++) {
-            const srcStartIndex = y * sdfGlyphSize
-            const rowStartIndex = baseStartIndex + (y * texImg.width * 4)
-            for (let x = 0; x < sdfGlyphSize; x++) {
-              texImg.data[rowStartIndex + x * 4] = textureData[srcStartIndex + x]
-            }
-          }
-        })
-        atlas.sdfTexture.needsUpdate = true
-      }
+    })).then(() => {
       timings.sdfTotal = now() - sdfStart
       timings.total = now() - totalStart
+      if (neededSDFs.length) {
+        sdfTexture.needsUpdate = true
+      }
 
       // Invoke callback with the text layout arrays and updated texture
       callback(Object.freeze({
         parameters: args,
-        sdfTexture: atlas.sdfTexture,
+        sdfTexture,
         sdfGlyphSize,
         sdfExponent,
         glyphBounds,
@@ -301,6 +287,11 @@ function getTextRenderInfo(args, callback) {
       }))
     })
   })
+
+  // While the typesetting request is being handled, go ahead and make sure the atlas canvas context is
+  // "warmed up"; the first request will be the longest due to shader program compilation so this gets
+  // a head start on that process before SDFs actually start getting processed.
+  Thenable.all([]).then(() => warmUpSDFCanvas(sdfTexture.image))
 }
 
 
@@ -361,53 +352,6 @@ const typesetterWorkerModule = /*#__PURE__*/defineWorkerModule({
   }
 })
 
-/**
- * SDF generator function wrapper that fans out requests to a number of worker
- * threads for parallelism
- */
-const generateSDFInWorker = /*#__PURE__*/function() {
-  const threadCount = 4 //how many workers to spawn
-  const idleTimeout = 2000 //workers will be terminated after being idle this many milliseconds
-  const threads = {}
-  let callNum = 0
-  return function(...args) {
-    const workerId = 'TroikaTextSDFGenerator_' + ((callNum++) % threadCount)
-    let thread = threads[workerId]
-    if (!thread) {
-      thread = threads[workerId] = {
-        workerModule: defineWorkerModule({
-          name: workerId,
-          workerId,
-          dependencies: [
-            CONFIG,
-            createGlyphSegmentsIndex,
-            createSDFGenerator
-          ],
-          init(config, createGlyphSegmentsIndex, createSDFGenerator) {
-            const {sdfExponent, sdfMargin} = config
-            return createSDFGenerator(createGlyphSegmentsIndex, { sdfExponent, sdfMargin })
-          },
-          getTransferables(result) {
-            return [result.textureData.buffer]
-          }
-        }),
-        requests: 0,
-        idleTimer: null
-      }
-    }
-
-    thread.requests++
-    clearTimeout(thread.idleTimer)
-    return thread.workerModule(...args)
-      .then(result => {
-        if (--thread.requests === 0) {
-          thread.idleTimer = setTimeout(() => { terminateWorker(workerId) }, idleTimeout)
-        }
-        return result
-      })
-  }
-}()
-
 const typesetInWorker = /*#__PURE__*/defineWorkerModule({
   name: 'Typesetter',
   dependencies: [
@@ -438,16 +382,9 @@ const typesetInWorker = /*#__PURE__*/defineWorkerModule({
 })
 
 function dumpSDFTextures() {
-  Object.keys(atlases).forEach(font => {
-    const atlas = atlases[font]
-    const canvas = document.createElement('canvas')
-    const {width, height, data} = atlas.sdfTexture.image
-    canvas.width = width
-    canvas.height = height
-    const imgData = new ImageData(new Uint8ClampedArray(data), width, height)
-    const ctx = canvas.getContext('2d')
-    ctx.putImageData(imgData, 0, 0)
-    console.log(font, atlas, canvas.toDataURL())
+  Object.keys(atlases).forEach(size => {
+    const canvas = atlases[size].sdfTexture.image
+    const {width, height} = canvas
     console.log("%c.", `
       background: url(${canvas.toDataURL()});
       background-size: ${width}px ${height}px;

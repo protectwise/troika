@@ -16,7 +16,8 @@
   "dependencies": {
     "bidi-js": "^1.0.2",
     "troika-three-utils": "^0.45.0",
-    "troika-worker-utils": "^0.45.0"
+    "troika-worker-utils": "^0.45.0",
+    "webgl-sdf-generator": "1.1.1"
   },
   "peerDependencies": {
     "three": ">=0.103.0"
