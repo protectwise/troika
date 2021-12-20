@@ -91,7 +91,7 @@ varying float vTroikaTextureChannel;
 varying vec2 vTroikaGlyphDimensions;
 
 float troikaSdfValueToSignedDistance(float alpha) {
-  // Inverse of encoding in SDFGenerator.js
+  // Inverse of exponential encoding in webgl-sdf-generator
   ${''/* TODO - there's some slight inaccuracy here when dealing with interpolated alpha values; those
     are linearly interpolated where the encoding is exponential. Look into improving this by rounding
     to nearest 2 whole texels, decoding those exponential values, and linearly interpolating the result.

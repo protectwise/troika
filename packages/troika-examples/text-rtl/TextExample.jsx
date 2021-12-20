@@ -21,6 +21,7 @@ const FONTS = {
   'Cairo': 'https://fonts.gstatic.com/s/cairo/v10/SLXGc1nY6HkvamIl.woff',
   'Lemonada': 'https://fonts.gstatic.com/s/lemonada/v12/0QI-MXFD9oygTWy_R-FFlwV-bgfR7QJGeut2mg.woff',
   'Mirza': 'https://fonts.gstatic.com/s/mirza/v10/co3ImWlikiN5Eure.woff',
+  'Noto Sans Arabic': 'https://fonts.gstatic.com/s/notosansarabic/v13/nwpxtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlhQ5l3sQWIHPqzCfyGyvuA.woff',
   //'Reem Kufi': 'https://fonts.gstatic.com/s/reemkufi/v10/2sDcZGJLip7W2J7v7wQDbA.woff',
   'Scheherazade': 'https://fonts.gstatic.com/s/scheherazade/v20/YA9Ur0yF4ETZN60keViq1kQgtA.woff',
   'Tinos (Hebrew)': 'https://fonts.gstatic.com/s/tinos/v16/buE4poGnedXvwgX_.woff',
