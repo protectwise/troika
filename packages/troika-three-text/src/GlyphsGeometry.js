@@ -1,10 +1,13 @@
 import {
+  Float32BufferAttribute,
+  BufferGeometry,
   PlaneBufferGeometry,
   InstancedBufferGeometry,
   InstancedBufferAttribute,
   Sphere,
   Box3,
-  Vector3
+  DoubleSide,
+  BackSide,
 } from 'three'
 
 const GlyphsGeometry = /*#__PURE__*/(() => {
@@ -13,11 +16,32 @@ const GlyphsGeometry = /*#__PURE__*/(() => {
   function getTemplateGeometry(detail) {
     let geom = templateGeometries[detail]
     if (!geom) {
-      geom = templateGeometries[detail] = new PlaneBufferGeometry(1, 1, detail, detail).translate(0.5, 0.5, 0)
+      // Geometry is two planes back-to-back, which will always be rendered FrontSide only but
+      // appear as DoubleSide by default. FrontSide/BackSide are emulated using drawRange.
+      // We do it this way to avoid the performance hit of two draw calls for DoubleSide materials
+      // introduced by Three.js in r130 - see https://github.com/mrdoob/three.js/pull/21967
+      const front = new PlaneBufferGeometry(1, 1, detail, detail)
+      const back = front.clone()
+      const frontAttrs = front.attributes
+      const backAttrs = back.attributes
+      const combined = new BufferGeometry()
+      const vertCount = frontAttrs.uv.count
+      for (let i = 0; i < vertCount; i++) {
+        backAttrs.position.array[i * 3] *= -1 // flip position x
+        backAttrs.normal.array[i * 3 + 2] *= -1 // flip normal z
+      }
+      ;['position', 'normal', 'uv'].forEach(name => {
+        combined.setAttribute(name, new Float32BufferAttribute(
+          [...frontAttrs[name].array, ...backAttrs[name].array],
+          frontAttrs[name].itemSize)
+        )
+      })
+      combined.setIndex([...front.index.array, ...back.index.array.map(n => n + vertCount)])
+      combined.translate(0.5, 0.5, 0)
+      geom = templateGeometries[detail] = combined
     }
     return geom
   }
-  const tempVec3 = new Vector3()
 
   const glyphBoundsAttrName = 'aTroikaGlyphBounds'
   const glyphIndexAttrName = 'aTroikaGlyphIndex'
@@ -78,6 +102,13 @@ const GlyphsGeometry = /*#__PURE__*/(() => {
 
     computeBoundingBox() {
       // No-op; we'll sync the boundingBox proactively when needed.
+    }
+
+    // Since our base geometry contains triangles for both front and back sides, we can emulate
+    // the "side" by restricting the draw range.
+    setSide(side) {
+      const verts = this.getIndex().count
+      this.setDrawRange(side === BackSide ? verts / 2 : 0, side === DoubleSide ? verts : verts / 2)
     }
 
     set detail(detail) {

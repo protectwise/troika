@@ -1,6 +1,7 @@
 import {
   Color,
   DoubleSide,
+  FrontSide,
   Matrix4,
   Mesh,
   MeshBasicMaterial,
@@ -462,6 +463,22 @@ const Text = /*#__PURE__*/(() => {
       // This may not always be a text material, e.g. if there's a scene.overrideMaterial present
       if (material.isTroikaTextMaterial) {
         this._prepareForRender(material)
+      }
+
+      // We need to force the material to FrontSide to avoid the double-draw-call performance hit
+      // introduced in Three.js r130: https://github.com/mrdoob/three.js/pull/21967 - The sidedness
+      // is instead applied via drawRange in the GlyphsGeometry.
+      material._hadOwnSide = material.hasOwnProperty('side')
+      this.geometry.setSide(material._actualSide = material.side)
+      material.side = FrontSide
+    }
+
+    onAfterRender(renderer, scene, camera, geometry, material, group) {
+      // Restore original material side
+      if (material._hadOwnSide) {
+        material.side = material._actualSide
+      } else {
+        delete material.side // back to inheriting from base material
       }
     }
 
