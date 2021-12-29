@@ -430,6 +430,9 @@ const typesetInWorker = /*#__PURE__*/defineWorkerModule({
     if (result.caretPositions) {
       transferables.push(result.caretPositions.buffer)
     }
+    if (result.glyphColors) {
+      transferables.push(result.glyphColors.buffer)
+    }
     return transferables
   }
 })
