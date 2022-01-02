@@ -1,6 +1,6 @@
 {
   "name": "three-instanced-uniforms-mesh",
-  "version": "0.44.0",
+  "version": "0.45.0",
   "description": "Extension to Three.js InstancedMesh supporting per-instance uniform values",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "repository": {
@@ -14,7 +14,7 @@
   "module": "dist/three-instanced-uniforms-mesh.esm.js",
   "module:src": "src/index.js",
   "dependencies": {
-    "troika-three-utils": "^0.44.0"
+    "troika-three-utils": "^0.45.0"
   },
   "peerDependencies": {
     "three": ">=0.103.0"

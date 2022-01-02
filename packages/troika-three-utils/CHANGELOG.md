@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.45.0](https://github.com/protectwise/troika/compare/v0.44.0...v0.45.0) (2022-01-02)
+
+
+### Bug Fixes
+
+* **createDerivedMaterial:** propagate the base material's customProgramCacheKey ([9c8c6b1](https://github.com/protectwise/troika/commit/9c8c6b1e472f4068a8c6b0f1a6f3e32c935f8077))
+
+
+
+
+
 # [0.44.0](https://github.com/protectwise/troika/compare/v0.43.1-alpha.0...v0.44.0) (2021-11-14)
 
 **Note:** Version bump only for package troika-three-utils

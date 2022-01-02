@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.45.0](https://github.com/protectwise/troika/compare/v0.44.0...v0.45.0) (2022-01-02)
+
+
+### Features
+
+* **troika-three-text:** SDFs for all fonts are now stored in the same texture ([7e871f7](https://github.com/protectwise/troika/commit/7e871f77c17dbbb68ca5c2240f569d4b102031f0))
+
+
+### Performance Improvements
+
+* **troika-three-text:** avoid extra draw call on double sided materials as of Three r130 ([6222ef3](https://github.com/protectwise/troika/commit/6222ef300ac364dcb0bb099a7469622e9287651e))
+* **troika-three-text:** make the glyphColors buffer transferable ([c8c92fa](https://github.com/protectwise/troika/commit/c8c92faa70a8ad0fa08cadf38f8e4d4d2e933c10))
+
+
+
+
+
 # [0.44.0](https://github.com/protectwise/troika/compare/v0.43.1-alpha.0...v0.44.0) (2021-11-14)
 
 
