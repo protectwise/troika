@@ -122,8 +122,8 @@ function setAttributeValue (attr, index, value) {
     }
   } else if (size === 4) {
     attr.setXYZW(index, value.x, value.y, value.z, value.w)
-  } else if (value?.toArray) {
-    value.toArray(attr, index * size)
+  } else if (value.toArray) {
+    value.toArray(attr.array, index * size)
   } else {
     attr.set(value, index * size)
   }
@@ -148,7 +148,7 @@ function getItemSizeForValue (value) {
     : value.isVector2 ? 2
     : value.isVector3 || value.isColor ? 3
     : value.isVector4 || value.isQuaternion ? 4
-    : value?.elements ? value.elements.length
+    : value.elements ? value.elements.length
     : Array.isArray(value) ? value.length
     : 0
 }

@@ -26,9 +26,9 @@ export function createInstancedUniformsDerivedMaterial (baseMaterial) {
         let fragType = fragmentUniforms[name]
         const type = vertType || fragType
         if (type) {
-          // remove existing deklarations
-          const findDeklaration = new RegExp(`\\s*(?:varying|attribute|uniform)\\s+${type}\\s+${name}\\s*;?`, 'g')
-          vertexShader = vertexShader.replaceAll(findDeklaration,"")
+          // remove existing declarations
+          const findDeclaration = new RegExp(`\\s*(?:varying|attribute|uniform)\\s+${type}\\s+${name}\\s*;?`, 'g')
+          vertexShader = vertexShader.replaceAll(findDeclaration,"")
 
           let finder = new RegExp(`\\b${name}\\b`, 'g')
           vertexDeclarations.push(`attribute ${type} troika_attr_${name};`)
