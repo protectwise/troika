@@ -36,7 +36,8 @@ export default {
     }),
     buble({
       target: {chrome: 50, safari: 10},
-      transforms: { forOf: false, asyncAwait: false }
+      transforms: { forOf: false, asyncAwait: false },
+      objectAssign: 'Object.assign'
     }),
     commonjs({
       extensions: [ '.js', '.jsx' ],  // Default: [ '.js' ]
