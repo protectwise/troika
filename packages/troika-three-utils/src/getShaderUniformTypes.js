@@ -5,7 +5,7 @@
  * @return {object} mapping of uniform names to their glsl type
  */
 export function getShaderUniformTypes(shader) {
-  let uniformRE = /\buniform\s+(int|float|vec[234])\s+([A-Za-z_][\w]*)/g
+  let uniformRE = /\buniform\s+(int|float|vec[234]|mat3|mat4)\s+([A-Za-z_][\w]*)/g
   let uniforms = Object.create(null)
   let match
   while ((match = uniformRE.exec(shader)) !== null) {
