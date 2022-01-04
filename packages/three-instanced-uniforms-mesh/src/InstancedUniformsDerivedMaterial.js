@@ -1,9 +1,5 @@
 import { createDerivedMaterial, getShaderUniformTypes, voidMainRegExp } from 'troika-three-utils'
 
-const precededByUniformRE = /\buniform\s+(int|float|vec[234])\s+$/
-const attrRefReplacer = (name, index, str) => (precededByUniformRE.test(str.substr(0, index)) ? name : `troika_attr_${name}`)
-const varyingRefReplacer = (name, index, str) => (precededByUniformRE.test(str.substr(0, index)) ? name : `troika_vary_${name}`)
-
 export function createInstancedUniformsDerivedMaterial (baseMaterial) {
   let _uniformNames = []
   let _uniformNamesKey = ''
@@ -26,21 +22,22 @@ export function createInstancedUniformsDerivedMaterial (baseMaterial) {
         let fragType = fragmentUniforms[name]
         const type = vertType || fragType
         if (type) {
-          // remove existing declarations
-          const findDeclaration = new RegExp(`\\s*(?:varying|attribute|uniform)\\s+${type}\\s+${name}\\s*;?`, 'g')
-          vertexShader = vertexShader.replaceAll(findDeclaration,"")
-
-          let finder = new RegExp(`\\b${name}\\b`, 'g')
-          vertexDeclarations.push(`attribute ${type} troika_attr_${name};`)
+          const declarationFinder = new RegExp(`\\buniform\\s+${type}\\s+${name}\\s*;`, 'g')
+          const referenceFinder = new RegExp(`\\b${name}\\b`, 'g')
+          const attrName = `troika_attr_${name}`
+          const varyingName = `troika_vary_${name}`
+          vertexDeclarations.push(`attribute ${type} ${attrName};`)
           if (vertType) {
-            vertexShader = vertexShader.replace(finder, attrRefReplacer)
+            vertexShader = vertexShader.replace(declarationFinder, '')
+            vertexShader = vertexShader.replace(referenceFinder, attrName)
           }
           if (fragType) {
-            fragmentShader = fragmentShader.replace(finder, varyingRefReplacer)
-            let varyingDecl = `varying ${fragType} troika_vary_${name};`
+            fragmentShader = fragmentShader.replace(declarationFinder, '')
+            fragmentShader = fragmentShader.replace(referenceFinder, varyingName)
+            let varyingDecl = `varying ${fragType} ${varyingName};`
             vertexDeclarations.push(varyingDecl)
             fragmentDeclarations.push(varyingDecl)
-            vertexAssignments.push(`troika_vary_${name} = troika_attr_${name};`)
+            vertexAssignments.push(`${varyingName} = ${attrName};`)
           }
         }
       })
