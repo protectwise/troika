@@ -36,14 +36,14 @@ While this is obviously useful for Three.js's built in materials, it _really_ sh
 
 The type of the `value` argument should match the type of the uniform defined in the material's shader:
 
-| For a uniform of type: | Pass a value of this type:      |
-|------------------------|---------------------------------|
-| float                  | Number                          |
-| vec2                   | `THREE.Vector2`                 |
-| vec3                   | `THREE.Vector3` or `THREE.Color` |
-| vec4                   | `THREE.Vector4`                 |
-| mat3                   | `THREE.Matrix3`                 |
-| mat4                   | `THREE.Matrix4`                 |
+| For a uniform of type:    | Pass a value of this type:       |
+|---------------------------|----------------------------------|
+| float                     | Number                           |
+| vec2                      | `THREE.Vector2`                  |
+| vec3                      | `THREE.Vector3` or `THREE.Color` |
+| vec4                      | `THREE.Vector4`                  |
+| mat3 (ThreeJS r132+ only) | `THREE.Matrix3`                  |
+| mat4 (ThreeJS r132+ only) | `THREE.Matrix4`                  |
 
 
 ### Resetting to defaults
