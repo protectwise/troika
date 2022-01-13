@@ -1,5 +1,5 @@
 import { Object3DFacade } from 'troika-3d'
-import { Text } from 'troika-three-text'
+import { Text, makeDOMAcessible, makeSelectable } from 'troika-three-text'
 import SelectionManagerFacade from './SelectionManagerFacade.js'
 
 // Properties that will simply be forwarded to the TextMesh:
@@ -19,6 +19,7 @@ const TEXT_MESH_PROPS = [
   'whiteSpace',
   'material',
   'color',
+  'selectionColor',
   'colorRanges',
   'fillOpacity',
   'outlineOpacity',
@@ -36,7 +37,8 @@ const TEXT_MESH_PROPS = [
   'orientation',
   'glyphGeometryDetail',
   'sdfGlyphSize',
-  'debugSDF'
+  'debugSDF',
+  'selectionMaterial'
 ]
 
 
@@ -93,18 +95,18 @@ class Text3DFacade extends Object3DFacade {
 
     super.afterUpdate()
 
-    if (this.text !== this._prevText) {
-      // TODO mirror to DOM... this._domEl.textContent = this.text
-      // Clear selection when text changes
-      this.selectionStart = this.selectionEnd = -1
-      this._prevText = this.text
+    if (this.accessible && !this.threeObject.isDOMAccessible) {
+      makeDOMAcessible(this.threeObject)
+    }
+    if (this.selectable && !this.threeObject.isSelectable) {
+      makeSelectable(this.threeObject)
     }
 
     this._updateSelection()
   }
 
   _updateSelection() {
-    const {selectable, selectionStart, selectionEnd} = this
+    const { selectable, selectionStart, selectionEnd } = this
     let selFacade = this._selectionFacade
     if (selectable !== this._selectable) {
       this._selectable = selectable
