@@ -245,13 +245,14 @@ function getTextRenderInfo(args, callback) {
       const x = squareIndex % (textureWidth / sdfGlyphSize) * sdfGlyphSize
       const y = Math.floor(squareIndex / (textureWidth / sdfGlyphSize)) * sdfGlyphSize
       const channel = atlasIndex % 4
-      return generateSDF(sdfGlyphSize, sdfGlyphSize, path, sdfViewBox, maxDist, CONFIG.sdfExponent, sdfTexture.image, x, y, channel)
+      return generateSDF(sdfGlyphSize, sdfGlyphSize, path, sdfViewBox, maxDist, CONFIG.sdfExponent, sdfTexture.image, x, y, channel, args.gpuAccelerateSDF)
         .then(({timing}) => {
           timings.sdf[atlasIndex] = timing
         })
     })).then(() => {
       timings.sdfTotal = now() - sdfStart
       timings.total = now() - totalStart
+      console.log(`SDF - ${timings.sdfTotal}, Total - ${timings.total - timings.fontLoad}`)
       if (neededSDFs.length) {
         sdfTexture.needsUpdate = true
       }

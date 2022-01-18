@@ -141,6 +141,7 @@ class TextExample extends React.Component {
       selectable: true,
       colorRanges: false,
       sdfGlyphSize: 6,
+      gpuAccelerateSDF: !/gpuAccelerateSDF=false/.test(location.href),
       debugSDF: false
     }
 

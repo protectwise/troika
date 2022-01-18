@@ -220,6 +220,7 @@ class TextExample extends React.Component {
               rotateX: 0,
               rotateZ: 0,
               sdfGlyphSize: Math.pow(2, state.sdfGlyphSize),
+              gpuAccelerateSDF: !/gpuAccelerateSDF=false/.test(location.href),
               onSyncComplete() {
                 console.log(this.textRenderInfo.timings)
               },

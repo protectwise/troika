@@ -36,6 +36,7 @@ const TEXT_MESH_PROPS = [
   'orientation',
   'glyphGeometryDetail',
   'sdfGlyphSize',
+  'gpuAccelerateSDF',
   'debugSDF'
 ]
 
@@ -60,6 +61,7 @@ class Text3DFacade extends Object3DFacade {
     this.selectionStart = this.selectionEnd = -1
     this.onSyncStart = null
     this.onSyncComplete = null
+    this.gpuAccelerateSDF = true
 
     mesh.addEventListener('syncstart', e => {
       this.notifyWorld('text3DSyncStart')
