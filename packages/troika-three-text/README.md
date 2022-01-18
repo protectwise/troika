@@ -164,6 +164,12 @@ The number of vertical/horizontal segments that make up each glyph's rectangular
 
 Default: `1`
 
+### `gpuAccelerateSDF`
+
+When `true`, the SDF generation process will be GPU-accelerated with WebGL when possible, making it much faster especially for complex glyphs, and falling back to a JavaScript version executed in web workers when support isn't available. It should automatically detect support, but it's still somewhat experimental, so you can set it to `false` to force it to use the JS version if you encounter issues with it.
+
+Default: `true`
+
 ### `letterSpacing`
 
 Sets a uniform adjustment to spacing between letters after kerning is applied, in local world units. Positive numbers increase spacing and negative numbers decrease it.

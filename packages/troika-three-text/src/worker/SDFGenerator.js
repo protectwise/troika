@@ -12,7 +12,12 @@ let warned
  * given location and channel. Utilizes the webgl-sdf-generator external package for GPU-accelerated SDF
  * generation when supported.
  */
-export function generateSDF(width, height, path, viewBox, distance, exponent, canvas, x, y, channel) {
+export function generateSDF(width, height, path, viewBox, distance, exponent, canvas, x, y, channel, useWebGL = true) {
+  // Allow opt-out
+  if (!useWebGL) {
+    return generateSDF_JS_Worker(width, height, path, viewBox, distance, exponent, canvas, x, y, channel)
+  }
+
   // Attempt GPU-accelerated generation first
   return generateSDF_GL(width, height, path, viewBox, distance, exponent, canvas, x, y, channel).then(
     null,

@@ -380,6 +380,16 @@ const Text = /*#__PURE__*/(() => {
        */
       this.sdfGlyphSize = null
 
+      /**
+       * @member {boolean} gpuAccelerateSDF
+       * When `true`, the SDF generation process will be GPU-accelerated with WebGL when possible,
+       * making it much faster especially for complex glyphs, and falling back to a JavaScript version
+       * executed in web workers when support isn't available. It should automatically detect support,
+       * but it's still somewhat experimental, so you can set it to `false` to force it to use the JS
+       * version if you encounter issues with it.
+       */
+      this.gpuAccelerateSDF = true
+
       this.debugSDF = false
     }
 
@@ -416,7 +426,8 @@ const Text = /*#__PURE__*/(() => {
             anchorY: this.anchorY,
             colorRanges: this.colorRanges,
             includeCaretPositions: true, //TODO parameterize
-            sdfGlyphSize: this.sdfGlyphSize
+            sdfGlyphSize: this.sdfGlyphSize,
+            gpuAccelerateSDF: this.gpuAccelerateSDF,
           }, textRenderInfo => {
             this._isSyncing = false
 
