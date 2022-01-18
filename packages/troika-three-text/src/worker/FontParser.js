@@ -1,5 +1,5 @@
 /**
- * An adapter that allows Typr.js to be used as if it were (a subset of) the OpenType.js API.
+ * A factory wrapper parsing a font file using Typr.
  * Also adds support for WOFF files (not WOFF2).
  */
 

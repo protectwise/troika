@@ -151,8 +151,7 @@ const Text = /*#__PURE__*/(() => {
 
       /**
        * @member {string} font
-       * URL of a custom font to be used. Font files can be any of the formats supported by
-       * OpenType (see https://github.com/opentypejs/opentype.js).
+       * URL of a custom font to be used. Font files can be in .ttf, .otf, or .woff (not .woff2) formats.
        * Defaults to the Roboto font loaded from Google Fonts.
        */
       this.font = null //will use default from TextBuilder

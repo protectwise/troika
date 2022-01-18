@@ -2,12 +2,8 @@ import { Color, CanvasTexture, DataTexture, LinearFilter } from 'three'
 import { defineWorkerModule, ThenableWorkerModule, Thenable } from 'troika-worker-utils'
 import { createTypesetter } from './worker/Typesetter.js'
 import { generateSDF, warmUpSDFCanvas, resizeWebGLCanvasWithoutClearing } from './worker/SDFGenerator.js'
-
 import bidiFactory from 'bidi-js'
-
-// Choose parser impl:
-import fontParser from './worker/FontParser_Typr.js'
-// import fontParser from './worker/FontParser_OpenType.js'
+import fontParser from './worker/FontParser.js'
 
 
 const CONFIG = {
