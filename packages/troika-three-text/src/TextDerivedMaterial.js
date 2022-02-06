@@ -179,10 +179,10 @@ float troikaGetEdgeAlpha(float distance, float distanceOffset, float aaDist) {
 // language=GLSL prefix="void main() {" suffix="}"
 const FRAGMENT_TRANSFORM = `
 float aaDist = troikaGetAADist();
-float distance = troikaGetFragDistValue();
+float fragDistance = troikaGetFragDistValue();
 float edgeAlpha = uTroikaSDFDebug ?
   troikaGlyphUvToSdfValue(vTroikaGlyphUV) :
-  troikaGetEdgeAlpha(distance, uTroikaDistanceOffset, max(aaDist, uTroikaBlurRadius));
+  troikaGetEdgeAlpha(fragDistance, uTroikaDistanceOffset, max(aaDist, uTroikaBlurRadius));
 
 #if !defined(IS_DEPTH_MATERIAL) && !defined(IS_DISTANCE_MATERIAL)
 vec4 fillRGBA = gl_FragColor;
@@ -192,7 +192,7 @@ if (fillRGBA.a == 0.0) fillRGBA.rgb = strokeRGBA.rgb;
 gl_FragColor = mix(fillRGBA, strokeRGBA, smoothstep(
   -uTroikaStrokeWidth - aaDist,
   -uTroikaStrokeWidth + aaDist,
-  distance
+  fragDistance
 ));
 gl_FragColor.a *= edgeAlpha;
 #endif
