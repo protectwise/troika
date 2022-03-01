@@ -41,7 +41,7 @@ export function createTypesetter(fontParser, bidi, config) {
   /**
    * Holds parsed font objects by url
    */
-  const fonts = Object.create(null)
+  const parsedFonts = Object.create(null)
 
   const INF = Infinity
 
@@ -101,7 +101,7 @@ export function createTypesetter(fontParser, bidi, config) {
    */
   function loadFont(fontUrl, callback) {
     if (!fontUrl) fontUrl = defaultFontURL
-    let font = fonts[fontUrl]
+    let font = parsedFonts[fontUrl]
     if (font) {
       // if currently loading font, add to callbacks, otherwise execute immediately
       if (font.pending) {
@@ -110,14 +110,104 @@ export function createTypesetter(fontParser, bidi, config) {
         callback(font)
       }
     } else {
-      fonts[fontUrl] = {pending: [callback]}
+      parsedFonts[fontUrl] = {pending: [callback]}
       doLoadFont(fontUrl, fontObj => {
-        let callbacks = fonts[fontUrl].pending
-        fonts[fontUrl] = fontObj
+        let callbacks = parsedFonts[fontUrl].pending
+        parsedFonts[fontUrl] = fontObj
         callbacks.forEach(cb => cb(fontObj))
       })
     }
   }
+
+  /**
+   * Inspect each character in a text string to determine which defined font will be used to render it,
+   * loading those fonts when necessary, then group them into consecutive runs of characters sharing a font.
+   * TODO: force whitespace characters to use the font of their preceding/surrounding characters?
+   */
+  function calculateFontRuns(text, fontDefs, onDone) {
+    fontDefs = fontDefs.slice().reverse() // switch order for easier iteration
+    const fontsToLoad = new Set()
+
+    // Array to store per-char font resolutions:
+    // - The first bit is a boolean for whether the font has been resolved (1) or not (0); when fully resolved
+    //   every char will have a 1 in this position.
+    // - Bits 2-8 store the index of the resolved font, or the one currently/most recently being evaluated. This
+    //   limits us to 127 possible fonts; if we ever have that many we probably want a better algorithm anyway.
+    const fontMap = new Uint8Array(text.length);
+    const knownMask = 0b10000000
+
+    function isCodeInRanges(code, ranges) {
+      // todo optimize search
+      for (let k = 0; k < ranges.length; k++) {
+        const [start, end = start] = ranges[k]
+        if (start <= code && code <= end) {
+          return true
+        }
+      }
+      return false
+    }
+
+    function tryResolveChars() {
+      for (let i = 0, len = text.length; i < len; i++) {
+        const code = text.codePointAt(i)
+        if ((fontMap[i] & knownMask) === 0) {
+          for (let j = fontMap[i]; j < fontDefs.length; j++) {
+            fontMap[i] = j
+            const {src, unicodeRange} = fontDefs[j]
+            // if the font explicitly declares ranges that don't match, skip it
+            if (unicodeRange && !isCodeInRanges(code, unicodeRange)) {
+              continue
+            }
+            // font is loaded - if the font actually covers this char, or is the final fallback,
+            // lock it in, otherwise move on to the next candidate font
+            const fontObj = parsedFonts[src]
+            if (fontObj) {
+              if (j === fontDefs.length - 1 || fontObj.supportsCodePoint(code)) {
+                fontMap[i] |= knownMask;
+                break
+              }
+              // else continue to next font
+            }
+            // not yet loaded - check unicode ranges to see if we should try loading it
+            else {
+              fontsToLoad.add(fontDefs[j].src)
+              break
+            }
+          }
+        }
+        if (code > 0xffff) {
+          fontMap[i + 1] = fontMap[i]
+          i++
+        }
+      }
+      // if we need to load more fonts to get a complete answer, wait for them and then retry
+      if (fontsToLoad.size) {
+        Promise.all(
+          [...fontsToLoad].map(src => new Promise(resolve => {
+            loadFont(src, resolve)
+          }))
+        ).then(tryResolveChars)
+        fontsToLoad.clear()
+      }
+      // all font mappings are known! collapse the full char mapping into runs of consecutive chars sharing a font
+      else {
+        let curRun, prevVal = null
+        const runs = []
+        for (let i = 0; i < fontMap.length; i++) {
+          if (fontMap[i] !== prevVal && (i === 0 || !/\s/.test(text.charAt(i)))) { // start of a new run
+            const fontSrc = fontDefs[fontMap[i] ^ knownMask].src
+            prevVal = fontMap[i]
+            runs.push(curRun = { start: i, end: i, fontObj: parsedFonts[fontSrc], fontSrc })
+          } else {
+            curRun.end = i
+          }
+        }
+        onDone(runs)
+      }
+    }
+    tryResolveChars()
+  }
+
 
 
   /**
@@ -164,9 +254,13 @@ export function createTypesetter(fontParser, bidi, config) {
     lineHeight = lineHeight || 'normal'
     textIndent = +textIndent
 
-    loadFont(font, fontObj => {
+    const fontDefs = typeof font === 'string' ? [{src: font}] : font
+
+    calculateFontRuns(text, fontDefs, runs => {
+      timings.fontLoad = now() - mainStart
       const hasMaxWidth = isFinite(maxWidth)
       let glyphIds = null
+      let glyphFontIndices = null
       let glyphPositions = null
       let glyphData = null
       let glyphColors = null
@@ -176,109 +270,160 @@ export function createTypesetter(fontParser, bidi, config) {
       let maxLineWidth = 0
       let renderableGlyphCount = 0
       let canWrap = whiteSpace !== 'nowrap'
-      const {ascender, descender, unitsPerEm, lineGap, capHeight, xHeight} = fontObj
-      timings.fontLoad = now() - mainStart
+      const metricsByFont = new Map() // fontObj -> metrics
       const typesetStart = now()
-
-      // Find conversion between native font units and fontSize units; this will already be done
-      // for the gx/gy values below but everything else we'll need to convert
-      const fontSizeMult = fontSize / unitsPerEm
-
-      // Determine appropriate value for 'normal' line height based on the font's actual metrics
-      // TODO this does not guarantee individual glyphs won't exceed the line height, e.g. Roboto; should we use yMin/Max instead?
-      if (lineHeight === 'normal') {
-        lineHeight = (ascender - descender + lineGap) / unitsPerEm
-      }
-
-      // Determine line height and leading adjustments
-      lineHeight = lineHeight * fontSize
-      const halfLeading = (lineHeight - (ascender - descender) * fontSizeMult) / 2
-      const topBaseline = -(ascender * fontSizeMult + halfLeading)
-      const caretHeight = Math.min(lineHeight, (ascender - descender) * fontSizeMult)
-      const caretBottomOffset = (ascender + descender) / 2 * fontSizeMult - caretHeight / 2
 
       // Distribute glyphs into lines based on wrapping
       let lineXOffset = textIndent
+      let prevRunEndX = 0
       let currentLine = new TextLine()
       const lines = [currentLine]
+      runs.forEach(run => {
+        const { fontObj, fontSrc } = run
+        const { ascender, descender, unitsPerEm, lineGap, capHeight, xHeight } = fontObj
 
-      fontObj.forEachGlyph(text, fontSize, letterSpacing, (glyphObj, glyphX, charIndex) => {
-        const char = text.charAt(charIndex)
-        const glyphWidth = glyphObj.advanceWidth * fontSizeMult
-        const curLineCount = currentLine.count
-        let nextLine
+        // Calculate metrics for each font used
+        let fontData = metricsByFont.get(fontObj)
+        if (!fontData) {
+          // Find conversion between native font units and fontSize units
+          const fontSizeMult = fontSize / unitsPerEm
 
-        // Calc isWhitespace and isEmpty once per glyphObj
-        if (!('isEmpty' in glyphObj)) {
-          glyphObj.isWhitespace = !!char && new RegExp(lineBreakingWhiteSpace).test(char)
-          glyphObj.canBreakAfter = !!char && BREAK_AFTER_CHARS.test(char)
-          glyphObj.isEmpty = glyphObj.xMin === glyphObj.xMax || glyphObj.yMin === glyphObj.yMax || DEFAULT_IGNORABLE_CHARS.test(char)
+          // Determine appropriate value for 'normal' line height based on the font's actual metrics
+          // This does not guarantee individual glyphs won't exceed the line height, e.g. Roboto; should we use yMin/Max instead?
+          const calcLineHeight = lineHeight === 'normal' ?
+            (ascender - descender + lineGap) * fontSizeMult : lineHeight * fontSize
+
+          // Determine line height and leading adjustments
+          const halfLeading = (calcLineHeight - (ascender - descender) * fontSizeMult) / 2
+          const caretHeight = Math.min(calcLineHeight, (ascender - descender) * fontSizeMult)
+          const caretTop = (ascender + descender) / 2 * fontSizeMult + caretHeight / 2
+          fontData = {
+            index: metricsByFont.size,
+            src: fontSrc,
+            fontObj,
+            fontSizeMult,
+            unitsPerEm,
+            ascender: ascender * fontSizeMult,
+            descender: descender * fontSizeMult,
+            capHeight: capHeight * fontSizeMult,
+            xHeight: xHeight * fontSizeMult,
+            lineHeight: calcLineHeight,
+            baseline: -halfLeading - ascender * fontSizeMult, // baseline offset from top of line height
+            // cap: -halfLeading - capHeight * fontSizeMult, // cap from top of line height
+            // ex: -halfLeading - xHeight * fontSizeMult, // ex from top of line height
+            caretTop: (ascender + descender) / 2 * fontSizeMult + caretHeight / 2,
+            caretBottom: caretTop - caretHeight
+          }
+          metricsByFont.set(fontObj, fontData)
         }
-        if (!glyphObj.isWhitespace && !glyphObj.isEmpty) {
-          renderableGlyphCount++
-        }
+        const { fontSizeMult } = fontData
 
-        // If a non-whitespace character overflows the max width, we need to soft-wrap
-        if (canWrap && hasMaxWidth && !glyphObj.isWhitespace && glyphX + glyphWidth + lineXOffset > maxWidth && curLineCount) {
-          // If it's the first char after a whitespace, start a new line
-          if (currentLine.glyphAt(curLineCount - 1).glyphObj.canBreakAfter) {
-            nextLine = new TextLine()
-            lineXOffset = -glyphX
-          } else {
-            // Back up looking for a whitespace character to wrap at
-            for (let i = curLineCount; i--;) {
-              // If we got the start of the line there's no soft break point; make hard break if overflowWrap='break-word'
-              if (i === 0 && overflowWrap === 'break-word') {
-                nextLine = new TextLine()
-                lineXOffset = -glyphX
-                break
-              }
-              // Found a soft break point; move all chars since it to a new line
-              else if (currentLine.glyphAt(i).glyphObj.canBreakAfter) {
-                nextLine = currentLine.splitAt(i + 1)
-                const adjustX = nextLine.glyphAt(0).x
-                lineXOffset -= adjustX
-                for (let j = nextLine.count; j--;) {
-                  nextLine.glyphAt(j).x -= adjustX
+        const runText = text.slice(run.start, run.end + 1)
+        let prevGlyphX, prevGlyphObj
+        fontObj.forEachGlyph(runText, fontSize, letterSpacing, (glyphObj, glyphX, charIndex) => {
+          glyphX += prevRunEndX
+          charIndex += run.start
+          prevGlyphX = glyphX
+          prevGlyphObj = glyphObj
+          const char = text.charAt(charIndex)
+          const glyphWidth = glyphObj.advanceWidth * fontSizeMult
+          const curLineCount = currentLine.count
+          let nextLine
+
+          // Calc isWhitespace and isEmpty once per glyphObj
+          if (!('isEmpty' in glyphObj)) {
+            glyphObj.isWhitespace = !!char && new RegExp(lineBreakingWhiteSpace).test(char)
+            glyphObj.canBreakAfter = !!char && BREAK_AFTER_CHARS.test(char)
+            glyphObj.isEmpty = glyphObj.xMin === glyphObj.xMax || glyphObj.yMin === glyphObj.yMax || DEFAULT_IGNORABLE_CHARS.test(char)
+          }
+          if (!glyphObj.isWhitespace && !glyphObj.isEmpty) {
+            renderableGlyphCount++
+          }
+
+          // If a non-whitespace character overflows the max width, we need to soft-wrap
+          if (canWrap && hasMaxWidth && !glyphObj.isWhitespace && glyphX + glyphWidth + lineXOffset > maxWidth && curLineCount) {
+            // If it's the first char after a whitespace, start a new line
+            if (currentLine.glyphAt(curLineCount - 1).glyphObj.canBreakAfter) {
+              nextLine = new TextLine()
+              lineXOffset = -glyphX
+            } else {
+              // Back up looking for a whitespace character to wrap at
+              for (let i = curLineCount; i--;) {
+                // If we got the start of the line there's no soft break point; make hard break if overflowWrap='break-word'
+                if (i === 0 && overflowWrap === 'break-word') {
+                  nextLine = new TextLine()
+                  lineXOffset = -glyphX
+                  break
                 }
-                break
+                // Found a soft break point; move all chars since it to a new line
+                else if (currentLine.glyphAt(i).glyphObj.canBreakAfter) {
+                  nextLine = currentLine.splitAt(i + 1)
+                  const adjustX = nextLine.glyphAt(0).x
+                  lineXOffset -= adjustX
+                  for (let j = nextLine.count; j--;) {
+                    nextLine.glyphAt(j).x -= adjustX
+                  }
+                  break
+                }
               }
             }
+            if (nextLine) {
+              currentLine.isSoftWrapped = true
+              currentLine = nextLine
+              lines.push(currentLine)
+              maxLineWidth = maxWidth //after soft wrapping use maxWidth as calculated width
+            }
           }
-          if (nextLine) {
-            currentLine.isSoftWrapped = true
-            currentLine = nextLine
+
+          let fly = currentLine.glyphAt(currentLine.count)
+          fly.glyphObj = glyphObj
+          fly.x = glyphX + lineXOffset
+          fly.width = glyphWidth
+          fly.charIndex = charIndex
+          fly.fontData = fontData
+
+          // Handle hard line breaks
+          if (char === '\n') {
+            currentLine = new TextLine()
             lines.push(currentLine)
-            maxLineWidth = maxWidth //after soft wrapping use maxWidth as calculated width
+            lineXOffset = -(glyphX + glyphWidth + (letterSpacing * fontSize)) + textIndent
           }
-        }
-
-        let fly = currentLine.glyphAt(currentLine.count)
-        fly.glyphObj = glyphObj
-        fly.x = glyphX + lineXOffset
-        fly.width = glyphWidth
-        fly.charIndex = charIndex
-
-        // Handle hard line breaks
-        if (char === '\n') {
-          currentLine = new TextLine()
-          lines.push(currentLine)
-          lineXOffset = -(glyphX + glyphWidth + (letterSpacing * fontSize)) + textIndent
-        }
+        })
+        // At the end of a run we must capture the x position as the starting point for the next run
+        prevRunEndX = prevGlyphX + prevGlyphObj.advanceWidth * fontSizeMult + letterSpacing * fontSize
       })
 
-      // Calculate width of each line (excluding trailing whitespace) and maximum block width
+      // Calculate width/height/baseline of each line (excluding trailing whitespace) and maximum block width
+      let totalHeight = 0
       lines.forEach(line => {
+        let isTrailingWhitespace = true;
         for (let i = line.count; i--;) {
-          let {glyphObj, x, width} = line.glyphAt(i)
-          if (!glyphObj.isWhitespace) {
-            line.width = x + width
+          const glyphInfo = line.glyphAt(i)
+          // omit trailing whitespace from width calculation
+          if (isTrailingWhitespace && !glyphInfo.glyphObj.isWhitespace) {
+            line.width = glyphInfo.x + glyphInfo.width
             if (line.width > maxLineWidth) {
               maxLineWidth = line.width
             }
-            return
+            isTrailingWhitespace = false
           }
+          // use the tallest line height, lowest baseline, and highest cap/ex
+          let {lineHeight, capHeight, xHeight, baseline} = glyphInfo.fontData
+          if (lineHeight > line.lineHeight) line.lineHeight = lineHeight
+          const baselineDiff = baseline - line.baseline
+          if (baselineDiff < 0) { //shift all metrics down
+            line.baseline += baselineDiff
+            line.cap += baselineDiff
+            line.ex += baselineDiff
+          }
+          // compare cap/ex based on new lowest baseline
+          line.cap = Math.max(line.cap, line.baseline + capHeight)
+          line.ex = Math.max(line.ex, line.baseline + xHeight)
         }
+        line.baseline -= totalHeight
+        line.cap -= totalHeight
+        line.ex -= totalHeight
+        totalHeight += line.lineHeight
       })
 
       // Find overall position adjustments for anchoring
@@ -302,15 +447,14 @@ export function createTypesetter(fontParser, bidi, config) {
           anchorYOffset = -anchorY
         }
         else if (typeof anchorY === 'string') {
-          let height = lines.length * lineHeight
           anchorYOffset = anchorY === 'top' ? 0 :
-            anchorY === 'top-baseline' ? -topBaseline :
-            anchorY === 'top-cap' ? -topBaseline - capHeight * fontSizeMult :
-            anchorY === 'top-ex' ? -topBaseline - xHeight * fontSizeMult :
-            anchorY === 'middle' ? height / 2 :
-            anchorY === 'bottom' ? height :
-            anchorY === 'bottom-baseline' ? height - halfLeading + descender * fontSizeMult :
-            parsePercent(anchorY) * height
+            anchorY === 'top-baseline' ? -lines[0].baseline :
+            anchorY === 'top-cap' ? -lines[0].cap :
+            anchorY === 'top-ex' ? -lines[0].ex :
+            anchorY === 'middle' ? totalHeight / 2 :
+            anchorY === 'bottom' ? totalHeight :
+            anchorY === 'bottom-baseline' ? lines[lines.length - 1].baseline :
+            parsePercent(anchorY) * totalHeight
         }
       }
 
@@ -321,13 +465,13 @@ export function createTypesetter(fontParser, bidi, config) {
         // Process each line, applying alignment offsets, adding each glyph to the atlas, and
         // collecting all renderable glyphs into a single collection.
         glyphIds = new Uint16Array(renderableGlyphCount)
+        glyphFontIndices = new Uint8Array(renderableGlyphCount)
         glyphPositions = new Float32Array(renderableGlyphCount * 2)
         glyphData = {}
         visibleBounds = [INF, INF, -INF, -INF]
         chunkedBounds = []
-        let lineYOffset = topBaseline
         if (includeCaretPositions) {
-          caretPositions = new Float32Array(text.length * 3)
+          caretPositions = new Float32Array(text.length * 4)
         }
         if (colorRanges) {
           glyphColors = new Uint8Array(renderableGlyphCount * 3)
@@ -413,7 +557,7 @@ export function createTypesetter(fontParser, bidi, config) {
             let glyphObj
             const setGlyphObj = g => glyphObj = g
             for (let i = 0; i < lineGlyphCount; i++) {
-              let glyphInfo = line.glyphAt(i)
+              const glyphInfo = line.glyphAt(i)
               glyphObj = glyphInfo.glyphObj
               const glyphId = glyphObj.index
 
@@ -422,18 +566,19 @@ export function createTypesetter(fontParser, bidi, config) {
               if (rtl) {
                 const mirrored = bidi.getMirroredCharacter(text[glyphInfo.charIndex])
                 if (mirrored) {
-                  fontObj.forEachGlyph(mirrored, 0, 0, setGlyphObj)
+                  glyphInfo.fontData.fontObj.forEachGlyph(mirrored, 0, 0, setGlyphObj)
                 }
               }
 
               // Add caret positions
               if (includeCaretPositions) {
-                const {charIndex} = glyphInfo
+                const {charIndex, fontData} = glyphInfo
                 const caretLeft = glyphInfo.x + anchorXOffset
                 const caretRight = glyphInfo.x + glyphInfo.width + anchorXOffset
-                caretPositions[charIndex * 3] = rtl ? caretRight : caretLeft //start edge x
-                caretPositions[charIndex * 3 + 1] = rtl ? caretLeft : caretRight //end edge x
-                caretPositions[charIndex * 3 + 2] = lineYOffset + caretBottomOffset + anchorYOffset //common bottom y
+                caretPositions[charIndex * 4] = rtl ? caretRight : caretLeft //start edge x
+                caretPositions[charIndex * 4 + 1] = rtl ? caretLeft : caretRight //end edge x
+                caretPositions[charIndex * 4 + 2] = line.baseline + fontData.caretBottom + anchorYOffset //common bottom y
+                caretPositions[charIndex * 4 + 3] = line.baseline + fontData.caretTop + anchorYOffset //common top y
 
                 // If we skipped any chars from the previous glyph (due to ligature subs), fill in caret
                 // positions for those missing char indices; currently this uses a best-guess by dividing
@@ -460,10 +605,12 @@ export function createTypesetter(fontParser, bidi, config) {
               // Get atlas data for renderable glyphs
               if (!glyphObj.isWhitespace && !glyphObj.isEmpty) {
                 const idx = renderableGlyphIndex++
+                const {fontSizeMult, src: fontSrc, index: fontIndex} = glyphInfo.fontData
 
                 // Add this glyph's path data
-                if (!glyphData[glyphId]) {
-                  glyphData[glyphId] = {
+                const fontGlyphData = glyphData[fontSrc] || (glyphData[fontSrc] = {})
+                if (!fontGlyphData[glyphId]) {
+                  fontGlyphData[glyphId] = {
                     path: glyphObj.path,
                     pathBounds: [glyphObj.xMin, glyphObj.yMin, glyphObj.xMax, glyphObj.yMax]
                   }
@@ -471,7 +618,7 @@ export function createTypesetter(fontParser, bidi, config) {
 
                 // Determine final glyph position and add to glyphPositions array
                 const glyphX = glyphInfo.x + anchorXOffset
-                const glyphY = lineYOffset + anchorYOffset
+                const glyphY = line.baseline + anchorYOffset
                 glyphPositions[idx * 2] = glyphX
                 glyphPositions[idx * 2 + 1] = glyphY
 
@@ -497,8 +644,9 @@ export function createTypesetter(fontParser, bidi, config) {
                 if (visX1 > chunkRect[2]) chunkRect[2] = visX1
                 if (visY1 > chunkRect[3]) chunkRect[3] = visY1
 
-                // Add to glyph ids array
+                // Add to glyph ids and font indices arrays
                 glyphIds[idx] = glyphId
+                glyphFontIndices[idx] = fontIndex
 
                 // Add colors
                 if (colorRanges) {
@@ -510,9 +658,6 @@ export function createTypesetter(fontParser, bidi, config) {
               }
             }
           }
-
-          // Increment y offset for next line
-          lineYOffset -= lineHeight
         })
 
         // Fill in remaining caret positions in case the final character was a ligature
@@ -524,28 +669,30 @@ export function createTypesetter(fontParser, bidi, config) {
         }
       }
 
+      // Assemble final data about each font used
+      const fontData = []
+      metricsByFont.forEach(({index, src, unitsPerEm, ascender, descender, lineHeight, capHeight, xHeight}) => {
+        fontData[index] = {src, unitsPerEm, ascender, descender, lineHeight, capHeight, xHeight}
+      })
+
       // Timing stats
       timings.typesetting = now() - typesetStart
 
       callback({
-        glyphIds, //font indices for each glyph
+        glyphIds, //id for each glyph, specific to that glyph's font
+        glyphFontIndices, //index into fontData for each glyph
         glyphPositions, //x,y of each glyph's origin in layout
         glyphData, //dict holding data about each glyph appearing in the text
+        fontData, //data about each font used in the text
         caretPositions, //startX,endX,bottomY caret positions for each char
-        caretHeight, //height of cursor from bottom to top
+        // caretHeight, //height of cursor from bottom to top - todo per glyph?
         glyphColors, //color for each glyph, if color ranges supplied
         chunkedBounds, //total rects per (n=chunkedBoundsSize) consecutive glyphs
         fontSize, //calculated em height
-        unitsPerEm, //font units per em
-        ascender: ascender * fontSizeMult, //font ascender
-        descender: descender * fontSizeMult, //font descender
-        capHeight: capHeight * fontSizeMult, //font cap-height
-        xHeight: xHeight * fontSizeMult, //font x-height
-        lineHeight, //computed line height
-        topBaseline, //y coordinate of the top line's baseline
+        topBaseline: anchorYOffset + lines[0].baseline, //y coordinate of the top line's baseline
         blockBounds: [ //bounds for the whole block of text, including vertical padding for lineHeight
           anchorXOffset,
-          anchorYOffset - lines.length * lineHeight,
+          anchorYOffset - totalHeight,
           anchorXOffset + maxLineWidth,
           anchorYOffset
         ],
@@ -579,15 +726,17 @@ export function createTypesetter(fontParser, bidi, config) {
   }
 
   function fillLigatureCaretPositions(caretPositions, ligStartIndex, ligCount) {
-    const ligStartX = caretPositions[ligStartIndex * 3]
-    const ligEndX = caretPositions[ligStartIndex * 3 + 1]
-    const ligY = caretPositions[ligStartIndex * 3 + 2]
+    const ligStartX = caretPositions[ligStartIndex * 4]
+    const ligEndX = caretPositions[ligStartIndex * 4 + 1]
+    const ligBottom = caretPositions[ligStartIndex * 4 + 2]
+    const ligTop = caretPositions[ligStartIndex * 4 + 3]
     const guessedAdvanceX = (ligEndX - ligStartX) / ligCount
     for (let i = 0; i < ligCount; i++) {
-      const startIndex = (ligStartIndex + i) * 3
+      const startIndex = (ligStartIndex + i) * 4
       caretPositions[startIndex] = ligStartX + guessedAdvanceX * i
       caretPositions[startIndex + 1] = ligStartX + guessedAdvanceX * (i + 1)
-      caretPositions[startIndex + 2] = ligY
+      caretPositions[startIndex + 2] = ligBottom
+      caretPositions[startIndex + 3] = ligTop
     }
   }
 
@@ -599,9 +748,13 @@ export function createTypesetter(fontParser, bidi, config) {
   function TextLine() {
     this.data = []
   }
-  const textLineProps = ['glyphObj', 'x', 'width', 'charIndex']
+  const textLineProps = ['glyphObj', 'x', 'width', 'charIndex', 'fontData']
   TextLine.prototype = {
     width: 0,
+    lineHeight: 0,
+    baseline: 0,
+    cap: 0,
+    ex: 0,
     isSoftWrapped: false,
     get count() {
       return Math.ceil(this.data.length / textLineProps.length)

@@ -4,14 +4,16 @@ import { createTypesetter } from './Typesetter.js'
 import { generateSDF, warmUpSDFCanvas, resizeWebGLCanvasWithoutClearing } from './SDFGenerator.js'
 import bidiFactory from 'bidi-js'
 import fontParser from './FontParser.js'
+import { fallbackFonts } from './fonts.js'
 
 
 const CONFIG = {
-  defaultFontURL: 'https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff', //Roboto Regular
+  defaultFontURL: null, // just uses fallbackFonts unless user configures a new default - this will change
   sdfGlyphSize: 64,
   sdfMargin: 1 / 16,
   sdfExponent: 9,
-  textureWidth: 2048
+  textureWidth: 2048,
+  fallbackFonts
 }
 const tempColor = /*#__PURE__*/new Color()
 let hasRequested = false
@@ -82,7 +84,7 @@ const atlases = Object.create(null)
  * @property {Float32Array} glyphAtlasIndices - List holding each glyph's index in the SDF atlas.
  * @property {Uint8Array} [glyphColors] - List holding each glyph's [r, g, b] color, if `colorRanges` was supplied.
  * @property {Float32Array} [caretPositions] - A list of caret positions for all characters in the string; each is
- *           three elements: the starting X, the ending X, and the bottom Y for the caret.
+ *           four elements: the starting X, the ending X, the bottom Y, and the top Y for the caret.
  * @property {number} [caretHeight] - An appropriate height for all selection carets.
  * @property {number} ascender - The font's ascender metric.
  * @property {number} descender - The font's descender metric.
@@ -118,9 +120,17 @@ function getTextRenderInfo(args, callback) {
   args = assign({}, args)
   const totalStart = now()
 
-  // Apply default font here to avoid a 'null' atlas, and convert relative
-  // URLs to absolute so they can be resolved in the worker
-  args.font = toAbsoluteURL(args.font || CONFIG.defaultFontURL)
+  // Convert relative URL to absolute so it can be resolved in the worker, and add fallbacks.
+  // In the future we'll allow args.font to be a list with unicode ranges too.
+  const { defaultFontURL, fallbackFonts } = CONFIG
+  const fonts = fallbackFonts.slice()
+  if (defaultFontURL) {
+    fonts.push({label: 'default', src: toAbsoluteURL(defaultFontURL)})
+  }
+  if (args.font) {
+    fonts.push({label: 'user', src: toAbsoluteURL(args.font)})
+  }
+  args.font = fonts
 
   // Normalize text to a string
   args.text = '' + args.text
@@ -173,26 +183,32 @@ function getTextRenderInfo(args, callback) {
   }
 
   const {sdfTexture, sdfCanvas} = atlas
-  let fontGlyphs = atlas.glyphsByFont.get(args.font)
-  if (!fontGlyphs) {
-    atlas.glyphsByFont.set(args.font, fontGlyphs = new Map())
-  }
 
   // Issue request to the typesetting engine in the worker
   typesetInWorker(args).then(result => {
-    const {glyphIds, glyphPositions, fontSize, unitsPerEm, timings} = result
+    const {glyphIds, glyphFontIndices, fontData, glyphPositions, fontSize, timings} = result
     const neededSDFs = []
     const glyphBounds = new Float32Array(glyphIds.length * 4)
-    const fontSizeMult = fontSize / unitsPerEm
     let boundsIdx = 0
     let positionsIdx = 0
     const quadsStart = now()
+
+    const fontGlyphMaps = fontData.map(font => {
+      let map = atlas.glyphsByFont.get(font.src)
+      if (!map) {
+        atlas.glyphsByFont.set(font.src, map = new Map())
+      }
+      return map
+    })
+
     glyphIds.forEach((glyphId, i) => {
-      let glyphInfo = fontGlyphs.get(glyphId)
+      const fontIndex = glyphFontIndices[i]
+      const {src: fontSrc, unitsPerEm} = fontData[fontIndex]
+      let glyphInfo = fontGlyphMaps[fontIndex].get(glyphId)
 
       // If this is a glyphId not seen before, add it to the atlas
       if (!glyphInfo) {
-        const {path, pathBounds} = result.glyphData[glyphId]
+        const {path, pathBounds} = result.glyphData[fontSrc][glyphId]
 
         // Margin around path edges in SDF, based on a percentage of the glyph's max dimension.
         // Note we add an extra 0.5 px over the configured value because the outer 0.5 doesn't contain
@@ -207,7 +223,7 @@ function getTextRenderInfo(args, callback) {
           pathBounds[2] + fontUnitsMargin,
           pathBounds[3] + fontUnitsMargin,
         ]
-        fontGlyphs.set(glyphId, (glyphInfo = { path, atlasIndex, sdfViewBox }))
+        fontGlyphMaps[fontIndex].set(glyphId, (glyphInfo = { path, atlasIndex, sdfViewBox }))
 
         // Collect those that need SDF generation
         neededSDFs.push(glyphInfo)
@@ -218,6 +234,7 @@ function getTextRenderInfo(args, callback) {
       const {sdfViewBox} = glyphInfo
       const posX = glyphPositions[positionsIdx++]
       const posY = glyphPositions[positionsIdx++]
+      const fontSizeMult = fontSize / unitsPerEm
       glyphBounds[boundsIdx++] = posX + sdfViewBox[0] * fontSizeMult
       glyphBounds[boundsIdx++] = posY + sdfViewBox[1] * fontSizeMult
       glyphBounds[boundsIdx++] = posX + sdfViewBox[2] * fontSizeMult
@@ -266,7 +283,6 @@ function getTextRenderInfo(args, callback) {
         glyphAtlasIndices: glyphIds,
         glyphColors: result.glyphColors,
         caretPositions: result.caretPositions,
-        caretHeight: result.caretHeight,
         chunkedBounds: result.chunkedBounds,
         ascender: result.ascender,
         descender: result.descender,
@@ -449,15 +465,11 @@ const typesetInWorker = /*#__PURE__*/defineWorkerModule({
   },
   getTransferables(result) {
     // Mark array buffers as transferable to avoid cloning during postMessage
-    const transferables = [
-      result.glyphPositions.buffer,
-      result.glyphIds.buffer
-    ]
-    if (result.caretPositions) {
-      transferables.push(result.caretPositions.buffer)
-    }
-    if (result.glyphColors) {
-      transferables.push(result.glyphColors.buffer)
+    const transferables = []
+    for (let p in result) {
+      if (result[p] && result[p].buffer) {
+        transferables.push(result[p].buffer)
+      }
     }
     return transferables
   }

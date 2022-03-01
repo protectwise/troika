@@ -163,6 +163,9 @@ function parserFactory(Typr, woff2otf) {
       capHeight: firstNum(os2 && os2.sCapHeight, ascender),
       xHeight: firstNum(os2 && os2.sxHeight, ascender),
       lineGap: firstNum(os2 && os2.sTypoLineGap, hhea && hhea.lineGap),
+      supportsCodePoint(code) {
+        return Typr.U.codeToGlyph(typrFont, code) > 0
+      },
       forEachGlyph(text, fontSize, letterSpacing, callback) {
         let glyphX = 0
         const fontScale = 1 / fontObj.unitsPerEm * fontSize
