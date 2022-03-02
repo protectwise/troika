@@ -62,10 +62,10 @@ function configureTextBuilder(config) {
  *   {
  *     [sdfGlyphSize]: {
  *       glyphCount: number,
+ *       sdfGlyphSize: number,
  *       sdfTexture: Texture,
- *       fonts: Map<fontURL, {
- *         glyphs: Map<glyphID, {path, atlasIndex, sdfViewBox}>
- *       }>
+ *       contextLost: boolean,
+ *       glyphsByFont: Map<fontURL, Map<glyphID, {path, atlasIndex, sdfViewBox}>>
  *     }
  *   }
  */
@@ -154,6 +154,7 @@ function getTextRenderInfo(args, callback) {
     canvas.height = sdfGlyphSize * 256 / glyphsPerRow // start tall enough to fit 256 glyphs
     atlas = atlases[sdfGlyphSize] = {
       glyphCount: 0,
+      sdfGlyphSize,
       sdfTexture: new CanvasTexture(
         canvas,
         undefined,
@@ -162,8 +163,10 @@ function getTextRenderInfo(args, callback) {
         LinearFilter,
         LinearFilter
       ),
+      contextLost: false,
       glyphsByFont: new Map()
     }
+    initContextLossHandling(atlas)
   }
 
   const {sdfTexture} = atlas
@@ -235,21 +238,15 @@ function getTextRenderInfo(args, callback) {
       resizeWebGLCanvasWithoutClearing(sdfTexture.image, textureWidth, neededHeight)
     }
 
-    Thenable.all(neededSDFs.map(({path, atlasIndex, sdfViewBox}) => {
-      const maxDist = Math.max(sdfViewBox[2] - sdfViewBox[0], sdfViewBox[3] - sdfViewBox[1])
-      const squareIndex = Math.floor(atlasIndex / 4)
-      const x = squareIndex % (textureWidth / sdfGlyphSize) * sdfGlyphSize
-      const y = Math.floor(squareIndex / (textureWidth / sdfGlyphSize)) * sdfGlyphSize
-      const channel = atlasIndex % 4
-      return generateSDF(sdfGlyphSize, sdfGlyphSize, path, sdfViewBox, maxDist, CONFIG.sdfExponent, sdfTexture.image, x, y, channel, args.gpuAccelerateSDF)
-        .then(({timing}) => {
-          timings.sdf[atlasIndex] = timing
-        })
-    })).then(() => {
+    Thenable.all(neededSDFs.map(glyphInfo =>
+      generateGlyphSDF(glyphInfo, atlas, args.gpuAccelerateSDF).then(({timing}) => {
+        timings.sdf[glyphInfo.atlasIndex] = timing
+      })
+    )).then(() => {
       timings.sdfTotal = now() - sdfStart
       timings.total = now() - totalStart
       console.log(`SDF - ${timings.sdfTotal}, Total - ${timings.total - timings.fontLoad}`)
-      if (neededSDFs.length) {
+      if (neededSDFs.length && !atlas.contextLost) {
         sdfTexture.needsUpdate = true
       }
 
@@ -288,9 +285,74 @@ function getTextRenderInfo(args, callback) {
   // While the typesetting request is being handled, go ahead and make sure the atlas canvas context is
   // "warmed up"; the first request will be the longest due to shader program compilation so this gets
   // a head start on that process before SDFs actually start getting processed.
-  Thenable.all([]).then(() => warmUpSDFCanvas(sdfTexture.image))
+  Thenable.all([]).then(() => {
+    if (!atlas.contextLost) {
+      warmUpSDFCanvas(sdfTexture.image)
+    }
+  })
 }
 
+function generateGlyphSDF({path, atlasIndex, sdfViewBox}, {sdfGlyphSize, sdfTexture, contextLost}, useGPU) {
+  if (contextLost) {
+    // If the context is lost there's nothing we can do, just quit silently and let it
+    // get regenerated when the context is restored
+    return Promise.resolve({timing: -1})
+  }
+  const {textureWidth, sdfExponent} = CONFIG
+  const maxDist = Math.max(sdfViewBox[2] - sdfViewBox[0], sdfViewBox[3] - sdfViewBox[1])
+  const squareIndex = Math.floor(atlasIndex / 4)
+  const x = squareIndex % (textureWidth / sdfGlyphSize) * sdfGlyphSize
+  const y = Math.floor(squareIndex / (textureWidth / sdfGlyphSize)) * sdfGlyphSize
+  const channel = atlasIndex % 4
+  return generateSDF(sdfGlyphSize, sdfGlyphSize, path, sdfViewBox, maxDist, sdfExponent, sdfTexture.image, x, y, channel, useGPU)
+}
+
+function initContextLossHandling(atlas) {
+  const canvas = atlas.sdfTexture.image
+
+  /*
+  // Begin context loss simulation
+  if (!window.WebGLDebugUtils) {
+    let script = document.getElementById('WebGLDebugUtilsScript')
+    if (!script) {
+      script = document.createElement('script')
+      script.id = 'WebGLDebugUtils'
+      document.head.appendChild(script)
+      script.src = 'https://cdn.jsdelivr.net/gh/KhronosGroup/WebGLDeveloperTools@b42e702/src/debug/webgl-debug.js'
+    }
+    script.addEventListener('load', () => {
+      initContextLossHandling(atlas)
+    })
+    return
+  }
+  window.WebGLDebugUtils.makeLostContextSimulatingCanvas(canvas)
+  canvas.loseContextInNCalls(500)
+  canvas.addEventListener('webglcontextrestored', (event) => {
+    canvas.loseContextInNCalls(5000)
+  })
+  // End context loss simulation
+  */
+
+  canvas.addEventListener('webglcontextlost', (event) => {
+    console.log('Context Lost', event)
+    event.preventDefault()
+    atlas.contextLost = true
+  })
+  canvas.addEventListener('webglcontextrestored', (event) => {
+    console.log('Context Restored', event)
+    atlas.contextLost = false
+    // Regenerate all glyphs into the restored canvas:
+    const promises = []
+    atlas.glyphsByFont.forEach(glyphMap => {
+      glyphMap.forEach(glyph => {
+        promises.push(generateGlyphSDF(glyph, atlas, true))
+      })
+    })
+    Thenable.all(promises).then(() => {
+      atlas.sdfTexture.needsUpdate = true
+    })
+  })
+}
 
 /**
  * Preload a given font and optionally pre-generate glyph SDFs for one or more character sequences.
