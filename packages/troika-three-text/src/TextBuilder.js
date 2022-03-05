@@ -245,7 +245,7 @@ function getTextRenderInfo(args, callback) {
     )).then(() => {
       timings.sdfTotal = now() - sdfStart
       timings.total = now() - totalStart
-      console.log(`SDF - ${timings.sdfTotal}, Total - ${timings.total - timings.fontLoad}`)
+      // console.log(`SDF - ${timings.sdfTotal}, Total - ${timings.total - timings.fontLoad}`)
       if (neededSDFs.length && !atlas.contextLost) {
         sdfTexture.needsUpdate = true
       }
