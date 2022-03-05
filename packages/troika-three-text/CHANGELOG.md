@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.46.1](https://github.com/protectwise/troika/compare/v0.46.0...v0.46.1) (2022-03-05)
+
+
+### Bug Fixes
+
+* remove console.log ([3518689](https://github.com/protectwise/troika/commit/3518689f97f7d02236248cc547b703cdbc97a1e2))
+
+
+
+
+
 # [0.46.0](https://github.com/protectwise/troika/compare/v0.45.0...v0.46.0) (2022-03-05)
 
 
