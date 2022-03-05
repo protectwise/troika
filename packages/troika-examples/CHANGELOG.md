@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.46.0](https://github.com/protectwise/troika/compare/v0.45.0...v0.46.0) (2022-03-05)
+
+
+### Features
+
+* **troika-three-text:** add a `gpuAccelerateSDF` property for opting out of webgl sdf generation ([d436ffd](https://github.com/protectwise/troika/commit/d436ffd5063747e2e4d453240b702b174f91268d))
+* **troika-three-text:** integrate webgl-sdf-generator for GPU-accelerated SDF generation ([b5c9138](https://github.com/protectwise/troika/commit/b5c913882daf480d18def77927e0dc70add082df))
+
+
+
+
+
 # [0.45.0](https://github.com/protectwise/troika/compare/v0.44.0...v0.45.0) (2022-01-02)
 
 **Note:** Version bump only for package troika-examples
