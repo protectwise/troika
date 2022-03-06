@@ -1,4 +1,4 @@
-import { Color, CanvasTexture, DataTexture, LinearFilter } from 'three'
+import { Color, CanvasTexture, LinearFilter } from 'three'
 import { defineWorkerModule, ThenableWorkerModule, Thenable } from 'troika-worker-utils'
 import { createTypesetter } from './Typesetter.js'
 import { generateSDF, warmUpSDFCanvas, resizeWebGLCanvasWithoutClearing } from './SDFGenerator.js'
@@ -74,7 +74,7 @@ const atlases = Object.create(null)
 /**
  * @typedef {object} TroikaTextRenderInfo - Format of the result from `getTextRenderInfo`.
  * @property {object} parameters - The normalized input arguments to the render call.
- * @property {DataTexture} sdfTexture - The SDF atlas texture.
+ * @property {Texture} sdfTexture - The SDF atlas texture.
  * @property {number} sdfGlyphSize - The size of each glyph's SDF; see `configureTextBuilder`.
  * @property {number} sdfExponent - The exponent used in encoding the SDF's values; see `configureTextBuilder`.
  * @property {Float32Array} glyphBounds - List of [minX, minY, maxX, maxY] quad bounds for each glyph.
@@ -236,6 +236,8 @@ function getTextRenderInfo(args, callback) {
       // Since resizing the canvas clears its render buffer, it needs special handling to copy the old contents over
       console.info(`Increasing SDF texture size ${currentHeight}->${neededHeight}`)
       resizeWebGLCanvasWithoutClearing(sdfTexture.image, textureWidth, neededHeight)
+      // As of Three r136 textures cannot be resized, we must recreate it
+      sdfTexture.dispose()
     }
 
     Thenable.all(neededSDFs.map(glyphInfo =>
