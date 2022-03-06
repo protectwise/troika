@@ -247,6 +247,8 @@ function getTextRenderInfo(args, callback) {
             biggerArray.set(texImg.data)
             texImg.data = biggerArray
             texImg.height *= 2
+            // As of Three r136 textures cannot be resized; dispose so it gets reallocated on the GPU at the new size
+            atlas.sdfTexture.dispose()
           }
 
           // Insert the new glyph's data into the full texture image at the correct offsets
