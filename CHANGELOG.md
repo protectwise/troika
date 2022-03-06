@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.45.1](https://github.com/protectwise/troika/compare/v0.45.0...v0.45.1) (2022-03-06)
+
+
+### Bug Fixes
+
+* **troika-three-text:** fix SDF texture resizing in Three r136+ ([7c26687](https://github.com/protectwise/troika/commit/7c2668773535ea22b842245c81d2c0c4fb8abfa9))
+
+
+
+
+
 # [0.45.0](https://github.com/protectwise/troika/compare/v0.44.0...v0.45.0) (2022-01-02)
 
 
