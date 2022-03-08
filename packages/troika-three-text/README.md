@@ -85,10 +85,6 @@ The string of text to be rendered. Newlines and repeating whitespace characters 
 
 Default: _none_
 
-### `anchor`
-
-This property is deprecated as of version 0.24.0; use `anchorX` and `anchorY` instead.
-
 ### `anchorX`
 
 Defines the horizontal position in the text block that should line up with the local origin. Can be specified as a numeric `x` position in local units, a string percentage of the total text block width e.g. `'25%'`, or one of the following keyword strings: `'left'`, `'center'`, or `'right'`.

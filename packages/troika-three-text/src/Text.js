@@ -103,16 +103,6 @@ const Text = /*#__PURE__*/(() => {
       this.text = ''
 
       /**
-       * @deprecated Use `anchorX` and `anchorY` instead
-       * @member {Array<number>} anchor
-       * Defines where in the text block should correspond to the mesh's local position, as a set
-       * of horizontal and vertical percentages from 0 to 1. A value of `[0, 0]` (the default)
-       * anchors at the top-left, `[1, 1]` at the bottom-right, and `[0.5, 0.5]` centers the
-       * block at the mesh's position.
-       */
-      //this.anchor = null
-
-      /**
        * @member {number|string} anchorX
        * Defines the horizontal position in the text block that should line up with the local origin.
        * Can be specified as a numeric x position in local units, a string percentage of the total
@@ -778,28 +768,6 @@ const Text = /*#__PURE__*/(() => {
         }
       }
     })
-  })
-
-
-  // Deprecation handler for `anchor` array:
-  let deprMsgShown = false
-  Object.defineProperty(Text.prototype, 'anchor', {
-    get() {
-      return this._deprecated_anchor
-    },
-    set(val) {
-      this._deprecated_anchor = val
-      if (!deprMsgShown) {
-        console.warn('TextMesh: `anchor` has been deprecated; use `anchorX` and `anchorY` instead.')
-        deprMsgShown = true
-      }
-      if (Array.isArray(val)) {
-        this.anchorX = `${(+val[0] || 0) * 100}%`
-        this.anchorY = `${(+val[1] || 0) * 100}%`
-      } else {
-        this.anchorX = this.anchorY = 0
-      }
-    }
   })
 
   return Text
