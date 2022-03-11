@@ -8,7 +8,7 @@
       "conventionalCommits": true
     },
     "publish": {
-      "allowBranch": "master"
+      "allowBranch": "main"
     }
   }
 }
