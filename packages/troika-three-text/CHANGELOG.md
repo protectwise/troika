@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.46.3](https://github.com/protectwise/troika/compare/v0.46.2...v0.46.3) (2022-03-11)
+
+
+### Bug Fixes
+
+* **troika-three-text:** update Typr to fix doubled kerning in some fonts ([#196](https://github.com/protectwise/troika/issues/196)) ([080119a](https://github.com/protectwise/troika/commit/080119a10797024f3bc82cb37f614c1c90027be6))
+
+
+
+
+
 ## [0.46.2](https://github.com/protectwise/troika/compare/v0.46.1...v0.46.2) (2022-03-06)
 
 
