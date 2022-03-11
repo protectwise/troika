@@ -1,5 +1,8 @@
-import { encodeFloatToFourInts, decodeFloatFromFourInts } from '../src/ShaderFloatArray.js'
+import { encodeFloatToFourInts, decodeFloatFromFourInts, ShaderFloatArray } from '../src/ShaderFloatArray.js'
+import './polyfill/OffscreenCanvas.js'
+import { WebGL1Renderer, ShaderMaterial, PlaneGeometry, Mesh, Scene, Camera } from 'three'
 
+const maxFloat32Val = (2 - Math.pow(2, -23)) * Math.pow(2, 127)
 
 
 describe('encodeFloatToFourInts', () => {
@@ -58,32 +61,113 @@ describe('decodeFloatFromFourInts', () => {
 })
 
 describe('encoding + decoding', () => {
-  // Build a repeatable random-ish set of input values between 0 and 1
+  // Build a repeatable random-ish set of input values
   const values = [0, 1]
   for (let i = 1; i < 10000; i++) {
-    values.push((Math.sin(i) + 1) / 2)
+    values.push(Math.sin(i) * maxFloat32Val)
   }
 
-  test('Precision loss is small', () => {
+  test('Precision loss is within limits for decimal values', () => {
     const typedArray = new Uint8Array(4)
     for (let i = 0; i < values.length; i++) {
       encodeFloatToFourInts(values[i], typedArray, 0)
       const decoded = decodeFloatFromFourInts(typedArray, 0)
-      expect(decoded).toBeCloseTo(values[i], 9)
+
+      // For a given float, determines the maximum precision error in its binary-encoded representation,
+      // according to "Precision limitations" on https://en.wikipedia.org/wiki/Single-precision_floating-point_format
+      const exp = Math.floor(Math.log2(Math.abs(values[i])))
+      const maxDiff = Math.pow(2, exp - 23)
+
+      expect(Math.abs(decoded - values[i])).toBeLessThanOrEqual(maxDiff)
     }
   })
 
-  test('0 and 1 have no precision loss', () => {
+  test('No precision loss for integers between -16777216 and 16777216', () => {
     const typedArray = new Uint8Array(4)
-    encodeFloatToFourInts(0, typedArray, 0)
-    expect(decodeFloatFromFourInts(typedArray, 0)).toBe(0)
-    encodeFloatToFourInts(1, typedArray, 0)
-    expect(decodeFloatFromFourInts(typedArray, 0)).toBe(1)
+    for (let i = 0; i <= 16777216; i += i + 1) {
+      encodeFloatToFourInts(i, typedArray, 0)
+      expect(decodeFloatFromFourInts(typedArray, 0)).toBe(i)
+      encodeFloatToFourInts(-i, typedArray, 0)
+      expect(decodeFloatFromFourInts(typedArray, 0)).toBe(-i)
+    }
   })
 
 })
 
 
-describe.skip('ShaderFloatArray', () => {
-  //TODO
+describe('ShaderFloatArray', () => {
+  test('', () => {
+
+    let values = []
+    // Integers
+    for (let i = 0; i < 16777216; i += i + 1) {
+      values.push(i)
+    }
+    for (let sign = -1; sign <= 1; sign += 2) {
+      for (let exp = -127; exp <= 128; exp++) {
+        values.push(sign * exp * (1 + Math.abs(Math.sin(exp))))
+      }
+    }
+    // Cast all to float32 precision
+    values = new Float32Array(values)
+
+    const sfa = new ShaderFloatArray('tester')
+    sfa.setArray(values)
+
+
+    const canvas = new OffscreenCanvas(values.length, 1)
+
+    const renderer = new WebGL1Renderer({ canvas })
+
+    const mesh = new Mesh(
+      new PlaneGeometry(),
+      new ShaderMaterial({
+        uniforms: {
+          ...sfa.getShaderUniforms(),
+          uExpectedValues: {value: values}
+        },
+        vertexShader: `
+          void main() {
+            gl_Position = vec4(position * 2.0, 1.0);
+          }
+        `,
+        fragmentShader: `
+          ${sfa.getShaderHeaderCode()}
+          
+          uniform float uExpectedValues[${values.length}];
+          
+          void main() {
+            // Decode the value from the texture
+            float column = floor(gl_FragCoord.x);
+            float decodedValue = ${sfa.readFunction}(column);
+            
+            // Get the expected value from the array - have to get tricky since array access has to be static
+            float expectedValue = 0.0;
+            ${[...values].map((v, i) => {
+              return `if (column == ${i}.0) { expectedValue = uExpectedValues[${i}]; }`
+            }).join('\n')}
+            
+            // Write a 1 or 0 boolean to the red channel indicating whether the decoding matched the expected value
+            gl_FragColor = vec4(
+              expectedValue == decodedValue ? 1.0 : 0.0,
+              1.0, 1.0, 1.0
+            );
+          }
+        `
+      })
+    )
+    const scene = new Scene()
+    scene.add(mesh)
+    const camera = new Camera();
+    renderer.render(scene, camera)
+
+    const pixels = new Uint8Array(canvas.width * canvas.height * 4)
+    const gl = renderer.getContext()
+    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels)
+
+    // All pixels should have 255 in the red channel indicating the float was decoded properly
+    for (let i = 0; i < pixels.length; i += 4) {
+      expect(pixels[i]).toBe(255)
+    }
+  })
 })

@@ -1,6 +1,4 @@
-import {
-  DataTexture
-} from 'three'
+import { DataTexture, Vector2 } from 'three'
 
 /**
  * @class ShaderFloatArray
@@ -16,62 +14,78 @@ import {
  * ShaderFloatArray is an array-like abstraction that encodes its floating point data into
  * an RGBA texture's four Uint8 components, and provides the corresponding ThreeJS uniforms
  * and GLSL code for you to put in your custom shader to query the float values by array index.
+ * The values are encoded with standard float32 precision according to IEEE 754 specifications.
  *
  * This should generally only be used within a fragment shader, as some environments (e.g. iOS)
  * only allow texture lookups in fragment shaders.
  *
  * TODO:
- *   - Fix texture to fill both dimensions so we don't easily hit max texture size limits
  *   - Use a float texture if the extension is available so we can skip the encoding process
  */
 export class ShaderFloatArray {
   constructor(name) {
     this.name = name
-    this.textureUniform = `dataTex_${name}`
-    this.textureSizeUniform = `dataTexSize_${name}`
-    this.multiplierUniform = `dataMultiplier_${name}`
 
     /**
-     * @property dataSizeUniform - the name of the GLSL uniform that will hold the
-     * length of the data array.
      * @type {string}
+     * The name of the GLSL vec3 uniform that will hold the texture.
      */
-    this.dataSizeUniform = `dataSize_${name}`
+    this.textureUniform = `dataTex_${name}`
+
+    /**
+     * @type {string}
+     * The name of the GLSL vec3 uniform that will hold the width+height of the texture.
+     */
+    this.textureSizeUniform = `dataTexSize_${name}`
 
     /**
      * @property readFunction - the name of the GLSL function that should be called to
      * read data out of the array by index.
      * @type {string}
      */
-    this.readFunction = `readData_${name}`
+    this.readFunction = `readDataTex_${name}`
 
-    this._raw = new Float32Array(0)
-    this._texture = new DataTexture(new Uint8Array(0), 0, 1)
-    this._length = 0
-    this._multiplier = 1
+    this._raw = []
+    this._texture = new DataTexture(new Uint8Array(0), 0, 0)
+    this._textureSize = new Vector2()
+    this.length = 0
   }
 
   /**
-   * @property length - the current length of the data array
-   * @type {number}
+   * @property {number} length - the current length of the data array
    */
-  set length(value) {
-    if (value !== this._length) {
-      // Find nearest power-of-2 that holds the new length
-      const size = Math.pow(2, Math.ceil(Math.log2(value)))
-      const raw = this._raw
-      if (size < raw.length) {
-        this._raw = raw.subarray(0, size)
+  set length(length) {
+    const raw = this._raw
+    if (length !== raw.length) {
+      // Update raw array
+      while (length > raw.length) {
+        raw.push(0)
       }
-      else if(size > raw.length) {
-        this._raw = new Float32Array(size)
-        this._raw.set(raw)
+      raw.length = length
+
+      // Find nearest power-of-two texture dimensions that holds the new length, and update the
+      // DataTexture if needed
+      const texWidth = Math.pow(2, Math.ceil(Math.log2(Math.sqrt(length))))
+      const texHeight = length < texWidth * texWidth / 2 ? texWidth / 2 : texWidth
+      const texDataSize = texWidth * texHeight * 4
+      const img = this._texture.image
+      if (texDataSize !== img.data.length) {
+        img.width = texWidth
+        img.height = texHeight
+        this._textureSize.set(texWidth, texHeight)
+        if (texDataSize < img.data.length) {
+          img.data = img.data.subarray(0, texDataSize)
+        } else {
+          const newData = new Uint8Array(texDataSize)
+          newData.set(img.data)
+          img.data = newData
+        }
+        this._texture.dispose()
       }
-      this._length = value
     }
   }
   get length() {
-    return this._length
+    return this._raw.length
   }
 
   /**
@@ -88,8 +102,9 @@ export class ShaderFloatArray {
    */
   setArray(array) {
     this.length = array.length
-    this._raw.set(array)
-    this._needsRepack = true
+    for (let i = 0; i < array.length; i++) {
+      this.set(i, array[i])
+    }
   }
 
   /**
@@ -102,17 +117,17 @@ export class ShaderFloatArray {
   }
 
   set(index, value) {
-    if (index + 1 > this._length) {
+    if (index + 1 > this._raw.length) {
       this.length = index + 1
     }
     if (value !== this._raw[index]) {
       this._raw[index] = value
       encodeFloatToFourInts(
-        value / this._multiplier,
+        value,
         this._texture.image.data,
         index * 4
       )
-      this._needsMultCheck = true
+      this._texture.needsUpdate = true
     }
   }
 
@@ -132,24 +147,9 @@ export class ShaderFloatArray {
    * @return {Object}
    */
   getShaderUniforms() {
-    const me = this
     return {
-      [this.textureUniform]: {get value() {
-        me._sync()
-        return me._texture
-      }},
-      [this.textureSizeUniform]: {get value() {
-        me._sync()
-        return me._texture.image.width
-      }},
-      [this.dataSizeUniform]: {get value() {
-        me._sync()
-        return me.length
-      }},
-      [this.multiplierUniform]: {get value() {
-        me._sync()
-        return me._multiplier
-      }}
+      [this.textureUniform]: {value: this._texture},
+      [this.textureSizeUniform]: {value: this._textureSize},
     }
   }
 
@@ -161,78 +161,36 @@ export class ShaderFloatArray {
    * @return {string}
    */
   getShaderHeaderCode() {
-    const {textureUniform, textureSizeUniform, dataSizeUniform, multiplierUniform, readFunction} = this
+    const {textureUniform, textureSizeUniform, readFunction} = this
     return `
 uniform sampler2D ${textureUniform};
-uniform float ${textureSizeUniform};
-uniform float ${dataSizeUniform};
-uniform float ${multiplierUniform};
+uniform vec2 ${textureSizeUniform};
 
 float ${readFunction}(float index) {
-  vec2 texUV = vec2((index + 0.5) / ${textureSizeUniform}, 0.5);
-  vec4 pixel = texture2D(${textureUniform}, texUV);
-  return dot(pixel, 1.0 / vec4(1.0, 255.0, 65025.0, 16581375.0)) * ${multiplierUniform};
+  vec2 texUV = vec2(
+    mod(index, ${textureSizeUniform}.x) + 0.5,
+    floor(index / ${textureSizeUniform}.x) + 0.5
+  ) / ${textureSizeUniform};
+  vec4 bytes = floor(texture2D(${textureUniform}, texUV) * 255.0 + 0.5);
+  float exponent = bytes.x - 127.0;
+  float sign = bytes.y >= 128.0 ? -1.0 : 1.0;
+
+  if (sign == 1.0 && bytes.x != 0.0) bytes.y += 128.0;
+  float fraction = bytes.y * pow(2.0, -7.0) + bytes.z * pow(2.0, -15.0) + bytes.w * pow(2.0, -23.0);  
+  return sign * pow(2.0, exponent) * fraction;
 }
 `
   }
-
-  /**
-   * @private Synchronize any pending changes to the underlying DataTexture
-   */
-  _sync() {
-    const tex = this._texture
-    const raw = this._raw
-    let needsRepack = this._needsRepack
-
-    // If the size of the raw array changed, resize the texture to match
-    if (raw.length !== tex.image.width) {
-      tex.image = {
-        data: new Uint8Array(raw.length * 4),
-        width: raw.length,
-        height: 1
-      }
-      needsRepack = true
-    }
-
-    // If the values changed, check the multiplier. This should be a value by which
-    // all the values are divided to constrain them to the [0,1] range required by
-    // the Uint8 packing algorithm. We pick the nearest power of 2 that holds the
-    // maximum value for greatest accuracy.
-    if (needsRepack || this._needsMultCheck) {
-      const maxVal = this._raw.reduce((a, b) => Math.max(a, b), 0)
-      const mult = Math.pow(2, Math.ceil(Math.log2(maxVal)))
-      if (mult !== this._multiplier) {
-        this._multiplier = mult
-        needsRepack = true
-      }
-      tex.needsUpdate = true
-      this._needsMultCheck = false
-    }
-
-    // If things changed in a way we need to repack, do so
-    if (needsRepack) {
-      for (let i = 0, len = raw.length, mult = this._multiplier; i < len; i++) {
-        encodeFloatToFourInts(raw[i] / mult, tex.image.data, i * 4)
-      }
-      this._needsRepack = false
-    }
-  }
 }
 
-
+const encoder = /*#__PURE__*/new DataView(new ArrayBuffer(4))
 
 /**
- * Encode a floating point number into a set of four 8-bit integers.
- * Also see the companion decoder function #decodeFloatFromFourInts.
+ * Encode a floating point number into a set of four 8-bit unsigned integers.
+ * Also see the companion decoder function {@link #decodeFloatFromFourInts}.
  *
- * This is adapted to JavaScript from the basic approach at
- * http://aras-p.info/blog/2009/07/30/encoding-floats-to-rgba-the-final/
- * but writes out integers in the range 0-255 instead of floats in the range 0-1
- * so they can be more easily used in a Uint8Array for standard WebGL rgba textures.
- *
- * Some precision will necessarily be lost during the encoding and decoding process.
- * Testing shows that the maximum precision error is ~1.18e-10 which should be good
- * enough for most cases.
+ * This uses the same encoding scheme as IEEE 754, but changes the order of the components
+ * slightly to make it simpler to decode in GLSL.
  *
  * @param {Number} value - the floating point number to encode. Must be in the range [0, 1]
  *        otherwise the results will be incorrect.
@@ -241,36 +199,28 @@ float ${readFunction}(float index) {
  * @return {Array|Uint8Array}
  */
 export function encodeFloatToFourInts(value, array, startIndex) {
-  // This is adapted to JS from the basic approach at
-  // http://aras-p.info/blog/2009/07/30/encoding-floats-to-rgba-the-final/
-  // but writes to a Uint8Array instead of floats. Input values must be in
-  // the range [0, 1]. The maximum error after encoding and decoding is ~1.18e-10
-  let enc0 = 255 * value
-  let enc1 = 255 * (enc0 % 1)
-  let enc2 = 255 * (enc1 % 1)
-  let enc3 = 255 * (enc2 % 1)
-
-  enc0 = enc0 & 255
-  enc1 = enc1 & 255
-  enc2 = enc2 & 255
-  enc3 = Math.round(enc3) & 255
-
-  array[startIndex] = enc0
-  array[startIndex + 1] = enc1
-  array[startIndex + 2] = enc2
-  array[startIndex + 3] = enc3
-  return array
+  encoder.setFloat32(0, value)
+  for (let i = 0; i < 4; i++) {
+    array[startIndex + i] = encoder.getUint8(i)
+  }
+  // Move the "sign" bit from the first to the second uint, so the 8 "exponent" bits to fit into
+  // a single uint instead of being split, which is simpler to read in GLSL
+  const signMask = array[startIndex] & 0b10000000
+  array[startIndex] = (array[startIndex] << 1) | (array[startIndex + 1] >> 7)
+  array[startIndex + 1] = signMask | (array[startIndex + 1] & 0b01111111)
 }
 
 /**
- * Companion to #encodeFloatToFourInts
+ * Companion to {@link #encodeFloatToFourInts}
  * @param {Array|Uint8Array} array - an array holding the ints to read from
  * @param {Number} startIndex - index in the array at which to start reading
  */
 export function decodeFloatFromFourInts(array, startIndex) {
-  return array[startIndex] / 255
-    + array[startIndex + 1] / 65025 //255**2
-    + array[startIndex + 2] / 16581375 //255**3
-    + array[startIndex + 3] / 4228250625 //255**4
+  // Move the "sign" bit back to the first uint
+  encoder.setUint8(0, (array[startIndex + 1] & 0b10000000) | (array[startIndex] >> 1))
+  encoder.setUint8(1, ((array[startIndex] & 1) << 7) | (array[startIndex + 1] & 0b01111111))
+  encoder.setUint8(2, array[startIndex + 2])
+  encoder.setUint8(3, array[startIndex + 3])
+  return encoder.getFloat32(0)
 }
 
