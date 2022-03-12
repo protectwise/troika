@@ -1,4 +1,3 @@
-import Thenable from './Thenable.js'
 import { workerBootstrap } from './workerBootstrap.js'
 import { defineMainThreadModule } from './mainThreadFallback.js'
 import { supportsWorkers } from './supportsWorkers.js'
@@ -39,7 +38,7 @@ export function defineWorkerModule(options) {
   }
   const id = `workerModule${++_workerModuleId}`
   const name = options.name || id
-  let registrationThenable = null
+  let registrationPromise = null
 
   dependencies = dependencies && dependencies.map(dep => {
     // Wrap raw functions as worker modules with no dependencies
@@ -61,17 +60,17 @@ export function defineWorkerModule(options) {
 
   function moduleFunc(...args) {
     // Register this module if needed
-    if (!registrationThenable) {
-      registrationThenable = callWorker(workerId,'registerModule', moduleFunc.workerModuleData)
+    if (!registrationPromise) {
+      registrationPromise = callWorker(workerId,'registerModule', moduleFunc.workerModuleData)
       const unregister = () => {
-        registrationThenable = null
+        registrationPromise = null
         registeredModules[workerId].delete(unregister)
       }
       ;(registeredModules[workerId] || (registeredModules[workerId] = new Set())).add(unregister)
     }
 
-    // Invoke the module, returning a thenable
-    return registrationThenable.then(({isCallable}) => {
+    // Invoke the module, returning a promise
+    return registrationPromise.then(({isCallable}) => {
       if (isCallable) {
         return callWorker(workerId,'callModule', {id, args})
       } else {
@@ -157,20 +156,20 @@ function getWorker(workerId) {
 
 // Issue a call to the worker with a callback to handle the response
 function callWorker(workerId, action, data) {
-  const thenable = Thenable()
-  const messageId = ++_messageId
-  openRequests[messageId] = response => {
-    if (response.success) {
-      thenable.resolve(response.result)
-    } else {
-      thenable.reject(new Error(`Error in worker ${action} call: ${response.error}`))
+  return new Promise((resolve, reject) => {
+    const messageId = ++_messageId
+    openRequests[messageId] = response => {
+      if (response.success) {
+        resolve(response.result)
+      } else {
+        reject(new Error(`Error in worker ${action} call: ${response.error}`))
+      }
     }
-  }
-  getWorker(workerId).postMessage({
-    messageId,
-    action,
-    data
+    getWorker(workerId).postMessage({
+      messageId,
+      action,
+      data
+    })
   })
-  return thenable
 }
 

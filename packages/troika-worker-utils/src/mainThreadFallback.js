@@ -1,5 +1,3 @@
-import Thenable from './Thenable.js'
-
 /**
  * Fallback for `defineWorkerModule` that behaves identically but runs in the main
  * thread, for when the execution environment doesn't support web workers or they
@@ -25,14 +23,14 @@ export function defineMainThreadModule(options) {
     ) : []
 
     // Invoke init with the resolved dependencies
-    let initThenable = Thenable.all(dependencies).then(deps => {
+    let initPromise = Promise.all(dependencies).then(deps => {
       return init.apply(null, deps)
     })
 
     // Cache the resolved promise for subsequent calls
-    moduleFunc._getInitResult = () => initThenable
+    moduleFunc._getInitResult = () => initPromise
 
-    return initThenable
+    return initPromise
   }
   return moduleFunc
 }

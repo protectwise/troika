@@ -1,5 +1,5 @@
 import { Color, CanvasTexture, LinearFilter } from 'three'
-import { defineWorkerModule, ThenableWorkerModule, Thenable } from 'troika-worker-utils'
+import { defineWorkerModule } from 'troika-worker-utils'
 import { createTypesetter } from './Typesetter.js'
 import { generateSDF, warmUpSDFCanvas, resizeWebGLCanvasWithoutClearing } from './SDFGenerator.js'
 import bidiFactory from 'bidi-js'
@@ -240,7 +240,7 @@ function getTextRenderInfo(args, callback) {
       sdfTexture.dispose()
     }
 
-    Thenable.all(neededSDFs.map(glyphInfo =>
+    Promise.all(neededSDFs.map(glyphInfo =>
       generateGlyphSDF(glyphInfo, atlas, args.gpuAccelerateSDF).then(({timing}) => {
         timings.sdf[glyphInfo.atlasIndex] = timing
       })
@@ -287,7 +287,7 @@ function getTextRenderInfo(args, callback) {
   // While the typesetting request is being handled, go ahead and make sure the atlas canvas context is
   // "warmed up"; the first request will be the longest due to shader program compilation so this gets
   // a head start on that process before SDFs actually start getting processed.
-  Thenable.all([]).then(() => {
+  Promise.resolve().then(() => {
     if (!atlas.contextLost) {
       warmUpSDFCanvas(sdfTexture.image)
     }
@@ -350,7 +350,7 @@ function initContextLossHandling(atlas) {
         promises.push(generateGlyphSDF(glyph, atlas, true))
       })
     })
-    Thenable.all(promises).then(() => {
+    Promise.all(promises).then(() => {
       atlas.sdfTexture.needsUpdate = true
     })
   })
@@ -417,13 +417,12 @@ const typesetInWorker = /*#__PURE__*/defineWorkerModule({
   name: 'Typesetter',
   dependencies: [
     typesetterWorkerModule,
-    ThenableWorkerModule
   ],
-  init(typesetter, Thenable) {
+  init(typesetter) {
     return function(args) {
-      const thenable = new Thenable()
-      typesetter.typeset(args, thenable.resolve)
-      return thenable
+      return new Promise(resolve => {
+        typesetter.typeset(args, resolve)
+      })
     }
   },
   getTransferables(result) {

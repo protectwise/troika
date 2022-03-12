@@ -1,4 +1,4 @@
-import { defineWorkerModule, ThenableWorkerModule } from 'troika-worker-utils'
+import { defineWorkerModule } from 'troika-worker-utils'
 import { typesetterWorkerModule } from 'troika-three-text'
 import yogaFactory from '../libs/yoga.factory.js'
 
@@ -285,9 +285,8 @@ export const flexLayoutProcessorWorkerModule = defineWorkerModule({
     yogaFactory,
     typesetterWorkerModule,
     createFlexLayoutProcessor,
-    ThenableWorkerModule
   ],
-  init(yogaFactory, layoutEngine, create, Thenable) {
+  init(yogaFactory, layoutEngine, create) {
     const Yoga = yogaFactory()
     function measure(params) {
       let result = null
@@ -296,9 +295,9 @@ export const flexLayoutProcessorWorkerModule = defineWorkerModule({
     }
     const process = create(Yoga, layoutEngine.loadFont, measure)
     return function(styleTree) {
-      const thenable = new Thenable()
-      process(styleTree, thenable.resolve)
-      return thenable
+      return new Promise(resolve => {
+        process(styleTree, resolve)
+      })
     }
   }
 })

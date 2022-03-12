@@ -24,7 +24,6 @@
     "mitt": "^1.2.0",
     "node-fetch": "^2.6.0",
     "postcss": "^8.2.6",
-    "promises-aplus-tests": "^2.1.2",
     "rollup": "^2.39.0",
     "rollup-plugin-buble": "^0.19.8",
     "rollup-plugin-commonjs": "^10.1.0",

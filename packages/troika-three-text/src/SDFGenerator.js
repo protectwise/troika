@@ -1,4 +1,4 @@
-import { defineWorkerModule, terminateWorker, Thenable } from 'troika-worker-utils'
+import { defineWorkerModule, terminateWorker } from 'troika-worker-utils'
 import createSDFGenerator from 'webgl-sdf-generator'
 
 const now = () => (self.performance || Date).now()
@@ -48,20 +48,20 @@ const generateSDF_GL = /*#__PURE__*/function() {
     timer = queue.length ? setTimeout(nextChunk, 0) : 0
   }
   return (...args) => {
-    const thenable = Thenable()
-    queue.push(() => {
-      const start = now()
-      try {
-        mainThreadGenerator.webgl.generateIntoCanvas(...args)
-        thenable.resolve({timing: now() - start})
-      } catch(err) {
-        thenable.reject(err)
+    return new Promise((resolve, reject) => {
+      queue.push(() => {
+        const start = now()
+        try {
+          mainThreadGenerator.webgl.generateIntoCanvas(...args)
+          resolve({ timing: now() - start })
+        } catch (err) {
+          reject(err)
+        }
+      })
+      if (!timer) {
+        timer = setTimeout(nextChunk, 0)
       }
     })
-    if (!timer) {
-      timer = setTimeout(nextChunk, 0)
-    }
-    return thenable
   }
 }()
 
