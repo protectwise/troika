@@ -301,6 +301,8 @@ export function createTypesetter(fontParser, bidi, config) {
           let height = lines.length * lineHeight
           anchorYOffset = anchorY === 'top' ? 0 :
             anchorY === 'top-baseline' ? -topBaseline :
+            anchorY === 'top-cap' ? -topBaseline - capHeight * fontSizeMult :
+            anchorY === 'top-ex' ? -topBaseline - xHeight * fontSizeMult :
             anchorY === 'middle' ? height / 2 :
             anchorY === 'bottom' ? height :
             anchorY === 'bottom-baseline' ? height - halfLeading + descender * fontSizeMult :

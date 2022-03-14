@@ -93,7 +93,7 @@ Default: `0`
 
 ### `anchorY`
 
-Defines the vertical position in the text block that should line up with the local origin. Can be specified as a numeric `y` position in local units (note: down is negative y), a string percentage of the total text block height e.g. `'25%'`, or one of the following keyword strings: `'top'`, `'top-baseline'`, `'middle'`, `'bottom-baseline'`, or `'bottom'`.
+Defines the vertical position in the text block that should line up with the local origin. Can be specified as a numeric `y` position in local units (note: down is negative y), a string percentage of the total text block height e.g. `'25%'`, or one of the following keyword strings: `'top'`, `'top-baseline'`, `'top-cap'`, `'top-ex'`, `'middle'`, `'bottom-baseline'`, or `'bottom'`.
 
 Default: `0`
 
