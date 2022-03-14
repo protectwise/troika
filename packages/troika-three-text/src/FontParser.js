@@ -140,14 +140,26 @@ function parserFactory(Typr, woff2otf) {
     return glyphIds
   }
 
+  function firstNum(...args) {
+    for (let i = 0; i < args.length; i++) {
+      if (typeof args[i] === 'number') {
+        return args[i]
+      }
+    }
+  }
 
   function wrapFontObj(typrFont) {
     const glyphMap = Object.create(null)
 
+    const os2 = typrFont['OS/2']
+    const hhea = typrFont.hhea
+    const unitsPerEm = typrFont.head.unitsPerEm
+    const ascender = firstNum(os2 && os2.sTypoAscender, hhea && hhea.ascender, unitsPerEm)
+
     const fontObj = {
-      unitsPerEm: typrFont.head.unitsPerEm,
-      ascender: typrFont.hhea.ascender,
-      descender: typrFont.hhea.descender,
+      unitsPerEm,
+      ascender,
+      descender: firstNum(os2 && os2.sTypoDescender, hhea && hhea.descender, 0),
       forEachGlyph(text, fontSize, letterSpacing, callback) {
         let glyphX = 0
         const fontScale = 1 / fontObj.unitsPerEm * fontSize
