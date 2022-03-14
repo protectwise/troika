@@ -11,6 +11,7 @@
  *     unitsPerEm: number,
  *     ascender: number,
  *     descender: number,
+ *     lineGap: number,
  *     forEachGlyph(string, fontSize, letterSpacing, callback) {
  *       //invokes callback for each glyph to render, passing it an object:
  *       callback({
@@ -20,14 +21,8 @@
  *         yMin: number,
  *         xMax: number,
  *         yMax: number,
- *         pathCommandCount: number,
- *         forEachPathCommand(callback) {
- *           //invokes callback for each path command, with args:
- *           callback(
- *             type: 'M|L|C|Q|Z',
- *             ...args //0 to 6 args depending on the type
- *           )
- *         }
+ *         path: string,
+ *         pathCommandCount: number
  *       })
  *     }
  *   }
@@ -175,7 +170,7 @@ export function createTypesetter(fontParser, bidi, config) {
       let maxLineWidth = 0
       let renderableGlyphCount = 0
       let canWrap = whiteSpace !== 'nowrap'
-      const {ascender, descender, unitsPerEm} = fontObj
+      const {ascender, descender, unitsPerEm, lineGap} = fontObj
       timings.fontLoad = now() - mainStart
       const typesetStart = now()
 
@@ -186,7 +181,7 @@ export function createTypesetter(fontParser, bidi, config) {
       // Determine appropriate value for 'normal' line height based on the font's actual metrics
       // TODO this does not guarantee individual glyphs won't exceed the line height, e.g. Roboto; should we use yMin/Max instead?
       if (lineHeight === 'normal') {
-        lineHeight = (ascender - descender) / unitsPerEm
+        lineHeight = (ascender - descender + lineGap) / unitsPerEm
       }
 
       // Determine line height and leading adjustments

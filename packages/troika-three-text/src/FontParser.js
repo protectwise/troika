@@ -160,6 +160,7 @@ function parserFactory(Typr, woff2otf) {
       unitsPerEm,
       ascender,
       descender: firstNum(os2 && os2.sTypoDescender, hhea && hhea.descender, 0),
+      lineGap: firstNum(os2 && os2.sTypoLineGap, hhea && hhea.lineGap),
       forEachGlyph(text, fontSize, letterSpacing, callback) {
         let glyphX = 0
         const fontScale = 1 / fontObj.unitsPerEm * fontSize
