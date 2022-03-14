@@ -85,6 +85,8 @@ const atlases = Object.create(null)
  * @property {number} [caretHeight] - An appropriate height for all selection carets.
  * @property {number} ascender - The font's ascender metric.
  * @property {number} descender - The font's descender metric.
+ * @property {number} capHeight - The font's cap height metric, based on the height of Latin capital letters.
+ * @property {number} xHeight - The font's x height metric, based on the height of Latin lowercase letters.
  * @property {number} lineHeight - The final computed lineHeight measurement.
  * @property {number} topBaseline - The y position of the top line's baseline.
  * @property {Array<number>} blockBounds - The total [minX, minY, maxX, maxY] rect of the whole text block;
@@ -267,6 +269,8 @@ function getTextRenderInfo(args, callback) {
         ascender: result.ascender,
         descender: result.descender,
         lineHeight: result.lineHeight,
+        capHeight: result.capHeight,
+        xHeight: result.xHeight,
         topBaseline: result.topBaseline,
         blockBounds: result.blockBounds,
         visibleBounds: result.visibleBounds,

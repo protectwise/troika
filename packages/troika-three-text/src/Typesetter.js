@@ -11,6 +11,8 @@
  *     unitsPerEm: number,
  *     ascender: number,
  *     descender: number,
+ *     capHeight: number,
+ *     xHeight: number,
  *     lineGap: number,
  *     forEachGlyph(string, fontSize, letterSpacing, callback) {
  *       //invokes callback for each glyph to render, passing it an object:
@@ -170,7 +172,7 @@ export function createTypesetter(fontParser, bidi, config) {
       let maxLineWidth = 0
       let renderableGlyphCount = 0
       let canWrap = whiteSpace !== 'nowrap'
-      const {ascender, descender, unitsPerEm, lineGap} = fontObj
+      const {ascender, descender, unitsPerEm, lineGap, capHeight, xHeight} = fontObj
       timings.fontLoad = now() - mainStart
       const typesetStart = now()
 
@@ -531,6 +533,8 @@ export function createTypesetter(fontParser, bidi, config) {
         unitsPerEm, //font units per em
         ascender: ascender * fontSizeMult, //font ascender
         descender: descender * fontSizeMult, //font descender
+        capHeight: capHeight * fontSizeMult, //font cap-height
+        xHeight: xHeight * fontSizeMult, //font x-height
         lineHeight, //computed line height
         topBaseline, //y coordinate of the top line's baseline
         blockBounds: [ //bounds for the whole block of text, including vertical padding for lineHeight
