@@ -545,7 +545,7 @@ export function createTypesetter(fontParser, bidi, config) {
           anchorXOffset + maxLineWidth,
           anchorYOffset
         ],
-        visibleBounds, //total bounds of visible text paths, may be larger or smaller than totalBounds
+        visibleBounds, //total bounds of visible text paths, may be larger or smaller than blockBounds
         timings
       })
     })
