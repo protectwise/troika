@@ -1,6 +1,6 @@
 {
   "name": "troika-examples",
-  "version": "0.46.3",
+  "version": "0.46.4",
   "private": true,
   "description": "Troika Examples",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
@@ -26,8 +26,8 @@
     "three-line-2d": "^1.1.6",
     "troika-2d": "^0.46.0",
     "troika-3d": "^0.46.0",
-    "troika-3d-text": "^0.46.3",
-    "troika-3d-ui": "^0.46.3",
+    "troika-3d-text": "^0.46.4",
+    "troika-3d-ui": "^0.46.4",
     "troika-animation": "^0.46.0",
     "troika-core": "^0.46.0",
     "troika-three-utils": "^0.46.0",
