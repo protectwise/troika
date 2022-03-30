@@ -1,4 +1,4 @@
-import { Color, CanvasTexture, LinearFilter } from 'three'
+import { Color, Texture, LinearFilter } from 'three'
 import { defineWorkerModule, ThenableWorkerModule, Thenable } from 'troika-worker-utils'
 import { createTypesetter } from './Typesetter.js'
 import { generateSDF, warmUpSDFCanvas, resizeWebGLCanvasWithoutClearing } from './SDFGenerator.js'
@@ -64,6 +64,7 @@ function configureTextBuilder(config) {
  *       glyphCount: number,
  *       sdfGlyphSize: number,
  *       sdfTexture: Texture,
+ *       sdfCanvas: HTMLCanvasElement,
  *       contextLost: boolean,
  *       glyphsByFont: Map<fontURL, Map<glyphID, {path, atlasIndex, sdfViewBox}>>
  *     }
@@ -155,7 +156,8 @@ function getTextRenderInfo(args, callback) {
     atlas = atlases[sdfGlyphSize] = {
       glyphCount: 0,
       sdfGlyphSize,
-      sdfTexture: new CanvasTexture(
+      sdfCanvas: canvas,
+      sdfTexture: new Texture(
         canvas,
         undefined,
         undefined,
@@ -166,10 +168,11 @@ function getTextRenderInfo(args, callback) {
       contextLost: false,
       glyphsByFont: new Map()
     }
+    atlas.sdfTexture.generateMipmaps = false
     initContextLossHandling(atlas)
   }
 
-  const {sdfTexture} = atlas
+  const {sdfTexture, sdfCanvas} = atlas
   let fontGlyphs = atlas.glyphsByFont.get(args.font)
   if (!fontGlyphs) {
     atlas.glyphsByFont.set(args.font, fontGlyphs = new Map())
@@ -229,14 +232,14 @@ function getTextRenderInfo(args, callback) {
     timings.sdf = {}
 
     // Grow the texture height by power of 2 if needed
-    const currentHeight = sdfTexture.image.height
+    const currentHeight = sdfCanvas.height
     const neededRows = Math.ceil(atlas.glyphCount / glyphsPerRow)
     const neededHeight = Math.pow(2, Math.ceil(Math.log2(neededRows * sdfGlyphSize)))
     if (neededHeight > currentHeight) {
       // Since resizing the canvas clears its render buffer, it needs special handling to copy the old contents over
       console.info(`Increasing SDF texture size ${currentHeight}->${neededHeight}`)
-      resizeWebGLCanvasWithoutClearing(sdfTexture.image, textureWidth, neededHeight)
-      // As of Three r136 textures cannot be resized, we must recreate it
+      resizeWebGLCanvasWithoutClearing(sdfCanvas, textureWidth, neededHeight)
+      // As of Three r136 textures cannot be resized once they're allocated on the GPU, we must dispose to reallocate it
       sdfTexture.dispose()
     }
 
@@ -245,12 +248,13 @@ function getTextRenderInfo(args, callback) {
         timings.sdf[glyphInfo.atlasIndex] = timing
       })
     )).then(() => {
+      if (neededSDFs.length && !atlas.contextLost) {
+        safariPre15Workaround(atlas)
+        sdfTexture.needsUpdate = true
+      }
       timings.sdfTotal = now() - sdfStart
       timings.total = now() - totalStart
       // console.log(`SDF - ${timings.sdfTotal}, Total - ${timings.total - timings.fontLoad}`)
-      if (neededSDFs.length && !atlas.contextLost) {
-        sdfTexture.needsUpdate = true
-      }
 
       // Invoke callback with the text layout arrays and updated texture
       callback(Object.freeze({
@@ -289,12 +293,12 @@ function getTextRenderInfo(args, callback) {
   // a head start on that process before SDFs actually start getting processed.
   Thenable.all([]).then(() => {
     if (!atlas.contextLost) {
-      warmUpSDFCanvas(sdfTexture.image)
+      warmUpSDFCanvas(sdfCanvas)
     }
   })
 }
 
-function generateGlyphSDF({path, atlasIndex, sdfViewBox}, {sdfGlyphSize, sdfTexture, contextLost}, useGPU) {
+function generateGlyphSDF({path, atlasIndex, sdfViewBox}, {sdfGlyphSize, sdfCanvas, contextLost}, useGPU) {
   if (contextLost) {
     // If the context is lost there's nothing we can do, just quit silently and let it
     // get regenerated when the context is restored
@@ -306,11 +310,11 @@ function generateGlyphSDF({path, atlasIndex, sdfViewBox}, {sdfGlyphSize, sdfText
   const x = squareIndex % (textureWidth / sdfGlyphSize) * sdfGlyphSize
   const y = Math.floor(squareIndex / (textureWidth / sdfGlyphSize)) * sdfGlyphSize
   const channel = atlasIndex % 4
-  return generateSDF(sdfGlyphSize, sdfGlyphSize, path, sdfViewBox, maxDist, sdfExponent, sdfTexture.image, x, y, channel, useGPU)
+  return generateSDF(sdfGlyphSize, sdfGlyphSize, path, sdfViewBox, maxDist, sdfExponent, sdfCanvas, x, y, channel, useGPU)
 }
 
 function initContextLossHandling(atlas) {
-  const canvas = atlas.sdfTexture.image
+  const canvas = atlas.sdfCanvas
 
   /*
   // Begin context loss simulation
@@ -351,6 +355,7 @@ function initContextLossHandling(atlas) {
       })
     })
     Thenable.all(promises).then(() => {
+      safariPre15Workaround(atlas)
       atlas.sdfTexture.needsUpdate = true
     })
   })
@@ -396,6 +401,30 @@ function toAbsoluteURL(path) {
   }
   linkEl.href = path
   return linkEl.href
+}
+
+/**
+ * Safari < v15 seems unable to use the SDF webgl canvas as a texture. This applies a workaround
+ * where it reads the pixels out of that canvas and uploads them as a data texture instead, at
+ * a slight performance cost.
+ */
+function safariPre15Workaround(atlas) {
+  // Use createImageBitmap support as a proxy for Safari<15, all other mainstream browsers
+  // have supported it for a long while so any false positives should be minimal.
+  if (typeof createImageBitmap !== 'function') {
+    console.info('Safari<15: applying SDF canvas workaround')
+    const {sdfCanvas, sdfTexture} = atlas
+    const {width, height} = sdfCanvas
+    const gl = atlas.sdfCanvas.getContext('webgl')
+    let pixels = sdfTexture.image.data
+    if (!pixels || pixels.length !== width * height * 4) {
+      pixels = new Uint8Array(width * height * 4)
+      sdfTexture.image = {width, height, data: pixels}
+      sdfTexture.flipY = false
+      sdfTexture.isDataTexture = true
+    }
+    gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels)
+  }
 }
 
 
@@ -444,7 +473,7 @@ const typesetInWorker = /*#__PURE__*/defineWorkerModule({
 
 function dumpSDFTextures() {
   Object.keys(atlases).forEach(size => {
-    const canvas = atlases[size].sdfTexture.image
+    const canvas = atlases[size].sdfCanvas
     const {width, height} = canvas
     console.log("%c.", `
       background: url(${canvas.toDataURL()});
