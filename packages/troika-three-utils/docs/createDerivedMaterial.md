@@ -28,7 +28,7 @@ const customMaterial = createDerivedMaterial(
     // Add GLSL to tweak the vertex... notice this modifies the `position`
     // and `normal` attributes, which is normally not possible!
     vertexTransform: `
-      float waveAmplitude = 0.1
+      float waveAmplitude = 0.1;
       float waveX = uv.x * PI * 4.0 - mod(elapsed / 300.0, PI2);
       float waveZ = sin(waveX) * waveAmplitude;
       normal.xyz = normalize(vec3(-cos(waveX) * waveAmplitude, 0.0, 1.0));
