@@ -2,7 +2,7 @@ import {
   Float32BufferAttribute,
   BufferGeometry,
   PlaneGeometry,
-  InstancedGeometry,
+  InstancedBufferGeometry,
   InstancedBufferAttribute,
   Sphere,
   Box3,
