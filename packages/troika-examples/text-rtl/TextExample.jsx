@@ -6,7 +6,7 @@ import {
   MeshBasicMaterial,
   MeshStandardMaterial,
   TextureLoader,
-  PlaneBufferGeometry,
+  PlaneGeometry,
   Mesh,
   Color,
   DoubleSide
@@ -418,7 +418,7 @@ class TextExample extends React.Component {
 class ShadowSurface extends Object3DFacade {
   initThreeObject() {
     return new Mesh(
-      new PlaneBufferGeometry(),
+      new PlaneGeometry(),
       new MeshStandardMaterial({
         color: 0x333333,
         roughness: 0.8,

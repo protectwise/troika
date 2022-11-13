@@ -1,10 +1,10 @@
 import { Object3DFacade, createDerivedMaterial } from 'troika-3d'
 import { copyXRPoseToFacadeProps, TARGET_RAY_RENDERORDER } from '../XRUtils.js'
-import { Group, Mesh, MeshBasicMaterial, CylinderBufferGeometry } from 'three'
+import { Group, Mesh, MeshBasicMaterial, CylinderGeometry } from 'three'
 
 
 let getGeometry = () => {
-  const geometry = new CylinderBufferGeometry(1, 1, 1, 4, 1, false)
+  const geometry = new CylinderGeometry(1, 1, 1, 4, 1, false)
     .translate(0, 0.5, 0)
     .rotateY(Math.PI / 4)
     .rotateX(Math.PI / -2)

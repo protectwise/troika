@@ -1,4 +1,4 @@
-import {Mesh, ShaderMaterial, MeshStandardMaterial, BoxBufferGeometry, Color, Sphere, Vector3, DoubleSide} from 'three'
+import {Mesh, ShaderMaterial, MeshStandardMaterial, BoxGeometry, Color, Sphere, Vector3, DoubleSide} from 'three'
 import {Object3DFacade, createDerivedMaterial} from 'troika-3d'
 import arcVertexShader from './arcVertexShader.glsl'
 import arcFragmentShader from './arcFragmentShader.glsl'
@@ -6,7 +6,7 @@ import arcFragmentShader from './arcFragmentShader.glsl'
 const baseColor = new Color(0x3ba7db)
 const highlightColor = new Color(0xffffff)
 
-const baseGeometry = new BoxBufferGeometry(1, 1, 1, 8, 1, 1)
+const baseGeometry = new BoxGeometry(1, 1, 1, 8, 1, 1)
 
 const customShaderMaterial = new ShaderMaterial({
   uniforms: {

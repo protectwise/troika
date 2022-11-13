@@ -1,5 +1,5 @@
 import {
-  BoxBufferGeometry,
+  BoxGeometry,
   Mesh,
   MeshPhongMaterial,
   DoubleSide
@@ -11,7 +11,7 @@ import {
 
 const BOX_SIZE = 40
 
-const geometry = new BoxBufferGeometry(BOX_SIZE, BOX_SIZE, BOX_SIZE)
+const geometry = new BoxGeometry(BOX_SIZE, BOX_SIZE, BOX_SIZE)
 const material = new MeshPhongMaterial({
   color: 0x003300,
   opacity: 0.6,

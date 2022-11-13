@@ -1,5 +1,5 @@
 import {
-  SphereBufferGeometry,
+  SphereGeometry,
   Mesh,
   MeshPhongMaterial,
   Color,
@@ -11,7 +11,7 @@ import {
 
 
 // Common shared geometry
-const geometry = new SphereBufferGeometry(1)
+const geometry = new SphereGeometry(1)
 
 // Common shared material, declaring the diffuse color as an instanceable uniform
 let material = new MeshPhongMaterial()

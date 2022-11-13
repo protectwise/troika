@@ -1,8 +1,8 @@
 import {
   Float32BufferAttribute,
   BufferGeometry,
-  PlaneBufferGeometry,
-  InstancedBufferGeometry,
+  PlaneGeometry,
+  InstancedGeometry,
   InstancedBufferAttribute,
   Sphere,
   Box3,
@@ -20,7 +20,7 @@ const GlyphsGeometry = /*#__PURE__*/(() => {
       // appear as DoubleSide by default. FrontSide/BackSide are emulated using drawRange.
       // We do it this way to avoid the performance hit of two draw calls for DoubleSide materials
       // introduced by Three.js in r130 - see https://github.com/mrdoob/three.js/pull/21967
-      const front = new PlaneBufferGeometry(1, 1, detail, detail)
+      const front = new PlaneGeometry(1, 1, detail, detail)
       const back = front.clone()
       const frontAttrs = front.attributes
       const backAttrs = back.attributes

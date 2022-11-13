@@ -1,10 +1,10 @@
 import React from 'react'
-import {Group, Mesh, Line, BufferGeometry, BufferAttribute, CylinderBufferGeometry, MeshLambertMaterial, LineBasicMaterial, DoubleSide} from 'three'
+import {Group, Mesh, Line, BufferGeometry, BufferAttribute, CylinderGeometry, MeshLambertMaterial, LineBasicMaterial, DoubleSide} from 'three'
 import {Object3DFacade, HtmlOverlay3DFacade} from 'troika-3d'
 import Tooltip from './Tooltip.jsx'
 
 
-const wallsGeometry = new CylinderBufferGeometry(Math.sqrt(2) / 2, Math.sqrt(2) / 2, 1, 4, 1, true)
+const wallsGeometry = new CylinderGeometry(Math.sqrt(2) / 2, Math.sqrt(2) / 2, 1, 4, 1, true)
   .rotateY(Math.PI / 4)
   .rotateX(Math.PI / 2)
   .translate(0.5, 0.5, 0.5)

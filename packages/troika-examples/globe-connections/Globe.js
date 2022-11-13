@@ -8,7 +8,7 @@ import {
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
-  SphereBufferGeometry,
+  SphereGeometry,
   Vector3
 } from 'three'
 import geojson from './countries.geojson.json'
@@ -71,7 +71,7 @@ const positionAttr = new BufferAttribute(new Float32Array(lineSegmentPositions),
 countryBordersGeometry.setAttribute('position', positionAttr)
 countryBordersGeometry.setAttribute('normal', positionAttr) //positions are based off r=1 so they can be used directly as normals
 
-const sphereGeometry = new SphereBufferGeometry(1, 32, 24)
+const sphereGeometry = new SphereGeometry(1, 32, 24)
 const sphereMaterial = createDerivedMaterial(new MeshBasicMaterial({
   color: 0x6666ff,
   transparent: true,

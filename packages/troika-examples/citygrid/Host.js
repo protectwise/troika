@@ -1,4 +1,4 @@
-import {BoxBufferGeometry, MeshLambertMaterial, Color, Mesh, BufferGeometry, BufferAttribute} from 'three'
+import {BoxGeometry, MeshLambertMaterial, Color, Mesh, BufferGeometry, BufferAttribute} from 'three'
 import {Object3DFacade} from 'troika-3d'
 
 /*
@@ -20,7 +20,7 @@ hostGeometry.setAttribute('position', new BufferAttribute(new Float32Array([
   0,0,1, 1,0,1, 1,1,1
 ].map((n, i) => (i + 1) % 3 ? n - 0.5 : n)), 3))
 */
-const hostGeometry = new BoxBufferGeometry(1, 1, 1)
+const hostGeometry = new BoxGeometry(1, 1, 1)
 hostGeometry.translate(0, 0, .5)
 
 const hostMaterials = {

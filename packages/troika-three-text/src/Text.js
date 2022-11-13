@@ -5,7 +5,7 @@ import {
   Matrix4,
   Mesh,
   MeshBasicMaterial,
-  PlaneBufferGeometry,
+  PlaneGeometry,
   Vector3,
   Vector2,
 } from 'three'
@@ -35,7 +35,7 @@ const Text = /*#__PURE__*/(() => {
 
   let getFlatRaycastMesh = () => {
     const mesh = new Mesh(
-      new PlaneBufferGeometry(1, 1),
+      new PlaneGeometry(1, 1),
       defaultMaterial
     )
     getFlatRaycastMesh = () => mesh
@@ -43,7 +43,7 @@ const Text = /*#__PURE__*/(() => {
   }
   let getCurvedRaycastMesh = () => {
     const mesh = new Mesh(
-      new PlaneBufferGeometry(1, 1, 32, 1),
+      new PlaneGeometry(1, 1, 32, 1),
       defaultMaterial
     )
     getCurvedRaycastMesh = () => mesh

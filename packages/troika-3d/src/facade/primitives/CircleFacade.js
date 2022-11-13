@@ -1,5 +1,5 @@
 import { utils } from 'troika-core'
-import { CircleBufferGeometry, DoubleSide } from 'three'
+import { CircleGeometry, DoubleSide } from 'three'
 import { MeshFacade } from './MeshFacade.js'
 
 const geometries = Object.create(null, [
@@ -9,7 +9,7 @@ const geometries = Object.create(null, [
 ].reduce((descr, [name, segments]) => {
   descr[name] = {
     get: utils.memoize(() =>
-      new CircleBufferGeometry(1, segments).rotateX(-Math.PI / 2)
+      new CircleGeometry(1, segments).rotateX(-Math.PI / 2)
     )
   }
   return descr

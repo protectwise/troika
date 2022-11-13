@@ -1,6 +1,6 @@
 import {ListFacade} from 'troika-core'
 import {Object3DFacade} from 'troika-3d'
-import {Mesh, MeshPhongMaterial, SphereBufferGeometry, TextureLoader} from 'three'
+import {Mesh, MeshPhongMaterial, SphereGeometry, TextureLoader} from 'three'
 import Country from './Country'
 import geojson from './countries.geojson.json'
 
@@ -21,7 +21,7 @@ Object.keys(geojson).forEach(region => {
 class Earth extends Object3DFacade {
   constructor(parent) {
     let mesh = new Mesh(
-      new SphereBufferGeometry(.995, 64, 64),
+      new SphereGeometry(.995, 64, 64),
       new MeshPhongMaterial()
     )
     super(parent, mesh)
