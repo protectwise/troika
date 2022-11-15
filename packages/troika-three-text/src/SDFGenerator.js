@@ -3,7 +3,7 @@ import createSDFGenerator from 'webgl-sdf-generator'
 
 const now = () => (self.performance || Date).now()
 
-const mainThreadGenerator = createSDFGenerator()
+const mainThreadGenerator = /*#__PURE__*/ createSDFGenerator()
 
 let warned
 
