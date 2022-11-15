@@ -95,6 +95,14 @@ class GlyphsGeometry extends InstancedBufferGeometry {
     this.boundingBox = new Box3()
   }
 
+  // Compat for pre r109:
+  setAttribute(name, attribute) {
+    if (super.setAttribute) return super.setAttribute(name, attribute)
+
+    this.attributes[ name ] = attribute
+    return this
+  }
+
   computeBoundingSphere () {
     // No-op; we'll sync the boundingSphere proactively when needed.
   }
@@ -214,14 +222,6 @@ class GlyphsGeometry extends InstancedBufferGeometry {
       }
     }
     setInstanceCount(this, count)
-  }
-}
-
-// Compat for pre r109:
-if (!GlyphsGeometry.prototype.setAttribute) {
-  GlyphsGeometry.prototype.setAttribute = function(name, attribute) {
-    this.attributes[ name ] = attribute
-    return this
   }
 }
 
