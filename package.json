@@ -17,7 +17,6 @@
     "acorn": "^6.4.2",
     "babel-jest": "^26.6.3",
     "event-target-polyfill": "^0.0.3",
-    "gl": "^5.0.0",
     "husky": "^5.0.9",
     "jest": "^26.6.3",
     "lerna": "^4.0.0",
