@@ -1,8 +1,8 @@
 import { Instanceable3DFacade } from 'troika-3d'
-import { Color, Mesh, MeshBasicMaterial, PlaneBufferGeometry, Vector2, Vector4 } from 'three'
+import { Color, Mesh, MeshBasicMaterial, PlaneGeometry, Vector2, Vector4 } from 'three'
 import { createUIBlockLayerDerivedMaterial } from './UIBlockLayerDerivedMaterial.js'
 
-const geometry = new PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0)
+const geometry = new PlaneGeometry(1, 1).translate(0.5, -0.5, 0)
 const defaultMaterial = new MeshBasicMaterial({color: 0})
 const emptyVec2 = Object.freeze(new Vector2())
 const emptyVec4 = Object.freeze(new Vector4(0,0,0,0))

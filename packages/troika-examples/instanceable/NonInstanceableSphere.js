@@ -1,5 +1,5 @@
 import {
-  SphereBufferGeometry,
+  SphereGeometry,
   Mesh,
   MeshPhongMaterial, Color
 } from 'three'
@@ -9,7 +9,7 @@ import {
 
 
 // Common shared geometry
-const geometry = new SphereBufferGeometry(1)
+const geometry = new SphereGeometry(1)
 
 class NonInstanceableSphere extends Object3DFacade {
   initThreeObject() {

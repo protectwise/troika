@@ -1,5 +1,5 @@
 import {
-  SphereBufferGeometry,
+  SphereGeometry,
   Mesh,
   MeshPhongMaterial
 } from 'three'
@@ -18,7 +18,7 @@ for (let i = 0; i < LOD_COUNT; i++) {
   let segments = Math.round(MAX_SEGMENTS - i * (MAX_SEGMENTS - MIN_SEGMENTS) / (LOD_COUNT - 1))
   LOD_GEOMETRIES.push({
     distance: i * MAX_DISTANCE / (LOD_COUNT - 1),
-    geometry: new SphereBufferGeometry(1, segments, segments)
+    geometry: new SphereGeometry(1, segments, segments)
   })
 }
 

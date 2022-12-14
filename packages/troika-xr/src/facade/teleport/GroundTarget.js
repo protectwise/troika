@@ -1,4 +1,4 @@
-import { ExtrudeBufferGeometry, MeshLambertMaterial, Path, Shape } from 'three'
+import { ExtrudeGeometry, MeshLambertMaterial, Path, Shape } from 'three'
 import { MeshFacade } from 'troika-3d'
 
 const degreeToRad = Math.PI / 180
@@ -19,7 +19,7 @@ let getMarkerGeometry = function () {
       .lineTo(innerRadius, -innerRadius)
   ]
 
-  const geom = new ExtrudeBufferGeometry(shape, {
+  const geom = new ExtrudeGeometry(shape, {
     curveSegments: 64,
     depth,
     bevelEnabled: false

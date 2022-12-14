@@ -20,7 +20,7 @@
     "webgl-sdf-generator": "1.1.1"
   },
   "peerDependencies": {
-    "three": ">=0.103.0"
+    "three": ">=0.125.0"
   },
   "devDependencies": {
     "@fredli74/typr": "0.3.5",

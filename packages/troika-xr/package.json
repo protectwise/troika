@@ -20,6 +20,6 @@
     "troika-three-utils": "^0.46.0"
   },
   "peerDependencies": {
-    "three": ">=0.103.0"
+    "three": ">=0.125.0"
   }
 }

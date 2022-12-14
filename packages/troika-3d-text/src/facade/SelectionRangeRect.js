@@ -1,4 +1,4 @@
-import { BoxBufferGeometry, Color, Mesh, MeshBasicMaterial, Vector2, Vector4 } from 'three'
+import { BoxGeometry, Color, Mesh, MeshBasicMaterial, Vector2, Vector4 } from 'three'
 import {Instanceable3DFacade, createDerivedMaterial} from 'troika-3d'
 
 const tempVec4 = new Vector4()
@@ -35,11 +35,11 @@ if (rad != 0.0) {
   )
   const meshes = {
     normal: new Mesh(
-      new BoxBufferGeometry(1, 1, 1).translate(0.5, 0.5, 0.5),
+      new BoxGeometry(1, 1, 1).translate(0.5, 0.5, 0.5),
       material
     ),
     curved: new Mesh(
-      new BoxBufferGeometry(1, 1, 1, 32).translate(0.5, 0.5, 0.5),
+      new BoxGeometry(1, 1, 1, 32).translate(0.5, 0.5, 0.5),
       material
     )
   }

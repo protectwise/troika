@@ -1,8 +1,8 @@
 import { Object3DFacade } from 'troika-3d'
-import { Mesh, MeshStandardMaterial, CylinderBufferGeometry } from 'three'
+import { Mesh, MeshStandardMaterial, CylinderGeometry } from 'three'
 
 let getGeometry = () => {
-  const geometry = new CylinderBufferGeometry(0.03, 0.05, 0.1, 8)
+  const geometry = new CylinderGeometry(0.03, 0.05, 0.1, 8)
     .rotateX(Math.PI / -2)
     .translate(0, 0, 0.05)
   getGeometry = () => geometry

@@ -1,5 +1,5 @@
 import { utils } from 'troika-core'
-import { SphereBufferGeometry } from 'three'
+import { SphereGeometry } from 'three'
 import { MeshFacade } from './MeshFacade.js'
 
 const geometries = Object.create(null, [
@@ -8,7 +8,7 @@ const geometries = Object.create(null, [
   ['high', 64, 48]
 ].reduce((descr, [name, wSegs, hSegs]) => {
   descr[name] = {
-    get: utils.memoize(() => new SphereBufferGeometry(1, wSegs, hSegs))
+    get: utils.memoize(() => new SphereGeometry(1, wSegs, hSegs))
   }
   return descr
 }, {}))

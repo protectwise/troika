@@ -1,5 +1,5 @@
 import {
-  SphereBufferGeometry,
+  SphereGeometry,
   Mesh,
   MeshPhongMaterial
 } from 'three'
@@ -8,7 +8,7 @@ import {
 } from 'troika-3d'
 
 
-const geometry = new SphereBufferGeometry(1, 32, 32)
+const geometry = new SphereGeometry(1, 32, 32)
 const material = new MeshPhongMaterial({
   transparent: true
 })

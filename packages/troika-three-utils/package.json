@@ -14,6 +14,6 @@
   "module": "dist/troika-three-utils.esm.js",
   "module:src": "src/index.js",
   "peerDependencies": {
-    "three": ">=0.103.0"
+    "three": ">=0.125.0"
   }
 }

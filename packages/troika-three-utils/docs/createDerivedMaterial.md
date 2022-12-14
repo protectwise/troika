@@ -18,7 +18,7 @@ Here's a simple example that injects an auto-incrementing `elapsed` uniform hold
 
 ```js
 import { createDerivedMaterial} from 'troika-three-utils'
-import { Mesh, MeshStandardMaterial, PlaneBufferGeometry } from 'three'
+import { Mesh, MeshStandardMaterial, PlaneGeometry } from 'three'
 
 const baseMaterial = new MeshStandardMaterial({color: 0xffcc00})
 const customMaterial = createDerivedMaterial(
@@ -37,7 +37,7 @@ const customMaterial = createDerivedMaterial(
   }
 )
 const mesh = new Mesh(
-  new PlaneBufferGeometry(1, 1, 64, 1),
+  new PlaneGeometry(1, 1, 64, 1),
   customMaterial
 )
 

@@ -1,9 +1,9 @@
 import { extendAsFlexNode } from '../flex-layout/FlexNode.js'
-import { Mesh, MeshBasicMaterial, PlaneBufferGeometry, TextureLoader } from 'three'
+import { Mesh, MeshBasicMaterial, PlaneGeometry, TextureLoader } from 'three'
 import { Object3DFacade } from 'troika-3d'
 
 
-const geometry = new PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0)
+const geometry = new PlaneGeometry(1, 1).translate(0.5, -0.5, 0)
 const defaultMaterial = new MeshBasicMaterial()
 const loader = new TextureLoader()
 
