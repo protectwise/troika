@@ -1,7 +1,7 @@
-import { Mesh, MeshBasicMaterial, SphereBufferGeometry, Vector3, Quaternion } from 'three'
+import { Mesh, MeshBasicMaterial, SphereGeometry, Vector3, Quaternion } from 'three'
 import {Object3DFacade} from 'troika-3d'
 
-const cursorGeom = new SphereBufferGeometry()
+const cursorGeom = new SphereGeometry()
 const cursorMaterial = new MeshBasicMaterial({color: 0xffffff})
 const tempVec3 = new Vector3()
 const tempQuat = new Quaternion()

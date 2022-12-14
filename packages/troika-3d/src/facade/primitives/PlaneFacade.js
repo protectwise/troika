@@ -1,9 +1,9 @@
 import { utils } from 'troika-core'
-import { DoubleSide, PlaneBufferGeometry } from 'three'
+import { DoubleSide, PlaneGeometry } from 'three'
 import { MeshFacade } from './MeshFacade.js'
 
 const getGeometry = utils.memoize(() => {
-  return new PlaneBufferGeometry(1, 1, 1, 1).rotateX(-Math.PI / 2)
+  return new PlaneGeometry(1, 1, 1, 1).rotateX(-Math.PI / 2)
 })
 
 /**

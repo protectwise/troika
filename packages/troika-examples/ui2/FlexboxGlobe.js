@@ -1,6 +1,6 @@
 import { Object3DFacade, Group3DFacade } from 'troika-3d'
 import { extendAsFlexNode } from 'troika-3d-ui'
-import { Mesh, MeshStandardMaterial, SphereBufferGeometry } from 'three'
+import { Mesh, MeshStandardMaterial, SphereGeometry } from 'three'
 
 
 let geom
@@ -9,7 +9,7 @@ let geom
 class Globe extends Object3DFacade {
   initThreeObject() {
     return new Mesh(
-      geom || (geom = new SphereBufferGeometry(0.5, 64, 64)),
+      geom || (geom = new SphereGeometry(0.5, 64, 64)),
       new MeshStandardMaterial({
         roughness: 0.5,
         metalness: 0.5

@@ -1,4 +1,4 @@
-import { CylinderBufferGeometry, DoubleSide, Mesh, MeshStandardMaterial, Vector2, Vector3 } from 'three'
+import { CylinderGeometry, DoubleSide, Mesh, MeshStandardMaterial, Vector2, Vector3 } from 'three'
 import { createBezierMeshMaterial } from './BezierMeshMaterial.js'
 
 let geometry = null
@@ -36,7 +36,7 @@ const defaultBaseMaterial = /*#__PURE__*/new MeshStandardMaterial({color: 0xffff
 class BezierMesh extends Mesh {
   static getGeometry() {
     return geometry || (geometry =
-      new CylinderBufferGeometry(1, 1, 1, 6, 64).translate(0, 0.5, 0)
+      new CylinderGeometry(1, 1, 1, 6, 64).translate(0, 0.5, 0)
     )
   }
 

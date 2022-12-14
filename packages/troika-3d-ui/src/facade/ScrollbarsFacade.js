@@ -1,5 +1,5 @@
 import { Object3DFacade, ParentFacade } from 'troika-3d'
-import { CylinderBufferGeometry, Mesh, MeshBasicMaterial } from 'three'
+import { CylinderGeometry, Mesh, MeshBasicMaterial } from 'three'
 
 let barGeometry
 
@@ -8,7 +8,7 @@ class ScrollbarBarFacade extends Object3DFacade {
   constructor(parent) {
     const mesh = new Mesh(
       barGeometry || (barGeometry =
-        new CylinderBufferGeometry(0.5, 0.5, 1, 8).translate(0, -0.5, 0)
+        new CylinderGeometry(0.5, 0.5, 1, 8).translate(0, -0.5, 0)
       ),
       // TODO allow overriding material
       new MeshBasicMaterial({

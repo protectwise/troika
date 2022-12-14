@@ -2,12 +2,12 @@ import { Group3DFacade, Object3DFacade } from 'troika-3d'
 import {
   BackSide,
   Color,
-  CylinderBufferGeometry,
+  CylinderGeometry,
   Mesh,
   MeshBasicMaterial,
   Plane,
-  PlaneBufferGeometry,
-  SphereBufferGeometry,
+  PlaneGeometry,
+  SphereGeometry,
   Vector3
 } from 'three'
 import { createDerivedMaterial } from 'troika-three-utils'
@@ -72,7 +72,7 @@ function rgb2hsv (r, g, b) {
   return [h, s, v]
 }
 
-const cylinderGeometry = new CylinderBufferGeometry(0.5, 0.5, 1, 45)
+const cylinderGeometry = new CylinderGeometry(0.5, 0.5, 1, 45)
   .translate(0, 0.5, 0)
   .rotateX(Math.PI / 2)
   .rotateZ(Math.PI / 2) //orient uv
@@ -145,9 +145,9 @@ class HsvCylinderBg extends Object3DFacade {
 
 class ValueStick extends Object3DFacade {
   constructor (parent) {
-    const ballGeom = new SphereBufferGeometry(0.05, 16, 12)
+    const ballGeom = new SphereGeometry(0.05, 16, 12)
       .translate(0, 0, 0.5)
-    const stickGeom = new CylinderBufferGeometry(0.005, 0.005, 0.5, 6)
+    const stickGeom = new CylinderGeometry(0.005, 0.005, 0.5, 6)
       .translate(0, 0.25, 0).rotateX(Math.PI / 2)
 
     const material = new MeshBasicMaterial()
@@ -180,7 +180,7 @@ class ValuePlane extends Object3DFacade {
       `
     })
     super(parent, new Mesh(
-      new PlaneBufferGeometry(),
+      new PlaneGeometry(),
       material
     ))
   }

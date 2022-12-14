@@ -1,4 +1,4 @@
-import { Mesh, Vector2, Vector3, Vector4, PlaneBufferGeometry, Sphere, Matrix4, Plane } from 'three'
+import { Mesh, Vector2, Vector3, Vector4, PlaneGeometry, Sphere, Matrix4, Plane } from 'three'
 import { Group3DFacade } from 'troika-3d'
 import UITextNode3DFacade from './UITextNode3DFacade.js'
 import UIBlockLayer3DFacade from './UIBlockLayer3DFacade.js'
@@ -7,7 +7,7 @@ import { getComputedFontSize, getInheritable, INHERITABLES } from '../uiUtils.js
 import ScrollbarsFacade from './ScrollbarsFacade.js'
 import { invertMatrix4 } from 'troika-three-utils'
 
-const raycastMesh = new Mesh(new PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0))
+const raycastMesh = new Mesh(new PlaneGeometry(1, 1).translate(0.5, -0.5, 0))
 const tempMat4 = new Matrix4()
 const tempVec4 = new Vector4(0,0,0,0)
 const emptyVec4 = Object.freeze(new Vector4(0,0,0,0))

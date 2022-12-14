@@ -1,13 +1,13 @@
 import { utils } from 'troika-core'
-import { BoxBufferGeometry } from 'three'
+import { BoxGeometry } from 'three'
 import { MeshFacade } from './MeshFacade.js'
 
 /**
- * Return a singleton instance of a 1x1x1 BoxBufferGeometry
- * @type {function(): BoxBufferGeometry}
+ * Return a singleton instance of a 1x1x1 BoxGeometry
+ * @type {function(): BoxGeometry}
  */
 export const getBoxGeometry = utils.memoize(() => {
-  return new BoxBufferGeometry(1, 1, 1, 1, 1)
+  return new BoxGeometry(1, 1, 1, 1, 1)
 })
 
 

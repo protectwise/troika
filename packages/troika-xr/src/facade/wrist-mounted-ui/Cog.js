@@ -1,5 +1,5 @@
 import { utils } from 'troika-core'
-import { ExtrudeBufferGeometry, Shape, Path } from 'three'
+import { ExtrudeGeometry, Shape, Path } from 'three'
 import { MeshFacade } from 'troika-3d'
 
 const getCogGeometry = utils.memoize(() => {
@@ -25,7 +25,7 @@ const getCogGeometry = utils.memoize(() => {
   shape.holes.push(
     new Path().absellipse(0, 0, innerRadius, innerRadius, 0, twoPi, false)
   )
-  return new ExtrudeBufferGeometry(shape, {
+  return new ExtrudeGeometry(shape, {
     curveSegments: teeth * 2,
     depth: 0.005,
     bevelEnabled: false

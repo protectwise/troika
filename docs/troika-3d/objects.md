@@ -33,11 +33,11 @@ An example using `initThreeObject()`:
 
 ```js
 import { Object3DFacade } from 'troika-3d'
-import { Mesh, BoxBufferGeometry, MeshStandardMaterial } from 'three'
+import { Mesh, BoxGeometry, MeshStandardMaterial } from 'three'
 
 // It's often to define a singleton geometry instance that can be used
 // across all instances of this object type:
-const geometry = new BoxBufferGeometry()
+const geometry = new BoxGeometry()
 
 class MyObject extends Object3DFacade {
   initThreeObject() {

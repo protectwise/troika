@@ -1,5 +1,5 @@
 import {
-  SphereBufferGeometry,
+  SphereGeometry,
   Mesh,
   MeshPhongMaterial,
   Color,
@@ -14,7 +14,7 @@ import {
 
 
 // Common shared geometry
-const geometry = new SphereBufferGeometry(1)
+const geometry = new SphereGeometry(1)
 
 // Common shared material, implementing a custom `radius` uniform to use in place of
 // scaling the matrix, and declaring that and the diffuse color as instanceable uniforms.

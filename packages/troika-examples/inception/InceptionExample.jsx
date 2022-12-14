@@ -1,4 +1,4 @@
-import {BoxBufferGeometry, Mesh, MeshStandardMaterial, SphereBufferGeometry} from 'three'
+import {BoxGeometry, Mesh, MeshStandardMaterial, SphereGeometry} from 'three'
 import {World2DFacade} from 'troika-2d'
 import {makeWorldTextureProvider, Object3DFacade, Canvas3D, World3DFacade} from 'troika-3d'
 import {TwoDeeScene} from '../canvas2d/Canvas2DExample'
@@ -8,8 +8,8 @@ import {refreshArcsData} from '../arcs/arcsData'
 import { ExampleConfigurator } from '../_shared/ExampleConfigurator.js'
 
 
-const sphereGeom = new SphereBufferGeometry(0.5, 32, 32)
-const boxGeom = new BoxBufferGeometry(1, 1, 1)
+const sphereGeom = new SphereGeometry(0.5, 32, 32)
+const boxGeom = new BoxGeometry(1, 1, 1)
 
 class WorldTexturedSphere extends Object3DFacade {
   constructor(parent, subWorldTexture) {

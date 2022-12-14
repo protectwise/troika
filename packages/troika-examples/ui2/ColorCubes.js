@@ -1,12 +1,12 @@
 import { ListFacade } from 'troika-core'
 import { Group3DFacade, Instanceable3DFacade } from 'troika-3d'
 import { extendAsFlexNode } from 'troika-3d-ui'
-import { BoxBufferGeometry, Color, Mesh, MeshStandardMaterial } from 'three'
+import { BoxGeometry, Color, Mesh, MeshStandardMaterial } from 'three'
 
 
 const cubeMaterial = new MeshStandardMaterial({roughness: 0.7, metalness: 0.7})
 const cubeMesh = new Mesh(
-  new BoxBufferGeometry(1, 1, 1),
+  new BoxGeometry(1, 1, 1),
   cubeMaterial
 )
 class Cube extends Instanceable3DFacade {

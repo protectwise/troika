@@ -1,5 +1,5 @@
 import {
-  SphereBufferGeometry,
+  SphereGeometry,
   Mesh,
   MeshBasicMaterial
 } from 'three'
@@ -8,7 +8,7 @@ import {
 } from 'troika-3d'
 
 
-const geometry = new SphereBufferGeometry(.02, 16, 16)
+const geometry = new SphereGeometry(.02, 16, 16)
 const material = new MeshBasicMaterial({
   color: 0xffffff
 })

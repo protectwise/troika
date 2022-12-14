@@ -1,10 +1,10 @@
 import { utils } from 'troika-core'
-import { CylinderBufferGeometry, DoubleSide, Mesh, MeshStandardMaterial } from 'three'
+import { CylinderGeometry, DoubleSide, Mesh, MeshStandardMaterial } from 'three'
 import { Object3DFacade } from 'troika-3d'
 
 
 const getStrapGeometry = utils.memoize(() => {
-  return new CylinderBufferGeometry(
+  return new CylinderGeometry(
     1,
     1,
     1,

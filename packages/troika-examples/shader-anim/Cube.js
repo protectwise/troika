@@ -1,4 +1,4 @@
-import {ShaderMaterial, Mesh, BoxBufferGeometry, TextureLoader, RepeatWrapping} from 'three'
+import {ShaderMaterial, Mesh, BoxGeometry, TextureLoader, RepeatWrapping} from 'three'
 import {Object3DFacade} from 'troika-3d'
 
 
@@ -59,7 +59,7 @@ const waterUniforms = {
 class Cube extends Object3DFacade {
   initThreeObject() {
     return new Mesh(
-      new BoxBufferGeometry(100, 100, 100),
+      new BoxGeometry(100, 100, 100),
       new ShaderMaterial({
         uniforms: lavaUniforms,
         vertexShader: vertexShader,
