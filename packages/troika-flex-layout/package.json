@@ -18,7 +18,7 @@
     "troika-worker-utils": "^0.46.0"
   },
   "devDependencies": {
-    "terser": "^4.2.0",
+    "terser": "^5.14.2",
     "yoga-layout-prebuilt": "1.9.6"
   },
   "scripts": {
