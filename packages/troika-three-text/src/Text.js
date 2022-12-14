@@ -5,7 +5,7 @@ import {
   Matrix4,
   Mesh,
   MeshBasicMaterial,
-  PlaneBufferGeometry,
+  PlaneGeometry,
   Vector3,
   Vector2,
 } from 'three'
@@ -34,7 +34,7 @@ function first(o) {
 
 let getFlatRaycastMesh = () => {
   const mesh = new Mesh(
-    new PlaneBufferGeometry(1, 1),
+    new PlaneGeometry(1, 1),
     defaultMaterial
   )
   getFlatRaycastMesh = () => mesh
@@ -42,7 +42,7 @@ let getFlatRaycastMesh = () => {
 }
 let getCurvedRaycastMesh = () => {
   const mesh = new Mesh(
-    new PlaneBufferGeometry(1, 1, 32, 1),
+    new PlaneGeometry(1, 1, 32, 1),
     defaultMaterial
   )
   getCurvedRaycastMesh = () => mesh
