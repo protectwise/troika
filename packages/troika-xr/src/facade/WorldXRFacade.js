@@ -180,8 +180,10 @@ function parseFramebufferScaleFactor(value, xrSession) {
 function bindFramebuffer(renderer, framebuffer) {
   if (renderer.setFramebuffer) { //pre-r127
     renderer.setFramebuffer(framebuffer)
-  } else {
+  } else if (renderer.state.bindXRFramebuffer) {
     renderer.state.bindXRFramebuffer(framebuffer)
+  } else {
+    renderer.state.bindFramebuffer(framebuffer)
   }
 }
 

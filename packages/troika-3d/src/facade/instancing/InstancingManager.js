@@ -294,6 +294,7 @@ class InstancingManager extends Group3DFacade {
             // normally do for MeshDepthMaterial but it's needed by the instancing shader code. It does
             // for ShaderMaterials so we pretend to be one.
             depthMaterial.isShaderMaterial = true
+            depthMaterial.uniformsGroups = depthMaterial.uniformsGroups || [];
           }
           return depthMaterial
         }
@@ -306,6 +307,7 @@ class InstancingManager extends Group3DFacade {
             // normally do for MeshDistanceMaterial but it's needed by the instancing shader code. It does
             // for ShaderMaterials so we pretend to be one.
             distanceMaterial.isShaderMaterial = true
+            distanceMaterial.uniformsGroups = distanceMaterial.uniformsGroups || [];
 
             // Additionally, WebGLShadowMap.render() rotates a single camera 6 times per object, which fails
             // to trigger the code in WebGLRenderer.setProgram() that updates the viewMatrix uniform for

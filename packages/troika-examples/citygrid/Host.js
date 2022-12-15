@@ -1,4 +1,4 @@
-import {BoxGeometry, MeshLambertMaterial, Color, Mesh, BufferGeometry, BufferAttribute} from 'three'
+import {BoxGeometry, MeshLambertMaterial, Color, Mesh } from 'three'
 import {Object3DFacade} from 'troika-3d'
 
 /*

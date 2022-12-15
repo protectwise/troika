@@ -1,6 +1,4 @@
 import {
-  BufferAttribute,
-  BufferGeometry,
   Color,
   Mesh,
   ShaderMaterial,

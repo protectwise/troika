@@ -30,7 +30,7 @@ const material = new MeshPhongMaterial({
 
 export default class Sphere extends Object3DFacade {
   initThreeObject() {
-    return new Mesh(LOD_GEOMETRIES[0], material.clone())
+    return new Mesh(LOD_GEOMETRIES[0].geometry, material.clone())
   }
 
   afterUpdate() {

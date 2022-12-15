@@ -27,6 +27,8 @@ const refireableEvents = [
  * will work like any other facade config, and you'll need to set its `facade` property
  * to use either `World2DFacade` or `World3DFacade` as appropriate.
  *
+ * To use the generated texture, access `this.worldTexture`.
+ *
  * @param {Facade} WrappedFacadeClass
  * @return {Facade}
  */
@@ -34,9 +36,8 @@ export function makeWorldTextureProvider(WrappedFacadeClass) {
 
   return class WorldTextureProvider extends WrappedFacadeClass {
     constructor(parent) {
-      const texture = new CanvasTexture() //no canvas yet, will be added in first afterUpdate()
-      super(parent, texture)
-      this.worldTexture = texture
+      super(parent)
+      this.worldTexture = new CanvasTexture() //no canvas yet, will be added in first afterUpdate()
 
       // Wrap pointer events to both work as normal outer world events and also refire
       // in the inner world at their point on the surface texture
@@ -74,13 +75,11 @@ export function makeWorldTextureProvider(WrappedFacadeClass) {
           innerWorld.destructor()
         }
         if (newWorldConfig) {
-          // Replace the old canvas with a new one each time, since browsers will throw errors when
-          // changing canvas context types/options
           this.worldTexture.dispose()
           const canvas = document.createElement('canvas')
-          canvas.width = canvas.height = 2
-          this.worldTexture.image = canvas
-
+          canvas.width = newWorldConfig.width
+          canvas.height = newWorldConfig.height
+          this.worldTexture = new CanvasTexture(canvas)
           innerWorld = this._worldFacade = new newWorldConfig.facade(canvas)
 
           // Trigger texture update whenever the inner world is rerendered
@@ -94,7 +93,7 @@ export function makeWorldTextureProvider(WrappedFacadeClass) {
       // Update the inner world
       if (innerWorld) {
         innerWorld.renderingScheduler = this._getOuterWorld().renderingScheduler
-        utils.assign(innerWorld, newWorldConfig)
+        utils.assign(innerWorld, newWorldConfig, {pixelRatio: 1})
         innerWorld.afterUpdate()
       }
 

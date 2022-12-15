@@ -21,8 +21,13 @@ class Scene3DFacade extends Object3DFacade {
   initThreeObject() {
     const scene = new Scene()
     // We always manually update world matrices when needed - see Object3DFacade.updateMatrices() -
-    // so the additional autoUpdate pass done by threejs before render is not needed:
-    scene.autoUpdate = false
+    // so the additional auto-update pass done by threejs before render is not needed.
+    // The flag was renamed autoUpdate->matrixWorldAutoUpdate in r144
+    if ('matrixWorldAutoUpdate' in scene) {
+      scene.matrixWorldAutoUpdate = false
+    } else {
+      scene.autoUpdate = false
+    }
     return scene
   }
 

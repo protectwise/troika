@@ -12,29 +12,35 @@ const sphereGeom = new SphereGeometry(0.5, 32, 32)
 const boxGeom = new BoxGeometry(1, 1, 1)
 
 class WorldTexturedSphere extends Object3DFacade {
-  constructor(parent, subWorldTexture) {
+  constructor(parent) {
     super(parent, new Mesh(
       sphereGeom,
       new MeshStandardMaterial({
-        map: subWorldTexture,
         roughness: 0.5,
         metalness: 0.5
       })
     ))
   }
+  afterUpdate () {
+    this.threeObject.material.map = this.worldTexture
+    super.afterUpdate()
+  }
 }
 WorldTexturedSphere = makeWorldTextureProvider(WorldTexturedSphere)
 
 class WorldTexturedBox extends Object3DFacade {
-  constructor(parent, subWorldTexture) {
+  constructor(parent) {
     super(parent, new Mesh(
       boxGeom,
       new MeshStandardMaterial({
-        map: subWorldTexture,
         roughness: 0.5,
         metalness: 0.5
       })
     ))
+  }
+  afterUpdate () {
+    this.threeObject.material.map = this.worldTexture
+    super.afterUpdate()
   }
 }
 WorldTexturedBox = makeWorldTextureProvider(WorldTexturedBox)
