@@ -3,6 +3,34 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.47.0](https://github.com/protectwise/troika/compare/v0.46.3...v0.47.0) (2022-12-15)
+
+
+### Bug Fixes
+
+* add compatibility up to ThreeJS r127 ([03640a0](https://github.com/protectwise/troika/commit/03640a093e1b56049229420ff421317528bb583d))
+* **troika-three-text:** remove IIFEs for tree-shaking ([#224](https://github.com/protectwise/troika/issues/224)) ([2e688f0](https://github.com/protectwise/troika/commit/2e688f0248296fee46e16f58a5de7b963a4cb73b))
+* Remove incomplete ShaderFloatArray utility to fix build ([ddf712a](https://github.com/protectwise/troika/commit/ddf712af8e9ae164527dfe9cabcb2698eb809dc5))
+* **troika-three-text:** include lineGap value from the font in 'normal' line-height calculation ([c278118](https://github.com/protectwise/troika/commit/c2781182ad897a444f9502031a9626b703e85050))
+* **troika-three-text:** update Typr to fix doubled kerning in some fonts ([#196](https://github.com/protectwise/troika/issues/196)) ([1fab9a2](https://github.com/protectwise/troika/commit/1fab9a2ce739a1f26c36b737a499075a439f8980))
+* **troika-three-text:** use sTypoAscender/Descender from OS/2 font table if available ([f5c244c](https://github.com/protectwise/troika/commit/f5c244c92f9ede541b1206744aa1c7e1ff6711fc))
+* **troika-three-text:** work around Safari<15 bug using SDF canvas as a texture ([#199](https://github.com/protectwise/troika/issues/199)) ([fca9aae](https://github.com/protectwise/troika/commit/fca9aae20e7b67cbd7ac3669dd91257ec84f1997))
+
+
+### Features
+
+* raise three min version to r125 and fix BufferGeometry references ([#225](https://github.com/protectwise/troika/issues/225)) ([f2ef803](https://github.com/protectwise/troika/commit/f2ef803db7ab3d9d03de2719a2781c1c3f5122cf))
+* **three-instanced-uniforms-mesh:** add typescript definition file ([#217](https://github.com/protectwise/troika/issues/217)) ([cef3564](https://github.com/protectwise/troika/commit/cef3564441f86a79433b35124ac6063980295ab0))
+* **troika-three-text:** add 'top-cap' and 'top-ex' as keywords for anchorY ([#193](https://github.com/protectwise/troika/issues/193)) ([c6a10ae](https://github.com/protectwise/troika/commit/c6a10ae30837d26505d5614b8e15ab49f2ad4625))
+* **troika-three-text:** include capHeight and xHeight font metrics in textRenderInfo ([3459fd5](https://github.com/protectwise/troika/commit/3459fd540925d7aebad48c70c28e1e0a9b4195f0))
+* **troika-three-text:** remove deprecated totalBounds/totalBlockSize properties from textRenderInfo ([2b87308](https://github.com/protectwise/troika/commit/2b87308f8fd02552fb86fdcc81a8e949de8e5989))
+* remove custom Thenable polyfill in favor of native promises ([7af402e](https://github.com/protectwise/troika/commit/7af402e254675ca2fc182467a65d2d4f860845e4))
+* **troika-three-text:** remove long-deprecated `anchor` array property ([752e302](https://github.com/protectwise/troika/commit/752e3025cec4176aadaab2a3ca475b3fd49d572e))
+
+
+
+
+
 ## [0.46.3](https://github.com/protectwise/troika/compare/v0.46.2...v0.46.3) (2022-03-11)
 
 

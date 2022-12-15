@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.47.0](https://github.com/protectwise/troika/compare/v0.46.3...v0.47.0) (2022-12-15)
+
+
+### Bug Fixes
+
+* Remove incomplete ShaderFloatArray utility to fix build ([ddf712a](https://github.com/protectwise/troika/commit/ddf712af8e9ae164527dfe9cabcb2698eb809dc5))
+
+
+### Features
+
+* raise three min version to r125 and fix BufferGeometry references ([#225](https://github.com/protectwise/troika/issues/225)) ([f2ef803](https://github.com/protectwise/troika/commit/f2ef803db7ab3d9d03de2719a2781c1c3f5122cf))
+
+
+
+
+
 # [0.46.0](https://github.com/protectwise/troika/compare/v0.45.0...v0.46.0) (2022-03-05)
 
 **Note:** Version bump only for package troika-three-utils

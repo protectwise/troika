@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.47.0](https://github.com/protectwise/troika/compare/v0.46.3...v0.47.0) (2022-12-15)
+
+
+### Features
+
+* remove custom Thenable polyfill in favor of native promises ([7af402e](https://github.com/protectwise/troika/commit/7af402e254675ca2fc182467a65d2d4f860845e4))
+
+
+
+
+
 # [0.46.0](https://github.com/protectwise/troika/compare/v0.45.0...v0.46.0) (2022-03-05)
 
 **Note:** Version bump only for package troika-worker-utils
