@@ -124,8 +124,12 @@ export function createTypesetter(fontParser, bidi, config) {
    * loading those fonts when necessary, then group them into consecutive runs of characters sharing a font.
    * TODO: force whitespace characters to use the font of their preceding/surrounding characters?
    */
-  function calculateFontRuns(text, fontDefs, onDone) {
-    fontDefs = fontDefs.slice().reverse() // switch order for easier iteration
+  function calculateFontRuns(text, lang, fontDefs, onDone) {
+    fontDefs = fontDefs.slice()
+      // filter by language
+      .filter(def => !def.lang || def.lang.test(lang))
+      // switch order for easier iteration
+      .reverse()
     const fontsToLoad = new Set()
 
     // Array to store per-char font resolutions:
@@ -219,6 +223,7 @@ export function createTypesetter(fontParser, bidi, config) {
     {
       text='',
       font=defaultFontURL,
+      lang='en',
       sdfGlyphSize=64,
       fontSize=1,
       letterSpacing=0,
@@ -256,7 +261,7 @@ export function createTypesetter(fontParser, bidi, config) {
 
     const fontDefs = typeof font === 'string' ? [{src: font}] : font
 
-    calculateFontRuns(text, fontDefs, runs => {
+    calculateFontRuns(text, lang, fontDefs, runs => {
       timings.fontLoad = now() - mainStart
       const hasMaxWidth = isFinite(maxWidth)
       let glyphIds = null

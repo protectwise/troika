@@ -55,6 +55,7 @@ const syncCompleteEvent = { type: 'synccomplete' }
 const SYNCABLE_PROPS = [
   'font',
   'fontSize',
+  'lang',
   'letterSpacing',
   'lineHeight',
   'maxWidth',
@@ -151,6 +152,12 @@ class Text extends Mesh {
     this.fontSize = 0.1
 
     /**
+     * @member {string} lang
+     * The language code of this text; can be used for font selection.
+     */
+    this.lang = 'en'
+
+      /**
      * @member {number} letterSpacing
      * Sets a uniform adjustment to spacing between letters after kerning is applied. Positive
      * numbers increase spacing and negative numbers decrease it.
@@ -399,6 +406,7 @@ class Text extends Mesh {
         getTextRenderInfo({
           text: this.text,
           font: this.font,
+          lang: this.lang,
           fontSize: this.fontSize || 0.1,
           letterSpacing: this.letterSpacing || 0,
           lineHeight: this.lineHeight || 'normal',

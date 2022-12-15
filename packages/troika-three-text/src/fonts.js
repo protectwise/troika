@@ -1,5 +1,8 @@
 const prefix = 'https://fonts.gstatic.com/s/'
 
+// CJK unified ranges: https://www.unicode.org/versions/Unicode14.0.0/ch18.pdf Table 18-1
+const cjkRange = 'U+4E00-9FFF,U+3400-4DBF,U+20000-2EBEF,U+30000-3134F,U+F900-FAFF,U+2F800-2FA1F';
+
 /**
  * A set of Google-hosted fonts by unicode range that will serve as defaults for when a user-defined
  * font is not supplied or does not support certain characters in the user's text.
@@ -8,6 +11,42 @@ export const fallbackFonts = [
   {
     label: 'catchall',
     src: `${prefix}roboto/v29/KFOmCnqEu92Fr1Mu4mxMKTU1Kg.woff`,
+  },
+  {
+    label: 'chinese-simplified',
+    lang: /^(?!ja|ko)/, // fallback if a more specific cjk lang was not specified
+    src: `${prefix}notosanssc/v25/k3kXo84MPvpLmixcA63oeALhKg.woff`,
+    unicodeRange: cjkRange,
+  },
+  {
+    label: 'cjk-chinese-traditional',
+    lang: /^zh-Hant$/,
+    src: `${prefix}notosanstc/v25/-nF7OG829Oofr2wohFbTp9iFPA.woff`,
+    unicodeRange: cjkRange,
+  },
+  {
+    label: 'cjk-japanese',
+    lang: /^ja/,
+    src: `${prefix}notosansjp/v41/-F62fjtqLzI2JPCgQBnw7HFoxQ.woff`,
+    unicodeRange: cjkRange,
+  },
+  {
+    label: 'japanese-hiragama',
+    // future: langHint: 'ja',
+    src: `${prefix}notosansjp/v41/-F62fjtqLzI2JPCgQBnw7HFoxQ.woff`,
+    unicodeRange: 'U+3040-309F',
+  },
+  {
+    label: 'cjk-korean',
+    lang: /^ko/,
+    src: `${prefix}notosanskr/v26/PbykFmXiEBPT4ITbgNA5Cgm21Q.woff`,
+    unicodeRange: cjkRange,
+  },
+  {
+    label: 'korean-hangul',
+    // future: langHint: 'ko',
+    src: `${prefix}notosanskr/v26/PbykFmXiEBPT4ITbgNA5Cgm21Q.woff`,
+    unicodeRange: 'U+AC00-D7AF',
   },
   {
     label: 'arabic',
