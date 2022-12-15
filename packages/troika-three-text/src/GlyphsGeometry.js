@@ -95,14 +95,6 @@ class GlyphsGeometry extends InstancedBufferGeometry {
     this.boundingBox = new Box3()
   }
 
-  // Compat for pre r109:
-  setAttribute(name, attribute) {
-    if (super.setAttribute) return super.setAttribute(name, attribute)
-
-    this.attributes[ name ] = attribute
-    return this
-  }
-
   computeBoundingSphere () {
     // No-op; we'll sync the boundingSphere proactively when needed.
   }
@@ -164,7 +156,7 @@ class GlyphsGeometry extends InstancedBufferGeometry {
     updateBufferAttr(this, glyphColorAttrName, glyphColors, 3)
     this._blockBounds = blockBounds
     this._chunkedBounds = chunkedBounds
-    setInstanceCount(this, glyphAtlasIndices.length)
+    this.instanceCount = glyphAtlasIndices.length
     this._updateBounds()
   }
 
@@ -221,7 +213,7 @@ class GlyphsGeometry extends InstancedBufferGeometry {
         }
       }
     }
-    setInstanceCount(this, count)
+    this.instanceCount = count
   }
 }
 
@@ -248,12 +240,6 @@ function updateBufferAttr(geom, attrName, newArray, itemSize) {
     geom.deleteAttribute(attrName)
   }
 }
-
-// Handle maxInstancedCount -> instanceCount rename that happened in three r117
-function setInstanceCount(geom, count) {
-  geom[geom.hasOwnProperty('instanceCount') ? 'instanceCount' : 'maxInstancedCount'] = count
-}
-
 
 export {
   GlyphsGeometry
