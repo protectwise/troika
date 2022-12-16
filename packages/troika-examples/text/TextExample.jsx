@@ -53,8 +53,8 @@ Abraham Lincoln
 November 19, 1863`,
   'ABC123': 'abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ !"§ $%& /() =?* \'<> #|; ²³~ @`´ ©«» ¤¼× {} abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ !"§ $%& /() =?* \'<> #|; ²³~ @`´ ©«» ¤¼× {} abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ !"§ $%& /() =?* \'<> #|; ²³~ @`´ ©«» ¤¼× {} abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ !"§ $%& /() =?* \'<> #|; ²³~ @`´ ©«» ¤¼× {} abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ !"§ $%& /() =?* \'<> #|; ²³~ @`´ ©«» ¤¼× {} abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ !"§ $%& /() =?* \'<> #|; ²³~ @`´ ©«» ¤¼× {}',
 
-  // TODO bring back custom text, but need to figure it out for XR:
-  // [CUSTOM_LBL]: 'Edit me!'
+  // TODO fix in XR:
+  [CUSTOM_LBL]: 'Edit me!'
 }
 
 const TEXTURE = new TextureLoader().load('shader-anim/lava.jpg')
@@ -340,6 +340,17 @@ class TextExample extends React.Component {
             }
           ] }
         />
+
+        { state.text === CUSTOM_LBL ? (
+          <textarea
+            style={{position:'absolute', left:280, top:0, width:300, height: 120, fontFamily: 'serif'}}
+            value={TEXTS[CUSTOM_LBL]}
+            onChange={e => {
+              TEXTS[CUSTOM_LBL] = e.target.value
+              this.forceUpdate()
+            }}
+          />
+        ) : null }
 
         {/*<DatGui data={state} onUpdate={this._onConfigUpdate}>
           <DatSelect path='text' options={Object.keys(TEXTS)} />

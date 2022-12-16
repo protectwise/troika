@@ -13,6 +13,11 @@ export const fallbackFonts = [
     src: `${prefix}roboto/v29/KFOmCnqEu92Fr1Mu4mxMKTU1Kg.woff`,
   },
   {
+    label: 'emoji',
+    src: `${prefix}notoemoji/v34/bMrnmSyK7YY-MEu6aWjPDs-ar6uWaGWuob-r0jws.woff`,
+    unicodeRange: 'U+1f004,U+1f0cf,U+1f170-1f19a,U+1f1e6-1f202,U+1f21a,U+1f22f-1f23a,U+1f250-1f251,U+1f300-1f64f,U+1f680-1f6fc,U+1f7e0-1f7f0,U+1f90c-1f9ff,U+1fa70-1faf8,U+e0062-e007f'
+  },
+  {
     label: 'chinese-simplified',
     lang: /^(?!ja|ko)/, // fallback if a more specific cjk lang was not specified
     src: `${prefix}notosanssc/v25/k3kXo84MPvpLmixcA63oeALhKg.woff`,
