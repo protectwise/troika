@@ -482,6 +482,11 @@ test('Allows React elements to be used as children descriptors', () => {
       React.createElement(Sub, {key: 'a.a', val: 'a.a'}),
       React.createElement(Sub, {key: 'a.b', val: 'a.b'})
     ]),
+    <Sub key="b" val="b">
+      <Sub key="b.a" val="b.a" />
+      <Sub key="b.b" val="b.b" />
+      <Sub key="b.c" val="b.c" />
+    </Sub>,
     {key: 'c', facade: Sub, val: 'c', children: [
       {facade: Sub, val: 'c.a'},
       {facade: Sub, val: 'c.b'}

@@ -1,4 +1,4 @@
-/*global require,global*/
+/*global require,global,_testDataBucket*/
 
 require('./_jsdom-worker.js')
 const {defineWorkerModule} = require('../src/WorkerModules.js')
@@ -62,12 +62,12 @@ describe('calling the module function', () => {
   test('invokes (a clone of) the init function', function() {
     const moduleFn = defineWorkerModule({
       init: function() {
-        global._testDataBucket.initWasCalled = true
+        _testDataBucket.initWasCalled = true
         return function() {}
       }
     })
     return moduleFn().then(() => {
-      expect(global._testDataBucket.initWasCalled).toBe(true)
+      expect(_testDataBucket.initWasCalled).toBe(true)
     })
   })
 
@@ -75,13 +75,13 @@ describe('calling the module function', () => {
     const moduleFn = defineWorkerModule({
       init: function() {
         return function() {
-          global._testDataBucket.initReturnFnWasCalled = true
+          _testDataBucket.initReturnFnWasCalled = true
           return 'this is the return value'
         }
       }
     })
     return moduleFn().then((result) => {
-      expect(global._testDataBucket.initReturnFnWasCalled).toBe(true)
+      expect(_testDataBucket.initReturnFnWasCalled).toBe(true)
       expect(result).toEqual('this is the return value')
     })
   })
@@ -137,10 +137,10 @@ describe('dependencies', () => {
     const moduleFn = defineWorkerModule({
       dependencies: [
         function() {
-          global._testDataBucket.firstDepFnCalled = true
+          _testDataBucket.firstDepFnCalled = true
         },
         function(arg1, arg2) {
-          global._testDataBucket.secondDepFnArgs = [arg1, arg2]
+          _testDataBucket.secondDepFnArgs = [arg1, arg2]
         }
       ],
       init: function(dep1, dep2) {
@@ -152,8 +152,8 @@ describe('dependencies', () => {
       }
     })
     return moduleFn().then(() => {
-      expect(global._testDataBucket.firstDepFnCalled).toBe(true)
-      expect(global._testDataBucket.secondDepFnArgs).toEqual(['hey', 'jude'])
+      expect(_testDataBucket.firstDepFnCalled).toBe(true)
+      expect(_testDataBucket.secondDepFnArgs).toEqual(['hey', 'jude'])
     })
   })
 
@@ -201,26 +201,26 @@ describe('dependencies', () => {
 
 describe('getTransferables', () => {
   test('is called before result is sent to main thread', () => {
-    global._testDataBucket.callOrder = []
+    _testDataBucket.callOrder = []
 
     const moduleFn = defineWorkerModule({
       init: function() {
-        global._testDataBucket.callOrder.push('init')
+        _testDataBucket.callOrder.push('init')
         return function() {
-          global._testDataBucket.callOrder.push('module')
+          _testDataBucket.callOrder.push('module')
           return {data: new Uint8Array(32)}
         }
       },
       getTransferables: function (result) {
-        global._testDataBucket.callOrder.push('getTransferables')
+        _testDataBucket.callOrder.push('getTransferables')
         return result.data
       }
     })
 
     return moduleFn().then(() => {
-      global._testDataBucket.callOrder.push('response')
+      _testDataBucket.callOrder.push('response')
     }).then(() => {
-      expect(global._testDataBucket.callOrder).toEqual(['init', 'module', 'getTransferables', 'response'])
+      expect(_testDataBucket.callOrder).toEqual(['init', 'module', 'getTransferables', 'response'])
     })
   })
 
@@ -232,13 +232,13 @@ describe('getTransferables', () => {
         }
       },
       getTransferables: function (result) {
-        global._testDataBucket.getTransferablesParam = result
+        _testDataBucket.getTransferablesParam = result
         return result.data
       }
     })
 
     return moduleFn().then(() => {
-      expect(global._testDataBucket.getTransferablesParam).toEqual({data: expect.any(Uint8Array)})
+      expect(_testDataBucket.getTransferablesParam).toEqual({data: expect.any(Uint8Array)})
     })
   })
 
@@ -254,7 +254,7 @@ describe('getTransferables', () => {
         const _origPostMessage = postMessage
         // eslint-disable-next-line no-global-assign
         postMessage = function(e, transferList) {
-          global._testDataBucket.postMessageTransferList = transferList
+          _testDataBucket.postMessageTransferList = transferList
           _origPostMessage(e)
         }
 
@@ -268,7 +268,7 @@ describe('getTransferables', () => {
     })
 
     return moduleFn().then(() => {
-      expect(global._testDataBucket.postMessageTransferList).toEqual([expect.any(Uint8Array)])
+      expect(_testDataBucket.postMessageTransferList).toEqual([expect.any(Uint8Array)])
     })
   })
 })
