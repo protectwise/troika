@@ -46,6 +46,7 @@ export function createTypesetter(fontParser, bidi, config) {
   const INF = Infinity
 
   // Set of Unicode Default_Ignorable_Code_Point characters, these will not produce visible glyphs
+  // eslint-disable-next-line no-misleading-character-class
   const DEFAULT_IGNORABLE_CHARS = /[\u00AD\u034F\u061C\u115F-\u1160\u17B4-\u17B5\u180B-\u180E\u200B-\u200F\u202A-\u202E\u2060-\u206F\u3164\uFE00-\uFE0F\uFEFF\uFFA0\uFFF0-\uFFF8]/
 
   // This regex (instead of /\s/) allows us to select all whitespace EXCEPT for non-breaking white spaces

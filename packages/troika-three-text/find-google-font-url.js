@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+/* eslint-disable */
+
 // Utility for finding the public URL for a font hosted on Google Fonts. Takes the font
 // family name and returns the URL to its .woff file.
 

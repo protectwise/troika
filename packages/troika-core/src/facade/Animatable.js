@@ -166,7 +166,7 @@ export const extendAsAnimatable = createClassExtender('animatable', function(Bas
                     iterations = animDesc[key]; break
                   case 'direction':
                     direction = animDesc[key]; break
-                  default:
+                  default: {
                     let percent = key === 'from' ? 0 : key === 'to' ? 100 : parseFloat(key)
                     if (!isNaN(percent) && percent >= 0 && percent <= 100) {
                       keyframes.push({time: percent / 100, props: animDesc[key]})
@@ -183,6 +183,7 @@ export const extendAsAnimatable = createClassExtender('animatable', function(Bas
                         }
                       }
                     }
+                  }
                 }
               }
             }

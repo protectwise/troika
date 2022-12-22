@@ -86,7 +86,7 @@ class BezierMesh extends Mesh {
     return this.material.getDistanceMaterial()
   }
 
-  onBeforeRender(shaderInfo) {
+  onBeforeRender() {
     const {uniforms} = this.material
     const {pointA, controlA, controlB, pointB, radius, dashArray, dashOffset} = this
     uniforms.pointA.value.copy(pointA)
@@ -97,7 +97,7 @@ class BezierMesh extends Mesh {
     uniforms.dashing.value.set(dashArray.x, dashArray.y, dashOffset || 0)
   }
 
-  raycast(raycaster, intersects) {
+  raycast(/*raycaster, intersects*/) {
     // TODO - just fail for now
   }
 }

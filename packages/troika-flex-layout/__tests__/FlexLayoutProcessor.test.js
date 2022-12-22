@@ -1,3 +1,5 @@
+/*global require*/
+
 // NOTE: I couldn't get the jsdom worker impl to work in this context, so for now
 // it will just fall through to main-thread execution
 // require('../../troika-worker-utils/__tests__/_jsdom-worker.js')

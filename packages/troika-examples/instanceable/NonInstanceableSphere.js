@@ -1,7 +1,7 @@
 import {
   SphereGeometry,
   Mesh,
-  MeshPhongMaterial, Color
+  MeshPhongMaterial
 } from 'three'
 import {
   Object3DFacade

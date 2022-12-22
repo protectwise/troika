@@ -3,7 +3,6 @@ import {
   BufferGeometry,
   Line,
   LineBasicMaterial,
-  Vector3
 } from 'three'
 import {
   Object3DFacade

@@ -10,7 +10,7 @@ const assign = Object.assign || function(/*target, ...sources*/) {
     let source = arguments[i]
     if (source) {
       for (let prop in source) {
-        if (source.hasOwnProperty(prop)) {
+        if (Object.prototype.hasOwnProperty.call(source, prop)) {
           target[prop] = source[prop]
         }
       }

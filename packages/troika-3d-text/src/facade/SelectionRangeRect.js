@@ -3,7 +3,7 @@ import {Instanceable3DFacade, createDerivedMaterial} from 'troika-3d'
 
 const tempVec4 = new Vector4()
 
-function getMeshes() {
+let getMeshes = function() {
   let material = createDerivedMaterial(
     new MeshBasicMaterial({
       transparent: true,

@@ -1,5 +1,5 @@
 import { createDerivedMaterial } from './DerivedMaterial.js'
-import { Vector2, Vector3 } from 'three'
+import { Vector3 } from 'three'
 
 /*
 Input geometry is a cylinder with r=1, height in y dimension from 0 to 1,

@@ -10,7 +10,7 @@ const noop = () => {}
  * directly, but will be created as an implicit child by {@link UIBlock3DFacade} when
  * configured with a `text` property.
  */
-class UITextNode3DFacade extends Text3DFacade {
+class UITextNode3DFacadeBase extends Text3DFacade {
   constructor (props) {
     super(props)
 
@@ -72,7 +72,7 @@ class UITextNode3DFacade extends Text3DFacade {
 }
 
 // Extend as FlexNode
-UITextNode3DFacade = extendAsFlexNode(UITextNode3DFacade)
+const UITextNode3DFacade = extendAsFlexNode(UITextNode3DFacadeBase)
 
 INHERITABLES.forEach(prop => {
   UITextNode3DFacade.prototype[prop] = 'inherit'

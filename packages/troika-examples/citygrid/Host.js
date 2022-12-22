@@ -44,6 +44,7 @@ const highlightMaterial = new MeshLambertMaterial({
   color: 0x3ba7db
 })
 
+/*
 const threatColors = {
   None: new Color(0xcccccc).getStyle(),
   Low: new Color(0xdbbb47).getStyle(),
@@ -58,6 +59,7 @@ const threatColors = {
   // Medium: '#ff8100',
   // High: '#ff0000'
 }
+*/
 
 
 class Host extends Object3DFacade {

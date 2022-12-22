@@ -1,3 +1,5 @@
+/*global XRRigidTransform*/
+
 import { Matrix4, PerspectiveCamera, Quaternion, Vector3, Vector4 } from 'three'
 import { PerspectiveCamera3DFacade } from 'troika-3d'
 import { utils } from 'troika-core'
@@ -36,7 +38,7 @@ const doExtendAsXRCamera = utils.createClassExtender('xrCamera', function (BaseC
     }
 
     afterUpdate () {
-      const { near, far, xrSession, xrReferenceSpace, threeObject } = this
+      const { near, far, xrSession } = this
 
       // Update near/far planes
       const { depthNear, depthFar } = xrSession.renderState

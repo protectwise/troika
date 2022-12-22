@@ -1,3 +1,5 @@
+/*global XRWebGLLayer*/
+
 import { World3DFacade } from 'troika-3d'
 import { setAnimationScheduler } from 'troika-animation'
 import { XRInputSourceManager } from './XRInputSourceManager.js'

@@ -48,7 +48,7 @@ const MODEL_PARAMS = {
 
 // TODO define mapping here that will allow us to pass in a set of active button
 //  ids and highlight their corresponding meshes when pressed...
-const buttonIdsToMeshNames = {}
+// const buttonIdsToMeshNames = {}
 
 class OculusTouchGrip extends GLTFFacade {
   /**

@@ -443,7 +443,7 @@ class BatchGeometryPool {
           try {
             // can throw if it's already been disposed or hasn't yet been rendered
             geometries[i].dispose()
-          } catch(e) {}
+          } catch(e) { /* empty */ }
           geometries[i]._instanceAttrs = null
         }
         geometries.length = firstFree

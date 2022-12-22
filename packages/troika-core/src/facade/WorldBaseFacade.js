@@ -185,7 +185,7 @@ class WorldBaseFacade extends ParentFacade {
   /**
    * @abstract
    */
-  getFacadeUserSpaceXYZ(facade) {
+  getFacadeUserSpaceXYZ(/*facade*/) {
   }
 
   _doRenderHtmlItems() {

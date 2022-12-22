@@ -3,7 +3,6 @@ import {
   Mesh,
   MeshPhongMaterial,
   Color,
-  ShaderLib,
   Vector3
 } from 'three'
 import {

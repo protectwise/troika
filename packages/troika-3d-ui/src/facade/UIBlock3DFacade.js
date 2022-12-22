@@ -29,7 +29,7 @@ const groupVisiblePropDef = {
  * can contain text, be styled with background/border, and participate in flexbox layout.
  * Its behavior and styling is very much like an HTML element using flexbox.
  */
-class UIBlock3DFacade extends Group3DFacade {
+class UIBlock3DFacadeBase extends Group3DFacade {
   constructor(parent) {
     super(parent)
 
@@ -231,7 +231,7 @@ class UIBlock3DFacade extends Group3DFacade {
               for (; i < len; i++) { //continue from here
                 if (isTextNodeChild(children[i])) {
                   children[i] = {
-                    facade: UIBlock3DFacade$FlexNode,
+                    facade: UIBlock3DFacade,
                     text: '' + children[i],
                     textMaterial: this.textMaterial
                   }
@@ -376,7 +376,7 @@ class UIBlock3DFacade extends Group3DFacade {
 }
 
 // Extend as FlexNode
-const UIBlock3DFacade$FlexNode = UIBlock3DFacade = extendAsFlexNode(UIBlock3DFacade)
+const UIBlock3DFacade = extendAsFlexNode(UIBlock3DFacadeBase)
 
 INHERITABLES.forEach(prop => {
   UIBlock3DFacade.prototype[prop] = 'inherit'

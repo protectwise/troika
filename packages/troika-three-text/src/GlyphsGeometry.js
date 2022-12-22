@@ -29,7 +29,7 @@ function getTemplateGeometry(detail) {
       backAttrs.position.array[i * 3] *= -1 // flip position x
       backAttrs.normal.array[i * 3 + 2] *= -1 // flip normal z
     }
-    ;['position', 'normal', 'uv'].forEach(name => {
+    ['position', 'normal', 'uv'].forEach(name => {
       combined.setAttribute(name, new Float32BufferAttribute(
         [...frontAttrs[name].array, ...backAttrs[name].array],
         frontAttrs[name].itemSize)

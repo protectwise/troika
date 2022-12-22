@@ -4,7 +4,7 @@ import Scene3DFacade from './Scene3DFacade.js'
 import {PerspectiveCamera3DFacade} from './Camera3DFacade.js'
 import {BoundingSphereOctree} from '../BoundingSphereOctree.js'
 
-const { assign, assignIf } = utils
+const { assign } = utils
 const tmpVec2 = new Vector2()
 const tmpVec3 = new Vector3()
 const raycaster = new Raycaster()

@@ -1,6 +1,6 @@
 import { Group3DFacade, Object3DFacade } from 'troika-3d'
 import { Facade, utils } from 'troika-core'
-import { Matrix4, Ray } from 'three'
+import { Ray } from 'three'
 import CursorFacade from './CursorFacade.js'
 import TargetRayFacade from './TargetRayFacade.js'
 import GripFacade from './GripFacade.js'
@@ -32,8 +32,6 @@ function toggleEvents (target, on, eventTypes, handler) {
     })
   }
 }
-
-const tempMat4 = new Matrix4()
 
 /**
  * Controls the behavior and visual representation of a single XRInputSource.

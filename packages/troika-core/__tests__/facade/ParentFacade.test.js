@@ -44,7 +44,7 @@ describe('afterUpdate', () => {
     const inst = new ParentFacade()
     inst.shouldUpdateChildren = () => false
     inst.updateChildren = jest.fn()
-    const children = inst.children = []
+    inst.children = []
     inst.afterUpdate()
     expect(inst.updateChildren).not.toHaveBeenCalled()
   })
@@ -204,12 +204,10 @@ describe('updateChildren', () => {
       expect(lastChildInstance).toEqual(expect.objectContaining({one: 2, two: false}))
     })
     test('When a child with a given `key` goes away, its facade is destroyed', () => {
-      let lastChildInstance
       const destructorSpy = jest.fn()
       class Sub extends Facade {
         constructor(parent) {
           super(parent)
-          lastChildInstance = this
         }
         destructor() {
           destructorSpy(this.name)
@@ -323,7 +321,7 @@ describe('updateChildren', () => {
 
 describe('getChildByKey', () => {
   test('Returns the facade instance for the given key', () => {
-    let childInstance
+    let childInstance = null
     class Sub extends Facade {constructor(parent) {
       super(parent)
       childInstance = this
@@ -331,13 +329,12 @@ describe('getChildByKey', () => {
     const inst = new ParentFacade()
     inst.children = [{key:'foo', facade:Sub}]
     inst.afterUpdate()
-    expect(inst.getChildByKey('foo')).toEqual(expect.any(Sub))
+    expect(childInstance).not.toBeNull()
+    expect(inst.getChildByKey('foo')).toBe(childInstance)
   })
   test('Returns null if none found', () => {
-    let childInstance
     class Sub extends Facade {constructor(parent) {
       super(parent)
-      childInstance = this
     }}
     const inst = new ParentFacade()
     inst.children = [{key:'foo', facade:Sub}]
@@ -485,11 +482,6 @@ test('Allows React elements to be used as children descriptors', () => {
       React.createElement(Sub, {key: 'a.a', val: 'a.a'}),
       React.createElement(Sub, {key: 'a.b', val: 'a.b'})
     ]),
-    <Sub key="b" val="b">
-      <Sub key="b.a" val="b.a" />
-      <Sub key="b.b" val="b.b" />
-      <Sub key="b.c" val="b.c" />
-    </Sub>,
     {key: 'c', facade: Sub, val: 'c', children: [
       {facade: Sub, val: 'c.a'},
       {facade: Sub, val: 'c.b'}

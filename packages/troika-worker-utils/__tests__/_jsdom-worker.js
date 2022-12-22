@@ -1,3 +1,5 @@
+/*global global*/
+
 /**
  * This is a forked version of the MIT-licensed jsdom-worker polyfill, taken from
  * https://github.com/developit/jsdom-worker/commit/4a400f72ec901fc926f0301ab4680f9f2c318439

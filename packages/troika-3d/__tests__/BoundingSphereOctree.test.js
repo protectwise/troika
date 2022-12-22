@@ -1035,6 +1035,7 @@ function validateOctreeState() {
   //console.log(`Tree validated in ${performance.now() - startTime}ms`)
 }
 
+// eslint-disable-next-line no-unused-vars
 function dumpOctree() {
   console.log(
     JSON.stringify(octree.root, function(key, val) {

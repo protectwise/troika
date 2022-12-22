@@ -1,5 +1,5 @@
 import {Group3DFacade} from 'troika-3d'
-import { Bezier3DFacade, Bezier3DInstanceableFacade } from '../bezier-3d/Bezier3DFacade'
+import { Bezier3DInstanceableFacade } from '../bezier-3d/Bezier3DFacade'
 import {Vector3} from 'three'
 
 

@@ -1,3 +1,5 @@
+/*eslint no-unused-vars: "off"*/
+
 /**
  * @interface AbstractTween
  * Defines the interface expected by `Runner` for tween-like things.
