@@ -1,7 +1,7 @@
 const prefix = 'https://fonts.gstatic.com/s/'
 
 // CJK unified ranges: https://www.unicode.org/versions/Unicode14.0.0/ch18.pdf Table 18-1
-const cjkRange = 'U+4E00-9FFF,U+3400-4DBF,U+20000-2EBEF,U+30000-3134F,U+F900-FAFF,U+2F800-2FA1F';
+const cjkRange = 'U+4E00-9FFF,U+3000-303F,U+3400-4DBF,U+20000-2EBEF,U+30000-3134F,U+F900-FAFF,U+2F800-2FA1F';
 
 /**
  * A set of Google-hosted fonts by unicode range that will serve as defaults for when a user-defined
