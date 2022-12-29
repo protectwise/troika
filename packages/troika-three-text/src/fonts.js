@@ -53,6 +53,12 @@ export const fallbackFonts = [
     src: `${prefix}notosanskr/v26/PbykFmXiEBPT4ITbgNA5Cgm21Q.woff`,
     unicodeRange: 'U+AC00-D7AF',
   },
+  // TODO Typr chokes on this woff:
+  // {
+  //   label: 'hebrew',
+  //   src: `${prefix}notosanshebrew/v38/or3HQ7v33eiDljA1IufXTtVf7V6RvEEdhQlk0LlGxCyaeNKYZC0sqk3xXGiXd4qtoQ.woff`,
+  //   unicodeRange: 'U+2bb-2c6,U+2da-2dc,U+590-5ff,U+1e00-1eff,U+2000-2074,U+20a0-20cf,U+2113-2122,U+2191-2193,U+2212-2215,U+25cc,U+2c60-2c7f,U+a720-a7ff,U+fb1d-fb4f,U+feff,U+fffd'
+  // },
   {
     label: 'arabic',
     // src: `${prefix}scheherazadenew/v8/4UaZrFhTvxVnHDvUkUiHg8jprP4DOwFmPXwq9IqeuA.woff`,
