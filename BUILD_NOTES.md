@@ -16,6 +16,7 @@ First, validate it's releasable:
 ```bash
 npm run build
 npm run test
+npm run lint
 npm run build-examples
 ```
 
