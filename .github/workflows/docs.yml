@@ -9,8 +9,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: 3.9.x
       - run: pip install mkdocs==1.1 mkdocs-material mkdocs-include-markdown-plugin mkdocs-git-revision-date-plugin
