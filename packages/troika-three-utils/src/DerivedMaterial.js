@@ -109,8 +109,8 @@ export function createDerivedMaterial(baseMaterial, options) {
 
   // Private onBeforeCompile handler that injects the modified shaders and uniforms when
   // the renderer switches to this material's program
-  const onBeforeCompile = function (shaderInfo) {
-    baseMaterial.onBeforeCompile.call(this, shaderInfo)
+  const onBeforeCompile = function (shaderInfo, renderer) {
+    baseMaterial.onBeforeCompile.call(this, shaderInfo, renderer)
 
     // Upgrade the shaders, caching the result by incoming source code
     const cacheKey = this.customProgramCacheKey() + '|' + shaderInfo.vertexShader + '|' + shaderInfo.fragmentShader
