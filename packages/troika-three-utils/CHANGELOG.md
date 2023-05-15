@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.47.2](https://github.com/protectwise/troika/compare/v0.47.1...v0.47.2) (2023-05-15)
+
+
+### Bug Fixes
+
+* **troika-three-utils:** pass renderer argument to base material's onBeforeCompile ([3a23a8e](https://github.com/protectwise/troika/commit/3a23a8eb72275e37d42085cb6a2fd4e704224e9d))
+* **troika-three-utils:** vertexTransform now handles MAP_UV token introduced in Three r152 ([d8c32ed](https://github.com/protectwise/troika/commit/d8c32ed93920633455e078283b0c3dbc058fb7c1))
+
+
+
+
+
 # [0.47.0](https://github.com/protectwise/troika/compare/v0.46.3...v0.47.0) (2022-12-15)
 
 
