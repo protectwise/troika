@@ -116,7 +116,7 @@ export function createDerivedMaterial(baseMaterial, options) {
     const cacheKey = this.customProgramCacheKey() + '|' + shaderInfo.vertexShader + '|' + shaderInfo.fragmentShader
     let upgradedShaders = SHADER_UPGRADE_CACHE[cacheKey]
     if (!upgradedShaders) {
-      const upgraded = upgradeShaders(shaderInfo, options, optionsKey)
+      const upgraded = upgradeShaders(this, shaderInfo, options, optionsKey)
       upgradedShaders = SHADER_UPGRADE_CACHE[cacheKey] = upgraded
     }
 
@@ -272,7 +272,7 @@ export function createDerivedMaterial(baseMaterial, options) {
 }
 
 
-function upgradeShaders({vertexShader, fragmentShader}, options, key) {
+function upgradeShaders(material, {vertexShader, fragmentShader}, options, key) {
   let {
     vertexDefs,
     vertexMainIntro,
@@ -360,6 +360,12 @@ ${vertexMainIntro}
     vertexShader = vertexShader.replace(/\b(position|normal|uv)\b/g, (match, match1, index, fullStr) => {
       return /\battribute\s+vec[23]\s+$/.test(fullStr.substr(0, index)) ? match1 : `troika_${match1}_${key}`
     })
+
+    // Three r152 introduced the MAP_UV token, replace it too if it's pointing to the main 'uv'
+    // Perhaps the other textures too going forward?
+    if (!(material.map && material.map.channel > 0)) {
+      vertexShader = vertexShader.replace(/\bMAP_UV\b/g, `troika_uv_${key}`);
+    }
   }
 
   // Inject defs and intro/outro snippets
