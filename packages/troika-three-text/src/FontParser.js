@@ -7,6 +7,25 @@ import typrFactory from '../libs/typr.factory.js'
 import woff2otfFactory from '../libs/woff2otf.factory.js'
 import { defineWorkerModule } from 'troika-worker-utils'
 
+/**
+ * @typedef ParsedFont
+ * @property {number} ascender
+ * @property {number} descender
+ * @property {number} xHeight
+ * @property {(number) => boolean} supportsCodePoint
+ * @property {(text:string, fontSize:number, letterSpacing:number, callback) => number} forEachGlyph
+ * @property {number} lineGap
+ * @property {number} capHeight
+ * @property {number} unitsPerEm
+ */
+
+/**
+ * @typedef {(buffer: ArrayBuffer) => ParsedFont} FontParser
+ */
+
+/**
+ * @returns {FontParser}
+ */
 function parserFactory(Typr, woff2otf) {
   const cmdArgLengths = {
     M: 2,
@@ -148,6 +167,9 @@ function parserFactory(Typr, woff2otf) {
     }
   }
 
+  /**
+   * @returns ParsedFont
+   */
   function wrapFontObj(typrFont) {
     const glyphMap = Object.create(null)
 
@@ -156,6 +178,7 @@ function parserFactory(Typr, woff2otf) {
     const unitsPerEm = typrFont.head.unitsPerEm
     const ascender = firstNum(os2 && os2.sTypoAscender, hhea && hhea.ascender, unitsPerEm)
 
+    /** @type ParsedFont */
     const fontObj = {
       unitsPerEm,
       ascender,
@@ -261,6 +284,9 @@ function parserFactory(Typr, woff2otf) {
     return fontObj
   }
 
+  /**
+   * @type FontParser
+   */
   return function parse(buffer) {
     // Look to see if we have a WOFF file and convert it if so:
     const peek = new Uint8Array(buffer, 0, 4)

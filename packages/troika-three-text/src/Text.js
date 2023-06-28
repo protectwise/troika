@@ -110,7 +110,7 @@ class Text extends Mesh {
     this.anchorX = 0
 
     /**
-     * @member {number|string} anchorX
+     * @member {number|string} anchorY
      * Defines the vertical position in the text block that should line up with the local origin.
      * Can be specified as a numeric y position in local units (note: down is negative y), a string
      * percentage of the total text block height e.g. `'25%'`, or one of the following keyword strings:

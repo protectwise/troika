@@ -1,6 +1,7 @@
 import { defineWorkerModule } from 'troika-worker-utils'
 import { typesetterWorkerModule } from 'troika-three-text'
 import yogaFactory from '../libs/yoga.factory.js'
+import { fontResolverWorkerModule } from "troika-three-text/src/FontResolver.js";
 
 
 /**
@@ -44,14 +45,11 @@ export function requestFlexLayout(styleTree, callback) {
  * Factory for the flex layout processing function. This is injected into a web worker so it
  * must be entirely self-contained other than specific dependencies passed in as arguments.
  * @param {object} Yoga - The yoga-layout implementation object.
- * @param {function(fontUrl:string, callback:function)} loadFontFn - A function that
- *        loads a given font URL, invoking a callback when complete.
- * @param {function(MeasureFunctionParams):{width:number}} measureFunction - A function that
- *        measures the intrinsic dimensions for a block of text with given styles and
- *        constraints. The measurement must occur synchronously.
+ * @param {FontResolver} resolveFonts
+ * @param {TypesetterMeasureFunction} measureFunction
  * @return {function(FlexLayoutStyleNode):FlexLayoutResult}
  */
-function createFlexLayoutProcessor(Yoga, loadFontFn, measureFunction) {
+function createFlexLayoutProcessor(Yoga, resolveFonts, measureFunction) {
 
   const YOGA_VALUE_MAPPINGS = {
     align: {
@@ -161,23 +159,33 @@ function createFlexLayoutProcessor(Yoga, loadFontFn, measureFunction) {
 
 
 
-  function ensureAllFontsLoaded(styleTree, callback) {
-    const fonts = []
+  function resolveAllFonts(styleTree, callback) {
+    const textNodes = []
+    const resolutions = new Map() // node->FontResolverResult
     let loadedCount = 0
     walkStyleTree(styleTree, node => {
-      if (node.text) fonts.push(node.font) //may be undef
-    })
-    if (fonts.length) {
-      for (let i = 0; i < fonts.length; i++) {
-        loadFontFn(fonts[i], () => {
-          loadedCount++
-          if (loadedCount === fonts.length) {
-            callback()
-          }
-        })
+      if (node.text) {
+        textNodes.push(node)
       }
+    })
+    if (textNodes.length) {
+      textNodes.forEach((node) => {
+        resolveFonts(
+          node.text,
+          (result) => {
+            resolutions.set(node, result)
+            loadedCount++
+            if (loadedCount === textNodes.length) {
+              callback(resolutions)
+            }
+          },
+          {
+            fonts: node.font,
+          }
+        )
+      })
     } else {
-      callback()
+      callback(resolutions)
     }
   }
 
@@ -197,7 +205,7 @@ function createFlexLayoutProcessor(Yoga, loadFontFn, measureFunction) {
 
     // Ensure all fonts required for measuring text nodes within this layout are pre-loaded,
     // so that all text measurement calls can happen synchronously
-    ensureAllFontsLoaded(styleTree, () => {
+    resolveAllFonts(styleTree, (fontResolutions) => {
       // TODO for now, just to keep things simple, we'll rebuild the entire Yoga tree on every
       // call, but we should look into persisting it across calls for more efficient updates
 
@@ -224,12 +232,13 @@ function createFlexLayoutProcessor(Yoga, loadFontFn, measureFunction) {
                   letterSpacing: styleNode.letterSpacing,
                   whiteSpace: styleNode.whiteSpace,
                   overflowWrap: styleNode.overflowWrap,
-                  maxWidth: isNaN(innerWidth) ? Infinity : innerWidth
+                  maxWidth: isNaN(innerWidth) ? Infinity : innerWidth,
+                  preResolvedFonts: fontResolutions.get(styleNode),
                 }
-                // NOTE: this assumes the measureFunction will exec the callback synchronously; this works
-                // with current impl since we preload all needed fonts above, but it would be good to
-                // formalize that contract in the LayoutEngine
-                let result = measureFunction(params)
+                // NOTE: since we pass in the preResolvedFonts, the callback will be executed synchronously,
+                // per the documented behavior in Typesetter.
+                let result = null
+                measureFunction(params, r => result = r)
                 if (result) {
                   // Apply a fudge factor to avoid issues where the flexbox layout result using this
                   // measurement ends up slightly smaller (due to rounding?) and making text wrap
@@ -284,16 +293,12 @@ export const flexLayoutProcessorWorkerModule = defineWorkerModule({
   dependencies: [
     yogaFactory,
     typesetterWorkerModule,
+    fontResolverWorkerModule,
     createFlexLayoutProcessor,
   ],
-  init(yogaFactory, layoutEngine, create) {
+  init(yogaFactory, typesetter, resolveFonts, create) {
     const Yoga = yogaFactory()
-    function measure(params) {
-      let result = null
-      layoutEngine.measure(params, r => {result = r})
-      return result
-    }
-    const process = create(Yoga, layoutEngine.loadFont, measure)
+    const process = create(Yoga, resolveFonts, typesetter.measure)
     return function(styleTree) {
       return new Promise(resolve => {
         process(styleTree, resolve)

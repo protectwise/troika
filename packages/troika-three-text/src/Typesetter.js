@@ -1,48 +1,94 @@
 /**
+ * @typedef {number|'left'|'center'|'right'} AnchorXValue
+ */
+/**
+ * @typedef {number|'top'|'top-baseline'|'top-cap'|'top-ex'|'middle'|'bottom-baseline'|'bottom'} AnchorYValue
+ */
+
+/**
+ * @typedef {object} TypesetParams
+ * @property {string} text
+ * @property {UserFont|UserFont[]} [font]
+ * @property {string} [lang='en']
+ * @property {number} [sdfGlyphSize=64]
+ * @property {number} [fontSize=1]
+ * @property {number} [letterSpacing=0]
+ * @property {'normal'|number} [lineHeight='normal']
+ * @property {number} [maxWidth]
+ * @property {'ltr'|'rtl'} [direction='ltr']
+ * @property {string} [textAlign='left']
+ * @property {number} [textIndent=0]
+ * @property {'normal'|'nowrap'} [whiteSpace='normal']
+ * @property {'normal'|'break-word'} [overflowWrap='normal']
+ * @property {AnchorXValue} [anchorX=0]
+ * @property {AnchorYValue} [anchorY=0]
+ * @property {boolean} [metricsOnly=false]
+ * @property {FontResolverResult} [preResolvedFonts]
+ * @property {boolean} [includeCaretPositions=false]
+ * @property {number} [chunkedBoundsSize=8192]
+ * @property {{[rangeStartIndex]: number}} [colorRanges]
+ */
+
+/**
+ * @typedef {object} TypesetResult
+ * @property {Uint16Array} glyphIds id for each glyph, specific to that glyph's font
+ * @property {Uint8Array} glyphFontIndices index into fontData for each glyph
+ * @property {Float32Array} glyphPositions x,y of each glyph's origin in layout
+ * @property {{[font]: {[glyphId]: {path: string, pathBounds: number[]}}}} glyphData data about each glyph appearing in the text
+ * @property {TypesetFontData[]} fontData data about each font used in the text
+ * @property {Float32Array} [caretPositions] startX,endX,bottomY caret positions for each char
+ * @property {Uint8Array} [glyphColors] color for each glyph, if color ranges supplied
+ *         chunkedBounds, //total rects per (n=chunkedBoundsSize) consecutive glyphs
+ *         fontSize, //calculated em height
+ *         topBaseline: anchorYOffset + lines[0].baseline, //y coordinate of the top line's baseline
+ *         blockBounds: [ //bounds for the whole block of text, including vertical padding for lineHeight
+ *           anchorXOffset,
+ *           anchorYOffset - totalHeight,
+ *           anchorXOffset + maxLineWidth,
+ *           anchorYOffset
+ *         ],
+ *         visibleBounds, //total bounds of visible text paths, may be larger or smaller than blockBounds
+ *         timings
+ */
+
+/**
+ * @typedef {object} TypesetFontData
+ * @property src
+ * @property unitsPerEm
+ * @property ascender
+ * @property descender
+ * @property lineHeight
+ * @property capHeight
+ * @property xHeight
+ */
+
+/**
+ * @typedef {function} TypesetterTypesetFunction - compute fonts and layout for some text.
+ * @param {TypesetParams} params
+ * @param {(TypesetResult) => void} callback - function called when typesetting is complete.
+ *    If the params included `preResolvedFonts`, this will be called synchronously.
+ */
+
+/**
+ * @typedef {function} TypesetterMeasureFunction - compute width/height for some text.
+ * @param {TypesetParams} params
+ * @param {(width:number, height:number) => void} callback - function called when measurement is complete.
+ *    If the params included `preResolvedFonts`, this will be called synchronously.
+ */
+
+
+/**
  * Factory function that creates a self-contained environment for processing text typesetting requests.
  *
  * It is important that this function has no closure dependencies, so that it can be easily injected
  * into the source for a Worker without requiring a build step or complex dependency loading. All its
  * dependencies must be passed in at initialization.
  *
- * @param {function} fontParser - a function that accepts an ArrayBuffer of the font data and returns
- * a standardized structure giving access to the font and its glyphs:
- *   {
- *     unitsPerEm: number,
- *     ascender: number,
- *     descender: number,
- *     capHeight: number,
- *     xHeight: number,
- *     lineGap: number,
- *     forEachGlyph(string, fontSize, letterSpacing, callback) {
- *       //invokes callback for each glyph to render, passing it an object:
- *       callback({
- *         index: number,
- *         advanceWidth: number,
- *         xMin: number,
- *         yMin: number,
- *         xMax: number,
- *         yMax: number,
- *         path: string,
- *         pathCommandCount: number
- *       })
- *     }
- *   }
+ * @param {FontResolver} resolveFonts - function to resolve a string to parsed fonts
  * @param {object} bidi - the bidi.js implementation object
- * @param {Object} config
- * @return {Object}
+ * @return {{typeset: TypesetterTypesetFunction, measure: TypesetterMeasureFunction}}
  */
-export function createTypesetter(fontParser, bidi, config) {
-
-  const {
-    defaultFontURL
-  } = config
-
-  /**
-   * Holds parsed font objects by url
-   */
-  const parsedFonts = Object.create(null)
-
+export function createTypesetter(resolveFonts, bidi) {
   const INF = Infinity
 
   // Set of Unicode Default_Ignorable_Code_Point characters, these will not produce visible glyphs
@@ -57,172 +103,44 @@ export function createTypesetter(fontParser, bidi, config) {
   const BREAK_AFTER_CHARS = new RegExp(`${lineBreakingWhiteSpace}|[\\-\\u007C\\u00AD\\u2010\\u2012-\\u2014\\u2027\\u2056\\u2E17\\u2E40]`)
 
   /**
-   * Load a given font url
+   * Load and parse all the necessary fonts to render a given string of text, then group
+   * them into consecutive runs of characters sharing a font.
    */
-  function doLoadFont(url, callback) {
-    function tryLoad() {
-      const onError = err => {
-        console.error(`Failure loading font ${url}${url === defaultFontURL ? '' : '; trying fallback'}`, err)
-        if (url !== defaultFontURL) {
-          url = defaultFontURL
-          tryLoad()
+  function calculateFontRuns({text, lang, fonts, preResolvedFonts}, onDone) {
+    const onResolved = ({chars, fonts: parsedFonts}) => {
+      let curRun, prevVal;
+      const runs = []
+      for (let i = 0; i < chars.length; i++) {
+        if (chars[i] !== prevVal) {
+          prevVal = chars[i];
+          runs.push(curRun = { start: i, end: i, fontObj: parsedFonts[chars[i]]});
+        } else {
+          curRun.end = i;
         }
       }
-      try {
-        const request = new XMLHttpRequest()
-        request.open('get', url, true)
-        request.responseType = 'arraybuffer'
-        request.onload = function () {
-          if (request.status >= 400) {
-            onError(new Error(request.statusText))
-          }
-          else if (request.status > 0) {
-            try {
-              const fontObj = fontParser(request.response)
-              callback(fontObj)
-            } catch (e) {
-              onError(e)
-            }
-          }
-        }
-        request.onerror = onError
-        request.send()
-      } catch(err) {
-        onError(err)
-      }
+      onDone(runs);
     }
-    tryLoad()
-  }
-
-
-  /**
-   * Load a given font url if needed, invoking a callback when it's loaded. If already
-   * loaded, the callback will be called synchronously.
-   */
-  function loadFont(fontUrl, callback) {
-    if (!fontUrl) fontUrl = defaultFontURL
-    let font = parsedFonts[fontUrl]
-    if (font) {
-      // if currently loading font, add to callbacks, otherwise execute immediately
-      if (font.pending) {
-        font.pending.push(callback)
-      } else {
-        callback(font)
-      }
+    if (preResolvedFonts) {
+      onResolved(preResolvedFonts)
     } else {
-      parsedFonts[fontUrl] = {pending: [callback]}
-      doLoadFont(fontUrl, fontObj => {
-        let callbacks = parsedFonts[fontUrl].pending
-        parsedFonts[fontUrl] = fontObj
-        callbacks.forEach(cb => cb(fontObj))
-      })
+      resolveFonts(
+        text,
+        onResolved,
+        { lang, fonts }
+      )
     }
   }
-
-  /**
-   * Inspect each character in a text string to determine which defined font will be used to render it,
-   * loading those fonts when necessary, then group them into consecutive runs of characters sharing a font.
-   * TODO: force whitespace characters to use the font of their preceding/surrounding characters?
-   */
-  function calculateFontRuns(text, lang, fontDefs, onDone) {
-    fontDefs = fontDefs.slice()
-      // filter by language
-      .filter(def => !def.lang || def.lang.test(lang))
-      // switch order for easier iteration
-      .reverse()
-    const fontsToLoad = new Set()
-
-    // Array to store per-char font resolutions:
-    // - The first bit is a boolean for whether the font has been resolved (1) or not (0); when fully resolved
-    //   every char will have a 1 in this position.
-    // - Bits 2-8 store the index of the resolved font, or the one currently/most recently being evaluated. This
-    //   limits us to 127 possible fonts; if we ever have that many we probably want a better algorithm anyway.
-    const fontMap = new Uint8Array(text.length);
-    const knownMask = 0b10000000
-
-    function isCodeInRanges(code, ranges) {
-      // todo optimize search
-      for (let k = 0; k < ranges.length; k++) {
-        const [start, end = start] = ranges[k]
-        if (start <= code && code <= end) {
-          return true
-        }
-      }
-      return false
-    }
-
-    function tryResolveChars() {
-      for (let i = 0, len = text.length; i < len; i++) {
-        const code = text.codePointAt(i)
-        if ((fontMap[i] & knownMask) === 0) {
-          for (let j = fontMap[i]; j < fontDefs.length; j++) {
-            fontMap[i] = j
-            const {src, unicodeRange} = fontDefs[j]
-            // if the font explicitly declares ranges that don't match, skip it
-            if (unicodeRange && !isCodeInRanges(code, unicodeRange)) {
-              continue
-            }
-            // font is loaded - if the font actually covers this char, or is the final fallback,
-            // lock it in, otherwise move on to the next candidate font
-            const fontObj = parsedFonts[src]
-            if (fontObj) {
-              if (j === fontDefs.length - 1 || fontObj.supportsCodePoint(code)) {
-                fontMap[i] |= knownMask;
-                break
-              }
-              // else continue to next font
-            }
-            // not yet loaded - check unicode ranges to see if we should try loading it
-            else {
-              fontsToLoad.add(fontDefs[j].src)
-              break
-            }
-          }
-        }
-        if (code > 0xffff) {
-          fontMap[i + 1] = fontMap[i]
-          i++
-        }
-      }
-      // if we need to load more fonts to get a complete answer, wait for them and then retry
-      if (fontsToLoad.size) {
-        Promise.all(
-          [...fontsToLoad].map(src => new Promise(resolve => {
-            loadFont(src, resolve)
-          }))
-        ).then(tryResolveChars)
-        fontsToLoad.clear()
-      }
-      // all font mappings are known! collapse the full char mapping into runs of consecutive chars sharing a font
-      else {
-        let curRun, prevVal = null
-        const runs = []
-        for (let i = 0; i < fontMap.length; i++) {
-          if (fontMap[i] !== prevVal && (i === 0 || !/\s/.test(text.charAt(i)))) { // start of a new run
-            const fontSrc = fontDefs[fontMap[i] ^ knownMask].src
-            prevVal = fontMap[i]
-            runs.push(curRun = { start: i, end: i, fontObj: parsedFonts[fontSrc], fontSrc })
-          } else {
-            curRun.end = i
-          }
-        }
-        onDone(runs)
-      }
-    }
-    tryResolveChars()
-  }
-
-
 
   /**
    * Main entry point.
    * Process a text string with given font and formatting parameters, and return all info
    * necessary to render all its glyphs.
+   * @type TypesetterTypesetFunction
    */
   function typeset(
     {
       text='',
-      font=defaultFontURL,
+      font,
       lang='en',
       sdfGlyphSize=64,
       fontSize=1,
@@ -236,12 +154,13 @@ export function createTypesetter(fontParser, bidi, config) {
       overflowWrap='normal',
       anchorX = 0,
       anchorY = 0,
+      metricsOnly=false,
+      preResolvedFonts=null,
       includeCaretPositions=false,
       chunkedBoundsSize=8192,
       colorRanges=null
     },
-    callback,
-    metricsOnly=false
+    callback
   ) {
     const mainStart = now()
     const timings = {fontLoad: 0, typesetting: 0}
@@ -259,9 +178,12 @@ export function createTypesetter(fontParser, bidi, config) {
     lineHeight = lineHeight || 'normal'
     textIndent = +textIndent
 
-    const fontDefs = typeof font === 'string' ? [{src: font}] : font
-
-    calculateFontRuns(text, lang, fontDefs, runs => {
+    calculateFontRuns({
+      text,
+      lang,
+      fonts: typeof font === 'string' ? [{src: font}] : font,
+      preResolvedFonts
+    }, runs => {
       timings.fontLoad = now() - mainStart
       const hasMaxWidth = isFinite(maxWidth)
       let glyphIds = null
@@ -284,7 +206,7 @@ export function createTypesetter(fontParser, bidi, config) {
       let currentLine = new TextLine()
       const lines = [currentLine]
       runs.forEach(run => {
-        const { fontObj, fontSrc } = run
+        const { fontObj } = run
         const { ascender, descender, unitsPerEm, lineGap, capHeight, xHeight } = fontObj
 
         // Calculate metrics for each font used
@@ -304,7 +226,7 @@ export function createTypesetter(fontParser, bidi, config) {
           const caretTop = (ascender + descender) / 2 * fontSizeMult + caretHeight / 2
           fontData = {
             index: metricsByFont.size,
-            src: fontSrc,
+            src: fontObj.src,
             fontObj,
             fontSizeMult,
             unitsPerEm,
@@ -715,13 +637,13 @@ export function createTypesetter(fontParser, bidi, config) {
    * @param callback
    */
   function measure(args, callback) {
-    typeset(args, (result) => {
+    typeset({...args, metricsOnly: true}, (result) => {
       const [x0, y0, x1, y1] = result.blockBounds
       callback({
         width: x1 - x0,
         height: y1 - y0
       })
-    }, {metricsOnly: true})
+    })
   }
 
   function parsePercent(str) {
@@ -792,7 +714,6 @@ export function createTypesetter(fontParser, bidi, config) {
   return {
     typeset,
     measure,
-    loadFont
   }
 }
 

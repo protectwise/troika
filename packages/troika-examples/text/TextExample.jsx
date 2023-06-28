@@ -17,8 +17,8 @@ import { ExampleConfigurator } from '../_shared/ExampleConfigurator.js'
 
 
 const FONTS = {
+  'Noto Sans (none)': null,
   'Roboto': 'https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff',
-  'Noto Sans': 'https://fonts.gstatic.com/s/notosans/v7/o-0IIpQlx3QUlC5A4PNr5TRG.woff',
   'Alex Brush': 'https://fonts.gstatic.com/s/alexbrush/v8/SZc83FzrJKuqFbwMKk6EhUXz6w.woff',
   'Comfortaa': 'https://fonts.gstatic.com/s/comfortaa/v12/1Ptsg8LJRfWJmhDAuUs4TYFs.woff',
   'Cookie': 'https://fonts.gstatic.com/s/cookie/v8/syky-y18lb0tSbf9kgqU.woff',
@@ -69,6 +69,8 @@ November 19, 1863`,
 
 厳理女格久世投目文抗単落供年鵬蜂兆。品内災塾初鎌法成担間危芸拡根日済材。徳治索作現更思北計写席懸順済。当利新突男岡感受意断済売絵紙家毎備記香高。表道氷草正公断人文今時意芸日熊提管全保取。容渡急振索功自際円愛親派抗要。良強図着亡警新毎医傷臭劇日訴馬熱活明。配法載楽教要孤国最日回情飾柴未天置申。供問子住初最列福有愛夢議。`,
 
+  'Emoji': 'Examples of emoji are 😂, 😃, 🧘🏻‍♂️, 🌍, 🌦️, 🥖, 🚗, 📱, 🎉, ❤️, ✅, and 🏁.',
+
   // TODO fix in XR:
   [CUSTOM_LBL]: 'Edit me!'
 }
@@ -109,7 +111,7 @@ class TextExample extends React.Component {
     super(props)
     this.state = {
       text: 'Lorem Ipsum',
-      font: 'Noto Sans',
+      font: 'Noto Sans (none)',
       fontSize: 0.1, //10cm
       textScale: 1,
       lineHeight: 1.15,

@@ -1,19 +1,17 @@
 import { Color, Texture, LinearFilter } from 'three'
 import { defineWorkerModule } from 'troika-worker-utils'
+import { fontResolverWorkerModule } from "./FontResolver.js";
 import { createTypesetter } from './Typesetter.js'
 import { generateSDF, warmUpSDFCanvas, resizeWebGLCanvasWithoutClearing } from './SDFGenerator.js'
 import bidiFactory from 'bidi-js'
-import fontParser from './FontParser.js'
-import { fallbackFonts } from './fonts.js'
 
 
 const CONFIG = {
-  defaultFontURL: null, // just uses fallbackFonts unless user configures a new default - this will change
+  defaultFontURL: null,
   sdfGlyphSize: 64,
   sdfMargin: 1 / 16,
   sdfExponent: 9,
   textureWidth: 2048,
-  fallbackFonts
 }
 const tempColor = /*#__PURE__*/new Color()
 let hasRequested = false
@@ -112,7 +110,7 @@ const atlases = Object.create(null)
 /**
  * Main entry point for requesting the data needed to render a text string with given font parameters.
  * This is an asynchronous call, performing most of the logic in a web worker thread.
- * @param {object} args
+ * @param {TypesetParams} args
  * @param {getTextRenderInfo~callback} callback
  */
 function getTextRenderInfo(args, callback) {
@@ -122,8 +120,8 @@ function getTextRenderInfo(args, callback) {
 
   // Convert relative URL to absolute so it can be resolved in the worker, and add fallbacks.
   // In the future we'll allow args.font to be a list with unicode ranges too.
-  const { defaultFontURL, fallbackFonts } = CONFIG
-  const fonts = fallbackFonts.slice()
+  const { defaultFontURL } = CONFIG
+  const fonts = [];
   if (defaultFontURL) {
     fonts.push({label: 'default', src: toAbsoluteURL(defaultFontURL)})
   }
@@ -436,18 +434,15 @@ function safariPre15Workaround(atlas) {
   }
 }
 
-
 const typesetterWorkerModule = /*#__PURE__*/defineWorkerModule({
   name: 'Typesetter',
   dependencies: [
-    CONFIG,
-    fontParser,
     createTypesetter,
-    bidiFactory
+    fontResolverWorkerModule,
+    bidiFactory,
   ],
-  init(config, fontParser, createTypesetter, bidiFactory) {
-    const {defaultFontURL} = config
-    return createTypesetter(fontParser, bidiFactory(), { defaultFontURL })
+  init(createTypesetter, fontResolver, bidiFactory) {
+    return createTypesetter(fontResolver, bidiFactory())
   }
 })
 
