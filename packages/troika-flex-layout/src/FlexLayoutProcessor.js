@@ -1,7 +1,7 @@
 import { defineWorkerModule } from 'troika-worker-utils'
 import { typesetterWorkerModule } from 'troika-three-text'
 import yogaFactory from '../libs/yoga.factory.js'
-import { fontResolverWorkerModule } from "troika-three-text/src/FontResolver.js";
+import { fontResolverWorkerModule } from "troika-three-text";
 
 
 /**
