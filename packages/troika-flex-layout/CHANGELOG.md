@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.48.0-unicode.1](https://github.com/protectwise/troika/compare/v0.48.0-unicode.0...v0.48.0-unicode.1) (2023-06-29)
+
+
+### Bug Fixes
+
+* fontResolverWorkerModule wasn't exported ([677f525](https://github.com/protectwise/troika/commit/677f5252a51071650acc02c41079fe3fedce13c8))
+
+
+
+
+
 # [0.48.0-unicode.0](https://github.com/protectwise/troika/compare/v0.47.2...v0.48.0-unicode.0) (2023-06-29)
 
 
