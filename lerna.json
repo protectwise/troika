@@ -8,7 +8,7 @@
       "conventionalCommits": true
     },
     "publish": {
-      "allowBranch": "main"
+      "allowBranch": ["main", "unicode-ranges"]
     }
   }
 }
