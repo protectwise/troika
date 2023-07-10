@@ -104,6 +104,10 @@ export function createFontResolver(fontParser, unicodeFontResolverClient) {
   return function (text, callback, {lang, fonts: userFonts = []} = {}) {
     const charResolutions = new Uint8Array(text.length);
     const fontResolutions = [];
+    if (!text.length) {
+      allDone()
+    }
+
     const fontIndices = new Map();
     const fallbackRanges = [] // [[start, end], ...]
 
