@@ -1,6 +1,6 @@
 {
   "name": "troika-3d-ui",
-  "version": "0.48.0-unicode.1",
+  "version": "0.48.0-unicode.2",
   "description": "Troika 3D User Interface Toolkit",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "repository": {
@@ -16,9 +16,9 @@
   "dependencies": {
     "object-path": "^0.11.4",
     "troika-3d": "^0.47.2",
-    "troika-3d-text": "^0.48.0-unicode.1",
+    "troika-3d-text": "^0.48.0-unicode.2",
     "troika-core": "^0.47.2",
-    "troika-flex-layout": "^0.48.0-unicode.1",
+    "troika-flex-layout": "^0.48.0-unicode.2",
     "troika-three-utils": "^0.47.2"
   },
   "peerDependencies": {
