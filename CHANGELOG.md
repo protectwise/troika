@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.48.0-unicode.3](https://github.com/protectwise/troika/compare/v0.48.0-unicode.2...v0.48.0-unicode.3) (2023-07-10)
+
+
+### Features
+
+* add fontWeight and fontStyle params for fallback font resolution ([b79806a](https://github.com/protectwise/troika/commit/b79806a813be866369cebf6b54033274311d62f3))
+
+
+
+
+
 # [0.48.0-unicode.2](https://github.com/protectwise/troika/compare/v0.48.0-unicode.1...v0.48.0-unicode.2) (2023-07-10)
 
 
