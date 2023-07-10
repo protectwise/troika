@@ -74,7 +74,7 @@ const atlases = Object.create(null)
 
 /**
  * @typedef {object} TroikaTextRenderInfo - Format of the result from `getTextRenderInfo`.
- * @property {object} parameters - The normalized input arguments to the render call.
+ * @property {TypesetParams} parameters - The normalized input arguments to the render call.
  * @property {Texture} sdfTexture - The SDF atlas texture.
  * @property {number} sdfGlyphSize - The size of each glyph's SDF; see `configureTextBuilder`.
  * @property {number} sdfExponent - The exponent used in encoding the SDF's values; see `configureTextBuilder`.

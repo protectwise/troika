@@ -55,6 +55,8 @@ const syncCompleteEvent = { type: 'synccomplete' }
 const SYNCABLE_PROPS = [
   'font',
   'fontSize',
+  'fontStyle',
+  'fontWeight',
   'lang',
   'letterSpacing',
   'lineHeight',
@@ -150,6 +152,18 @@ class Text extends Mesh {
      * of the chosen `font`.
      */
     this.fontSize = 0.1
+
+    /**
+     * @member {number|'normal'|'bold'}
+     * The weight of the font. Currently only used for fallback Noto fonts.
+     */
+    this.fontWeight = 'normal'
+
+    /**
+     * @member {'normal'|'italic'}
+     * The style of the font. Currently only used for fallback Noto fonts.
+     */
+    this.fontStyle = 'normal'
 
     /**
      * @member {string} lang
@@ -408,6 +422,8 @@ class Text extends Mesh {
           font: this.font,
           lang: this.lang,
           fontSize: this.fontSize || 0.1,
+          fontWeight: this.fontWeight || 'normal',
+          fontStyle: this.fontStyle || 'normal',
           letterSpacing: this.letterSpacing || 0,
           lineHeight: this.lineHeight || 'normal',
           maxWidth: this.maxWidth,

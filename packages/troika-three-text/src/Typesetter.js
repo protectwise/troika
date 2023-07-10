@@ -12,6 +12,8 @@
  * @property {string} [lang='en']
  * @property {number} [sdfGlyphSize=64]
  * @property {number} [fontSize=1]
+ * @property {number|'normal'|'bold'} [fontWeight='normal']
+ * @property {'normal'|'italic'} [fontStyle='normal']
  * @property {number} [letterSpacing=0]
  * @property {'normal'|number} [lineHeight='normal']
  * @property {number} [maxWidth]
@@ -106,7 +108,7 @@ export function createTypesetter(resolveFonts, bidi) {
    * Load and parse all the necessary fonts to render a given string of text, then group
    * them into consecutive runs of characters sharing a font.
    */
-  function calculateFontRuns({text, lang, fonts, preResolvedFonts}, onDone) {
+  function calculateFontRuns({text, lang, fonts, style, weight, preResolvedFonts}, onDone) {
     const onResolved = ({chars, fonts: parsedFonts}) => {
       let curRun, prevVal;
       const runs = []
@@ -126,7 +128,7 @@ export function createTypesetter(resolveFonts, bidi) {
       resolveFonts(
         text,
         onResolved,
-        { lang, fonts }
+        { lang, fonts, style, weight }
       )
     }
   }
@@ -143,7 +145,9 @@ export function createTypesetter(resolveFonts, bidi) {
       font,
       lang='en',
       sdfGlyphSize=64,
-      fontSize=1,
+      fontSize=400,
+      fontWeight=1,
+      fontStyle='normal',
       letterSpacing=0,
       lineHeight='normal',
       maxWidth=INF,
@@ -181,6 +185,8 @@ export function createTypesetter(resolveFonts, bidi) {
     calculateFontRuns({
       text,
       lang,
+      style: fontStyle,
+      weight: fontWeight,
       fonts: typeof font === 'string' ? [{src: font}] : font,
       preResolvedFonts
     }, runs => {

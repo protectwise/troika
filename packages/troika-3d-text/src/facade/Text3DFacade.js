@@ -9,6 +9,8 @@ const TEXT_MESH_PROPS = [
   'anchorY',
   'font',
   'fontSize',
+  'fontWeight',
+  'fontStyle',
   'letterSpacing',
   'lineHeight',
   'maxWidth',
