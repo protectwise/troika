@@ -55,8 +55,9 @@ class World3DFacade extends WorldBaseFacade {
 
 
     //backwards compatibility support for output encoding and color space
-    if ('outputColorSpace' in renderer) {
-      renderer.outputColorSpace = this.outputColorSpace || 'srgb';
+    //set colorspace to SRGBColorSpace or LinearSRGBColorSpace
+    if ('outputColorSpace' in renderer && this.outputColorSpace) {
+      renderer.outputColorSpace = this.outputColorSpace;
     } else {
       renderer.outputEncoding = this.outputEncoding || 3000
     }
