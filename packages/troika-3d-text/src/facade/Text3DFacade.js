@@ -38,6 +38,7 @@ const TEXT_MESH_PROPS = [
   'orientation',
   'glyphGeometryDetail',
   'sdfGlyphSize',
+  'unicodeFontsURL',
   'gpuAccelerateSDF',
   'debugSDF'
 ]

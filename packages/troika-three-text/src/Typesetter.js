@@ -25,6 +25,7 @@
  * @property {AnchorXValue} [anchorX=0]
  * @property {AnchorYValue} [anchorY=0]
  * @property {boolean} [metricsOnly=false]
+ * @property {string} [unicodeFontsURL]
  * @property {FontResolverResult} [preResolvedFonts]
  * @property {boolean} [includeCaretPositions=false]
  * @property {number} [chunkedBoundsSize=8192]
@@ -108,7 +109,7 @@ export function createTypesetter(resolveFonts, bidi) {
    * Load and parse all the necessary fonts to render a given string of text, then group
    * them into consecutive runs of characters sharing a font.
    */
-  function calculateFontRuns({text, lang, fonts, style, weight, preResolvedFonts}, onDone) {
+  function calculateFontRuns({text, lang, fonts, style, weight, preResolvedFonts, unicodeFontsURL}, onDone) {
     const onResolved = ({chars, fonts: parsedFonts}) => {
       let curRun, prevVal;
       const runs = []
@@ -128,7 +129,7 @@ export function createTypesetter(resolveFonts, bidi) {
       resolveFonts(
         text,
         onResolved,
-        { lang, fonts, style, weight }
+        { lang, fonts, style, weight, unicodeFontsURL }
       )
     }
   }
@@ -159,6 +160,7 @@ export function createTypesetter(resolveFonts, bidi) {
       anchorX = 0,
       anchorY = 0,
       metricsOnly=false,
+      unicodeFontsURL,
       preResolvedFonts=null,
       includeCaretPositions=false,
       chunkedBoundsSize=8192,
@@ -188,6 +190,7 @@ export function createTypesetter(resolveFonts, bidi) {
       style: fontStyle,
       weight: fontWeight,
       fonts: typeof font === 'string' ? [{src: font}] : font,
+      unicodeFontsURL,
       preResolvedFonts
     }, runs => {
       timings.fontLoad = now() - mainStart

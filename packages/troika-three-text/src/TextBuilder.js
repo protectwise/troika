@@ -8,6 +8,7 @@ import bidiFactory from 'bidi-js'
 
 const CONFIG = {
   defaultFontURL: null,
+  unicodeFontsURL: null,
   sdfGlyphSize: 64,
   sdfMargin: 1 / 16,
   sdfExponent: 9,
@@ -27,6 +28,10 @@ function now() {
  * @param {String} config.defaultFontURL - The URL of the default font to use for text processing
  *                 requests, in case none is specified or the specifiede font fails to load or parse.
  *                 Defaults to "Roboto Regular" from Google Fonts.
+ * @param {String} config.unicodeFontsURL - A custom location for the fallback unicode-font-resolver
+ *                 data and font files, if you don't want to use the default CDN. See
+ *                 https://github.com/lojjic/unicode-font-resolver for details. It can also be
+ *                 configured per text instance, but this lets you do it once globally.
  * @param {Number} config.sdfGlyphSize - The default size of each glyph's SDF (signed distance field)
  *                 texture used for rendering. Must be a power-of-two number, and applies to all fonts,
  *                 but note that this can also be overridden per call to `getTextRenderInfo()`.
@@ -134,6 +139,7 @@ function getTextRenderInfo(args, callback) {
   args.text = '' + args.text
 
   args.sdfGlyphSize = args.sdfGlyphSize || CONFIG.sdfGlyphSize
+  args.unicodeFontsURL = args.unicodeFontsURL || CONFIG.unicodeFontsURL
 
   // Normalize colors
   if (args.colorRanges != null) {

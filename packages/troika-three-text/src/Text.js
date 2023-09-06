@@ -146,6 +146,8 @@ class Text extends Mesh {
      */
     this.font = null //will use default from TextBuilder
 
+    this.unicodeFontsURL = null //defaults to CDN
+
     /**
      * @member {number} fontSize
      * The size at which to render the font in local units; corresponds to the em-box height
@@ -438,6 +440,7 @@ class Text extends Mesh {
           includeCaretPositions: true, //TODO parameterize
           sdfGlyphSize: this.sdfGlyphSize,
           gpuAccelerateSDF: this.gpuAccelerateSDF,
+          unicodeFontsURL: this.unicodeFontsURL,
         }, textRenderInfo => {
           this._isSyncing = false
 

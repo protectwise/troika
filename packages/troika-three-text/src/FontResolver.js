@@ -11,6 +11,7 @@ import { defineWorkerModule } from "troika-worker-utils";
  * @property {Array<UserFont>|UserFont} [fonts]
  * @property {'normal'|'italic'} [style]
  * @property {'normal'|'bold'|number} [style]
+ * @property {string} [unicodeFontsURL]
  */
 
 /**
@@ -103,7 +104,13 @@ export function createFontResolver(fontParser, unicodeFontResolverClient) {
    * For a given string of text, determine which fonts are required to fully render it and
    * ensure those fonts are loaded.
    */
-  return function (text, callback, {lang, fonts: userFonts = [], style = 'normal', weight = 'normal'} = {}) {
+  return function (text, callback, {
+    lang,
+    fonts: userFonts = [],
+    style = 'normal',
+    weight = 'normal',
+    unicodeFontsURL
+  } = {}) {
     const charResolutions = new Uint8Array(text.length);
     const fontResolutions = [];
     if (!text.length) {
@@ -204,7 +211,12 @@ export function createFontResolver(fontParser, unicodeFontResolverClient) {
       if (fallbackRanges.length) {
         // Combine all fallback substrings into a single string for querying
         const fallbackString = fallbackRanges.map(range => text.substring(range[0], range[1] + 1)).join('\n')
-        unicodeFontResolverClient.getFontsForString(fallbackString, {lang, style, weight}).then(({fontUrls, chars}) => {
+        unicodeFontResolverClient.getFontsForString(fallbackString, {
+          lang,
+          style,
+          weight,
+          dataUrl: unicodeFontsURL
+        }).then(({fontUrls, chars}) => {
           // Extract results and put them back in the main array
           const fontIndexOffset = fontResolutions.length
           let charIdx = 0;

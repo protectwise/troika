@@ -207,6 +207,7 @@ class TextExample extends React.Component {
             {
               key: 'text',
               facade: Text3DFacade,
+              // unicodeFontsURL: 'http://localhost:3000',
               castShadow: state.shadows,
               text: TEXTS[state.text],
               font: FONTS[state.font],

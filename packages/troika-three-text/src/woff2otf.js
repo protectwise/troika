@@ -1,7 +1,7 @@
 /*
  Copyright 2012, Steffen Hanikel (https://github.com/hanikesn)
  Modified by Artemy Tregubenko, 2014 (https://github.com/arty-name/woff2otf)
- Modified by Jason Johnston, 2019 (pako --> tiny-inflate)
+ Modified by Jason Johnston, 2019 (pako --> fflate)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
