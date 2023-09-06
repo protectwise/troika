@@ -2,7 +2,7 @@
 
 The `troika-three-text` package provides high quality text rendering in [Three.js](https://threejs.org) scenes, using signed distance fields (SDF) and antialiasing using standard derivatives.
 
-Rather than relying on pre-generated SDF textures, this parses font files (.ttf, .otf, .woff) directly using [Typr](https://github.com/fredli74/Typr.ts), and generates the SDF atlas for glyphs on-the-fly as they are used. It also handles proper kerning, ligature glyph substitution, right-to-left/bidirectional layout, and joined scripts like Arabic. All font parsing, SDF generation, and glyph layout is performed in a web worker to prevent frame drops.
+Rather than relying on pre-generated SDF textures, this parses font files (.ttf, .otf, .woff) directly using [Typr](https://github.com/fredli74/Typr.ts), and generates the SDF atlas for glyphs on-the-fly as they are used. It also handles proper kerning, ligature glyph substitution, right-to-left/bidirectional layout, joined scripts like Arabic, and will automatically load fallback fonts for full unicode coverage. All font parsing, SDF generation, and glyph layout is performed in a web worker to prevent frame drops.
 
 Once the SDFs are generated, it assembles a geometry that positions all the glyphs, and _patches_ any Three.js Material with the proper shader code for rendering the SDFs. This means you can still benefit from all the features of Three.js's built-in materials like lighting, physically-based rendering, shadows, and fog.
 
@@ -28,6 +28,8 @@ Once the SDFs are generated, it assembles a geometry that positions all the glyp
 ![Font with ligatures](../../docs/troika-three-text/images/screenshot3.png)
 
 ![Text with a texture](../../docs/troika-three-text/images/screenshot4.png)
+
+![Unicode coverage](../../docs/troika-three-text/images/screenshot5.png)
 
 ## Installation
 
@@ -153,6 +155,18 @@ Default: The *Roboto* font loaded from Google Fonts CDN
 The em-height at which to render the font, in local world units.
 
 Default: `0.1`
+
+### `fontStyle`
+
+Either `"italic"` or `"normal"`. Currently only used to select the preferred style for the [fallback Unicode fonts](#unicode-fallback-fonts).
+
+Default: `"normal"`
+
+### `fontWeight`
+
+A numeric font weight, `"normal"`, or `"bold"`. Currently only used to select the preferred weight for the [fallback Unicode fonts](#unicode-fallback-fonts).
+
+Default: `"normal"`
 
 ### `glyphGeometryDetail`
 
@@ -286,6 +300,10 @@ An indentation applied to the first character of each _hard_ newline. Behaves li
 
 Default: `0`
 
+### `unicodeFontsUrl`
+
+A custom hosting location for [unicode-font-resolver](https://github.com/lojjic/unicode-font-resolver/) data index and font files, if you want to self-host them rather than using the default CDN. See [Unicode Fallback Fonts](#unicode-fallback-fonts) below for details.
+
 ### `whiteSpace`
 
 Defines whether text should wrap when a line reaches the `maxWidth`. Can be either `'normal'`, to allow wrapping according to the `overflowWrap` property, or `'nowrap'` to prevent wrapping.
@@ -294,6 +312,30 @@ Note that `'normal'` in this context _does_ honor newline characters to manually
 
 Default: `'normal'`
 
+## Unicode Fallback Fonts
+
+When a character is not covered by the configured `font` file, [unicode-font-resolver](https://github.com/lojjic/unicode-font-resolver/) will be used to query for an appropriate fallback font. All Unicode character ranges supported by the [Google Noto Fonts](https://fonts.google.com/noto) are covered this way.
+
+By default, the unicode-font-resolver data index and font files are loaded from the [jsDelivr CDN](https://www.jsdelivr.com/). If you wish to self-host those files you can do so; however be aware the full set of data and fonts is nearly 300MB.
+
+To self-host the files:
+- Go to the [unicode-font-resolver Github releases page](https://github.com/lojjic/unicode-font-resolver/releases)
+- Find the release matching the version of `@unicode-font-resolver/client` declared in [package.json](./package.json)'s `devDependencies`.
+- Download the source code .zip or .tar.gz for that release and unpack it.
+- Copy the contents of the `packages/data/` directory to your server where you want to host it.
+- Configure troika-three-text to load from that server URL:
+  - Per Text instance:
+    ```js
+    text.unicodeFontsURL = 'https://my.host/unicode-fonts-data'
+    ```
+  - Globally:
+    ```js
+    import {configureTextBuilder} from 'troika-three-text'
+
+    configureTextBuilder({
+      unicodeFontsURL: 'https://my.host/unicode-fonts-data'
+    })
+    ```
 
 ## Handling Asynchronous Updates
 
