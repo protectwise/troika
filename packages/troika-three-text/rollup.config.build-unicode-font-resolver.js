@@ -1,6 +1,7 @@
 import nodeResolve from 'rollup-plugin-node-resolve'
 import { terser } from 'rollup-plugin-terser'
 import { version } from '@unicode-font-resolver/client/package.json'
+import buble from "rollup-plugin-buble";
 
 
 const {LERNA_ROOT_PATH} = process.env
@@ -31,6 +32,7 @@ export default {
   // input: LERNA_ROOT_PATH + '/../unicode-font-resolver/packages/client/dist/client.esm.js',
   plugins: [
     nodeResolve(),
+    buble(),
     terser({
       ecma: 5
     })
