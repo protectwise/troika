@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.48.0-unicode.4](https://github.com/protectwise/troika/compare/v0.48.0-unicode.3...v0.48.0-unicode.4) (2023-09-07)
+
+
+### Features
+
+* allow configuring unicode-font-resolver data URL ([c6ff8d7](https://github.com/protectwise/troika/commit/c6ff8d7e5d5a4e40c73ffb8f9af4c05ee246bec7))
+
+
+
+
+
 # [0.48.0-unicode.3](https://github.com/protectwise/troika/compare/v0.48.0-unicode.2...v0.48.0-unicode.3) (2023-07-10)
 
 

@@ -2,7 +2,7 @@
   "packages": [
     "packages/*"
   ],
-  "version": "0.48.0-unicode.3",
+  "version": "0.48.0-unicode.4",
   "command": {
     "version": {
       "conventionalCommits": true
