@@ -18,19 +18,18 @@
  */
 export function getCaretAtPoint(textRenderInfo, x, y) {
   let closestCaret = null
-  const {caretHeight} = textRenderInfo
-  const caretsByRow = groupCaretsByRow(textRenderInfo)
+  const rows = groupCaretsByRow(textRenderInfo)
 
   // Find nearest row by y first
-  let closestRowY = Infinity
-  caretsByRow.forEach((carets, rowY) => {
-    if (Math.abs(y - (rowY + caretHeight / 2)) < Math.abs(y - (closestRowY + caretHeight / 2))) {
-      closestRowY = rowY
+  let closestRow = null
+  rows.forEach(row => {
+    if (!closestRow || Math.abs(y - (row.top + row.bottom) / 2) < Math.abs(y - (closestRow.top + closestRow.bottom) / 2)) {
+      closestRow = row
     }
   })
 
   // Then find closest caret by x within that row
-  caretsByRow.get(closestRowY).forEach(caret => {
+  closestRow.carets.forEach(caret => {
     if (!closestCaret || Math.abs(x - caret.x) < Math.abs(x - closestCaret.x)) {
       closestCaret = caret
     }
@@ -58,7 +57,7 @@ export function getSelectionRects(textRenderInfo, start, end) {
       return prevResult.rects
     }
 
-    const {caretPositions, caretHeight} = textRenderInfo
+    const {caretPositions} = textRenderInfo
 
     // Normalize
     if (end < start) {
@@ -74,17 +73,18 @@ export function getSelectionRects(textRenderInfo, start, end) {
     rects = []
     let currentRect = null
     for (let i = start; i < end; i++) {
-      const x1 = caretPositions[i * 3]
-      const x2 = caretPositions[i * 3 + 1]
+      const x1 = caretPositions[i * 4]
+      const x2 = caretPositions[i * 4 + 1]
       const left = Math.min(x1, x2)
       const right = Math.max(x1, x2)
-      const bottom = caretPositions[i * 3 + 2]
-      if (!currentRect || bottom !== currentRect.bottom || left > currentRect.right || right < currentRect.left) {
+      const bottom = caretPositions[i * 4 + 2]
+      const top = caretPositions[i * 4 + 3]
+      if (!currentRect || bottom !== currentRect.bottom || top !== currentRect.top || left > currentRect.right || right < currentRect.left) {
         currentRect = {
           left: Infinity,
           right: -Infinity,
-          bottom: bottom,
-          top: bottom + caretHeight
+          bottom,
+          top,
         }
         rects.push(currentRect)
       }
@@ -97,7 +97,7 @@ export function getSelectionRects(textRenderInfo, start, end) {
     for (let i = rects.length - 1; i-- > 0;) {
       const rectA = rects[i]
       const rectB = rects[i + 1]
-      if (rectA.bottom === rectB.bottom && rectA.left <= rectB.right && rectA.right >= rectB.left) {
+      if (rectA.bottom === rectB.bottom && rectA.top === rectB.top && rectA.left <= rectB.right && rectA.right >= rectB.left) {
         rectB.left = Math.min(rectB.left, rectA.left)
         rectB.right = Math.max(rectB.right, rectA.right)
         rects.splice(i, 1)
@@ -111,35 +111,43 @@ export function getSelectionRects(textRenderInfo, start, end) {
 
 const _caretsByRowCache = new WeakMap()
 
+/**
+ * Group a set of carets by row of text, caching the result. A single row of text may contain carets of
+ * differing positions/heights if it has multiple fonts, and they may overlap slightly across rows, so this
+ * uses an assumption of "at least overlapping by half" to put them in the same row.
+ * @return Array<{bottom: number, top: number, carets: TextCaret[]}>
+ */
 function groupCaretsByRow(textRenderInfo) {
   // textRenderInfo is frozen so it's safe to cache based on it
-  let caretsByRow = _caretsByRowCache.get(textRenderInfo)
-  if (!caretsByRow) {
-    const {caretPositions, caretHeight} = textRenderInfo
-    caretsByRow = new Map()
-    for (let i = 0; i < caretPositions.length; i += 3) {
-      const rowY = caretPositions[i + 2]
-      let rowCarets = caretsByRow.get(rowY)
-      if (!rowCarets) {
-        caretsByRow.set(rowY, rowCarets = [])
+  let rows = _caretsByRowCache.get(textRenderInfo)
+  if (!rows) {
+    rows = []
+    const {caretPositions} = textRenderInfo
+    let curRow
+
+    const visitCaret = (x, bottom, top, charIndex) => {
+      // new row if not overlapping by at least half
+      if (!curRow || (top < (curRow.top + curRow.bottom) / 2)) {
+        rows.push(curRow = {bottom, top, carets: []})
       }
-      rowCarets.push({
-        x: caretPositions[i],
-        y: rowY,
-        height: caretHeight,
-        charIndex: i / 3
+      // expand vertical limits if necessary
+      if (top > curRow.top) curRow.top = top
+      if (bottom < curRow.bottom) curRow.bottom = bottom
+      curRow.carets.push({
+        x,
+        y: bottom,
+        height: top - bottom,
+        charIndex,
       })
-      // Add one more caret after the final char
-      if (i + 3 >= caretPositions.length) {
-        rowCarets.push({
-          x: caretPositions[i + 1],
-          y: rowY,
-          height: caretHeight,
-          charIndex: i / 3 + 1
-        })
-      }
     }
+
+    let i = 0
+    for (; i < caretPositions.length; i += 4) {
+      visitCaret(caretPositions[i], caretPositions[i + 2], caretPositions[i + 3], i / 4)
+    }
+    // Add one more caret after the final char
+    visitCaret(caretPositions[i - 3], caretPositions[i - 2], caretPositions[i - 1], i / 4)
   }
-  _caretsByRowCache.set(textRenderInfo, caretsByRow)
-  return caretsByRow
+  _caretsByRowCache.set(textRenderInfo, rows)
+  return rows
 }

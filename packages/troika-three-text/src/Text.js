@@ -55,6 +55,9 @@ const syncCompleteEvent = { type: 'synccomplete' }
 const SYNCABLE_PROPS = [
   'font',
   'fontSize',
+  'fontStyle',
+  'fontWeight',
+  'lang',
   'letterSpacing',
   'lineHeight',
   'maxWidth',
@@ -109,7 +112,7 @@ class Text extends Mesh {
     this.anchorX = 0
 
     /**
-     * @member {number|string} anchorX
+     * @member {number|string} anchorY
      * Defines the vertical position in the text block that should line up with the local origin.
      * Can be specified as a numeric y position in local units (note: down is negative y), a string
      * percentage of the total text block height e.g. `'25%'`, or one of the following keyword strings:
@@ -143,6 +146,8 @@ class Text extends Mesh {
      */
     this.font = null //will use default from TextBuilder
 
+    this.unicodeFontsURL = null //defaults to CDN
+
     /**
      * @member {number} fontSize
      * The size at which to render the font in local units; corresponds to the em-box height
@@ -151,6 +156,24 @@ class Text extends Mesh {
     this.fontSize = 0.1
 
     /**
+     * @member {number|'normal'|'bold'}
+     * The weight of the font. Currently only used for fallback Noto fonts.
+     */
+    this.fontWeight = 'normal'
+
+    /**
+     * @member {'normal'|'italic'}
+     * The style of the font. Currently only used for fallback Noto fonts.
+     */
+    this.fontStyle = 'normal'
+
+    /**
+     * @member {string} lang
+     * The language code of this text; can be used for font selection.
+     */
+    this.lang = 'en'
+
+      /**
      * @member {number} letterSpacing
      * Sets a uniform adjustment to spacing between letters after kerning is applied. Positive
      * numbers increase spacing and negative numbers decrease it.
@@ -399,7 +422,10 @@ class Text extends Mesh {
         getTextRenderInfo({
           text: this.text,
           font: this.font,
+          lang: this.lang,
           fontSize: this.fontSize || 0.1,
+          fontWeight: this.fontWeight || 'normal',
+          fontStyle: this.fontStyle || 'normal',
           letterSpacing: this.letterSpacing || 0,
           lineHeight: this.lineHeight || 'normal',
           maxWidth: this.maxWidth,
@@ -414,6 +440,7 @@ class Text extends Mesh {
           includeCaretPositions: true, //TODO parameterize
           sdfGlyphSize: this.sdfGlyphSize,
           gpuAccelerateSDF: this.gpuAccelerateSDF,
+          unicodeFontsURL: this.unicodeFontsURL,
         }, textRenderInfo => {
           this._isSyncing = false
 

@@ -44,6 +44,7 @@
     "bootstrap": "lerna bootstrap --hoist",
     "build": "lerna exec --ignore=troika-examples -- rollup -c \\$LERNA_ROOT_PATH/rollup.config.js",
     "build-typr": "lerna exec --scope=troika-three-text -- npm run build-typr",
+    "build-unicode-font-resolver": "lerna exec --scope=troika-three-text -- npm run build-unicode-font-resolver",
     "build-woff2otf": "lerna exec --scope=troika-three-text -- npm run build-woff2otf",
     "build-yoga": "npm run bootstrap && lerna exec --scope=troika-flex-layout -- npm run build-yoga",
     "test": "jest",

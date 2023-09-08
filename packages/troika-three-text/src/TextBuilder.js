@@ -1,17 +1,18 @@
 import { Color, Texture, LinearFilter } from 'three'
 import { defineWorkerModule } from 'troika-worker-utils'
+import { fontResolverWorkerModule } from "./FontResolver.js";
 import { createTypesetter } from './Typesetter.js'
 import { generateSDF, warmUpSDFCanvas, resizeWebGLCanvasWithoutClearing } from './SDFGenerator.js'
 import bidiFactory from 'bidi-js'
-import fontParser from './FontParser.js'
 
 
 const CONFIG = {
-  defaultFontURL: 'https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff', //Roboto Regular
+  defaultFontURL: null,
+  unicodeFontsURL: null,
   sdfGlyphSize: 64,
   sdfMargin: 1 / 16,
   sdfExponent: 9,
-  textureWidth: 2048
+  textureWidth: 2048,
 }
 const tempColor = /*#__PURE__*/new Color()
 let hasRequested = false
@@ -27,6 +28,10 @@ function now() {
  * @param {String} config.defaultFontURL - The URL of the default font to use for text processing
  *                 requests, in case none is specified or the specifiede font fails to load or parse.
  *                 Defaults to "Roboto Regular" from Google Fonts.
+ * @param {String} config.unicodeFontsURL - A custom location for the fallback unicode-font-resolver
+ *                 data and font files, if you don't want to use the default CDN. See
+ *                 https://github.com/lojjic/unicode-font-resolver for details. It can also be
+ *                 configured per text instance, but this lets you do it once globally.
  * @param {Number} config.sdfGlyphSize - The default size of each glyph's SDF (signed distance field)
  *                 texture used for rendering. Must be a power-of-two number, and applies to all fonts,
  *                 but note that this can also be overridden per call to `getTextRenderInfo()`.
@@ -74,7 +79,7 @@ const atlases = Object.create(null)
 
 /**
  * @typedef {object} TroikaTextRenderInfo - Format of the result from `getTextRenderInfo`.
- * @property {object} parameters - The normalized input arguments to the render call.
+ * @property {TypesetParams} parameters - The normalized input arguments to the render call.
  * @property {Texture} sdfTexture - The SDF atlas texture.
  * @property {number} sdfGlyphSize - The size of each glyph's SDF; see `configureTextBuilder`.
  * @property {number} sdfExponent - The exponent used in encoding the SDF's values; see `configureTextBuilder`.
@@ -82,7 +87,7 @@ const atlases = Object.create(null)
  * @property {Float32Array} glyphAtlasIndices - List holding each glyph's index in the SDF atlas.
  * @property {Uint8Array} [glyphColors] - List holding each glyph's [r, g, b] color, if `colorRanges` was supplied.
  * @property {Float32Array} [caretPositions] - A list of caret positions for all characters in the string; each is
- *           three elements: the starting X, the ending X, and the bottom Y for the caret.
+ *           four elements: the starting X, the ending X, the bottom Y, and the top Y for the caret.
  * @property {number} [caretHeight] - An appropriate height for all selection carets.
  * @property {number} ascender - The font's ascender metric.
  * @property {number} descender - The font's descender metric.
@@ -110,7 +115,7 @@ const atlases = Object.create(null)
 /**
  * Main entry point for requesting the data needed to render a text string with given font parameters.
  * This is an asynchronous call, performing most of the logic in a web worker thread.
- * @param {object} args
+ * @param {TypesetParams} args
  * @param {getTextRenderInfo~callback} callback
  */
 function getTextRenderInfo(args, callback) {
@@ -118,14 +123,23 @@ function getTextRenderInfo(args, callback) {
   args = assign({}, args)
   const totalStart = now()
 
-  // Apply default font here to avoid a 'null' atlas, and convert relative
-  // URLs to absolute so they can be resolved in the worker
-  args.font = toAbsoluteURL(args.font || CONFIG.defaultFontURL)
+  // Convert relative URL to absolute so it can be resolved in the worker, and add fallbacks.
+  // In the future we'll allow args.font to be a list with unicode ranges too.
+  const { defaultFontURL } = CONFIG
+  const fonts = [];
+  if (defaultFontURL) {
+    fonts.push({label: 'default', src: toAbsoluteURL(defaultFontURL)})
+  }
+  if (args.font) {
+    fonts.push({label: 'user', src: toAbsoluteURL(args.font)})
+  }
+  args.font = fonts
 
   // Normalize text to a string
   args.text = '' + args.text
 
   args.sdfGlyphSize = args.sdfGlyphSize || CONFIG.sdfGlyphSize
+  args.unicodeFontsURL = args.unicodeFontsURL || CONFIG.unicodeFontsURL
 
   // Normalize colors
   if (args.colorRanges != null) {
@@ -173,26 +187,32 @@ function getTextRenderInfo(args, callback) {
   }
 
   const {sdfTexture, sdfCanvas} = atlas
-  let fontGlyphs = atlas.glyphsByFont.get(args.font)
-  if (!fontGlyphs) {
-    atlas.glyphsByFont.set(args.font, fontGlyphs = new Map())
-  }
 
   // Issue request to the typesetting engine in the worker
   typesetInWorker(args).then(result => {
-    const {glyphIds, glyphPositions, fontSize, unitsPerEm, timings} = result
+    const {glyphIds, glyphFontIndices, fontData, glyphPositions, fontSize, timings} = result
     const neededSDFs = []
     const glyphBounds = new Float32Array(glyphIds.length * 4)
-    const fontSizeMult = fontSize / unitsPerEm
     let boundsIdx = 0
     let positionsIdx = 0
     const quadsStart = now()
+
+    const fontGlyphMaps = fontData.map(font => {
+      let map = atlas.glyphsByFont.get(font.src)
+      if (!map) {
+        atlas.glyphsByFont.set(font.src, map = new Map())
+      }
+      return map
+    })
+
     glyphIds.forEach((glyphId, i) => {
-      let glyphInfo = fontGlyphs.get(glyphId)
+      const fontIndex = glyphFontIndices[i]
+      const {src: fontSrc, unitsPerEm} = fontData[fontIndex]
+      let glyphInfo = fontGlyphMaps[fontIndex].get(glyphId)
 
       // If this is a glyphId not seen before, add it to the atlas
       if (!glyphInfo) {
-        const {path, pathBounds} = result.glyphData[glyphId]
+        const {path, pathBounds} = result.glyphData[fontSrc][glyphId]
 
         // Margin around path edges in SDF, based on a percentage of the glyph's max dimension.
         // Note we add an extra 0.5 px over the configured value because the outer 0.5 doesn't contain
@@ -207,7 +227,7 @@ function getTextRenderInfo(args, callback) {
           pathBounds[2] + fontUnitsMargin,
           pathBounds[3] + fontUnitsMargin,
         ]
-        fontGlyphs.set(glyphId, (glyphInfo = { path, atlasIndex, sdfViewBox }))
+        fontGlyphMaps[fontIndex].set(glyphId, (glyphInfo = { path, atlasIndex, sdfViewBox }))
 
         // Collect those that need SDF generation
         neededSDFs.push(glyphInfo)
@@ -218,6 +238,7 @@ function getTextRenderInfo(args, callback) {
       const {sdfViewBox} = glyphInfo
       const posX = glyphPositions[positionsIdx++]
       const posY = glyphPositions[positionsIdx++]
+      const fontSizeMult = fontSize / unitsPerEm
       glyphBounds[boundsIdx++] = posX + sdfViewBox[0] * fontSizeMult
       glyphBounds[boundsIdx++] = posY + sdfViewBox[1] * fontSizeMult
       glyphBounds[boundsIdx++] = posX + sdfViewBox[2] * fontSizeMult
@@ -266,7 +287,6 @@ function getTextRenderInfo(args, callback) {
         glyphAtlasIndices: glyphIds,
         glyphColors: result.glyphColors,
         caretPositions: result.caretPositions,
-        caretHeight: result.caretHeight,
         chunkedBounds: result.chunkedBounds,
         ascender: result.ascender,
         descender: result.descender,
@@ -420,18 +440,15 @@ function safariPre15Workaround(atlas) {
   }
 }
 
-
 const typesetterWorkerModule = /*#__PURE__*/defineWorkerModule({
   name: 'Typesetter',
   dependencies: [
-    CONFIG,
-    fontParser,
     createTypesetter,
-    bidiFactory
+    fontResolverWorkerModule,
+    bidiFactory,
   ],
-  init(config, fontParser, createTypesetter, bidiFactory) {
-    const {defaultFontURL} = config
-    return createTypesetter(fontParser, bidiFactory(), { defaultFontURL })
+  init(createTypesetter, fontResolver, bidiFactory) {
+    return createTypesetter(fontResolver, bidiFactory())
   }
 })
 
@@ -449,15 +466,11 @@ const typesetInWorker = /*#__PURE__*/defineWorkerModule({
   },
   getTransferables(result) {
     // Mark array buffers as transferable to avoid cloning during postMessage
-    const transferables = [
-      result.glyphPositions.buffer,
-      result.glyphIds.buffer
-    ]
-    if (result.caretPositions) {
-      transferables.push(result.caretPositions.buffer)
-    }
-    if (result.glyphColors) {
-      transferables.push(result.glyphColors.buffer)
+    const transferables = []
+    for (let p in result) {
+      if (result[p] && result[p].buffer) {
+        transferables.push(result[p].buffer)
+      }
     }
     return transferables
   }

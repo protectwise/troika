@@ -3,6 +3,75 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.48.0-unicode.4](https://github.com/protectwise/troika/compare/v0.48.0-unicode.3...v0.48.0-unicode.4) (2023-09-07)
+
+
+### Bug Fixes
+
+* pre-transpile the unicode-font-resolver lib ([cdb0d02](https://github.com/protectwise/troika/commit/cdb0d026eac00633a4fbaa1048c2d70766c2ee0d))
+
+
+### Features
+
+* allow configuring unicode-font-resolver data URL ([c6ff8d7](https://github.com/protectwise/troika/commit/c6ff8d7e5d5a4e40c73ffb8f9af4c05ee246bec7))
+
+
+
+
+
+# [0.48.0-unicode.3](https://github.com/protectwise/troika/compare/v0.48.0-unicode.2...v0.48.0-unicode.3) (2023-07-10)
+
+
+### Features
+
+* add fontWeight and fontStyle params for fallback font resolution ([b79806a](https://github.com/protectwise/troika/commit/b79806a813be866369cebf6b54033274311d62f3))
+
+
+
+
+
+# [0.48.0-unicode.2](https://github.com/protectwise/troika/compare/v0.48.0-unicode.1...v0.48.0-unicode.2) (2023-07-10)
+
+
+### Bug Fixes
+
+* fix hang on zero-length text ([26ea258](https://github.com/protectwise/troika/commit/26ea258c89b6b051b4f9f1de0e679546ae2e7f94))
+
+
+
+
+
+# [0.48.0-unicode.1](https://github.com/protectwise/troika/compare/v0.48.0-unicode.0...v0.48.0-unicode.1) (2023-06-29)
+
+
+### Bug Fixes
+
+* fontResolverWorkerModule wasn't exported ([677f525](https://github.com/protectwise/troika/commit/677f5252a51071650acc02c41079fe3fedce13c8))
+
+
+
+
+
+# [0.48.0-unicode.0](https://github.com/protectwise/troika/compare/v0.47.2...v0.48.0-unicode.0) (2023-06-29)
+
+
+### Bug Fixes
+
+* **troika-three-text:** add CJK punctuation to unicode ranges ([7a9ef74](https://github.com/protectwise/troika/commit/7a9ef74630b3a1d1cb777b590364aa9e1de693db))
+
+
+### Features
+
+* **troika-three-text:** add Arabic and Chinese texts to example ([053687d](https://github.com/protectwise/troika/commit/053687dc03437b67c259b7f4c3b1898f52545dd4))
+* **troika-three-text:** add fallback fonts for CJK and support 'lang' prop ([30d1d68](https://github.com/protectwise/troika/commit/30d1d684768ee5da759c86a94caabb79cfe2d6e0))
+* **troika-three-text:** add Noto Emoji font to fallback list ([5cd8c97](https://github.com/protectwise/troika/commit/5cd8c97c4a09f1f57cf6eda0e3eefa15ef0a55b9))
+* **troika-three-text:** initial support for multiple font files split by unicode range - [#13](https://github.com/protectwise/troika/issues/13) ([aae9bee](https://github.com/protectwise/troika/commit/aae9bee6ecff02d9752e46d076257cd406b53db7)), closes [#65](https://github.com/protectwise/troika/issues/65)
+* **troika-three-text:** integrate unicode-font-resolver for full unicode fallback font coverage ([4c9beef](https://github.com/protectwise/troika/commit/4c9beef4372946239e771b97a0cd35e90ab41ad2))
+
+
+
+
+
 ## [0.47.2](https://github.com/protectwise/troika/compare/v0.47.1...v0.47.2) (2023-05-15)
 
 **Note:** Version bump only for package troika-three-text

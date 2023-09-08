@@ -3,6 +3,52 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.48.0-unicode.4](https://github.com/protectwise/troika/compare/v0.48.0-unicode.3...v0.48.0-unicode.4) (2023-09-07)
+
+**Note:** Version bump only for package troika-flex-layout
+
+
+
+
+
+# [0.48.0-unicode.3](https://github.com/protectwise/troika/compare/v0.48.0-unicode.2...v0.48.0-unicode.3) (2023-07-10)
+
+**Note:** Version bump only for package troika-flex-layout
+
+
+
+
+
+# [0.48.0-unicode.2](https://github.com/protectwise/troika/compare/v0.48.0-unicode.1...v0.48.0-unicode.2) (2023-07-10)
+
+**Note:** Version bump only for package troika-flex-layout
+
+
+
+
+
+# [0.48.0-unicode.1](https://github.com/protectwise/troika/compare/v0.48.0-unicode.0...v0.48.0-unicode.1) (2023-06-29)
+
+
+### Bug Fixes
+
+* fontResolverWorkerModule wasn't exported ([677f525](https://github.com/protectwise/troika/commit/677f5252a51071650acc02c41079fe3fedce13c8))
+
+
+
+
+
+# [0.48.0-unicode.0](https://github.com/protectwise/troika/compare/v0.47.2...v0.48.0-unicode.0) (2023-06-29)
+
+
+### Features
+
+* **troika-three-text:** integrate unicode-font-resolver for full unicode fallback font coverage ([4c9beef](https://github.com/protectwise/troika/commit/4c9beef4372946239e771b97a0cd35e90ab41ad2))
+
+
+
+
+
 ## [0.47.2](https://github.com/protectwise/troika/compare/v0.47.1...v0.47.2) (2023-05-15)
 
 **Note:** Version bump only for package troika-flex-layout

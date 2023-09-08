@@ -3,6 +3,52 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.48.0-unicode.4](https://github.com/protectwise/troika/compare/v0.48.0-unicode.3...v0.48.0-unicode.4) (2023-09-07)
+
+
+### Features
+
+* allow configuring unicode-font-resolver data URL ([c6ff8d7](https://github.com/protectwise/troika/commit/c6ff8d7e5d5a4e40c73ffb8f9af4c05ee246bec7))
+
+
+
+
+
+# [0.48.0-unicode.3](https://github.com/protectwise/troika/compare/v0.48.0-unicode.2...v0.48.0-unicode.3) (2023-07-10)
+
+
+### Features
+
+* add fontWeight and fontStyle params for fallback font resolution ([b79806a](https://github.com/protectwise/troika/commit/b79806a813be866369cebf6b54033274311d62f3))
+
+
+
+
+
+# [0.48.0-unicode.2](https://github.com/protectwise/troika/compare/v0.48.0-unicode.1...v0.48.0-unicode.2) (2023-07-10)
+
+**Note:** Version bump only for package troika-3d-text
+
+
+
+
+
+# [0.48.0-unicode.1](https://github.com/protectwise/troika/compare/v0.48.0-unicode.0...v0.48.0-unicode.1) (2023-06-29)
+
+**Note:** Version bump only for package troika-3d-text
+
+
+
+
+
+# [0.48.0-unicode.0](https://github.com/protectwise/troika/compare/v0.47.2...v0.48.0-unicode.0) (2023-06-29)
+
+**Note:** Version bump only for package troika-3d-text
+
+
+
+
+
 ## [0.47.2](https://github.com/protectwise/troika/compare/v0.47.1...v0.47.2) (2023-05-15)
 
 **Note:** Version bump only for package troika-3d-text

@@ -9,6 +9,8 @@ const TEXT_MESH_PROPS = [
   'anchorY',
   'font',
   'fontSize',
+  'fontWeight',
+  'fontStyle',
   'letterSpacing',
   'lineHeight',
   'maxWidth',
@@ -36,6 +38,7 @@ const TEXT_MESH_PROPS = [
   'orientation',
   'glyphGeometryDetail',
   'sdfGlyphSize',
+  'unicodeFontsURL',
   'gpuAccelerateSDF',
   'debugSDF'
 ]

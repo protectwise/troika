@@ -2,13 +2,16 @@
   "packages": [
     "packages/*"
   ],
-  "version": "0.47.2",
+  "version": "0.48.0-unicode.4",
   "command": {
     "version": {
       "conventionalCommits": true
     },
     "publish": {
-      "allowBranch": "main"
+      "allowBranch": [
+        "main",
+        "unicode-ranges"
+      ]
     }
   }
 }
