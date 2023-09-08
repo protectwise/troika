@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@fredli74/typr": "0.3.8",
-    "@unicode-font-resolver/client": "0.4.0",
+    "@unicode-font-resolver/client": "1.0.0",
     "fflate": "^0.7.0",
     "node-fetch": "^2.6.0"
   },
