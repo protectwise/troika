@@ -320,8 +320,8 @@ By default, the unicode-font-resolver data index and font files are loaded from 
 
 To self-host the files:
 
-- Go to the [unicode-font-resolver Github releases page](https://github.com/lojjic/unicode-font-resolver/releases)
-- Find the release matching the version of `@unicode-font-resolver/client` declared in `troika-three-text/package.json`'s `devDependencies`.
+- Go to the [unicode-font-resolver Github tags page](https://github.com/lojjic/unicode-font-resolver/tags)
+- Find the tag matching the version of `@unicode-font-resolver/client` declared in `troika-three-text/package.json`'s `devDependencies`.
 - Download the source code .zip or .tar.gz for that release and unpack it.
 - Copy the contents of the `packages/data/` directory to your server where you want to host it.
 - Configure troika-three-text to load from that server URL:
