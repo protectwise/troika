@@ -319,23 +319,24 @@ When a character is not covered by the configured `font` file, [unicode-font-res
 By default, the unicode-font-resolver data index and font files are loaded from the [jsDelivr CDN](https://www.jsdelivr.com/). If you wish to self-host those files you can do so; however be aware the full set of data and fonts is nearly 300MB.
 
 To self-host the files:
+
 - Go to the [unicode-font-resolver Github releases page](https://github.com/lojjic/unicode-font-resolver/releases)
-- Find the release matching the version of `@unicode-font-resolver/client` declared in [package.json](./package.json)'s `devDependencies`.
+- Find the release matching the version of `@unicode-font-resolver/client` declared in `troika-three-text/package.json`'s `devDependencies`.
 - Download the source code .zip or .tar.gz for that release and unpack it.
 - Copy the contents of the `packages/data/` directory to your server where you want to host it.
 - Configure troika-three-text to load from that server URL:
-  - Per Text instance:
-    ```js
-    text.unicodeFontsURL = 'https://my.host/unicode-fonts-data'
-    ```
-  - Globally:
-    ```js
-    import {configureTextBuilder} from 'troika-three-text'
+    - Per Text instance:
+      ```js
+      text.unicodeFontsURL = 'https://my.host/unicode-fonts-data'
+      ```
+    - Globally:
+      ```js
+      import {configureTextBuilder} from 'troika-three-text'
 
-    configureTextBuilder({
-      unicodeFontsURL: 'https://my.host/unicode-fonts-data'
-    })
-    ```
+      configureTextBuilder({
+        unicodeFontsURL: 'https://my.host/unicode-fonts-data'
+      })
+      ```
 
 ## Handling Asynchronous Updates
 

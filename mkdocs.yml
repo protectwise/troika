@@ -15,9 +15,10 @@ theme:
     #- toc.integrate
   icon:
     logo: fontawesome/regular/file
-google_analytics:
-  - UA-189971966-1
-  - auto
+  extra:
+    analytics:
+      provider: google
+      property: G-91Z6LQXXFX
 markdown_extensions:
   - pymdownx.b64 #not working???
   - pymdownx.highlight

@@ -13,5 +13,5 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: 3.9.x
-      - run: pip install mkdocs==1.1 mkdocs-material mkdocs-include-markdown-plugin mkdocs-git-revision-date-plugin
+      - run: pip install mkdocs==1.5.2 mkdocs-material mkdocs-include-markdown-plugin mkdocs-git-revision-date-plugin
       - run: mkdocs gh-deploy --strict --force
