@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.48.0](https://github.com/protectwise/troika/compare/v0.47.2...v0.48.0) (2023-09-09)
+
+
+### Features
+
+* **troika-three-text:** add fallback font loading for full Unicode support ([#279](https://github.com/protectwise/troika/issues/279)) ([6fb8061](https://github.com/protectwise/troika/commit/6fb806145f79d7a36e79a35a006b4601535b3827)), closes [#13](https://github.com/protectwise/troika/issues/13) [#65](https://github.com/protectwise/troika/issues/65)
+
+
+
+
+
 
 
 ## [0.47.2](https://github.com/protectwise/troika/compare/v0.47.1...v0.47.2) (2023-05-15)
