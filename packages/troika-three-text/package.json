@@ -13,6 +13,7 @@
   "main": "dist/troika-three-text.umd.js",
   "module": "dist/troika-three-text.esm.js",
   "module:src": "src/index.js",
+  "types": "index.ds.ts",
   "dependencies": {
     "bidi-js": "^1.0.2",
     "troika-three-utils": "^0.48.0",
