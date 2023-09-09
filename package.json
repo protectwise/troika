@@ -4,9 +4,6 @@
   "description": "Troika - a framework for managing Three.js scenes using point-in-time descriptors. Includes support for automatic transitions, animations, and pointer events.",
   "author": "Jason Johnston <jason@lojjic.com>",
   "license": "MIT",
-  "engines": {
-    "npm": "=6.11.3"
-  },
   "devDependencies": {
     "@ampproject/rollup-plugin-closure-compiler": "^0.26.0",
     "@babel/core": "^7.12.16",
