@@ -32,7 +32,11 @@ export default {
   // input: LERNA_ROOT_PATH + '/../unicode-font-resolver/packages/client/dist/client.esm.js',
   plugins: [
     nodeResolve(),
-    buble(),
+    buble({
+      transforms: {
+        unicodeRegExp: false
+      }
+    }),
     terser({
       ecma: 5
     })

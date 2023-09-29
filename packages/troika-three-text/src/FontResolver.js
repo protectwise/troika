@@ -212,7 +212,7 @@ export function createFontResolver(fontParser, unicodeFontResolverClient) {
         // Combine all fallback substrings into a single string for querying
         const fallbackString = fallbackRanges.map(range => text.substring(range[0], range[1] + 1)).join('\n')
         unicodeFontResolverClient.getFontsForString(fallbackString, {
-          lang,
+          lang: lang || undefined,
           style,
           weight,
           dataUrl: unicodeFontsURL

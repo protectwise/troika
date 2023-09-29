@@ -9,7 +9,7 @@
  * @typedef {object} TypesetParams
  * @property {string} text
  * @property {UserFont|UserFont[]} [font]
- * @property {string} [lang='en']
+ * @property {string} [lang]
  * @property {number} [sdfGlyphSize=64]
  * @property {number} [fontSize=1]
  * @property {number|'normal'|'bold'} [fontWeight='normal']
@@ -144,7 +144,7 @@ export function createTypesetter(resolveFonts, bidi) {
     {
       text='',
       font,
-      lang='en',
+      lang,
       sdfGlyphSize=64,
       fontSize=400,
       fontWeight=1,

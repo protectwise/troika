@@ -140,9 +140,9 @@ class Text extends Mesh {
     this.direction = 'auto'
 
     /**
-     * @member {string} font
+     * @member {string|null} font
      * URL of a custom font to be used. Font files can be in .ttf, .otf, or .woff (not .woff2) formats.
-     * Defaults to the Roboto font loaded from Google Fonts.
+     * Defaults to Noto Sans.
      */
     this.font = null //will use default from TextBuilder
 
@@ -168,10 +168,10 @@ class Text extends Mesh {
     this.fontStyle = 'normal'
 
     /**
-     * @member {string} lang
-     * The language code of this text; can be used for font selection.
+     * @member {string|null} lang
+     * The language code of this text; can be used for explicitly selecting certain CJK fonts.
      */
-    this.lang = 'en'
+    this.lang = null;
 
       /**
      * @member {number} letterSpacing
