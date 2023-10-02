@@ -8,7 +8,6 @@ import GlobeExample from './globe/GlobeExample'
 import GlobeConnectionsExample from './globe-connections/GlobeConnectionsExample'
 import HtmlOverlays from './html-overlays/HtmlOverlaysExample'
 import TextExample from './text/TextExample'
-import TextRtlExample from './text-rtl/TextExample'
 import FlexboxExample from './flexbox/FlexboxExample'
 import UIExample from './ui2/UIExample'
 import DragDrop from './dragdrop/DragDropExample'
@@ -33,7 +32,6 @@ const EXAMPLES = [
   {id: 'globeConnections', name: 'Globe Connections', component: GlobeConnectionsExample},
   {id: 'htmlOverlays', name: 'HTML Overlays', component: HtmlOverlays},
   {id: 'text', name: '3D Text', component: TextExample},
-  {id: 'text-rtl', hidden: true, name: 'RTL 3D Text', component: TextRtlExample},
   {id: 'flexbox', name: 'Flexbox UI Layout', component: FlexboxExample},
   {id: 'ui', name: 'User Interface', component: UIExample},
   {id: 'dragdrop', name: 'Drag and Drop', component: DragDrop},
