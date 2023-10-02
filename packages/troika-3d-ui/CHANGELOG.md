@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.48.1](https://github.com/protectwise/troika/compare/v0.48.0...v0.48.1) (2023-10-02)
+
+**Note:** Version bump only for package troika-3d-ui
+
+
+
+
+
 # [0.48.0](https://github.com/protectwise/troika/compare/v0.47.2...v0.48.0) (2023-09-09)
 
 

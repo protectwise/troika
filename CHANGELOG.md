@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.48.1](https://github.com/protectwise/troika/compare/v0.48.0...v0.48.1) (2023-10-02)
+
+
+### Bug Fixes
+
+* improve font resolution in CJK ([8d9ac64](https://github.com/protectwise/troika/commit/8d9ac641215c198cdaf1f55185814e061f8d0d6e))
+* korean/japanese fonts now resolve correctly ([207a5e0](https://github.com/protectwise/troika/commit/207a5e03d8881ce26e71827b77baea6c2e39aa04))
+
+
+
+
+
 # [0.48.0](https://github.com/protectwise/troika/compare/v0.47.2...v0.48.0) (2023-09-09)
 
 
