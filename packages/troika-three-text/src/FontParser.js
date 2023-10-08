@@ -134,7 +134,7 @@ function parserFactory(Typr, woff2otf) {
     if (gsub) {
       const {lookupList, featureList} = gsub
       let joiningForms
-      const supportedFeatures = /^(rlig|liga|mset|isol|init|fina|medi|half|pres|blws)$/
+      const supportedFeatures = /^(rlig|liga|mset|isol|init|fina|medi|half|pres|blws|ccmp)$/
       const usedLookups = []
       featureList.forEach(feature => {
         if (supportedFeatures.test(feature.tag)) {
@@ -157,6 +157,136 @@ function parserFactory(Typr, woff2otf) {
     }
 
     return glyphIds
+  }
+
+  //
+  function calcGlyphPositions(font, glyphIds) {
+    const positions = new Int16Array(glyphIds.length * 3); // [offsetX, offsetY, advanceX, ...]
+    let glyphIndex = 0;
+    for (; glyphIndex < glyphIds.length; glyphIndex++) {
+      const glyphId = glyphIds[glyphIndex]
+      if (glyphId === -1) continue;
+
+      positions[glyphIndex * 3 + 2] = font.hmtx.aWidth[glyphId]; // populate advanceX in...advance.
+
+      const gpos = font.GPOS;
+      if (gpos) {
+        const llist = gpos.lookupList;
+        for (let i = 0; i < llist.length; i++) {
+          const lookup = llist[i];
+          for (let j = 0; j < lookup.tabs.length; j++) {
+            const tab = lookup.tabs[j];
+            // Single char placement
+            if (lookup.ltype === 1) {
+              const ind = Typr._lctf.coverageIndex(tab.coverage, glyphId);
+              if (ind !== -1 && tab.pos) {
+                applyValueRecord(tab.pos, glyphIndex)
+                break
+              }
+            }
+            // Pairs (kerning)
+            else if (lookup.ltype === 2) {
+              let adj = null;
+              let prevGlyphIndex = getPrevGlyphIndex()
+              if (prevGlyphIndex !== -1) {
+                const coverageIndex = Typr._lctf.coverageIndex(tab.coverage, glyphIds[prevGlyphIndex]);
+                if (coverageIndex !== -1) {
+                  if (tab.fmt === 1) {
+                    const right = tab.pairsets[coverageIndex];
+                    for (let k = 0; k < right.length; k++) {
+                      if (right[k].gid2 === glyphId) adj = right[k];
+                    }
+                  } else if (tab.fmt === 2) {
+                    const c1 = Typr.U._getGlyphClass(glyphIds[prevGlyphIndex], tab.classDef1);
+                    const c2 = Typr.U._getGlyphClass(glyphId, tab.classDef2);
+                    adj = tab.matrix[c1][c2];
+                  }
+                  if (adj) {
+                    if (adj.val1) applyValueRecord(adj.val1, prevGlyphIndex)
+                    if (adj.val2) applyValueRecord(adj.val2, glyphIndex)
+                    break
+                  }
+                }
+              }
+            }
+            // Mark to base
+            else if (lookup.ltype === 4) {
+              const markArrIndex = Typr._lctf.coverageIndex(tab.markCoverage, glyphId);
+              if (markArrIndex !== -1) {
+                const baseGlyphIndex = getPrevGlyphIndex(isBaseGlyph);
+                const baseArrIndex = baseGlyphIndex === -1 ? -1 : Typr._lctf.coverageIndex(tab.baseCoverage, glyphIds[baseGlyphIndex])
+                if (baseArrIndex !== -1) {
+                  const markRecord = tab.markArray[markArrIndex];
+                  const baseAnchor = tab.baseArray[baseArrIndex][markRecord.markClass];
+                  positions[glyphIndex * 3] = baseAnchor.x - markRecord.x + positions[baseGlyphIndex * 3] - positions[baseGlyphIndex * 3 + 2]
+                  positions[glyphIndex * 3 + 1] = baseAnchor.y - markRecord.y + positions[baseGlyphIndex * 3 + 1];
+                  break;
+                }
+              }
+            }
+            // Mark to mark
+            else if (lookup.ltype === 6) {
+              const mark1ArrIndex = Typr._lctf.coverageIndex(tab.mark1Coverage, glyphId);
+              if (mark1ArrIndex !== -1) {
+                const prevGlyphIndex = getPrevGlyphIndex();
+                if (prevGlyphIndex !== -1) {
+                  const prevGlyphId = glyphIds[prevGlyphIndex]
+                  if (getGlyphClass(font, prevGlyphId) === 3) { // only check mark glyphs
+                    const mark2ArrIndex = Typr._lctf.coverageIndex(tab.mark2Coverage, prevGlyphId)
+                    if (mark2ArrIndex !== -1) {
+                      const mark1Record = tab.mark1Array[mark1ArrIndex];
+                      const mark2Anchor = tab.mark2Array[mark2ArrIndex][mark1Record.markClass];
+                      positions[glyphIndex * 3] = mark2Anchor.x - mark1Record.x + positions[prevGlyphIndex * 3] - positions[prevGlyphIndex * 3 + 2];
+                      positions[glyphIndex * 3 + 1] = mark2Anchor.y - mark1Record.y + positions[prevGlyphIndex * 3 + 1];
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      // Check kern table if no GPOS
+      else if (font.kern && !font.cff) {
+        const prevGlyphIndex = getPrevGlyphIndex();
+        if (prevGlyphIndex !== -1) {
+          const ind1 = font.kern.glyph1.indexOf(glyphIds[prevGlyphIndex]);
+          if (ind1 !== -1) {
+            const ind2 = font.kern.rval[ind1].glyph2.indexOf(glyphId);
+            if (ind2 !== -1) {
+              positions[prevGlyphIndex * 3 + 2] += font.kern.rval[ind1].vals[ind2];
+            }
+          }
+        }
+      }
+    }
+
+    return positions;
+
+    function getPrevGlyphIndex(filter) {
+      for (let i = glyphIndex - 1; i >=0; i--) {
+        if (glyphIds[i] !== -1 && (!filter || filter(glyphIds[i]))) {
+          return i
+        }
+      }
+      return -1;
+    }
+
+    function isBaseGlyph(glyphId) {
+      return getGlyphClass(font, glyphId) === 1;
+    }
+
+    function applyValueRecord(source, gi) {
+      for (let i = 0; i < 3; i++) {
+        positions[gi * 3 + i] += source[i] || 0
+      }
+    }
+  }
+
+  function getGlyphClass(font, glyphId) {
+    const classDef = font.GDEF && font.GDEF.glyphClassDef
+    return classDef ? Typr.U._getGlyphClass(glyphId, classDef) : 0;
   }
 
   function firstNum(...args) {
@@ -190,20 +320,21 @@ function parserFactory(Typr, woff2otf) {
         return Typr.U.codeToGlyph(typrFont, code) > 0
       },
       forEachGlyph(text, fontSize, letterSpacing, callback) {
-        let glyphX = 0
+        let penX = 0
         const fontScale = 1 / fontObj.unitsPerEm * fontSize
 
-        const glyphIndices = stringToGlyphs(typrFont, text)
+        const glyphIds = stringToGlyphs(typrFont, text)
         let charIndex = 0
-        let prevGlyphIndex = -1
-        glyphIndices.forEach((glyphIndex, i) => {
+        const positions = calcGlyphPositions(typrFont, glyphIds)
+
+        glyphIds.forEach((glyphId, i) => {
           // Typr returns a glyph index per string codepoint, with -1s in place of those that
           // were omitted due to ligature substitution. So we can track original index in the
           // string via simple increment, and skip everything else when seeing a -1.
-          if (glyphIndex !== -1) {
-            let glyphObj = glyphMap[glyphIndex]
+          if (glyphId !== -1) {
+            let glyphObj = glyphMap[glyphId]
             if (!glyphObj) {
-              const {cmds, crds} = Typr.U.glyphToPath(typrFont, glyphIndex)
+              const {cmds, crds} = Typr.U.glyphToPath(typrFont, glyphId)
 
               // Build path string
               let path = ''
@@ -234,50 +365,34 @@ function parserFactory(Typr, woff2otf) {
                 xMin = xMax = yMin = yMax = 0
               }
 
-              glyphObj = glyphMap[glyphIndex] = {
-                index: glyphIndex,
-                advanceWidth: typrFont.hmtx.aWidth[glyphIndex],
+              glyphObj = glyphMap[glyphId] = {
+                index: glyphId,
+                advanceWidth: typrFont.hmtx.aWidth[glyphId],
                 xMin,
                 yMin,
                 xMax,
                 yMax,
                 path,
-                pathCommandCount: cmds.length,
-                // forEachPathCommand(callback) {
-                //   let argsIndex = 0
-                //   const argsArray = []
-                //   for (let i = 0, len = cmds.length; i < len; i++) {
-                //     const numArgs = cmdArgLengths[cmds[i]]
-                //     argsArray.length = 1 + numArgs
-                //     argsArray[0] = cmds[i]
-                //     for (let j = 1; j <= numArgs; j++) {
-                //       argsArray[j] = crds[argsIndex++]
-                //     }
-                //     callback.apply(null, argsArray)
-                //   }
-                // }
               }
             }
 
-            // Kerning
-            if (prevGlyphIndex !== -1) {
-              glyphX += Typr.U.getPairAdjustment(typrFont, prevGlyphIndex, glyphIndex) * fontScale
-            }
+            callback.call(
+              null,
+              glyphObj,
+              penX + positions[i * 3] * fontScale,
+              positions[i * 3 + 1] * fontScale,
+              charIndex
+            )
 
-            callback.call(null, glyphObj, glyphX, charIndex)
-
-            if (glyphObj.advanceWidth) {
-              glyphX += glyphObj.advanceWidth * fontScale
-            }
+            penX += positions[i * 3 + 2] * fontScale
             if (letterSpacing) {
-              glyphX += letterSpacing * fontSize
+              penX += letterSpacing * fontSize
             }
-
-            prevGlyphIndex = glyphIndex
           }
           charIndex += (text.codePointAt(charIndex) > 0xffff ? 2 : 1)
         })
-        return glyphX
+
+        return penX
       }
     }
 
