@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.49.0](https://github.com/protectwise/troika/compare/v0.48.1...v0.49.0) (2023-10-08)
+
+
+### Features
+
+* add support for positioning of diacritic marks (e.g. Thai) ([301c34c](https://github.com/protectwise/troika/commit/301c34c3341b83eb95afc308bd796bcccb2f5ccd))
+
+
+
+
+
 ## [0.48.1](https://github.com/protectwise/troika/compare/v0.48.0...v0.48.1) (2023-10-02)
 
 **Note:** Version bump only for package troika-examples
