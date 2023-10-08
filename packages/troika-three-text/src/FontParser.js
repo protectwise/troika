@@ -159,7 +159,9 @@ function parserFactory(Typr, woff2otf) {
     return glyphIds
   }
 
-  //
+  // Calculate advances and x/y offsets for each glyph, e.g. kerning and mark
+  // attachments. This is a more complete version of Typr.U.getPairAdjustment
+  // and should become an upstream replacement eventually.
   function calcGlyphPositions(font, glyphIds) {
     const positions = new Int16Array(glyphIds.length * 3); // [offsetX, offsetY, advanceX, ...]
     let glyphIndex = 0;

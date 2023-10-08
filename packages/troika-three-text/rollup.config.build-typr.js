@@ -36,7 +36,7 @@ const [banner, footer] = OUTPUT_TEMPLATE.split('$$CONTENT$$')
 
 
 export default {
-  input: LERNA_ROOT_PATH + '/node_modules/@fredli74/typr/dist/Typr.js',
+  input: LERNA_ROOT_PATH + '/node_modules/@lojjic/typr/dist/Typr.js',
   plugins: [
     nodeResolve(),
     commonjs(),
@@ -62,6 +62,8 @@ export default {
         // and improves performance, so don't need the original
         removeMethodAssignment('Typr.U.stringToGlyphs')
         removeMethodAssignment('Typr.U._getWPfeature')
+        // Same for position adjustments to support mark anchoring
+        removeMethodAssignment('Typr.U.getPairAdjustment')
 
         return source
 

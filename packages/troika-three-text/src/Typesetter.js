@@ -256,7 +256,7 @@ export function createTypesetter(resolveFonts, bidi) {
 
         const runText = text.slice(run.start, run.end + 1)
         let prevGlyphX, prevGlyphObj
-        fontObj.forEachGlyph(runText, fontSize, letterSpacing, (glyphObj, glyphX, charIndex) => {
+        fontObj.forEachGlyph(runText, fontSize, letterSpacing, (glyphObj, glyphX, glyphY, charIndex) => {
           glyphX += prevRunEndX
           charIndex += run.start
           prevGlyphX = glyphX
@@ -314,6 +314,7 @@ export function createTypesetter(resolveFonts, bidi) {
           let fly = currentLine.glyphAt(currentLine.count)
           fly.glyphObj = glyphObj
           fly.x = glyphX + lineXOffset
+          fly.y = glyphY
           fly.width = glyphWidth
           fly.charIndex = charIndex
           fly.fontData = fontData
@@ -554,7 +555,7 @@ export function createTypesetter(resolveFonts, bidi) {
 
                 // Determine final glyph position and add to glyphPositions array
                 const glyphX = glyphInfo.x + anchorXOffset
-                const glyphY = line.baseline + anchorYOffset
+                const glyphY = glyphInfo.y + line.baseline + anchorYOffset
                 glyphPositions[idx * 2] = glyphX
                 glyphPositions[idx * 2 + 1] = glyphY
 
@@ -684,7 +685,7 @@ export function createTypesetter(resolveFonts, bidi) {
   function TextLine() {
     this.data = []
   }
-  const textLineProps = ['glyphObj', 'x', 'width', 'charIndex', 'fontData']
+  const textLineProps = ['glyphObj', 'x', 'y', 'width', 'charIndex', 'fontData']
   TextLine.prototype = {
     width: 0,
     lineHeight: 0,

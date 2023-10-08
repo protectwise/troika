@@ -23,7 +23,7 @@
     "three": ">=0.125.0"
   },
   "devDependencies": {
-    "@fredli74/typr": "0.3.8",
+    "@lojjic/typr": "0.3.8-lojjic1",
     "@unicode-font-resolver/client": "1.0.2",
     "fflate": "^0.7.0",
     "node-fetch": "^2.6.0"
