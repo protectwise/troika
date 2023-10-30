@@ -23,6 +23,7 @@ export class InstancedUniformsMesh extends InstancedMesh {
       derivedGeom.attributes = Object.create(baseGeom.attributes)
       // dispose the derived geometry when its base geometry is disposed:
       baseGeom.addEventListener('dispose', function onDispose () {
+        baseGeom.removeEventListener('dispose', onDispose)
         derivedGeom.dispose()
       })
     }
