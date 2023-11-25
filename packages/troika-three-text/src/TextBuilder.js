@@ -1,4 +1,4 @@
-import { Color, Texture, LinearFilter } from 'three'
+import { Color, Texture, LinearFilter, SRGBColorSpace } from 'three'
 import { defineWorkerModule } from 'troika-worker-utils'
 import { createTypesetter } from './Typesetter.js'
 import { generateSDF, warmUpSDFCanvas, resizeWebGLCanvasWithoutClearing } from './SDFGenerator.js'
@@ -171,6 +171,8 @@ function getTextRenderInfo(args, callback) {
     atlas.sdfTexture.generateMipmaps = false
     initContextLossHandling(atlas)
   }
+
+  if (args.colorSpace) atlas.sdfTexture.colorSpace = args.colorSpace;
 
   const {sdfTexture, sdfCanvas} = atlas
   let fontGlyphs = atlas.glyphsByFont.get(args.font)

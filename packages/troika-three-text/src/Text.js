@@ -410,6 +410,7 @@ class Text extends Mesh {
           overflowWrap: this.overflowWrap,
           anchorX: this.anchorX,
           anchorY: this.anchorY,
+          colorSpace: this.colorSpace,
           colorRanges: this.colorRanges,
           includeCaretPositions: true, //TODO parameterize
           sdfGlyphSize: this.sdfGlyphSize,
