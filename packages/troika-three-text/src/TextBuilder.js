@@ -1,4 +1,4 @@
-import { Color, Texture, LinearFilter, SRGBColorSpace } from 'three'
+import { Color, Texture, LinearFilter } from 'three'
 import { defineWorkerModule } from 'troika-worker-utils'
 import { createTypesetter } from './Typesetter.js'
 import { generateSDF, warmUpSDFCanvas, resizeWebGLCanvasWithoutClearing } from './SDFGenerator.js'
