@@ -186,6 +186,8 @@ function getTextRenderInfo(args, callback) {
     initContextLossHandling(atlas)
   }
 
+  if (args.colorSpace) atlas.sdfTexture.colorSpace = args.colorSpace;
+
   const {sdfTexture, sdfCanvas} = atlas
 
   // Issue request to the typesetting engine in the worker
