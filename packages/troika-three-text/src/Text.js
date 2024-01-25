@@ -17,7 +17,8 @@ import { getTextRenderInfo } from './TextBuilder.js'
 const defaultMaterial = /*#__PURE__*/ new MeshBasicMaterial({
   color: 0xffffff,
   side: DoubleSide,
-  transparent: true
+  transparent: true,
+  toneMapped: false
 })
 const defaultStrokeColor = 0x808080
 
