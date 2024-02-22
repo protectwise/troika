@@ -105,6 +105,10 @@ export function createTypesetter(resolveFonts, bidi) {
   // In the future we may consider a full Unicode line breaking algorithm impl: https://www.unicode.org/reports/tr14
   const BREAK_AFTER_CHARS = new RegExp(`${lineBreakingWhiteSpace}|[\\-\\u007C\\u00AD\\u2010\\u2012-\\u2014\\u2027\\u2056\\u2E17\\u2E40]`)
 
+  // glyphs that start with a code point within the surrogate range should be treated as surrogate pairs
+  const HIGH_SURROGATE_START = 0xd800;
+  const HIGH_SURROGATE_END = 0xdbff;
+
   /**
    * Load and parse all the necessary fonts to render a given string of text, then group
    * them into consecutive runs of characters sharing a font.
@@ -517,13 +521,17 @@ export function createTypesetter(resolveFonts, bidi) {
                 caretPositions[charIndex * 4 + 2] = line.baseline + fontData.caretBottom + anchorYOffset //common bottom y
                 caretPositions[charIndex * 4 + 3] = line.baseline + fontData.caretTop + anchorYOffset //common top y
 
-                // If we skipped any chars from the previous glyph (due to ligature subs), fill in caret
-                // positions for those missing char indices; currently this uses a best-guess by dividing
+                // If we skipped any chars from the previous glyph (due to ligature subs/surrogates), fill in caret
+                // positions for those missing char indices; currently ligatures uses a best-guess by dividing
                 // the ligature's width evenly. In the future we may try to use the font's LigatureCaretList
                 // table to get better interior caret positions.
-                const ligCount = charIndex - prevCharIndex
-                if (ligCount > 1) {
-                  fillLigatureCaretPositions(caretPositions, prevCharIndex, ligCount)
+                const charCount = charIndex - prevCharIndex
+                if (charCount > 1) {
+                  if (isSurrogate(text.slice(prevCharIndex, charIndex))) {
+                    fillSurrogateCaretPositions(caretPositions, prevCharIndex, charCount)
+                  } else {
+                    fillLigatureCaretPositions(caretPositions, prevCharIndex, charCount)
+                  }
                 }
                 prevCharIndex = charIndex
               }
@@ -597,11 +605,15 @@ export function createTypesetter(resolveFonts, bidi) {
           }
         })
 
-        // Fill in remaining caret positions in case the final character was a ligature
+        // Fill in remaining caret positions in case the final character was a ligature/surrogate
         if (caretPositions) {
-          const ligCount = text.length - prevCharIndex;
-          if (ligCount > 1) {
-            fillLigatureCaretPositions(caretPositions, prevCharIndex, ligCount)
+          const charCount = text.length - prevCharIndex
+          if (charCount > 1) {
+            if (isSurrogate(text.slice(prevCharIndex, charIndex))) {
+              fillSurrogateCaretPositions(caretPositions, prevCharIndex, charCount)
+            } else {
+              fillLigatureCaretPositions(caretPositions, prevCharIndex, charCount)
+            }
           }
         }
       }
@@ -675,6 +687,25 @@ export function createTypesetter(resolveFonts, bidi) {
       caretPositions[startIndex + 2] = ligBottom
       caretPositions[startIndex + 3] = ligTop
     }
+  }
+
+  function fillSurrogateCaretPositions(caretPositions, charStartIndex, charCount) {
+    const charStartX = caretPositions[charStartIndex * 4]
+    const charEndX = caretPositions[charStartIndex * 4 + 1]
+    const charBottom = caretPositions[charStartIndex * 4 + 2]
+    const charTop = caretPositions[charStartIndex * 4 + 3]
+    for (let i = 0; i < charCount; i++) {
+      const startIndex = (charStartIndex + i) * 4
+      caretPositions[startIndex] = charStartX;
+      caretPositions[startIndex + 1] = charEndX;
+      caretPositions[startIndex + 2] = charBottom
+      caretPositions[startIndex + 3] = charTop
+    }
+  }
+
+  function isSurrogate(text) {
+    const firstCodeUnit = text.charCodeAt(0);
+    return firstCodeUnit >= HIGH_SURROGATE_START && firstCodeUnit <= HIGH_SURROGATE_END;
   }
 
   function now() {
