@@ -66,7 +66,8 @@ let materialInstanceId = 1e10
  *        output value. Will be injected near the end of the `void main` function, but before any
  *        of ThreeJS's color postprocessing shader chunks (tonemapping, fog, etc.), and before the
  *        `fragmentMainOutro`.
- * @param {function<{vertexShader,fragmentShader}>:{vertexShader,fragmentShader}} options.customRewriter - A function
+ * @param {function({fragmentShader: string, vertexShader:string}): 
+ *        {fragmentShader: string, vertexShader:string}} options.customRewriter - A function
  *        for performing custom rewrites of the full shader code. Useful if you need to do something
  *        special that's not covered by the other builtin options. This function will be executed before
  *        any other transforms are applied.
