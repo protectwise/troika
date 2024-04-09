@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.49.1](https://github.com/protectwise/troika/compare/v0.49.0...v0.49.1) (2024-04-09)
+
+
+### Bug Fixes
+
+* **instanced-uniforms-mesh:** remove listener on dispose ([#284](https://github.com/protectwise/troika/issues/284)) ([336075d](https://github.com/protectwise/troika/commit/336075de027e21ed1a9286c34185c9a0568053fe))
+* **troika-three-text:** Fix anchorY bottom-baseline. Closes [#309](https://github.com/protectwise/troika/issues/309) ([3457b03](https://github.com/protectwise/troika/commit/3457b03af5220886b4fd0534a1d44bdc5f837851))
+
+
+
+
+
 # [0.49.0](https://github.com/protectwise/troika/compare/v0.48.1...v0.49.0) (2023-10-08)
 
 
