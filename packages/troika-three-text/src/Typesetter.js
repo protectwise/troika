@@ -247,7 +247,7 @@ export function createTypesetter(resolveFonts, bidi) {
             baseline: -halfLeading - ascender * fontSizeMult, // baseline offset from top of line height
             // cap: -halfLeading - capHeight * fontSizeMult, // cap from top of line height
             // ex: -halfLeading - xHeight * fontSizeMult, // ex from top of line height
-            caretTop: (ascender + descender) / 2 * fontSizeMult + caretHeight / 2,
+            caretTop,
             caretBottom: caretTop - caretHeight
           }
           metricsByFont.set(fontObj, fontData)
@@ -390,7 +390,7 @@ export function createTypesetter(resolveFonts, bidi) {
             anchorY === 'top-ex' ? -lines[0].ex :
             anchorY === 'middle' ? totalHeight / 2 :
             anchorY === 'bottom' ? totalHeight :
-            anchorY === 'bottom-baseline' ? lines[lines.length - 1].baseline :
+            anchorY === 'bottom-baseline' ? -lines[lines.length - 1].baseline :
             parsePercent(anchorY) * totalHeight
         }
       }
