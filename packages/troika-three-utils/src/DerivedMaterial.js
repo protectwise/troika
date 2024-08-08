@@ -304,7 +304,7 @@ function upgradeShaders(material, {vertexShader, fragmentShader}, options, key) 
     // this particular derivation doesn't have a fragmentColorTransform, other derivations may,
     // so we still mark them.
     fragmentShader = fragmentShader.replace(
-      /^[ \t]*#include <((?:tonemapping|encodings|fog|premultiplied_alpha|dithering)_fragment)>/gm,
+      /^[ \t]*#include <((?:tonemapping|encodings|colorspace|fog|premultiplied_alpha|dithering)_fragment)>/gm,
       '\n//!BEGIN_POST_CHUNK $1\n$&\n//!END_POST_CHUNK\n'
     )
     fragmentShader = expandShaderIncludes(fragmentShader)
