@@ -15,7 +15,7 @@ class UIImage3DFacade extends Object3DFacade {
   }
 
   afterUpdate() {
-    const {offsetLeft, offsetTop, offsetWidth, offsetHeight, src, threeObject:mesh} = this
+    const {offsetLeft, offsetTop, offsetWidth, offsetHeight, src, threeObject:mesh, transparent} = this
     const material = mesh.material
     const hasLayout = !!(offsetWidth && offsetHeight)
     if (hasLayout) {
@@ -36,6 +36,7 @@ class UIImage3DFacade extends Object3DFacade {
           material.map.dispose()
         }
         material.map = texture
+        if (transparent) material.transparent = true;
         this.aspectRatio = texture.image.width / texture.image.height
         this.afterUpdate()
         this.requestRender()
