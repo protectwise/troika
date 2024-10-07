@@ -19,7 +19,7 @@
  * @property {number} [maxWidth]
  * @property {'ltr'|'rtl'} [direction='ltr']
  * @property {string} [textAlign='left']
- * @property {boolean} [textAlignToBox=false]
+ * @property {boolean} [useMaxWidthAsBounds=false]
  * @property {number} [textIndent=0]
  * @property {'normal'|'nowrap'} [whiteSpace='normal']
  * @property {'normal'|'break-word'} [overflowWrap='normal']
@@ -155,7 +155,7 @@ export function createTypesetter(resolveFonts, bidi) {
       maxWidth=INF,
       direction,
       textAlign='left',
-      textAlignToBox=false,
+      useMaxWidthAsBounds=false,
       textIndent=0,
       whiteSpace='normal',
       overflowWrap='normal',
@@ -435,7 +435,7 @@ export function createTypesetter(resolveFonts, bidi) {
             let lineXOffset = 0
             let justifyAdjust = 0
 
-            const widthToAlign = textAlignToBox && maxWidth !== Infinity ? maxWidth : maxLineWidth
+            const widthToAlign = useMaxWidthAsBounds && maxWidth !== Infinity ? maxWidth : maxLineWidth
 
             if (textAlign === 'center') {
               lineXOffset = (widthToAlign - lineWidth) / 2
@@ -635,7 +635,7 @@ export function createTypesetter(resolveFonts, bidi) {
         blockBounds: [ //bounds for the whole block of text, including vertical padding for lineHeight
           anchorXOffset,
           anchorYOffset - totalHeight,
-          anchorXOffset + maxLineWidth,
+          (useMaxWidthAsBounds && maxWidth !== Infinity) ? maxWidth : anchorXOffset + maxLineWidth,
           anchorYOffset
         ],
         visibleBounds, //total bounds of visible text paths, may be larger or smaller than blockBounds
