@@ -65,6 +65,7 @@ const SYNCABLE_PROPS = [
   'text',
   'direction',
   'textAlign',
+  'textAlignToBox',
   'textIndent',
   'whiteSpace',
   'anchorX',
@@ -207,6 +208,14 @@ class Text extends Mesh {
      * The horizontal alignment of each line of text within the overall text bounding box.
      */
     this.textAlign = 'left'
+
+    /**
+     * @member {boolean} textAlignToBox
+     * Whether or not `textAlign` should align to the `maxWidth` of the box. If false, `textAlign` 
+     * aligns to the maximum line width
+     */
+
+    this.textAlignToBox = false
 
     /**
      * @member {number} textIndent
@@ -431,6 +440,7 @@ class Text extends Mesh {
           maxWidth: this.maxWidth,
           direction: this.direction || 'auto',
           textAlign: this.textAlign,
+          textAlignToBox: this.textAlignToBox,
           textIndent: this.textIndent,
           whiteSpace: this.whiteSpace,
           overflowWrap: this.overflowWrap,
