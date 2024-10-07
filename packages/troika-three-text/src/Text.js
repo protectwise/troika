@@ -211,10 +211,9 @@ class Text extends Mesh {
 
     /**
      * @member {boolean} textAlignToBox
-     * Whether or not `textAlign` should align to the `maxWidth` of the box. If false, `textAlign` 
-     * aligns to the maximum line width
+     * Whether or not `textAlign` should align to the `maxWidth` of the box, as long as `maxWidth`
+     * is not set to `Infinity`. If false, `textAlign` aligns to the maximum line width.
      */
-
     this.textAlignToBox = false
 
     /**

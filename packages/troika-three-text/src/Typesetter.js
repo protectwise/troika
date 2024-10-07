@@ -435,7 +435,7 @@ export function createTypesetter(resolveFonts, bidi) {
             let lineXOffset = 0
             let justifyAdjust = 0
 
-            const widthToAlign = textAlignToBox ? maxWidth : maxLineWidth
+            const widthToAlign = textAlignToBox && maxWidth !== Infinity ? maxWidth : maxLineWidth
 
             if (textAlign === 'center') {
               lineXOffset = (widthToAlign - lineWidth) / 2
