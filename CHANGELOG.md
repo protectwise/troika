@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.50.0](https://github.com/protectwise/troika/compare/v0.49.1...v0.50.0) (2024-10-11)
+
+
+### Bug Fixes
+
+* **troika-three-utils:** add `colorspace_fragment` (introduced in Three r154) to the list of fragment shaders to process in `upgradeShaders()` ([#325](https://github.com/protectwise/troika/issues/325)) ([9169ebf](https://github.com/protectwise/troika/commit/9169ebf0773f9ad6cd10ab74456b68d1eebbe243))
+* change JSDoc for createDerivedMaterial params to be optional ([#307](https://github.com/protectwise/troika/issues/307)) ([6969e85](https://github.com/protectwise/troika/commit/6969e855608803d20c6634a415d2a78218222d79))
+
+
+### Features
+
+* **troika-three-text:** allow overriding text material derivation ([9a48e0c](https://github.com/protectwise/troika/commit/9a48e0c5d0c3b632359fc56ced67b1466efb65cc))
+* **troika-three-text:** ALPHA: BatchedText for batching many Text instances in a single draw call ([79c9c50](https://github.com/protectwise/troika/commit/79c9c50d0f8fec1e1d64e316d47fbb71fd164857))
+* **troika-three-utils:** add isDerivedFrom method to derived materials ([a4a2fcd](https://github.com/protectwise/troika/commit/a4a2fcd18ddf03cf6f9b6b72df2e2fbdfa700c51))
+
+
+
+
+
 ## [0.49.1](https://github.com/protectwise/troika/compare/v0.49.0...v0.49.1) (2024-04-09)
 
 
