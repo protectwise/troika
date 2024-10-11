@@ -3,7 +3,7 @@ import { Text } from 'troika-three-text'
 import SelectionManagerFacade from './SelectionManagerFacade.js'
 
 // Properties that will simply be forwarded to the TextMesh:
-const TEXT_MESH_PROPS = [
+export const TEXT_MESH_PROPS = [
   'text',
   'anchorX',
   'anchorY',

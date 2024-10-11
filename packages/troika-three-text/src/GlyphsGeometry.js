@@ -151,9 +151,9 @@ class GlyphsGeometry extends InstancedBufferGeometry {
    */
   updateGlyphs(glyphBounds, glyphAtlasIndices, blockBounds, chunkedBounds, glyphColors) {
     // Update the instance attributes
-    updateBufferAttr(this, glyphBoundsAttrName, glyphBounds, 4)
-    updateBufferAttr(this, glyphIndexAttrName, glyphAtlasIndices, 1)
-    updateBufferAttr(this, glyphColorAttrName, glyphColors, 3)
+    this.updateAttributeData(glyphBoundsAttrName, glyphBounds, 4)
+    this.updateAttributeData(glyphIndexAttrName, glyphAtlasIndices, 1)
+    this.updateAttributeData(glyphColorAttrName, glyphColors, 3)
     this._blockBounds = blockBounds
     this._chunkedBounds = chunkedBounds
     this.instanceCount = glyphAtlasIndices.length
@@ -215,32 +215,37 @@ class GlyphsGeometry extends InstancedBufferGeometry {
     }
     this.instanceCount = count
   }
-}
 
-
-function updateBufferAttr(geom, attrName, newArray, itemSize) {
-  const attr = geom.getAttribute(attrName)
-  if (newArray) {
-    // If length isn't changing, just update the attribute's array data
-    if (attr && attr.array.length === newArray.length) {
-      attr.array.set(newArray)
-      attr.needsUpdate = true
-    } else {
-      geom.setAttribute(attrName, new InstancedBufferAttribute(newArray, itemSize))
-      // If the new attribute has a different size, we also have to (as of r117) manually clear the
-      // internal cached max instance count. See https://github.com/mrdoob/three.js/issues/19706
-      // It's unclear if this is a threejs bug or a truly unsupported scenario; discussion in
-      // that ticket is ambiguous as to whether replacing a BufferAttribute with one of a
-      // different size is supported, but https://github.com/mrdoob/three.js/pull/17418 strongly
-      // implies it should be supported. It's possible we need to
-      delete geom._maxInstanceCount //for r117+, could be fragile
-      geom.dispose() //for r118+, more robust feeling, but more heavy-handed than I'd like
+  /**
+   * Utility for updating instance attributes with automatic resizing
+   */
+  updateAttributeData(attrName, newArray, itemSize) {
+    const attr = this.getAttribute(attrName)
+    if (newArray) {
+      // If length isn't changing, just update the attribute's array data
+      if (attr && attr.array.length === newArray.length) {
+        attr.array.set(newArray)
+        attr.needsUpdate = true
+      } else {
+        this.setAttribute(attrName, new InstancedBufferAttribute(newArray, itemSize))
+        // If the new attribute has a different size, we also have to (as of r117) manually clear the
+        // internal cached max instance count. See https://github.com/mrdoob/three.js/issues/19706
+        // It's unclear if this is a threejs bug or a truly unsupported scenario; discussion in
+        // that ticket is ambiguous as to whether replacing a BufferAttribute with one of a
+        // different size is supported, but https://github.com/mrdoob/three.js/pull/17418 strongly
+        // implies it should be supported. It's possible we need to
+        delete this._maxInstanceCount //for r117+, could be fragile
+        this.dispose() //for r118+, more robust feeling, but more heavy-handed than I'd like
+      }
+    } else if (attr) {
+      this.deleteAttribute(attrName)
     }
-  } else if (attr) {
-    geom.deleteAttribute(attrName)
   }
 }
 
 export {
-  GlyphsGeometry
+  GlyphsGeometry,
+  glyphBoundsAttrName,
+  glyphColorAttrName,
+  glyphIndexAttrName,
 }

@@ -12,3 +12,4 @@ export {
 
 // Troika framework specific exports:
 export {default as Text3DFacade} from './facade/Text3DFacade.js'
+export { BatchedText3DFacade } from './facade/BatchedText3DFacade.js'

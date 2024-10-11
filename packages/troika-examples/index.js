@@ -8,6 +8,7 @@ import GlobeExample from './globe/GlobeExample'
 import GlobeConnectionsExample from './globe-connections/GlobeConnectionsExample'
 import HtmlOverlays from './html-overlays/HtmlOverlaysExample'
 import TextExample from './text/TextExample'
+import BatchedTextExample from "./text-batched/BatchedTextExample";
 import FlexboxExample from './flexbox/FlexboxExample'
 import UIExample from './ui2/UIExample'
 import DragDrop from './dragdrop/DragDropExample'
@@ -32,6 +33,7 @@ const EXAMPLES = [
   {id: 'globeConnections', name: 'Globe Connections', component: GlobeConnectionsExample},
   {id: 'htmlOverlays', name: 'HTML Overlays', component: HtmlOverlays},
   {id: 'text', name: '3D Text', component: TextExample},
+  {id: 'batchedText', name: '3D Text - Batched', component: BatchedTextExample},
   {id: 'flexbox', name: 'Flexbox UI Layout', component: FlexboxExample},
   {id: 'ui', name: 'User Interface', component: UIExample},
   {id: 'dragdrop', name: 'Drag and Drop', component: DragDrop},
