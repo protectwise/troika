@@ -170,6 +170,15 @@ export function createDerivedMaterial(baseMaterial, options) {
     constructor: {value: DerivedMaterial},
     isDerivedMaterial: {value: true},
 
+    isDerivedFrom: {
+      writable: true,
+      configurable: true,
+      value: function (testMaterial) {
+        const base = this.baseMaterial
+        return testMaterial === base || (base.isDerivedMaterial && base.isDerivedFrom(testMaterial)) || false
+      }
+    },
+
     customProgramCacheKey: {
       writable: true,
       configurable: true,
