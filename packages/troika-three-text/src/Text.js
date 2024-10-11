@@ -528,13 +528,21 @@ class Text extends Mesh {
     return this._textRenderInfo || null
   }
 
+  /**
+   * Create the text derived material from the base material. Can be overridden to use a custom
+   * derived material.
+   */
+  createDerivedMaterial(baseMaterial) {
+    return createTextDerivedMaterial(baseMaterial)
+  }
+
   // Handler for automatically wrapping the base material with our upgrades. We do the wrapping
   // lazily on _read_ rather than write to avoid unnecessary wrapping on transient values.
   get material() {
     let derivedMaterial = this._derivedMaterial
     const baseMaterial = this._baseMaterial || this._defaultMaterial || (this._defaultMaterial = defaultMaterial.clone())
-    if (!derivedMaterial || derivedMaterial.baseMaterial !== baseMaterial) {
-      derivedMaterial = this._derivedMaterial = createTextDerivedMaterial(baseMaterial)
+    if (!derivedMaterial || !derivedMaterial.isDerivedFrom(baseMaterial)) {
+      derivedMaterial = this._derivedMaterial = this.createDerivedMaterial(baseMaterial)
       // dispose the derived material when its base material is disposed:
       baseMaterial.addEventListener('dispose', function onDispose() {
         baseMaterial.removeEventListener('dispose', onDispose)
