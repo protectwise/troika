@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.50.1](https://github.com/protectwise/troika/compare/v0.50.0...v0.50.1) (2024-10-12)
+
+
+### Bug Fixes
+
+* **troika-three-text:** remove DoubleSide double draw hack in favor of forceSinglePass flag ([7818d05](https://github.com/protectwise/troika/commit/7818d05745f5ca44530aae774df13deafb35588a))
+
+
+
+
+
 # [0.50.0](https://github.com/protectwise/troika/compare/v0.49.1...v0.50.0) (2024-10-11)
 
 
