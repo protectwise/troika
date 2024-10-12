@@ -21,7 +21,7 @@
     "react": "^16.14.0",
     "react-dat-gui": "^4.0.0",
     "react-dom": "^16.14.0",
-    "three": "^0.147.0",
+    "three": "^0.149.0",
     "three-instanced-uniforms-mesh": "^0.50.0",
     "three-line-2d": "^1.1.6",
     "troika-2d": "^0.50.0",
