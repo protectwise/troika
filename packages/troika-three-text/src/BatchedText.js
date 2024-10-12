@@ -160,7 +160,7 @@ export class BatchedText extends Text {
         // Color
         let color = text.color;
         if (color == null) color = this.color;
-        if (color == null) color = this._baseMaterial.color;
+        if (color == null) color = this.material.color;
         if (color == null) color = 0xffffff;
         setTexData(startIndex + 16, tempColor.set(color).getHex());
 
