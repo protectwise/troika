@@ -6,8 +6,9 @@ export class BatchedText3DFacade extends Object3DFacade {
   constructor(parent) {
     super(parent, new BatchedText())
 
-    // Orphaned container for children so they don't end up in the scene
-    this._texts = new Object3DFacade()
+    // Non-renderable container for children so they don't end up in the scene
+    this._texts = new Object3DFacade(this)
+    this._texts.visible = false
   }
 
   afterUpdate() {
