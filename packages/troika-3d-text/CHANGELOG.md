@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.50.1](https://github.com/protectwise/troika/compare/v0.50.0...v0.50.1) (2024-10-12)
+
+**Note:** Version bump only for package troika-3d-text
+
+
+
+
+
+# [0.50.0](https://github.com/protectwise/troika/compare/v0.49.1...v0.50.0) (2024-10-11)
+
+
+### Features
+
+* **troika-three-text:** ALPHA: BatchedText for batching many Text instances in a single draw call ([79c9c50](https://github.com/protectwise/troika/commit/79c9c50d0f8fec1e1d64e316d47fbb71fd164857))
+
+
+
+
+
 ## [0.49.1](https://github.com/protectwise/troika/compare/v0.49.0...v0.49.1) (2024-04-09)
 
 **Note:** Version bump only for package troika-3d-text

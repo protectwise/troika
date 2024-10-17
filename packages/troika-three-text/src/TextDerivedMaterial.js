@@ -258,6 +258,9 @@ export function createTextDerivedMaterial(baseMaterial) {
   // Force transparency - TODO is this reasonable?
   textMaterial.transparent = true
 
+  // Force single draw call when double-sided
+  textMaterial.forceSinglePass = true
+
   Object.defineProperties(textMaterial, {
     isTroikaTextMaterial: {value: true},
 
