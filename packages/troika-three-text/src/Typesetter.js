@@ -19,6 +19,7 @@
  * @property {number} [maxWidth]
  * @property {'ltr'|'rtl'} [direction='ltr']
  * @property {string} [textAlign='left']
+ * @property {boolean} [useMaxWidthAsBounds=false]
  * @property {number} [textIndent=0]
  * @property {'normal'|'nowrap'} [whiteSpace='normal']
  * @property {'normal'|'break-word'} [overflowWrap='normal']
@@ -154,6 +155,7 @@ export function createTypesetter(resolveFonts, bidi) {
       maxWidth=INF,
       direction,
       textAlign='left',
+      useMaxWidthAsBounds=false,
       textIndent=0,
       whiteSpace='normal',
       overflowWrap='normal',
@@ -432,10 +434,13 @@ export function createTypesetter(resolveFonts, bidi) {
             // Apply horizontal alignment adjustments
             let lineXOffset = 0
             let justifyAdjust = 0
+
+            const widthToAlign = useMaxWidthAsBounds && maxWidth !== Infinity ? maxWidth : maxLineWidth
+
             if (textAlign === 'center') {
-              lineXOffset = (maxLineWidth - lineWidth) / 2
+              lineXOffset = (widthToAlign - lineWidth) / 2
             } else if (textAlign === 'right') {
-              lineXOffset = maxLineWidth - lineWidth
+              lineXOffset = widthToAlign - lineWidth
             } else if (textAlign === 'justify' && line.isSoftWrapped) {
               // count non-trailing whitespace characters, and we'll adjust the offsets per character in the next loop
               let whitespaceCount = 0
@@ -444,7 +449,7 @@ export function createTypesetter(resolveFonts, bidi) {
                   whitespaceCount++
                 }
               }
-              justifyAdjust = (maxLineWidth - lineWidth) / whitespaceCount
+              justifyAdjust = (widthToAlign - lineWidth) / whitespaceCount
             }
             if (justifyAdjust || lineXOffset) {
               let justifyOffset = 0
@@ -630,7 +635,7 @@ export function createTypesetter(resolveFonts, bidi) {
         blockBounds: [ //bounds for the whole block of text, including vertical padding for lineHeight
           anchorXOffset,
           anchorYOffset - totalHeight,
-          anchorXOffset + maxLineWidth,
+          (useMaxWidthAsBounds && maxWidth !== Infinity) ? maxWidth : anchorXOffset + maxLineWidth,
           anchorYOffset
         ],
         visibleBounds, //total bounds of visible text paths, may be larger or smaller than blockBounds

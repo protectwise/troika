@@ -65,6 +65,7 @@ const SYNCABLE_PROPS = [
   'text',
   'direction',
   'textAlign',
+  'useMaxWidthAsBounds',
   'textIndent',
   'whiteSpace',
   'anchorX',
@@ -80,7 +81,8 @@ const COPYABLE_PROPS = SYNCABLE_PROPS.concat(
   'clipRect',
   'curveRadius',
   'orientation',
-  'glyphGeometryDetail'
+  'glyphGeometryDetail',
+  'raycastVisibleBounds'
 )
 
 /**
@@ -399,6 +401,21 @@ class Text extends Mesh {
      */
     this.gpuAccelerateSDF = true
 
+    /**
+     * @member {boolean} useMaxWidthAsBounds
+     * When `true`, `blockBounds` will use the `maxWidth` as the `maxX` instead of the maximum
+     * line width. This allows single-line text alignment, and for text to align to the 
+     * extent of the box. Defaults to false.
+     */
+    this.useMaxWidthAsBounds = false
+
+    /**
+     * @member {boolean} raycastVisibleBounds
+     * When `true`, raycasting will raycast against the visible bounds. Otherwise, will use the 
+     * block bounds. Defaults to false.
+     */
+    this.raycastVisibleBounds = false
+
     this.debugSDF = false
   }
 
@@ -431,6 +448,7 @@ class Text extends Mesh {
           maxWidth: this.maxWidth,
           direction: this.direction || 'auto',
           textAlign: this.textAlign,
+          useMaxWidthAsBounds: this.useMaxWidthAsBounds,
           textIndent: this.textIndent,
           whiteSpace: this.whiteSpace,
           overflowWrap: this.overflowWrap,
@@ -733,7 +751,7 @@ class Text extends Mesh {
   raycast(raycaster, intersects) {
     const {textRenderInfo, curveRadius} = this
     if (textRenderInfo) {
-      const bounds = textRenderInfo.blockBounds
+      const bounds = this.raycastVisibleBounds ? textRenderInfo.visibleBounds : textRenderInfo.blockBounds
       const raycastMesh = curveRadius ? getCurvedRaycastMesh() : getFlatRaycastMesh()
       const geom = raycastMesh.geometry
       const {position, uv} = geom.attributes
