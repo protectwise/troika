@@ -1,3 +1,10 @@
+# What's different in this fork?
+
+Changes to `troika-three-text` only.
+
+- adds `useMaxWidthAsBounds` & `raycastVisibleBounds` params to `Text` (more details [here](https://github.com/seanhouli/troika/pull/1))
+- get working in web workers by refactoring out `document.createElement`
+
 # Troika JS
 
 Troika is a collection of JavaScript tools for creating interactive graphics in the browser, with a focus on 3D/WebGL, and optimized for data visualization use cases.
@@ -16,12 +23,11 @@ The Troika project's main goal is to take aspects of developing interactive grap
 [![GPU Instancing](./docs/images/instancing-thumbnail.png)](https://troika-examples.netlify.com/#instanceable)
 [![Layered Timeline](./docs/images/layered-timeline-thumbnail.png)](https://twitter.com/lojjic/status/1357102689210019844)
 
-
-----
+---
 
 **[View the Troika Documentation](https://protectwise.github.io/troika)**
 
-----
+---
 
 ![Build Status](https://github.com/protectwise/troika/workflows/Continuous%20Integration/badge.svg?branch=master)
 
