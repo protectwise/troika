@@ -404,7 +404,8 @@ class Text extends Mesh {
     /**
      * @member {boolean} useMaxWidthAsBounds
      * When `true`, `blockBounds` will use the `maxWidth` as the `maxX` instead of the maximum
-     * line width. Defaults to false.
+     * line width. This allows single-line text alignment, and for text to align to the 
+     * extent of the box. Defaults to false.
      */
     this.useMaxWidthAsBounds = false
 
