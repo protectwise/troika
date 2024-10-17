@@ -1,13 +1,9 @@
 import {
-  Float32BufferAttribute,
-  BufferGeometry,
   PlaneGeometry,
   InstancedBufferGeometry,
   InstancedBufferAttribute,
   Sphere,
   Box3,
-  DoubleSide,
-  BackSide,
 } from 'three'
 
 const templateGeometries = {}
@@ -15,29 +11,7 @@ const templateGeometries = {}
 function getTemplateGeometry(detail) {
   let geom = templateGeometries[detail]
   if (!geom) {
-    // Geometry is two planes back-to-back, which will always be rendered FrontSide only but
-    // appear as DoubleSide by default. FrontSide/BackSide are emulated using drawRange.
-    // We do it this way to avoid the performance hit of two draw calls for DoubleSide materials
-    // introduced by Three.js in r130 - see https://github.com/mrdoob/three.js/pull/21967
-    const front = new PlaneGeometry(1, 1, detail, detail)
-    const back = front.clone()
-    const frontAttrs = front.attributes
-    const backAttrs = back.attributes
-    const combined = new BufferGeometry()
-    const vertCount = frontAttrs.uv.count
-    for (let i = 0; i < vertCount; i++) {
-      backAttrs.position.array[i * 3] *= -1 // flip position x
-      backAttrs.normal.array[i * 3 + 2] *= -1 // flip normal z
-    }
-    ['position', 'normal', 'uv'].forEach(name => {
-      combined.setAttribute(name, new Float32BufferAttribute(
-        [...frontAttrs[name].array, ...backAttrs[name].array],
-        frontAttrs[name].itemSize)
-      )
-    })
-    combined.setIndex([...front.index.array, ...back.index.array.map(n => n + vertCount)])
-    combined.translate(0.5, 0.5, 0)
-    geom = templateGeometries[detail] = combined
+    geom = templateGeometries[detail] = new PlaneGeometry(1, 1, detail, detail).translate(0.5, 0.5, 0)
   }
   return geom
 }
@@ -103,13 +77,6 @@ class GlyphsGeometry extends InstancedBufferGeometry {
     // No-op; we'll sync the boundingBox proactively when needed.
   }
 
-  // Since our base geometry contains triangles for both front and back sides, we can emulate
-  // the "side" by restricting the draw range.
-  setSide(side) {
-    const verts = this.getIndex().count
-    this.setDrawRange(side === BackSide ? verts / 2 : 0, side === DoubleSide ? verts : verts / 2)
-  }
-
   set detail(detail) {
     if (detail !== this._detail) {
       this._detail = detail
@@ -151,9 +118,9 @@ class GlyphsGeometry extends InstancedBufferGeometry {
    */
   updateGlyphs(glyphBounds, glyphAtlasIndices, blockBounds, chunkedBounds, glyphColors) {
     // Update the instance attributes
-    updateBufferAttr(this, glyphBoundsAttrName, glyphBounds, 4)
-    updateBufferAttr(this, glyphIndexAttrName, glyphAtlasIndices, 1)
-    updateBufferAttr(this, glyphColorAttrName, glyphColors, 3)
+    this.updateAttributeData(glyphBoundsAttrName, glyphBounds, 4)
+    this.updateAttributeData(glyphIndexAttrName, glyphAtlasIndices, 1)
+    this.updateAttributeData(glyphColorAttrName, glyphColors, 3)
     this._blockBounds = blockBounds
     this._chunkedBounds = chunkedBounds
     this.instanceCount = glyphAtlasIndices.length
@@ -215,32 +182,37 @@ class GlyphsGeometry extends InstancedBufferGeometry {
     }
     this.instanceCount = count
   }
-}
 
-
-function updateBufferAttr(geom, attrName, newArray, itemSize) {
-  const attr = geom.getAttribute(attrName)
-  if (newArray) {
-    // If length isn't changing, just update the attribute's array data
-    if (attr && attr.array.length === newArray.length) {
-      attr.array.set(newArray)
-      attr.needsUpdate = true
-    } else {
-      geom.setAttribute(attrName, new InstancedBufferAttribute(newArray, itemSize))
-      // If the new attribute has a different size, we also have to (as of r117) manually clear the
-      // internal cached max instance count. See https://github.com/mrdoob/three.js/issues/19706
-      // It's unclear if this is a threejs bug or a truly unsupported scenario; discussion in
-      // that ticket is ambiguous as to whether replacing a BufferAttribute with one of a
-      // different size is supported, but https://github.com/mrdoob/three.js/pull/17418 strongly
-      // implies it should be supported. It's possible we need to
-      delete geom._maxInstanceCount //for r117+, could be fragile
-      geom.dispose() //for r118+, more robust feeling, but more heavy-handed than I'd like
+  /**
+   * Utility for updating instance attributes with automatic resizing
+   */
+  updateAttributeData(attrName, newArray, itemSize) {
+    const attr = this.getAttribute(attrName)
+    if (newArray) {
+      // If length isn't changing, just update the attribute's array data
+      if (attr && attr.array.length === newArray.length) {
+        attr.array.set(newArray)
+        attr.needsUpdate = true
+      } else {
+        this.setAttribute(attrName, new InstancedBufferAttribute(newArray, itemSize))
+        // If the new attribute has a different size, we also have to (as of r117) manually clear the
+        // internal cached max instance count. See https://github.com/mrdoob/three.js/issues/19706
+        // It's unclear if this is a threejs bug or a truly unsupported scenario; discussion in
+        // that ticket is ambiguous as to whether replacing a BufferAttribute with one of a
+        // different size is supported, but https://github.com/mrdoob/three.js/pull/17418 strongly
+        // implies it should be supported. It's possible we need to
+        delete this._maxInstanceCount //for r117+, could be fragile
+        this.dispose() //for r118+, more robust feeling, but more heavy-handed than I'd like
+      }
+    } else if (attr) {
+      this.deleteAttribute(attrName)
     }
-  } else if (attr) {
-    geom.deleteAttribute(attrName)
   }
 }
 
 export {
-  GlyphsGeometry
+  GlyphsGeometry,
+  glyphBoundsAttrName,
+  glyphColorAttrName,
+  glyphIndexAttrName,
 }

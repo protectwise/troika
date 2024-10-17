@@ -16,7 +16,7 @@ import { DatGuiFacade } from 'troika-3d-ui'
 import { ExampleConfigurator } from '../_shared/ExampleConfigurator.js'
 
 
-const FONTS = {
+export const FONTS = {
   'Noto Sans (none)': null,
   'Roboto': 'https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxM.woff',
   'Alex Brush': 'https://fonts.gstatic.com/s/alexbrush/v8/SZc83FzrJKuqFbwMKk6EhUXz6w.woff',
