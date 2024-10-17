@@ -164,9 +164,8 @@ function getTextRenderInfo(args, callback) {
   const glyphsPerRow = (textureWidth / sdfGlyphSize * 4)
   let atlas = atlases[sdfGlyphSize]
   if (!atlas) {
-    const canvas = document.createElement('canvas')
-    canvas.width = textureWidth
-    canvas.height = sdfGlyphSize * 256 / glyphsPerRow // start tall enough to fit 256 glyphs
+    const height = sdfGlyphSize * 256 / glyphsPerRow // start tall enough to fit 256 glyphs
+    const canvas = new OffscreenCanvas(textureWidth, height)
     atlas = atlases[sdfGlyphSize] = {
       glyphCount: 0,
       sdfGlyphSize,
@@ -407,13 +406,8 @@ function assign(toObj, fromObj) {
 }
 
 // Utility for making URLs absolute
-let linkEl
 function toAbsoluteURL(path) {
-  if (!linkEl) {
-    linkEl = typeof document === 'undefined' ? {} : document.createElement('a')
-  }
-  linkEl.href = path
-  return linkEl.href
+  return new URL(path, self.location.href).href;
 }
 
 /**
