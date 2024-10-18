@@ -1,6 +1,6 @@
 {
   "name": "@seanhouli/troika-three-text",
-  "version": "0.50.1",
+  "version": "0.50.2",
   "description": "SDF-based text rendering for Three.js",
   "author": "Sean Houlihan <shoulihan7198@gmail.com>",
   "repository": {
