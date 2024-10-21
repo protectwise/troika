@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.50.2](https://github.com/protectwise/troika/compare/v0.50.1...v0.50.2) (2024-10-21)
+
+
+### Bug Fixes
+
+* **troika-three-text:** BatchedText: increase number of batch members ([449957d](https://github.com/protectwise/troika/commit/449957dfed3adbcb64cd71d181a82ce4ff8ed822))
+
+
+
+
+
 ## [0.50.1](https://github.com/protectwise/troika/compare/v0.50.0...v0.50.1) (2024-10-12)
 
 
