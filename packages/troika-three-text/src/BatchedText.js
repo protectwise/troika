@@ -6,7 +6,7 @@ import { createTextDerivedMaterial } from "./TextDerivedMaterial";
 
 const syncStartEvent = { type: "syncstart" };
 const syncCompleteEvent = { type: "synccomplete" };
-const instanceIndexAttrName = "aTroikaTextInstanceIndex";
+const memberIndexAttrName = "aTroikaTextBatchMemberIndex";
 
 // 0-15: matrix
 // 16: color
@@ -16,8 +16,8 @@ const instanceIndexAttrName = "aTroikaTextInstanceIndex";
 // strokeWidth/Color/Opacity
 // fillOpacity
 // clipRect
-let floatsPerInstance = 17;
-floatsPerInstance = Math.ceil(floatsPerInstance / 4) * 4; // whole texels
+let floatsPerMember = 17;
+floatsPerMember = Math.ceil(floatsPerMember / 4) * 4; // whole texels
 
 const tempBox3 = new Box3();
 const tempColor = new Color();
@@ -33,7 +33,7 @@ const tempColor = new Color();
  *
  * @todo Support for WebGL1 without OES_texture_float extension (pack floats into 4 ints)
  * @todo Handle more visual uniforms: uv bounds, outlines, etc.
- * @todo Handle things that can't vary between instances like sdfGlyphSize - separate batches, or throw?
+ * @todo Handle things that can't vary between members like sdfGlyphSize - separate batches, or throw?
  */
 export class BatchedText extends Text {
   constructor () {
@@ -48,19 +48,19 @@ export class BatchedText extends Text {
     /**
      * @type {Map<Text, PackingInfo>}
      */
-    this._texts = new Map();
+    this._members = new Map();
 
-    this._onInstanceSynced = (e) => {
-      this._texts.get(e.target).dirty = true;
+    this._onMemberSynced = (e) => {
+      this._members.get(e.target).dirty = true;
     };
-    this._onInstanceRemoved = (e) => {
+    this._onMemberRemoved = (e) => {
       this.removeText(e.target);
     };
   }
 
   /**
    * @override
-   * Batch any Text instances added as children
+   * Batch any Text objects added as children
    */
   add (...objects) {
     for (let i = 0; i < objects.length; i++) {
@@ -77,14 +77,14 @@ export class BatchedText extends Text {
    * @param {Text} text
    */
   addText (text) {
-    if (!this._texts.has(text)) {
-      this._texts.set(text, {
+    if (!this._members.has(text)) {
+      this._members.set(text, {
         index: -1,
         glyphCount: -1,
         dirty: true
       });
-      text.addEventListener("removed", this._onInstanceRemoved);
-      text.addEventListener("synccomplete", this._onInstanceSynced);
+      text.addEventListener("removed", this._onMemberRemoved);
+      text.addEventListener("synccomplete", this._onMemberSynced);
     }
   }
 
@@ -92,9 +92,9 @@ export class BatchedText extends Text {
    * @param {Text} text
    */
   removeText (text) {
-    text.removeEventListener("removed", this._onInstanceRemoved);
-    text.removeEventListener("synccomplete", this._onInstanceSynced);
-    this._texts.delete(text);
+    text.removeEventListener("removed", this._onMemberRemoved);
+    text.removeEventListener("synccomplete", this._onMemberSynced);
+    this._members.delete(text);
   }
 
   /**
@@ -110,12 +110,12 @@ export class BatchedText extends Text {
   }
 
   /**
-   * Update the batched geometry bounds to hold all instances
+   * Update the batched geometry bounds to hold all members
    */
   updateBounds () {
-    // Update instance local matrices and the overall bounds
+    // Update member local matrices and the overall bounds
     const bbox = this.geometry.boundingBox.makeEmpty();
-    this._texts.forEach((_, text) => {
+    this._members.forEach((_, text) => {
       if (text.matrixAutoUpdate) text.updateMatrix(); // ignore world matrix
       tempBox3.copy(text.geometry.boundingBox).applyMatrix4(text.matrix);
       bbox.union(tempBox3);
@@ -127,12 +127,12 @@ export class BatchedText extends Text {
    * @override
    */
   _prepareForRender (material) {
-    // Copy instance matrices to the texture
+    // Copy member matrices to the texture
     // TODO only do this once, not once per material
 
     // Resize the texture to fit in powers of 2
     let texture = this._mat4Texture;
-    const dataLength = Math.pow(2, Math.ceil(Math.log2(this._texts.size * floatsPerInstance)));
+    const dataLength = Math.pow(2, Math.ceil(Math.log2(this._members.size * floatsPerMember)));
     if (!texture || dataLength !== texture.image.data.length) {
       // console.log(`resizing: ${dataLength}`);
       if (texture) texture.dispose();
@@ -153,9 +153,9 @@ export class BatchedText extends Text {
         texture.needsUpdate = true;
       }
     }
-    this._texts.forEach(({ index, dirty }, text) => {
+    this._members.forEach(({ index, dirty }, text) => {
       if (index > -1) {
-        const startIndex = index * floatsPerInstance
+        const startIndex = index * floatsPerMember
 
         // Matrix
         const matrix = text.matrix.elements;
@@ -183,11 +183,11 @@ export class BatchedText extends Text {
   }
 
   sync (callback) {
-    // TODO: skip instances updating their geometries, just use textRenderInfo directly
+    // TODO: skip members updating their geometries, just use textRenderInfo directly
 
-    // Trigger sync on all instances that need it
+    // Trigger sync on all members that need it
     let syncPromises;
-    this._texts.forEach((packingInfo, text) => {
+    this._members.forEach((packingInfo, text) => {
       if (packingInfo.dirty || text._needsSync) {
         packingInfo.dirty = false;
         (syncPromises || (syncPromises = [])).push(new Promise(resolve => {
@@ -207,44 +207,44 @@ export class BatchedText extends Text {
       Promise.all(syncPromises).then(() => {
         const { geometry } = this;
         const batchedAttributes = geometry.attributes;
-        let instanceIndexes = batchedAttributes[instanceIndexAttrName] && batchedAttributes[instanceIndexAttrName].array || new Uint16Array(0);
+        let memberIndexes = batchedAttributes[memberIndexAttrName] && batchedAttributes[memberIndexAttrName].array || new Uint16Array(0);
         let batchedGlyphIndexes = batchedAttributes[glyphIndexAttrName] && batchedAttributes[glyphIndexAttrName].array || new Float32Array(0);
         let batchedGlyphBounds = batchedAttributes[glyphBoundsAttrName] && batchedAttributes[glyphBoundsAttrName].array || new Float32Array(0);
 
         // Initial pass to collect total glyph count and resize the arrays if needed
         let totalGlyphCount = 0;
-        this._texts.forEach((packingInfo, { textRenderInfo }) => {
+        this._members.forEach((packingInfo, { textRenderInfo }) => {
           if (textRenderInfo) {
             totalGlyphCount += textRenderInfo.glyphAtlasIndices.length;
             this._textRenderInfo = textRenderInfo; // TODO - need this, but be smarter
           }
         });
-        if (totalGlyphCount !== instanceIndexes.length) {
-          instanceIndexes = cloneAndResize(instanceIndexes, totalGlyphCount);
+        if (totalGlyphCount !== memberIndexes.length) {
+          memberIndexes = cloneAndResize(memberIndexes, totalGlyphCount);
           batchedGlyphIndexes = cloneAndResize(batchedGlyphIndexes, totalGlyphCount);
           batchedGlyphBounds = cloneAndResize(batchedGlyphBounds, totalGlyphCount * 4);
         }
 
         // Populate batch arrays
-        let instanceIndex = 0;
+        let memberIndex = 0;
         let glyphIndex = 0;
-        this._texts.forEach((packingInfo, { textRenderInfo }) => {
+        this._members.forEach((packingInfo, { textRenderInfo }) => {
           if (textRenderInfo) {
             const glyphCount = textRenderInfo.glyphAtlasIndices.length;
-            instanceIndexes.fill(instanceIndex, glyphIndex, glyphIndex + glyphCount);
+            memberIndexes.fill(memberIndex, glyphIndex, glyphIndex + glyphCount);
 
-            // TODO can skip these for instances that are not dirty or shifting overall position:
+            // TODO can skip these for members that are not dirty or shifting overall position:
             batchedGlyphIndexes.set(textRenderInfo.glyphAtlasIndices, glyphIndex, glyphIndex + glyphCount);
             batchedGlyphBounds.set(textRenderInfo.glyphBounds, glyphIndex * 4, (glyphIndex + glyphCount) * 4);
 
             glyphIndex += glyphCount;
-            packingInfo.index = instanceIndex++;
+            packingInfo.index = memberIndex++;
           }
         });
 
         // Update the geometry attributes
-        geometry.updateAttributeData(instanceIndexAttrName, instanceIndexes, 1);
-        geometry.getAttribute(instanceIndexAttrName).setUsage(DynamicDrawUsage);
+        geometry.updateAttributeData(memberIndexAttrName, memberIndexes, 1);
+        geometry.getAttribute(memberIndexAttrName).setUsage(DynamicDrawUsage);
         geometry.updateAttributeData(glyphIndexAttrName, batchedGlyphIndexes, 1);
         geometry.updateAttributeData(glyphBoundsAttrName, batchedGlyphBounds, 4);
 
@@ -261,8 +261,8 @@ export class BatchedText extends Text {
   copy (source) {
     if (source instanceof BatchedText) {
       super.copy(source);
-      this._texts.forEach((_, text) => this.removeText(text));
-      source._texts.forEach((_, text) => this.addText(text));
+      this._members.forEach((_, text) => this.removeText(text));
+      source._members.forEach((_, text) => this.addText(text));
     }
     return this;
   }
@@ -293,7 +293,7 @@ function createBatchedTextMaterial (baseMaterial) {
     vertexDefs: `
       uniform sampler2D ${texUniformName};
       uniform vec2 ${texSizeUniformName};
-      attribute float ${instanceIndexAttrName};
+      attribute float ${memberIndexAttrName};
       varying vec3 ${colorVaryingName};
 
       vec4 troikaGetTexel(float i) {
@@ -307,7 +307,7 @@ function createBatchedTextMaterial (baseMaterial) {
     `,
     // language=GLSL prefix="void main() {" suffix="}"
     vertexTransform: `
-      float i = ${instanceIndexAttrName} * ${floatsPerInstance.toFixed(1)} / 4.0;
+      float i = ${memberIndexAttrName} * ${floatsPerMember.toFixed(1)} / 4.0;
       mat4 matrix = mat4(
         troikaGetTexel(i),
         troikaGetTexel(i + 1.0),
