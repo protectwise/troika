@@ -1,5 +1,5 @@
 import { Text } from "./Text.js";
-import { DataTexture, FloatType, RGBAFormat, Vector2, Box3, Color } from "three";
+import { DataTexture, FloatType, RGBAFormat, Vector2, Box3, Color, DynamicDrawUsage } from "three";
 import { glyphBoundsAttrName, glyphIndexAttrName } from "./GlyphsGeometry";
 import { createDerivedMaterial } from "troika-three-utils";
 import { createTextDerivedMaterial } from "./TextDerivedMaterial";
@@ -10,6 +10,12 @@ const instanceIndexAttrName = "aTroikaTextInstanceIndex";
 
 // 0-15: matrix
 // 16: color
+// TODO:
+// total bounds for uv
+// outlineWidth/Color/Opacity/Blur/Offset
+// strokeWidth/Color/Opacity
+// fillOpacity
+// clipRect
 let floatsPerInstance = 17;
 floatsPerInstance = Math.ceil(floatsPerInstance / 4) * 4; // whole texels
 
@@ -201,7 +207,7 @@ export class BatchedText extends Text {
       Promise.all(syncPromises).then(() => {
         const { geometry } = this;
         const batchedAttributes = geometry.attributes;
-        let instanceIndexes = batchedAttributes[instanceIndexAttrName] && batchedAttributes[instanceIndexAttrName].array || new Uint8Array(0);
+        let instanceIndexes = batchedAttributes[instanceIndexAttrName] && batchedAttributes[instanceIndexAttrName].array || new Uint16Array(0);
         let batchedGlyphIndexes = batchedAttributes[glyphIndexAttrName] && batchedAttributes[glyphIndexAttrName].array || new Float32Array(0);
         let batchedGlyphBounds = batchedAttributes[glyphBoundsAttrName] && batchedAttributes[glyphBoundsAttrName].array || new Float32Array(0);
 
@@ -238,6 +244,7 @@ export class BatchedText extends Text {
 
         // Update the geometry attributes
         geometry.updateAttributeData(instanceIndexAttrName, instanceIndexes, 1);
+        geometry.getAttribute(instanceIndexAttrName).setUsage(DynamicDrawUsage);
         geometry.updateAttributeData(glyphIndexAttrName, batchedGlyphIndexes, 1);
         geometry.updateAttributeData(glyphBoundsAttrName, batchedGlyphBounds, 4);
 
