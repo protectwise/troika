@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.50.3](https://github.com/protectwise/troika/compare/v0.50.2...v0.50.3) (2024-11-01)
+
+
+### Bug Fixes
+
+* Error in derived materials in Three r170 ([2402026](https://github.com/protectwise/troika/commit/240202662447040c0255f39e6c296207ba9a5457))
+
+
+
+
+
 # [0.50.0](https://github.com/protectwise/troika/compare/v0.49.1...v0.50.0) (2024-10-11)
 
 

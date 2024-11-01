@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.50.3](https://github.com/protectwise/troika/compare/v0.50.2...v0.50.3) (2024-11-01)
+
+
+### Bug Fixes
+
+* ensure high precision sampling of batched text data texture ([f8bd307](https://github.com/protectwise/troika/commit/f8bd3076a08136ad8be29eb7ea0292bbf80ceab9))
+* Error in derived materials in Three r170 ([2402026](https://github.com/protectwise/troika/commit/240202662447040c0255f39e6c296207ba9a5457))
+
+
+
+
+
 ## [0.50.2](https://github.com/protectwise/troika/compare/v0.50.1...v0.50.2) (2024-10-21)
 
 

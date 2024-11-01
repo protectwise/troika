@@ -1,6 +1,6 @@
 {
   "name": "troika-three-text",
-  "version": "0.50.2",
+  "version": "0.50.3",
   "description": "SDF-based text rendering for Three.js",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "repository": {
@@ -15,7 +15,7 @@
   "module:src": "src/index.js",
   "dependencies": {
     "bidi-js": "^1.0.2",
-    "troika-three-utils": "^0.50.0",
+    "troika-three-utils": "^0.50.3",
     "troika-worker-utils": "^0.50.0",
     "webgl-sdf-generator": "1.1.1"
   },
