@@ -291,7 +291,7 @@ function createBatchedTextMaterial (baseMaterial) {
     },
     // language=GLSL
     vertexDefs: `
-      uniform sampler2D ${texUniformName};
+      uniform highp sampler2D ${texUniformName};
       uniform vec2 ${texSizeUniformName};
       attribute float ${memberIndexAttrName};
       varying vec3 ${colorVaryingName};
