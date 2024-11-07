@@ -298,7 +298,7 @@ function createBatchedTextMaterial (baseMaterial) {
 
       vec4 troikaGetTexel(float i) {
         float w = ${texSizeUniformName}.x;
-        vec2 uv = (vec2(mod(i, w), floor(i / w)) + 0.5) / w;
+        vec2 uv = (vec2(mod(i, w), floor(i / w)) + 0.5) / ${texSizeUniformName};
         return texture2D(${texUniformName}, uv);
       }
       vec3 troikaFloatToColor(float v) {
