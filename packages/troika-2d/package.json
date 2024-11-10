@@ -1,6 +1,6 @@
 {
   "name": "troika-2d",
-  "version": "0.50.0",
+  "version": "0.51.0",
   "description": "Troika 2D",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "repository": {
@@ -14,6 +14,6 @@
   "module": "dist/troika-2d.esm.js",
   "module:src": "src/index.js",
   "dependencies": {
-    "troika-core": "^0.50.0"
+    "troika-core": "^0.51.0"
   }
 }

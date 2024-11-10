@@ -1,6 +1,6 @@
 {
   "name": "troika-3d-text",
-  "version": "0.50.3",
+  "version": "0.51.0",
   "description": "SDF text for the Troika 3D scene management framework",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "repository": {
@@ -14,9 +14,9 @@
   "module": "dist/troika-3d-text.esm.js",
   "module:src": "src/index.js",
   "dependencies": {
-    "troika-3d": "^0.50.3",
-    "troika-three-text": "^0.50.3",
-    "troika-three-utils": "^0.50.3"
+    "troika-3d": "^0.51.0",
+    "troika-three-text": "^0.51.0",
+    "troika-three-utils": "^0.51.0"
   },
   "peerDependencies": {
     "three": ">=0.125.0"

@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.51.0](https://github.com/protectwise/troika/compare/v0.50.3...v0.51.0) (2024-11-10)
+
+
+### Bug Fixes
+
+* **BatchedText:** Fix texel read for taller data texture ([57f3b0b](https://github.com/protectwise/troika/commit/57f3b0bfa6f13d7311d51e1cb4c3b0e1caf17458))
+* **troika-three-text:** Fix error when first character is whitespace [#313](https://github.com/protectwise/troika/issues/313) ([f71679e](https://github.com/protectwise/troika/commit/f71679e97a3850057ff85054d10326c8100c5328))
+
+
+### Features
+
+* **BatchedText:** support fillOpacity, and color now sets the `diffuse` uniform ([8f83424](https://github.com/protectwise/troika/commit/8f8342447f3fe4a31420cf46fdb191ddc0afb929))
+* **troika-three-text:** Add config to disable web worker ([86023ec](https://github.com/protectwise/troika/commit/86023ecd1ce00cebc3094088f935de5c129d5201)), closes [#337](https://github.com/protectwise/troika/issues/337)
+
+
+
+
+
 ## [0.50.3](https://github.com/protectwise/troika/compare/v0.50.2...v0.50.3) (2024-11-01)
 
 

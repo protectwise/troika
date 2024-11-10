@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.51.0](https://github.com/protectwise/troika/compare/v0.50.3...v0.51.0) (2024-11-10)
+
+
+### Features
+
+* **troika-worker-utils:** Add a handle to force running worker modules on main thread ([4f8bc13](https://github.com/protectwise/troika/commit/4f8bc13cf32a1665e2177ab2f62f60f2fe17ad66))
+
+
+
+
+
 # [0.50.0](https://github.com/protectwise/troika/compare/v0.49.1...v0.50.0) (2024-10-11)
 
 **Note:** Version bump only for package troika-worker-utils
