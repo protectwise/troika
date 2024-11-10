@@ -365,6 +365,17 @@ Since the text processing occurs in a web worker, it is by definition asynchrono
     
     You can also listen for the `syncstart` event if you need to react to the initiation of a sync call, e.g. to set some sort of "waiting" state while the text is being processed.
 
+### Disabling web worker
+
+Some environments don't allow evaluating JS strings for security reasons, like those with a restrictive [CSP](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP), which blocks how troika-three-text creates its web worker. Or you may want to avoid using a worker for some other reason. You can force it to run on the main thread instead (although still asynchronously) by configuring it prior to creating any Text instances:
+
+```js
+import {configureTextBuilder} from 'troika-three-text'
+
+configureTextBuilder({
+  useWorker: false
+})
+```
 
 ## Preloading
 

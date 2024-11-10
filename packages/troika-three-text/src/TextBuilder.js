@@ -13,6 +13,7 @@ const CONFIG = {
   sdfMargin: 1 / 16,
   sdfExponent: 9,
   textureWidth: 2048,
+  useWorker: true,
 }
 const tempColor = /*#__PURE__*/new Color()
 let hasRequested = false
@@ -51,6 +52,7 @@ function now() {
  *                 reasonably large number of glyphs (default glyph size of 64^2 and safe texture size of
  *                 2048^2, times 4 channels, allows for 4096 glyphs.) This can be increased if you need to
  *                 increase the glyph size and/or have an extraordinary number of glyphs.
+ * @param {Boolean} config.useWorker - Whether to run typesetting in a web worker. Defaults to true.
  */
 function configureTextBuilder(config) {
   if (hasRequested) {
@@ -189,7 +191,8 @@ function getTextRenderInfo(args, callback) {
   const {sdfTexture, sdfCanvas} = atlas
 
   // Issue request to the typesetting engine in the worker
-  typesetInWorker(args).then(result => {
+  const typeset = CONFIG.useWorker ? typesetInWorker : typesetOnMainThread
+  typeset(args).then(result => {
     const {glyphIds, glyphFontIndices, fontData, glyphPositions, fontSize, timings} = result
     const neededSDFs = []
     const glyphBounds = new Float32Array(glyphIds.length * 4)
@@ -475,6 +478,8 @@ const typesetInWorker = /*#__PURE__*/defineWorkerModule({
     return transferables
   }
 })
+
+const typesetOnMainThread = typesetInWorker.onMainThread
 
 function dumpSDFTextures() {
   Object.keys(atlases).forEach(size => {
