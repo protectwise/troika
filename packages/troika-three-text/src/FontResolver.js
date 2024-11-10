@@ -147,13 +147,13 @@ export function createFontResolver(fontParser, unicodeFontResolverClient) {
           // - this character is whitespace
           if (
             (prevCharResult === RESOLVED && fontResolutions[charResolutions[i - 1]].supportsCodePoint(codePoint)) ||
-            /\s/.test(text[i])
+            (i > 0 && /\s/.test(text[i]))
           ) {
             charResolutions[i] = charResolutions[i - 1]
             if (prevCharResult === NEEDS_FALLBACK) {
               fallbackRanges[fallbackRanges.length - 1][1] = i
             }
-          }  else {
+          } else {
             for (let j = charResolutions[i], jLen = userFonts.length; j <= jLen; j++) {
               if (j === jLen) {
                 // none of the user fonts matched; needs fallback
