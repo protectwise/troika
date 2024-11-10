@@ -29,8 +29,9 @@ export function defineWorkerModule(options) {
   }
   let {dependencies, init, getTransferables, workerId} = options
 
+  const onMainThread = defineMainThreadModule(options)
   if (!supportsWorkers()) {
-    return defineMainThreadModule(options)
+    return onMainThread
   }
 
   if (workerId == null) {
@@ -86,6 +87,9 @@ export function defineWorkerModule(options) {
     init: stringifyFunction(init),
     getTransferables: getTransferables && stringifyFunction(getTransferables)
   }
+
+  moduleFunc.onMainThread = onMainThread;
+
   return moduleFunc
 }
 

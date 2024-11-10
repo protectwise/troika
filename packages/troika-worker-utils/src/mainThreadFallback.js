@@ -18,9 +18,15 @@ export function defineMainThreadModule(options) {
     let {dependencies, init} = options
 
     // Resolve dependencies
-    dependencies = Array.isArray(dependencies) ? dependencies.map(dep =>
-      dep && dep._getInitResult ? dep._getInitResult() : dep
-    ) : []
+    dependencies = Array.isArray(dependencies) ? dependencies.map(dep => {
+      if (dep) {
+        dep = dep.onMainThread || dep
+        if (dep._getInitResult) {
+          dep = dep._getInitResult()
+        }
+      }
+      return dep
+    }) : []
 
     // Invoke init with the resolved dependencies
     let initPromise = Promise.all(dependencies).then(deps => {
