@@ -10,13 +10,13 @@ const memberIndexAttrName = "aTroikaTextBatchMemberIndex";
 
 // 0-15: matrix
 // 16: color
+// 17: fillOpacity
 // TODO:
 // total bounds for uv
 // outlineWidth/Color/Opacity/Blur/Offset
 // strokeWidth/Color/Opacity
-// fillOpacity
 // clipRect
-let floatsPerMember = 17;
+let floatsPerMember = 18;
 floatsPerMember = Math.ceil(floatsPerMember / 4) * 4; // whole texels
 
 const tempBox3 = new Box3();
@@ -163,12 +163,13 @@ export class BatchedText extends Text {
           setTexData(startIndex + i, matrix[i])
         }
 
-        // Color
+        // Color + opacity
         let color = text.color;
         if (color == null) color = this.color;
         if (color == null) color = this.material.color;
         if (color == null) color = 0xffffff;
         setTexData(startIndex + 16, tempColor.set(color).getHex());
+        setTexData(startIndex + 17, text.fillOpacity == null ? 1 : text.fillOpacity)
 
         // TODO:
         // outlineWidth/Color/Opacity/Blur/Offset
@@ -282,8 +283,14 @@ function cloneAndResize (source, newLength) {
 function createBatchedTextMaterial (baseMaterial) {
   const texUniformName = "uTroikaMatricesTexture";
   const texSizeUniformName = "uTroikaMatricesTextureSize";
-  const colorVaryingName = "vTroikaTextColor";
-  const batchMaterial = createDerivedMaterial(baseMaterial, {
+  const fillOpacityVaryingName = "vTroikaFillOpacity";
+
+  // Due to how vertexTransform gets injected, the matrix transforms must happen
+  // in the base material of TextDerivedMaterial, but other transforms to its
+  // shader must come after, so we sandwich it between two derivations.
+
+  // Transform the vertex position
+  let batchMaterial = createDerivedMaterial(baseMaterial, {
     chained: true,
     uniforms: {
       [texSizeUniformName]: { value: new Vector2() },
@@ -294,48 +301,69 @@ function createBatchedTextMaterial (baseMaterial) {
       uniform highp sampler2D ${texUniformName};
       uniform vec2 ${texSizeUniformName};
       attribute float ${memberIndexAttrName};
-      varying vec3 ${colorVaryingName};
 
-      vec4 troikaGetTexel(float i) {
+      vec4 troikaBatchTexel(float offset) {
+        offset += ${memberIndexAttrName} * ${floatsPerMember.toFixed(1)} / 4.0;
         float w = ${texSizeUniformName}.x;
-        vec2 uv = (vec2(mod(i, w), floor(i / w)) + 0.5) / ${texSizeUniformName};
+        vec2 uv = (vec2(mod(offset, w), floor(offset / w)) + 0.5) / ${texSizeUniformName};
         return texture2D(${texUniformName}, uv);
       }
+    `,
+    // language=GLSL prefix="void main() {" suffix="}"
+    vertexTransform: `
+      mat4 matrix = mat4(
+        troikaBatchTexel(0.0),
+        troikaBatchTexel(1.0),
+        troikaBatchTexel(2.0),
+        troikaBatchTexel(3.0)
+      );
+      position.xyz = (matrix * vec4(position, 1.0)).xyz;
+    `,
+  });
+
+  // Add the text shaders
+  batchMaterial = createTextDerivedMaterial(batchMaterial);
+
+  // Now make other changes to the derived text shader code
+  batchMaterial = createDerivedMaterial(batchMaterial, {
+    chained: true,
+    customRewriter({vertexShader, fragmentShader}) {
+      // Convert some text shader uniforms to varyings
+      function uniformToVarying(shader, uniformName, varyingName) {
+        return shader.replace(
+          new RegExp(`(uniform\\s+(float|vec[234])\\s+)?\\b${uniformName}\\b`, 'g'),
+          (_, isDeclaration, type) => {
+            return (isDeclaration ? `varying ${type} ` : '') + varyingName
+          }
+        );
+      }
+      fragmentShader = uniformToVarying(fragmentShader, 'uTroikaFillOpacity', fillOpacityVaryingName);
+
+      // Strip out diffuse uniform from the vertex shader, if it was added by
+      // TextDerivedMaterial, and replace with a writeable var
+      vertexShader = 'vec3 diffuse;\n' + vertexShader.replace(/uniform vec3 diffuse;/, '')
+
+      return {vertexShader, fragmentShader}
+    },
+    // language=GLSL
+    vertexDefs: `
+      varying float ${fillOpacityVaryingName};
       vec3 troikaFloatToColor(float v) {
         return mod(floor(vec3(v / 65536.0, v / 256.0, v)), 256.0) / 256.0;
       }
     `,
     // language=GLSL prefix="void main() {" suffix="}"
-    vertexTransform: `
-      float i = ${memberIndexAttrName} * ${floatsPerMember.toFixed(1)} / 4.0;
-      mat4 matrix = mat4(
-        troikaGetTexel(i),
-        troikaGetTexel(i + 1.0),
-        troikaGetTexel(i + 2.0),
-        troikaGetTexel(i + 3.0)
-      );
-      position.xyz = (matrix * vec4(position, 1.0)).xyz;
-
-      float packedColor = troikaGetTexel(i + 4.0).r;
-      ${colorVaryingName} = troikaFloatToColor(packedColor);
+    vertexMainIntro: `
+      vec4 colorData = troikaBatchTexel(4.0);
+      diffuse = troikaFloatToColor(colorData.r);
+      ${fillOpacityVaryingName} = colorData.g;
     `,
-    // language=GLSL
-    fragmentDefs: `
-      varying vec3 ${colorVaryingName};
-    `,
-    // language=GLSL prefix="void main() {" suffix="}"
-    fragmentColorTransform: `
-      gl_FragColor.rgb = ${colorVaryingName};
-    `
-    // TODO: If the base shader has a diffuse color modify that rather than gl_FragColor
-    // customRewriter({vertexShader, fragmentShader}) {
-    //   return {vertexShader, fragmentShader}
-    // },
   });
+
   batchMaterial.setMatrixTexture = (texture) => {
     batchMaterial.uniforms[texUniformName].value = texture;
     batchMaterial.uniforms[texSizeUniformName].value.set(texture.image.width, texture.image.height);
   };
-  return createTextDerivedMaterial(batchMaterial);
+  return batchMaterial;
 }
 

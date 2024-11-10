@@ -27,6 +27,7 @@ export default function BatchedTextExample ({ stats, width, height }) {
       anchorX: "50%",
       anchorY: "50%",
       color: randColor(),
+      // fillOpacity: Math.random() < 0.5 ? 0.2 : 1,
       animation: {
         from: { rotateY: 0 },
         to: { rotateY: Math.PI * 2 },
