@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.51.1](https://github.com/protectwise/troika/compare/v0.51.0...v0.51.1) (2024-11-11)
+
+
+### Bug Fixes
+
+* **troika-worker-utils:** Avoid no-workers log errors when forcing main thread ([d396e51](https://github.com/protectwise/troika/commit/d396e51708d151d9cee04394d3cd8ac87c1a7dc0)), closes [#337](https://github.com/protectwise/troika/issues/337)
+
+
+
+
+
 # [0.51.0](https://github.com/protectwise/troika/compare/v0.50.3...v0.51.0) (2024-11-10)
 
 
