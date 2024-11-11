@@ -9,7 +9,7 @@ uniform vec4 uTroikaTotalBounds;
 uniform vec4 uTroikaClipRect;
 uniform mat3 uTroikaOrient;
 uniform bool uTroikaUseGlyphColors;
-uniform float uTroikaDistanceOffset;
+uniform float uTroikaEdgeOffset;
 uniform float uTroikaBlurRadius;
 uniform vec2 uTroikaPositionOffset;
 uniform float uTroikaCurveRadius;
@@ -30,8 +30,8 @@ bounds.xz += uTroikaPositionOffset.x;
 bounds.yw -= uTroikaPositionOffset.y;
 
 vec4 outlineBounds = vec4(
-  bounds.xy - uTroikaDistanceOffset - uTroikaBlurRadius,
-  bounds.zw + uTroikaDistanceOffset + uTroikaBlurRadius
+  bounds.xy - uTroikaEdgeOffset - uTroikaBlurRadius,
+  bounds.zw + uTroikaEdgeOffset + uTroikaBlurRadius
 );
 vec4 clippedBounds = vec4(
   clamp(outlineBounds.xy, uTroikaClipRect.xy, uTroikaClipRect.zw),
@@ -77,9 +77,8 @@ uniform sampler2D uTroikaSDFTexture;
 uniform vec2 uTroikaSDFTextureSize;
 uniform float uTroikaSDFGlyphSize;
 uniform float uTroikaSDFExponent;
-uniform float uTroikaDistanceOffset;
+uniform float uTroikaEdgeOffset;
 uniform float uTroikaFillOpacity;
-uniform float uTroikaOutlineOpacity;
 uniform float uTroikaBlurRadius;
 uniform vec3 uTroikaStrokeColor;
 uniform float uTroikaStrokeWidth;
@@ -182,7 +181,7 @@ float aaDist = troikaGetAADist();
 float fragDistance = troikaGetFragDistValue();
 float edgeAlpha = uTroikaSDFDebug ?
   troikaGlyphUvToSdfValue(vTroikaGlyphUV) :
-  troikaGetEdgeAlpha(fragDistance, uTroikaDistanceOffset, max(aaDist, uTroikaBlurRadius));
+  troikaGetEdgeAlpha(fragDistance, uTroikaEdgeOffset, max(aaDist, uTroikaBlurRadius));
 
 #if !defined(IS_DEPTH_MATERIAL) && !defined(IS_DISTANCE_MATERIAL)
 vec4 fillRGBA = gl_FragColor;
@@ -219,8 +218,7 @@ export function createTextDerivedMaterial(baseMaterial) {
       uTroikaSDFExponent: {value: 0},
       uTroikaTotalBounds: {value: new Vector4(0,0,0,0)},
       uTroikaClipRect: {value: new Vector4(0,0,0,0)},
-      uTroikaDistanceOffset: {value: 0},
-      uTroikaOutlineOpacity: {value: 0},
+      uTroikaEdgeOffset: {value: 0},
       uTroikaFillOpacity: {value: 1},
       uTroikaPositionOffset: {value: new Vector2()},
       uTroikaCurveRadius: {value: 0},
