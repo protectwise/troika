@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.52.1](https://github.com/protectwise/troika/compare/v0.52.0...v0.52.1) (2024-11-21)
+
+
+### Bug Fixes
+
+* **BatchedText:** Fix removing text instances via .remove() ([d99549f](https://github.com/protectwise/troika/commit/d99549fa39ce05d04f1d3636e0ef0a1e954341ce))
+
+
+
+
+
 # [0.52.0](https://github.com/protectwise/troika/compare/v0.51.1...v0.52.0) (2024-11-11)
 
 
