@@ -115,6 +115,7 @@ export class BatchedText extends Text {
    * @param {Text} text
    */
   removeText (text) {
+    this._needsRepack = true
     text.removeEventListener("synccomplete", this._onMemberSynced);
     this._members.delete(text);
   }
@@ -254,7 +255,8 @@ export class BatchedText extends Text {
     // TODO: skip members updating their geometries, just use textRenderInfo directly
 
     // Trigger sync on all members that need it
-    let syncPromises;
+    let syncPromises = this._needsRepack ? [] : null;
+    this._needsRepack = false;
     this._members.forEach((packingInfo, text) => {
       if (packingInfo.dirty || text._needsSync) {
         packingInfo.dirty = false;
