@@ -66,9 +66,6 @@ export class BatchedText extends Text {
     this._onMemberSynced = (e) => {
       this._members.get(e.target).dirty = true;
     };
-    this._onMemberRemoved = (e) => {
-      this.removeText(e.target);
-    };
   }
 
   /**
@@ -87,6 +84,20 @@ export class BatchedText extends Text {
   }
 
   /**
+   * @override
+   */
+  remove (...objects) {
+    for (let i = 0; i < objects.length; i++) {
+      if (objects[i] instanceof Text) {
+        this.removeText(objects[i]);
+      } else {
+        super.remove(objects[i]);
+      }
+    }
+    return this;
+  }
+
+  /**
    * @param {Text} text
    */
   addText (text) {
@@ -96,7 +107,6 @@ export class BatchedText extends Text {
         glyphCount: -1,
         dirty: true
       });
-      text.addEventListener("removed", this._onMemberRemoved);
       text.addEventListener("synccomplete", this._onMemberSynced);
     }
   }
@@ -105,7 +115,6 @@ export class BatchedText extends Text {
    * @param {Text} text
    */
   removeText (text) {
-    text.removeEventListener("removed", this._onMemberRemoved);
     text.removeEventListener("synccomplete", this._onMemberSynced);
     this._members.delete(text);
   }
