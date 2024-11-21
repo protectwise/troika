@@ -165,7 +165,7 @@ export class BatchedText extends Text {
       // console.log(`resizing: ${dataLength}`);
       if (texture) texture.dispose();
       const width = Math.min(dataLength / 4, 1024);
-      texture = this[isOutline ? 'outline' : 'main'] = new DataTexture(
+      texture = this._dataTextures[isOutline ? 'outline' : 'main'] = new DataTexture(
         new Float32Array(dataLength),
         width,
         dataLength / 4 / width,
