@@ -18,9 +18,17 @@ export function defineMainThreadModule(options) {
     let {dependencies, init} = options
 
     // Resolve dependencies
-    dependencies = Array.isArray(dependencies) ? dependencies.map(dep =>
-      dep && dep._getInitResult ? dep._getInitResult() : dep
-    ) : []
+    dependencies = Array.isArray(dependencies) ? dependencies.map(dep => {
+      if (dep) {
+        // If it's a worker module, use its main thread impl
+        dep = dep.onMainThread || dep
+        // If it's a main thread worker module, use its init return value
+        if (dep._getInitResult) {
+          dep = dep._getInitResult()
+        }
+      }
+      return dep
+    }) : []
 
     // Invoke init with the resolved dependencies
     let initPromise = Promise.all(dependencies).then(deps => {

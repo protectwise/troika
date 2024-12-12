@@ -3,6 +3,68 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.52.2](https://github.com/protectwise/troika/compare/v0.52.1...v0.52.2) (2024-11-21)
+
+**Note:** Version bump only for package troika-examples
+
+
+
+
+
+## [0.52.1](https://github.com/protectwise/troika/compare/v0.52.0...v0.52.1) (2024-11-21)
+
+**Note:** Version bump only for package troika-examples
+
+
+
+
+
+# [0.52.0](https://github.com/protectwise/troika/compare/v0.51.1...v0.52.0) (2024-11-11)
+
+
+### Features
+
+* **BatchedText:** Support remaining visual properties ([60c5e93](https://github.com/protectwise/troika/commit/60c5e93ae5068f153240c5cfa1a109c01e4a4f51))
+
+
+
+
+
+## [0.51.1](https://github.com/protectwise/troika/compare/v0.51.0...v0.51.1) (2024-11-11)
+
+**Note:** Version bump only for package troika-examples
+
+
+
+
+
+# [0.51.0](https://github.com/protectwise/troika/compare/v0.50.3...v0.51.0) (2024-11-10)
+
+
+### Features
+
+* **BatchedText:** support fillOpacity, and color now sets the `diffuse` uniform ([8f83424](https://github.com/protectwise/troika/commit/8f8342447f3fe4a31420cf46fdb191ddc0afb929))
+
+
+
+
+
+## [0.50.3](https://github.com/protectwise/troika/compare/v0.50.2...v0.50.3) (2024-11-01)
+
+**Note:** Version bump only for package troika-examples
+
+
+
+
+
+## [0.50.2](https://github.com/protectwise/troika/compare/v0.50.1...v0.50.2) (2024-10-21)
+
+**Note:** Version bump only for package troika-examples
+
+
+
+
+
 ## [0.50.1](https://github.com/protectwise/troika/compare/v0.50.0...v0.50.1) (2024-10-12)
 
 

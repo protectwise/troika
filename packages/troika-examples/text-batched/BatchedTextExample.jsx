@@ -14,7 +14,7 @@ export default function BatchedTextExample ({ stats, width, height }) {
       "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen",
       "Sixteen", "Seventeen", "Eighteen", "Nineteen", "Twenty"
     ]
-    const subset = all.slice(0, Math.max(8, Math.floor(Math.random() * all.length)))
+    const subset = all.slice(0, Math.max(16, Math.floor(Math.random() * all.length)))
     return subset.map((text, i) => ({
       facade: Text3DFacade,
       text,
@@ -27,6 +27,15 @@ export default function BatchedTextExample ({ stats, width, height }) {
       anchorX: "50%",
       anchorY: "50%",
       color: randColor(),
+      // fillOpacity: Math.random() < 0.5 ? 0.1 : 1,
+      // strokeWidth: Math.random() < 0.5 ? '3%' : 0,
+      // strokeColor: randColor(),
+      outlineWidth: Math.random() < 0.3 ? '10%' : 0,
+      // outlineBlur: Math.random() < 0.3 ? '20%' : 0,
+      // outlineColor: randColor(),
+      // outlineOpacity: Math.random(),
+      // clipRect: Math.random() < 0.5 ? [0, 0, 999, 999] : null,
+      // curveRadius: Math.random() < 0.5 ? 0.1 : 0,
       animation: {
         from: { rotateY: 0 },
         to: { rotateY: Math.PI * 2 },

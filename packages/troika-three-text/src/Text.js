@@ -554,7 +554,7 @@ class Text extends Mesh {
     // feature (see GlyphsGeometry which sets up `groups` for this purpose) Doing it with multi
     // materials ensures the layers are always rendered consecutively in a consistent order.
     // Each layer will trigger onBeforeRender with the appropriate material.
-    if (this.outlineWidth || this.outlineBlur || this.outlineOffsetX || this.outlineOffsetY) {
+    if (this.hasOutline()) {
       let outlineMaterial = derivedMaterial._outlineMtl
       if (!outlineMaterial) {
         outlineMaterial = derivedMaterial._outlineMtl = Object.create(derivedMaterial, {
@@ -583,6 +583,10 @@ class Text extends Mesh {
     } else {
       this._baseMaterial = baseMaterial
     }
+  }
+
+  hasOutline() {
+    return !!(this.outlineWidth || this.outlineBlur || this.outlineOffsetX || this.outlineOffsetY)
   }
 
   get glyphGeometryDetail() {
@@ -647,7 +651,7 @@ class Text extends Mesh {
         fillOpacity = this.fillOpacity
       }
 
-      uniforms.uTroikaDistanceOffset.value = distanceOffset
+      uniforms.uTroikaEdgeOffset.value = distanceOffset
       uniforms.uTroikaPositionOffset.value.set(offsetX, offsetY)
       uniforms.uTroikaBlurRadius.value = blurRadius
       uniforms.uTroikaStrokeWidth.value = strokeWidth

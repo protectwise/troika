@@ -3,6 +3,88 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.52.2](https://github.com/protectwise/troika/compare/v0.52.1...v0.52.2) (2024-11-21)
+
+
+### Bug Fixes
+
+* **BatchedText:** Fix removing text instances ([8bf4bca](https://github.com/protectwise/troika/commit/8bf4bca24e0aa05c681f183edfaaca7620e2eefd))
+* **BatchedText:** Fix texture memory leak ([908fe31](https://github.com/protectwise/troika/commit/908fe314233db7201aa72710b9ec2697158fee79))
+
+
+
+
+
+## [0.52.1](https://github.com/protectwise/troika/compare/v0.52.0...v0.52.1) (2024-11-21)
+
+
+### Bug Fixes
+
+* **BatchedText:** Fix removing text instances via .remove() ([d99549f](https://github.com/protectwise/troika/commit/d99549fa39ce05d04f1d3636e0ef0a1e954341ce))
+
+
+
+
+
+# [0.52.0](https://github.com/protectwise/troika/compare/v0.51.1...v0.52.0) (2024-11-11)
+
+
+### Features
+
+* **BatchedText:** Support remaining visual properties ([60c5e93](https://github.com/protectwise/troika/commit/60c5e93ae5068f153240c5cfa1a109c01e4a4f51))
+
+
+
+
+
+## [0.51.1](https://github.com/protectwise/troika/compare/v0.51.0...v0.51.1) (2024-11-11)
+
+**Note:** Version bump only for package troika-three-text
+
+
+
+
+
+# [0.51.0](https://github.com/protectwise/troika/compare/v0.50.3...v0.51.0) (2024-11-10)
+
+
+### Bug Fixes
+
+* **BatchedText:** Fix texel read for taller data texture ([57f3b0b](https://github.com/protectwise/troika/commit/57f3b0bfa6f13d7311d51e1cb4c3b0e1caf17458))
+* **troika-three-text:** Fix error when first character is whitespace [#313](https://github.com/protectwise/troika/issues/313) ([f71679e](https://github.com/protectwise/troika/commit/f71679e97a3850057ff85054d10326c8100c5328))
+
+
+### Features
+
+* **BatchedText:** support fillOpacity, and color now sets the `diffuse` uniform ([8f83424](https://github.com/protectwise/troika/commit/8f8342447f3fe4a31420cf46fdb191ddc0afb929))
+* **troika-three-text:** Add config to disable web worker ([86023ec](https://github.com/protectwise/troika/commit/86023ecd1ce00cebc3094088f935de5c129d5201)), closes [#337](https://github.com/protectwise/troika/issues/337)
+
+
+
+
+
+## [0.50.3](https://github.com/protectwise/troika/compare/v0.50.2...v0.50.3) (2024-11-01)
+
+
+### Bug Fixes
+
+* ensure high precision sampling of batched text data texture ([f8bd307](https://github.com/protectwise/troika/commit/f8bd3076a08136ad8be29eb7ea0292bbf80ceab9))
+
+
+
+
+
+## [0.50.2](https://github.com/protectwise/troika/compare/v0.50.1...v0.50.2) (2024-10-21)
+
+
+### Bug Fixes
+
+* **troika-three-text:** BatchedText: increase number of batch members ([449957d](https://github.com/protectwise/troika/commit/449957dfed3adbcb64cd71d181a82ce4ff8ed822))
+
+
+
+
+
 ## [0.50.1](https://github.com/protectwise/troika/compare/v0.50.0...v0.50.1) (2024-10-12)
 
 

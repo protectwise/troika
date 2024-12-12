@@ -1,17 +1,37 @@
 import { Text } from "./Text.js";
-import { DataTexture, FloatType, RGBAFormat, Vector2, Box3, Color } from "three";
+import { DataTexture, FloatType, RGBAFormat, Vector2, Box3, Color, DynamicDrawUsage } from "three";
 import { glyphBoundsAttrName, glyphIndexAttrName } from "./GlyphsGeometry";
 import { createDerivedMaterial } from "troika-three-utils";
 import { createTextDerivedMaterial } from "./TextDerivedMaterial";
 
 const syncStartEvent = { type: "syncstart" };
 const syncCompleteEvent = { type: "synccomplete" };
-const instanceIndexAttrName = "aTroikaTextInstanceIndex";
+const memberIndexAttrName = "aTroikaTextBatchMemberIndex";
 
-// 0-15: matrix
-// 16: color
-let floatsPerInstance = 17;
-floatsPerInstance = Math.ceil(floatsPerInstance / 4) * 4; // whole texels
+
+/*
+Data texture packing strategy:
+
+# Common:
+0-15: matrix
+16-19: uTroikaTotalBounds
+20-23: uTroikaClipRect
+24: diffuse (color/outlineColor)
+25: uTroikaFillOpacity (fillOpacity/outlineOpacity)
+26: uTroikaCurveRadius
+27: <blank>
+
+# Main:
+28: uTroikaStrokeWidth
+29: uTroikaStrokeColor
+30: uTroikaStrokeOpacity
+
+# Outline:
+28-29: uTroikaPositionOffset
+30: uTroikaEdgeOffset
+31: uTroikaBlurRadius
+*/
+const floatsPerMember = 32;
 
 const tempBox3 = new Box3();
 const tempColor = new Color();
@@ -25,9 +45,7 @@ const tempColor = new Color();
  * The `material` of each child `Text` will be ignored, and the `material` of the
  * `BatchedText` will be used for all of them instead.
  *
- * @todo Support for WebGL1 without OES_texture_float extension (pack floats into 4 ints)
- * @todo Handle more visual uniforms: uv bounds, outlines, etc.
- * @todo Handle things that can't vary between instances like sdfGlyphSize - separate batches, or throw?
+ * NOTE: This only works in WebGL2 or where the OES_texture_float extension is available.
  */
 export class BatchedText extends Text {
   constructor () {
@@ -42,19 +60,17 @@ export class BatchedText extends Text {
     /**
      * @type {Map<Text, PackingInfo>}
      */
-    this._texts = new Map();
+    this._members = new Map();
+    this._dataTextures = {}
 
-    this._onInstanceSynced = (e) => {
-      this._texts.get(e.target).dirty = true;
-    };
-    this._onInstanceRemoved = (e) => {
-      this.removeText(e.target);
+    this._onMemberSynced = (e) => {
+      this._members.get(e.target).dirty = true;
     };
   }
 
   /**
    * @override
-   * Batch any Text instances added as children
+   * Batch any Text objects added as children
    */
   add (...objects) {
     for (let i = 0; i < objects.length; i++) {
@@ -68,17 +84,30 @@ export class BatchedText extends Text {
   }
 
   /**
+   * @override
+   */
+  remove (...objects) {
+    for (let i = 0; i < objects.length; i++) {
+      if (objects[i] instanceof Text) {
+        this.removeText(objects[i]);
+      } else {
+        super.remove(objects[i]);
+      }
+    }
+    return this;
+  }
+
+  /**
    * @param {Text} text
    */
   addText (text) {
-    if (!this._texts.has(text)) {
-      this._texts.set(text, {
+    if (!this._members.has(text)) {
+      this._members.set(text, {
         index: -1,
         glyphCount: -1,
         dirty: true
       });
-      text.addEventListener("removed", this._onInstanceRemoved);
-      text.addEventListener("synccomplete", this._onInstanceSynced);
+      text.addEventListener("synccomplete", this._onMemberSynced);
     }
   }
 
@@ -86,9 +115,9 @@ export class BatchedText extends Text {
    * @param {Text} text
    */
   removeText (text) {
-    text.removeEventListener("removed", this._onInstanceRemoved);
-    text.removeEventListener("synccomplete", this._onInstanceSynced);
-    this._texts.delete(text);
+    this._needsRepack = true
+    text.removeEventListener("synccomplete", this._onMemberSynced);
+    this._members.delete(text);
   }
 
   /**
@@ -104,12 +133,12 @@ export class BatchedText extends Text {
   }
 
   /**
-   * Update the batched geometry bounds to hold all instances
+   * Update the batched geometry bounds to hold all members
    */
   updateBounds () {
-    // Update instance local matrices and the overall bounds
+    // Update member local matrices and the overall bounds
     const bbox = this.geometry.boundingBox.makeEmpty();
-    this._texts.forEach((_, text) => {
+    this._members.forEach((_, text) => {
       if (text.matrixAutoUpdate) text.updateMatrix(); // ignore world matrix
       tempBox3.copy(text.geometry.boundingBox).applyMatrix4(text.matrix);
       bbox.union(tempBox3);
@@ -117,21 +146,27 @@ export class BatchedText extends Text {
     bbox.getBoundingSphere(this.geometry.boundingSphere);
   }
 
+  /** @override */
+  hasOutline() {
+    return this._members.keys().some(m => m.hasOutline())
+  }
+
   /**
    * @override
+   * Copy member matrices and uniform values into the data texture
    */
   _prepareForRender (material) {
-    // Copy instance matrices to the texture
-    // TODO only do this once, not once per material
+    const isOutline = material.isTextOutlineMaterial
+    material.uniforms.uTroikaIsOutline.value = isOutline
 
     // Resize the texture to fit in powers of 2
-    let texture = this._mat4Texture;
-    const dataLength = Math.pow(2, Math.ceil(Math.log2(this._texts.size * floatsPerInstance)));
+    let texture = this._dataTextures[isOutline ? 'outline' : 'main'];
+    const dataLength = Math.pow(2, Math.ceil(Math.log2(this._members.size * floatsPerMember)));
     if (!texture || dataLength !== texture.image.data.length) {
       // console.log(`resizing: ${dataLength}`);
       if (texture) texture.dispose();
       const width = Math.min(dataLength / 4, 1024);
-      texture = this._mat4Texture = new DataTexture(
+      texture = this._dataTextures[isOutline ? 'outline' : 'main'] = new DataTexture(
         new Float32Array(dataLength),
         width,
         dataLength / 4 / width,
@@ -147,9 +182,9 @@ export class BatchedText extends Text {
         texture.needsUpdate = true;
       }
     }
-    this._texts.forEach(({ index, dirty }, text) => {
+    this._members.forEach(({ index, dirty }, text) => {
       if (index > -1) {
-        const startIndex = index * floatsPerInstance
+        const startIndex = index * floatsPerMember
 
         // Matrix
         const matrix = text.matrix.elements;
@@ -157,31 +192,72 @@ export class BatchedText extends Text {
           setTexData(startIndex + i, matrix[i])
         }
 
+        // Let the member populate the uniforms, since that does all the appropriate
+        // logic and handling of defaults, and we'll just grab the results from there
+        text._prepareForRender(material)
+        const {
+          uTroikaTotalBounds,
+          uTroikaClipRect,
+          uTroikaPositionOffset,
+          uTroikaEdgeOffset,
+          uTroikaBlurRadius,
+          uTroikaStrokeWidth,
+          uTroikaStrokeColor,
+          uTroikaStrokeOpacity,
+          uTroikaFillOpacity,
+          uTroikaCurveRadius,
+        } = material.uniforms;
+
+        // Total bounds for uv
+        for (let i = 0; i < 4; i++) {
+          setTexData(startIndex + 16 + i, uTroikaTotalBounds.value.getComponent(i));
+        }
+
+        // Clip rect
+        for (let i = 0; i < 4; i++) {
+          setTexData(startIndex + 20 + i, uTroikaClipRect.value.getComponent(i));
+        }
+
         // Color
-        let color = text.color;
+        let color = isOutline ? (text.outlineColor || 0) : text.color;
         if (color == null) color = this.color;
         if (color == null) color = this.material.color;
         if (color == null) color = 0xffffff;
-        setTexData(startIndex + 16, tempColor.set(color).getHex());
+        setTexData(startIndex + 24, tempColor.set(color).getHex());
 
-        // TODO:
-        // outlineWidth/Color/Opacity/Blur/Offset
-        // strokeWidth/Color/Opacity
-        // fillOpacity
-        // clipRect
+        // Fill opacity / outline opacity
+        setTexData(startIndex + 25, uTroikaFillOpacity.value)
+
+        // Curve radius
+        setTexData(startIndex + 26, uTroikaCurveRadius.value)
+
+        if (isOutline) {
+          // Outline properties
+          setTexData(startIndex + 28, uTroikaPositionOffset.value.x);
+          setTexData(startIndex + 29, uTroikaPositionOffset.value.y);
+          setTexData(startIndex + 30, uTroikaEdgeOffset.value);
+          setTexData(startIndex + 31, uTroikaBlurRadius.value);
+        } else {
+          // Stroke properties
+          setTexData(startIndex + 28, uTroikaStrokeWidth.value);
+          setTexData(startIndex + 29, tempColor.set(uTroikaStrokeColor.value).getHex());
+          setTexData(startIndex + 30, uTroikaStrokeOpacity.value);
+        }
       }
     });
     material.setMatrixTexture(texture);
 
+    // For the non-member-specific uniforms:
     super._prepareForRender(material);
   }
 
   sync (callback) {
-    // TODO: skip instances updating their geometries, just use textRenderInfo directly
+    // TODO: skip members updating their geometries, just use textRenderInfo directly
 
-    // Trigger sync on all instances that need it
-    let syncPromises;
-    this._texts.forEach((packingInfo, text) => {
+    // Trigger sync on all members that need it
+    let syncPromises = this._needsRepack ? [] : null;
+    this._needsRepack = false;
+    this._members.forEach((packingInfo, text) => {
       if (packingInfo.dirty || text._needsSync) {
         packingInfo.dirty = false;
         (syncPromises || (syncPromises = [])).push(new Promise(resolve => {
@@ -201,43 +277,44 @@ export class BatchedText extends Text {
       Promise.all(syncPromises).then(() => {
         const { geometry } = this;
         const batchedAttributes = geometry.attributes;
-        let instanceIndexes = batchedAttributes[instanceIndexAttrName] && batchedAttributes[instanceIndexAttrName].array || new Uint8Array(0);
+        let memberIndexes = batchedAttributes[memberIndexAttrName] && batchedAttributes[memberIndexAttrName].array || new Uint16Array(0);
         let batchedGlyphIndexes = batchedAttributes[glyphIndexAttrName] && batchedAttributes[glyphIndexAttrName].array || new Float32Array(0);
         let batchedGlyphBounds = batchedAttributes[glyphBoundsAttrName] && batchedAttributes[glyphBoundsAttrName].array || new Float32Array(0);
 
         // Initial pass to collect total glyph count and resize the arrays if needed
         let totalGlyphCount = 0;
-        this._texts.forEach((packingInfo, { textRenderInfo }) => {
+        this._members.forEach((packingInfo, { textRenderInfo }) => {
           if (textRenderInfo) {
             totalGlyphCount += textRenderInfo.glyphAtlasIndices.length;
             this._textRenderInfo = textRenderInfo; // TODO - need this, but be smarter
           }
         });
-        if (totalGlyphCount !== instanceIndexes.length) {
-          instanceIndexes = cloneAndResize(instanceIndexes, totalGlyphCount);
+        if (totalGlyphCount !== memberIndexes.length) {
+          memberIndexes = cloneAndResize(memberIndexes, totalGlyphCount);
           batchedGlyphIndexes = cloneAndResize(batchedGlyphIndexes, totalGlyphCount);
           batchedGlyphBounds = cloneAndResize(batchedGlyphBounds, totalGlyphCount * 4);
         }
 
         // Populate batch arrays
-        let instanceIndex = 0;
+        let memberIndex = 0;
         let glyphIndex = 0;
-        this._texts.forEach((packingInfo, { textRenderInfo }) => {
+        this._members.forEach((packingInfo, { textRenderInfo }) => {
           if (textRenderInfo) {
             const glyphCount = textRenderInfo.glyphAtlasIndices.length;
-            instanceIndexes.fill(instanceIndex, glyphIndex, glyphIndex + glyphCount);
+            memberIndexes.fill(memberIndex, glyphIndex, glyphIndex + glyphCount);
 
-            // TODO can skip these for instances that are not dirty or shifting overall position:
+            // TODO can skip these for members that are not dirty or shifting overall position:
             batchedGlyphIndexes.set(textRenderInfo.glyphAtlasIndices, glyphIndex, glyphIndex + glyphCount);
             batchedGlyphBounds.set(textRenderInfo.glyphBounds, glyphIndex * 4, (glyphIndex + glyphCount) * 4);
 
             glyphIndex += glyphCount;
-            packingInfo.index = instanceIndex++;
+            packingInfo.index = memberIndex++;
           }
         });
 
         // Update the geometry attributes
-        geometry.updateAttributeData(instanceIndexAttrName, instanceIndexes, 1);
+        geometry.updateAttributeData(memberIndexAttrName, memberIndexes, 1);
+        geometry.getAttribute(memberIndexAttrName).setUsage(DynamicDrawUsage);
         geometry.updateAttributeData(glyphIndexAttrName, batchedGlyphIndexes, 1);
         geometry.updateAttributeData(glyphBoundsAttrName, batchedGlyphBounds, 4);
 
@@ -254,15 +331,15 @@ export class BatchedText extends Text {
   copy (source) {
     if (source instanceof BatchedText) {
       super.copy(source);
-      this._texts.forEach((_, text) => this.removeText(text));
-      source._texts.forEach((_, text) => this.addText(text));
+      this._members.forEach((_, text) => this.removeText(text));
+      source._members.forEach((_, text) => this.addText(text));
     }
     return this;
   }
 
   dispose () {
     super.dispose();
-    this._mat4Texture.dispose();
+    Object.values(this._dataTextures).forEach(tex => tex.dispose())
   }
 }
 
@@ -275,8 +352,13 @@ function cloneAndResize (source, newLength) {
 function createBatchedTextMaterial (baseMaterial) {
   const texUniformName = "uTroikaMatricesTexture";
   const texSizeUniformName = "uTroikaMatricesTextureSize";
-  const colorVaryingName = "vTroikaTextColor";
-  const batchMaterial = createDerivedMaterial(baseMaterial, {
+
+  // Due to how vertexTransform gets injected, the matrix transforms must happen
+  // in the base material of TextDerivedMaterial, but other transforms to its
+  // shader must come after, so we sandwich it between two derivations.
+
+  // Transform the vertex position
+  let batchMaterial = createDerivedMaterial(baseMaterial, {
     chained: true,
     uniforms: {
       [texSizeUniformName]: { value: new Vector2() },
@@ -284,51 +366,122 @@ function createBatchedTextMaterial (baseMaterial) {
     },
     // language=GLSL
     vertexDefs: `
-      uniform sampler2D ${texUniformName};
+      uniform highp sampler2D ${texUniformName};
       uniform vec2 ${texSizeUniformName};
-      attribute float ${instanceIndexAttrName};
-      varying vec3 ${colorVaryingName};
+      attribute float ${memberIndexAttrName};
 
-      vec4 troikaGetTexel(float i) {
+      vec4 troikaBatchTexel(float offset) {
+        offset += ${memberIndexAttrName} * ${floatsPerMember.toFixed(1)} / 4.0;
         float w = ${texSizeUniformName}.x;
-        vec2 uv = (vec2(mod(i, w), floor(i / w)) + 0.5) / w;
+        vec2 uv = (vec2(mod(offset, w), floor(offset / w)) + 0.5) / ${texSizeUniformName};
         return texture2D(${texUniformName}, uv);
       }
+    `,
+    // language=GLSL prefix="void main() {" suffix="}"
+    vertexTransform: `
+      mat4 matrix = mat4(
+        troikaBatchTexel(0.0),
+        troikaBatchTexel(1.0),
+        troikaBatchTexel(2.0),
+        troikaBatchTexel(3.0)
+      );
+      position.xyz = (matrix * vec4(position, 1.0)).xyz;
+    `,
+  });
+
+  // Add the text shaders
+  batchMaterial = createTextDerivedMaterial(batchMaterial);
+
+  // Now make other changes to the derived text shader code
+  batchMaterial = createDerivedMaterial(batchMaterial, {
+    chained: true,
+    uniforms: {
+      uTroikaIsOutline: {value: false},
+    },
+    customRewriter(shaders) {
+      // Convert some text shader uniforms to varyings
+      const varyingUniforms = [
+        'uTroikaTotalBounds',
+        'uTroikaClipRect',
+        'uTroikaPositionOffset',
+        'uTroikaEdgeOffset',
+        'uTroikaBlurRadius',
+        'uTroikaStrokeWidth',
+        'uTroikaStrokeColor',
+        'uTroikaStrokeOpacity',
+        'uTroikaFillOpacity',
+        'uTroikaCurveRadius',
+        'diffuse'
+      ]
+      varyingUniforms.forEach(uniformName => {
+        shaders = uniformToVarying(shaders, uniformName)
+      })
+      return shaders
+    },
+    // language=GLSL
+    vertexDefs: `
+      uniform bool uTroikaIsOutline;
       vec3 troikaFloatToColor(float v) {
         return mod(floor(vec3(v / 65536.0, v / 256.0, v)), 256.0) / 256.0;
       }
     `,
     // language=GLSL prefix="void main() {" suffix="}"
     vertexTransform: `
-      float i = ${instanceIndexAttrName} * ${floatsPerInstance.toFixed(1)} / 4.0;
-      mat4 matrix = mat4(
-        troikaGetTexel(i),
-        troikaGetTexel(i + 1.0),
-        troikaGetTexel(i + 2.0),
-        troikaGetTexel(i + 3.0)
-      );
-      position.xyz = (matrix * vec4(position, 1.0)).xyz;
-
-      float packedColor = troikaGetTexel(i + 4.0).r;
-      ${colorVaryingName} = troikaFloatToColor(packedColor);
+      uTroikaTotalBounds = troikaBatchTexel(4.0);
+      uTroikaClipRect = troikaBatchTexel(5.0);
+      
+      vec4 data = troikaBatchTexel(6.0);
+      diffuse = troikaFloatToColor(data.x);
+      uTroikaFillOpacity = data.y;
+      uTroikaCurveRadius = data.z;
+      
+      data = troikaBatchTexel(7.0);
+      if (uTroikaIsOutline) {
+        if (data == vec4(0.0)) { // degenerate if zero outline
+          position = vec3(0.0);
+        } else {
+          uTroikaPositionOffset = data.xy;
+          uTroikaEdgeOffset = data.z;
+          uTroikaBlurRadius = data.w;
+        }
+      } else {
+        uTroikaStrokeWidth = data.x;
+        uTroikaStrokeColor = troikaFloatToColor(data.y);
+        uTroikaStrokeOpacity = data.z;
+      }
     `,
-    // language=GLSL
-    fragmentDefs: `
-      varying vec3 ${colorVaryingName};
-    `,
-    // language=GLSL prefix="void main() {" suffix="}"
-    fragmentColorTransform: `
-      gl_FragColor.rgb = ${colorVaryingName};
-    `
-    // TODO: If the base shader has a diffuse color modify that rather than gl_FragColor
-    // customRewriter({vertexShader, fragmentShader}) {
-    //   return {vertexShader, fragmentShader}
-    // },
   });
+
   batchMaterial.setMatrixTexture = (texture) => {
     batchMaterial.uniforms[texUniformName].value = texture;
     batchMaterial.uniforms[texSizeUniformName].value.set(texture.image.width, texture.image.height);
   };
-  return createTextDerivedMaterial(batchMaterial);
+  return batchMaterial;
+}
+
+/**
+ * Turn a uniform into a varying/writeable value.
+ * - If the uniform was used in the fragment shader, it will become a varying in both shaders.
+ * - If the uniform was only used in the vertex shader, it will become a writeable var.
+ */
+export function uniformToVarying({vertexShader, fragmentShader}, uniformName, varyingName = uniformName) {
+  const uniformRE = new RegExp(`uniform\\s+(bool|float|vec[234]|mat[34])\\s+${uniformName}\\b`)
+
+  let type
+  let hadFragmentUniform = false
+  fragmentShader = fragmentShader.replace(uniformRE, ($0, $1) => {
+    hadFragmentUniform = true
+    return `varying ${type = $1} ${varyingName}`
+  })
+
+  let hadVertexUniform = false
+  vertexShader = vertexShader.replace(uniformRE, (_, $1) => {
+    hadVertexUniform = true
+    return `${hadFragmentUniform ? 'varying' : ''} ${type = $1} ${varyingName}`
+  })
+  if (!hadVertexUniform) {
+    vertexShader = `${hadFragmentUniform ? 'varying' : ''} ${type} ${varyingName};\n${vertexShader}`
+  }
+  return {vertexShader, fragmentShader}
 }
 

@@ -3,6 +3,62 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.52.2](https://github.com/protectwise/troika/compare/v0.52.1...v0.52.2) (2024-11-21)
+
+**Note:** Version bump only for package troika-flex-layout
+
+
+
+
+
+## [0.52.1](https://github.com/protectwise/troika/compare/v0.52.0...v0.52.1) (2024-11-21)
+
+**Note:** Version bump only for package troika-flex-layout
+
+
+
+
+
+# [0.52.0](https://github.com/protectwise/troika/compare/v0.51.1...v0.52.0) (2024-11-11)
+
+**Note:** Version bump only for package troika-flex-layout
+
+
+
+
+
+## [0.51.1](https://github.com/protectwise/troika/compare/v0.51.0...v0.51.1) (2024-11-11)
+
+**Note:** Version bump only for package troika-flex-layout
+
+
+
+
+
+# [0.51.0](https://github.com/protectwise/troika/compare/v0.50.3...v0.51.0) (2024-11-10)
+
+**Note:** Version bump only for package troika-flex-layout
+
+
+
+
+
+## [0.50.3](https://github.com/protectwise/troika/compare/v0.50.2...v0.50.3) (2024-11-01)
+
+**Note:** Version bump only for package troika-flex-layout
+
+
+
+
+
+## [0.50.2](https://github.com/protectwise/troika/compare/v0.50.1...v0.50.2) (2024-10-21)
+
+**Note:** Version bump only for package troika-flex-layout
+
+
+
+
+
 ## [0.50.1](https://github.com/protectwise/troika/compare/v0.50.0...v0.50.1) (2024-10-12)
 
 **Note:** Version bump only for package troika-flex-layout

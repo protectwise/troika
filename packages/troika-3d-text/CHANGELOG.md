@@ -3,6 +3,68 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.52.2](https://github.com/protectwise/troika/compare/v0.52.1...v0.52.2) (2024-11-21)
+
+
+### Bug Fixes
+
+* **BatchedText:** Fix removing text instances ([8bf4bca](https://github.com/protectwise/troika/commit/8bf4bca24e0aa05c681f183edfaaca7620e2eefd))
+
+
+
+
+
+## [0.52.1](https://github.com/protectwise/troika/compare/v0.52.0...v0.52.1) (2024-11-21)
+
+**Note:** Version bump only for package troika-3d-text
+
+
+
+
+
+# [0.52.0](https://github.com/protectwise/troika/compare/v0.51.1...v0.52.0) (2024-11-11)
+
+**Note:** Version bump only for package troika-3d-text
+
+
+
+
+
+## [0.51.1](https://github.com/protectwise/troika/compare/v0.51.0...v0.51.1) (2024-11-11)
+
+**Note:** Version bump only for package troika-3d-text
+
+
+
+
+
+# [0.51.0](https://github.com/protectwise/troika/compare/v0.50.3...v0.51.0) (2024-11-10)
+
+**Note:** Version bump only for package troika-3d-text
+
+
+
+
+
+## [0.50.3](https://github.com/protectwise/troika/compare/v0.50.2...v0.50.3) (2024-11-01)
+
+**Note:** Version bump only for package troika-3d-text
+
+
+
+
+
+## [0.50.2](https://github.com/protectwise/troika/compare/v0.50.1...v0.50.2) (2024-10-21)
+
+
+### Bug Fixes
+
+* BatchedText3DFacade: child texts now trigger renders on update ([f2c6e0d](https://github.com/protectwise/troika/commit/f2c6e0d6c9292a87930948f84d3fd99de3363096))
+
+
+
+
+
 ## [0.50.1](https://github.com/protectwise/troika/compare/v0.50.0...v0.50.1) (2024-10-12)
 
 **Note:** Version bump only for package troika-3d-text

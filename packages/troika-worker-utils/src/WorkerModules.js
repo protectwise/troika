@@ -29,9 +29,7 @@ export function defineWorkerModule(options) {
   }
   let {dependencies, init, getTransferables, workerId} = options
 
-  if (!supportsWorkers()) {
-    return defineMainThreadModule(options)
-  }
+  const onMainThread = defineMainThreadModule(options)
 
   if (workerId == null) {
     workerId = '#default'
@@ -59,6 +57,10 @@ export function defineWorkerModule(options) {
   })
 
   function moduleFunc(...args) {
+    if (!supportsWorkers()) {
+      return onMainThread(...args)
+    }
+
     // Register this module if needed
     if (!registrationPromise) {
       registrationPromise = callWorker(workerId,'registerModule', moduleFunc.workerModuleData)
@@ -86,6 +88,9 @@ export function defineWorkerModule(options) {
     init: stringifyFunction(init),
     getTransferables: getTransferables && stringifyFunction(getTransferables)
   }
+
+  moduleFunc.onMainThread = onMainThread;
+
   return moduleFunc
 }
 

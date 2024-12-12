@@ -1,6 +1,6 @@
 {
   "name": "troika-core",
-  "version": "0.50.0",
+  "version": "0.52.0",
   "description": "Troika Core",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "repository": {
@@ -15,7 +15,7 @@
   "module:src": "src/index.js",
   "dependencies": {
     "prop-types": "^15.6.2",
-    "troika-animation": "^0.50.0"
+    "troika-animation": "^0.52.0"
   },
   "peerDependencies": {
     "react": "^16.5.2",

@@ -16,8 +16,13 @@ export class BatchedText3DFacade extends Object3DFacade {
       this.threeObject[prop] = this[prop];
     })
     this._texts.children = this.children
+    const prevTexts = new Set(this._texts.threeObject.children)
     this._texts.afterUpdate()
-    this._texts.forEachChild(text => this.threeObject.addText(text.threeObject))
+    this._texts.threeObject.children.forEach(text => {
+      this.threeObject.addText(text)
+      prevTexts.delete(text)
+    })
+    prevTexts.forEach(text => this.threeObject.removeText(text))
     super.afterUpdate()
   }
 
