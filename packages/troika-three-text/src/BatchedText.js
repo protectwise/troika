@@ -148,7 +148,11 @@ export class BatchedText extends Text {
 
   /** @override */
   hasOutline() {
-    return this._members.keys().some(m => m.hasOutline())
+    // Iterator.some() not supported in Safari
+    for (let member of this._members.keys()) {
+      if (member.hasOutline()) return true;
+    }
+    return false;
   }
 
   /**
