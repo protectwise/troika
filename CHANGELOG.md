@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.52.3](https://github.com/protectwise/troika/compare/v0.52.2...v0.52.3) (2024-12-19)
+
+
+### Bug Fixes
+
+* **troika-three-text:** Fix error in Safari in BatchedText ([2260ba0](https://github.com/protectwise/troika/commit/2260ba0c92b582928402c57d721bfe8b3fa41855))
+
+
+
+
+
 ## [0.52.2](https://github.com/protectwise/troika/compare/v0.52.1...v0.52.2) (2024-11-21)
 
 
