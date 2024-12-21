@@ -13,7 +13,7 @@ import { defineWorkerModule } from 'troika-worker-utils'
  * @property {number} descender
  * @property {number} xHeight
  * @property {(number) => boolean} supportsCodePoint
- * @property {(text:string, fontSize:number, letterSpacing:number, callback) => number} forEachGlyph
+ * @property {(text:string, fontSize:number, letterSpacing:number, enableLigatures:boolean, callback) => number} forEachGlyph
  * @property {number} lineGap
  * @property {number} capHeight
  * @property {number} unitsPerEm
@@ -122,7 +122,7 @@ function parserFactory(Typr, woff2otf) {
     return joiningForms
   }
 
-  function stringToGlyphs (font, str) {
+  function stringToGlyphs (font, str, enableLigatures) {
     const glyphIds = []
     for (let i = 0; i < str.length; i++) {
       const cc = str.codePointAt(i)
@@ -130,30 +130,32 @@ function parserFactory(Typr, woff2otf) {
       glyphIds.push(Typr.U.codeToGlyph(font, cc))
     }
 
-    const gsub = font['GSUB']
-    if (gsub) {
-      const {lookupList, featureList} = gsub
-      let joiningForms
-      const supportedFeatures = /^(rlig|liga|mset|isol|init|fina|medi|half|pres|blws|ccmp)$/
-      const usedLookups = []
-      featureList.forEach(feature => {
-        if (supportedFeatures.test(feature.tag)) {
-          for (let ti = 0; ti < feature.tab.length; ti++) {
-            if (usedLookups[feature.tab[ti]]) continue
-            usedLookups[feature.tab[ti]] = true
-            const tab = lookupList[feature.tab[ti]]
-            const isJoiningFeature = /^(isol|init|fina|medi)$/.test(feature.tag)
-            if (isJoiningFeature && !joiningForms) { //lazy
-              joiningForms = detectJoiningForms(str)
-            }
-            for (let ci = 0; ci < glyphIds.length; ci++) {
-              if (!joiningForms || !isJoiningFeature || formsToFeatures[joiningForms[ci]] === feature.tag) {
-                Typr.U._applySubs(glyphIds, ci, tab, lookupList)
+    if (enableLigatures) {
+      const gsub = font['GSUB']
+      if (gsub) {
+        const {lookupList, featureList} = gsub
+        let joiningForms
+        const supportedFeatures = /^(rlig|liga|mset|isol|init|fina|medi|half|pres|blws|ccmp)$/
+        const usedLookups = []
+        featureList.forEach(feature => {
+          if (supportedFeatures.test(feature.tag)) {
+            for (let ti = 0; ti < feature.tab.length; ti++) {
+              if (usedLookups[feature.tab[ti]]) continue
+              usedLookups[feature.tab[ti]] = true
+              const tab = lookupList[feature.tab[ti]]
+              const isJoiningFeature = /^(isol|init|fina|medi)$/.test(feature.tag)
+              if (isJoiningFeature && !joiningForms) { //lazy
+                joiningForms = detectJoiningForms(str)
+              }
+              for (let ci = 0; ci < glyphIds.length; ci++) {
+                if (!joiningForms || !isJoiningFeature || formsToFeatures[joiningForms[ci]] === feature.tag) {
+                  Typr.U._applySubs(glyphIds, ci, tab, lookupList)
+                }
               }
             }
           }
-        }
-      })
+        })
+      }
     }
 
     return glyphIds
@@ -321,11 +323,11 @@ function parserFactory(Typr, woff2otf) {
       supportsCodePoint(code) {
         return Typr.U.codeToGlyph(typrFont, code) > 0
       },
-      forEachGlyph(text, fontSize, letterSpacing, callback) {
+      forEachGlyph(text, fontSize, letterSpacing, enableLigatures, callback) {
         let penX = 0
         const fontScale = 1 / fontObj.unitsPerEm * fontSize
 
-        const glyphIds = stringToGlyphs(typrFont, text)
+        const glyphIds = stringToGlyphs(typrFont, text, enableLigatures && letterSpacing === 0)
         let charIndex = 0
         const positions = calcGlyphPositions(typrFont, glyphIds)
 
