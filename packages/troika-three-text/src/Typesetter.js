@@ -21,6 +21,7 @@
  * @property {string} [textAlign='left']
  * @property {number} [textIndent=0]
  * @property {'normal'|'nowrap'} [whiteSpace='normal']
+ * @property {boolean} [enableLigatures=true]
  * @property {'normal'|'break-word'} [overflowWrap='normal']
  * @property {AnchorXValue} [anchorX=0]
  * @property {AnchorYValue} [anchorY=0]
@@ -156,6 +157,7 @@ export function createTypesetter(resolveFonts, bidi) {
       textAlign='left',
       textIndent=0,
       whiteSpace='normal',
+      enableLigatures=true,
       overflowWrap='normal',
       anchorX = 0,
       anchorY = 0,
@@ -256,7 +258,7 @@ export function createTypesetter(resolveFonts, bidi) {
 
         const runText = text.slice(run.start, run.end + 1)
         let prevGlyphX, prevGlyphObj
-        fontObj.forEachGlyph(runText, fontSize, letterSpacing, (glyphObj, glyphX, glyphY, charIndex) => {
+        fontObj.forEachGlyph(runText, fontSize, letterSpacing, enableLigatures, (glyphObj, glyphX, glyphY, charIndex) => {
           glyphX += prevRunEndX
           charIndex += run.start
           prevGlyphX = glyphX
@@ -503,7 +505,7 @@ export function createTypesetter(resolveFonts, bidi) {
               if (rtl) {
                 const mirrored = bidi.getMirroredCharacter(text[glyphInfo.charIndex])
                 if (mirrored) {
-                  glyphInfo.fontData.fontObj.forEachGlyph(mirrored, 0, 0, setGlyphObj)
+                  glyphInfo.fontData.fontObj.forEachGlyph(mirrored, 0, 0, enableLigatures, setGlyphObj)
                 }
               }
 

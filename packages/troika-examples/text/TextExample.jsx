@@ -116,6 +116,7 @@ class TextExample extends React.Component {
       textScale: 1,
       lineHeight: 1.15,
       letterSpacing: 0,
+      enableLigatures: true,
       maxWidth: 2, //2m
       textAlign: 'justify',
       textIndent: 0,
@@ -217,6 +218,7 @@ class TextExample extends React.Component {
               textIndent: state.textIndent,
               lineHeight: state.lineHeight,
               letterSpacing: state.letterSpacing,
+              enableLigatures: state.enableLigatures,
               anchorX: state.anchorX,
               anchorY: state.anchorY,
               selectable: state.selectable,
@@ -342,6 +344,7 @@ class TextExample extends React.Component {
                 {type: 'number', path: "maxWidth", min: 1, max: 5, step: 0.01},
                 {type: 'number', path: "lineHeight", min: 1, max: 2, step: 0.01},
                 {type: 'number', path: "letterSpacing", min: -0.1, max: 0.5, step: 0.01},
+                {type: 'boolean', path: "enableLigatures", label: "Ligatures"},
                 {type: 'number', path: "fillOpacity", min: 0, max: 1, step: 0.0001},
                 {type: 'number', path: "curveRadius", min: -5, max: 5, step: 0.001},
 
