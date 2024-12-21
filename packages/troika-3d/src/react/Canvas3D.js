@@ -31,6 +31,7 @@ class Canvas3D extends ReactCanvasBase {
             background: props.background,
             environment: props.environment,
             outputEncoding: props.outputEncoding,
+            outputColorSpace: props.outputColorSpace,
             toneMapping: props.toneMapping,
             shadows: props.shadows,
             camera: props.camera,
