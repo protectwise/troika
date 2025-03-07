@@ -130,20 +130,25 @@ function getTextRenderInfo(args, callback) {
   const { defaultFontURL } = CONFIG
   const fonts = [];
   if (defaultFontURL) {
-    fonts.push({label: 'default', src: toAbsoluteURL(defaultFontURL)})
+    fonts.push({label: 'system', src: toAbsoluteURL(defaultFontURL)})
   }
+  // add default font
   if (args.font) {
-    fonts.push({label: 'user', src: toAbsoluteURL(args.font)})
+    fonts.push({label: 'default', src: toAbsoluteURL(args.font)})
   }
-  args.font = fonts
 
   // Normalize text to a string
-  args.text = '' + args.text
+  if (typeof args.text !== 'undefined') {
+    args.text = '' + args.text
+  } else {
+    args.text = '';
+  }
 
   args.sdfGlyphSize = args.sdfGlyphSize || CONFIG.sdfGlyphSize
   args.unicodeFontsURL = args.unicodeFontsURL || CONFIG.unicodeFontsURL
 
   // Normalize colors
+  let prevColor; // Support styleRange[].length
   if (args.colorRanges != null) {
     let colors = {}
     for (let key in args.colorRanges) {
@@ -152,11 +157,59 @@ function getTextRenderInfo(args, callback) {
         if (typeof val !== 'number') {
           val = tempColor.set(val).getHex()
         }
-        colors[key] = val
+        colors[key] = val;
+        prevColor = val; // Support styleRange[].length from colorRange
       }
+    }
+    // set default color if 0 index not set
+    if (!colors[0]) {
+      colors[0] = tempColor.set(args.color).getHex();
+      prevColor = colors[0]; // Support styleRange[].length from default color
     }
     args.colorRanges = colors
   }
+
+  // Handle styleRanges colors, fonts,
+  // Consolidated logic into one args.styleRanges[] loop, for preformance
+  if (args.styleRanges) {
+
+    if (!args.colorRanges) {
+      args.colorRanges = {};
+      // Set default color if 0 index not set
+      if (!args.styleRanges[0]) {
+        args.colorRanges[0] = tempColor.set(args.color).getHex();
+        prevColor = args.colorRanges[0]; // Support styleRange length from default color
+      }
+    }
+
+    for (const [start, styles] of Object.entries(args.styleRanges)) {
+      if (styles.color) {
+        let val = styles.color
+        if (typeof val !== 'number') {
+          val = tempColor.set(val).getHex()
+        }
+        args.colorRanges[start] = val;
+        // Support styleRange length
+        if (styles.length) {
+          args.colorRanges[parseFloat(start)+parseFloat(styles.length)] = prevColor;
+        }
+        prevColor = val;
+      }
+
+      // Update styleRanges[].font with absolute path, for fontResolver
+      args.styleRanges[start].font = toAbsoluteURL(styles.font);
+      // Push new font if styles font is not found
+      if (
+        styles.font &&
+        fonts.map(f => f.src).indexOf(toAbsoluteURL(styles.font)) === -1
+      ) {
+        fonts.push({label: 'style', src: toAbsoluteURL(styles.font)})
+      }
+    }
+  }
+
+  // Set fonts here to support styleRanges
+  args.font = fonts
 
   Object.freeze(args)
 
@@ -394,7 +447,8 @@ function initContextLossHandling(atlas) {
  * @param {function} callback - A function that will be called when the preloading is complete.
  */
 function preloadFont({font, characters, sdfGlyphSize}, callback) {
-  let text = Array.isArray(characters) ? characters.join('\n') : '' + characters
+  let text = Array.isArray(characters) ? characters.join('\n') : '' +
+    (typeof characters === 'undefined' ? '': characters );
   getTextRenderInfo({ font, sdfGlyphSize, text }, callback)
 }
 
