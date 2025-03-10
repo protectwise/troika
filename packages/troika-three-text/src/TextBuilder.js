@@ -173,13 +173,14 @@ function getTextRenderInfo(args, callback) {
   // Consolidated logic into one args.styleRanges[] loop, for preformance
   if (args.styleRanges) {
 
+    // Set colorRange defaults when using styleRanges
     if (!args.colorRanges) {
       args.colorRanges = {};
-      // Set default color if 0 index not set
-      if (!args.styleRanges[0]) {
-        args.colorRanges[0] = tempColor.set(args.color).getHex();
-        prevColor = args.colorRanges[0]; // Support styleRange length from default color
-      }
+    }
+    // Set default color if 0 index not set
+    if (!args.colorRanges[0]) {
+      args.colorRanges[0] = tempColor.set(args.color).getHex();
+      prevColor = args.colorRanges[0]; // Support styleRange length from default color
     }
 
     for (const [start, styles] of Object.entries(args.styleRanges)) {

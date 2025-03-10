@@ -151,9 +151,8 @@ export function createFontResolver(fontParser, unicodeFontResolverClient) {
           // - this character is whitespace
           // - there is no styleRanges[].font instruction for this character index
           if (
-            ((prevCharResult === RESOLVED
-              // TODO prevent `fontResolutions[charResolutions[i - 1]]` from being undefined
-              && fontResolutions[charResolutions[i - 1]] && fontResolutions[charResolutions[i - 1]].supportsCodePoint(codePoint)
+            ((prevCharResult === RESOLVED &&
+              fontResolutions[charResolutions[i - 1]].supportsCodePoint(codePoint)
             ) ||
             (i > 0 && /\s/.test(text[i])))
             && !(styleRanges && styleRanges[i] && !!styleRanges[i].font)
@@ -200,7 +199,7 @@ export function createFontResolver(fontParser, unicodeFontResolverClient) {
                 if (j === jLen) {
                   // none of the user fonts matched; needs fallback
                   const range = prevCharResult === NEEDS_FALLBACK ?
-                    fallbackRanges[fallbackRanges.length - 1] :
+                    fallbackRanges[(fallbackRanges.length || 1) - 1]:
                     (fallbackRanges[fallbackRanges.length] = [i, i])
                   range[1] = i;
                   prevCharResult = NEEDS_FALLBACK;
@@ -208,8 +207,7 @@ export function createFontResolver(fontParser, unicodeFontResolverClient) {
                   // Check each character to see if this userFont supports it
                   charResolutions[i] = j;
                   // Find default font
-                  // TODO prevent userFonts from being undefined
-                  const { src, unicodeRange } = (userFonts && userFonts.find(f => f.label === 'default')) || {};
+                  const { src, unicodeRange } = userFonts.find(f => f.label === 'default');
                   // Filter by optional explicit unicode ranges
                   if (src && (!unicodeRange || isCodeInRanges(codePoint, unicodeRange))) {
                     const fontObj = parsedFonts[src];

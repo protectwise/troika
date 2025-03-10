@@ -1,7 +1,8 @@
 import React from 'react'
 import T from 'prop-types'
 import { Canvas3D, createDerivedMaterial, Object3DFacade } from 'troika-3d'
-import {Text3DFacade, dumpSDFTextures} from 'troika-3d-text'
+//import {Text3DFacade, dumpSDFTextures} from 'troika-3d-text'
+import {Text3DFacade, dumpSDFTextures} from '../../troika-3d-text/src/index';
 import {
   MeshBasicMaterial,
   MeshStandardMaterial,
@@ -39,7 +40,7 @@ export const FONTS = {
   'Sirin Stencil': 'https://fonts.gstatic.com/s/sirinstencil/v6/mem4YaWwznmLx-lzGfN7MdRyRc9MAQ.woff',
   // https://www.cdnfonts.com/caxton-bk-bt.font
   'Caxton': 'https://fonts.cdnfonts.com/s/13390/CAXTON~2.woff',
-  'Caxton Bold': 'https://fonts.cdnfonts.com/s/13390/caxton.woff',
+  'Caxton Bold': 'https://fonts.cdnfonts.com/s/13390/CAXTON~7.woff',
   'Caxton Italic': 'https://fonts.cdnfonts.com/s/13390/CAXTON~3.woff',
   'Caxton Bold Italic': 'https://fonts.cdnfonts.com/s/13390/CAXTON~6.woff'
 }
@@ -76,7 +77,7 @@ November 19, 1863`,
 
   'Emoji': 'Examples of emoji are 😂, 😃, 🧘🏻‍♂️, 🌍, 🌦️, 🥖, 🚗, 📱, 🎉, ❤️, ✅, and 🏁.',
 
-  'Rich Text': 'This is a Rich Text example with bold and italic text in Caxton font family. Font fallbacks still work 😃',
+  'Rich Text': 'This is a Rich Text example with Bold and Italic text in Caxton font family. Font fallbacks still work 😃',
 
   // TODO fix in XR:
   [CUSTOM_LBL]: 'Edit me!'
@@ -160,16 +161,13 @@ class TextExample extends React.Component {
         newState.maxWidth = 2.5
       }
       if (newState.text === 'Rich Text' && newState.text !== this.state.text) {
-        newState.font = FONTS['Caxton'];
+        newState.font = 'Caxton';
         newState.fontSize = 0.2;
-        // EXAMPLE: 'This is a Rich Text example with BOLD and ITALIC text.'
+        // EXAMPLE: 'This is a Rich Text example with Bold and Italic text.'
         newState.styleRanges = {
           10: { length: 9, font: FONTS['Caxton Bold Italic'] },
           33: { length: 4, font: FONTS['Caxton Bold'] },
           42: { length: 6, font: FONTS['Caxton Italic'] },
-          // TODO fix bug; why is previous 'length' value not working?
-          // NOTE: check fontResolver TODOs: `fontResolutions[charResolutions[i - 1]]` and `userFonts` is undefined?
-          48: { font: FONTS['Caxton'] }
         }
       }
 
