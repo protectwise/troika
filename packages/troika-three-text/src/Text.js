@@ -674,6 +674,7 @@ class Text extends Mesh {
     // Shortcut for setting material color via `color` prop on the mesh; this is
     // applied only to the derived material to avoid mutating a shared base material.
     const color = isOutline ? (this.outlineColor || 0) : this.color
+
     if (color == null) {
       delete material.color //inherit from base
     } else {

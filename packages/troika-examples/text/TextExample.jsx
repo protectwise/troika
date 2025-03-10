@@ -1,8 +1,7 @@
 import React from 'react'
 import T from 'prop-types'
 import { Canvas3D, createDerivedMaterial, Object3DFacade } from 'troika-3d'
-//import {Text3DFacade, dumpSDFTextures} from 'troika-3d-text'
-import {Text3DFacade, dumpSDFTextures} from '../../troika-3d-text/src/index';
+import {Text3DFacade, dumpSDFTextures} from 'troika-3d-text'
 import {
   MeshBasicMaterial,
   MeshStandardMaterial,
@@ -155,7 +154,6 @@ class TextExample extends React.Component {
     }
 
     this._onConfigUpdate = (newState) => {
-
       if (newState.text === 'Gettysburg' && newState.text !== this.state.text) {
         newState.textScale = 0.5
         newState.maxWidth = 2.5
