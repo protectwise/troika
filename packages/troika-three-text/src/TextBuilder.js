@@ -197,14 +197,13 @@ function getTextRenderInfo(args, callback) {
         prevColor = val;
       }
 
-      // Update styleRanges[].font with absolute path, for fontResolver
-      args.styleRanges[start].font = toAbsoluteURL(styles.font);
       // Push new font if styles font is not found
-      if (
-        styles.font &&
-        fonts.map(f => f.src).indexOf(toAbsoluteURL(styles.font)) === -1
-      ) {
-        fonts.push({label: 'style', src: toAbsoluteURL(styles.font)})
+      if (styles.font) {
+        // Update styleRanges[].font with absolute path, for fontResolver
+        args.styleRanges[start].font = toAbsoluteURL(styles.font);
+        if (fonts.map(f => f.src).indexOf(toAbsoluteURL(args.styleRanges[start].font)) === -1) {
+          fonts.push({label: 'style', src: toAbsoluteURL(args.styleRanges[start].font)})
+        }
       }
     }
   }

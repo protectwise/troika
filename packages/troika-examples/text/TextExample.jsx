@@ -161,11 +161,12 @@ class TextExample extends React.Component {
       if (newState.text === 'Rich Text' && newState.text !== this.state.text) {
         newState.font = 'Caxton';
         newState.fontSize = 0.2;
-        // EXAMPLE: 'This is a Rich Text example with Bold and Italic text.'
+        // EXAMPLE: 'This is a Rich Text example with Bold and Italic text in Caxton font family. Font fallbacks still work 😃'
         newState.styleRanges = {
-          10: { length: 9, font: FONTS['Caxton Bold Italic'] },
+          10: { length: 9, color: 0x997700, font: FONTS['Caxton Bold Italic'] },
           33: { length: 4, font: FONTS['Caxton Bold'] },
           42: { length: 6, font: FONTS['Caxton Italic'] },
+          103: { length: 1, color: 0x997700 },
         }
       }
 
