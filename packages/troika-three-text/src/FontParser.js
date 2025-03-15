@@ -122,7 +122,7 @@ function parserFactory(Typr, woff2otf) {
     return joiningForms
   }
 
-  function stringToGlyphs (font, str, enableLigatures) {
+  function stringToGlyphs(font, str, letterSpacing, enableLigatures) {
     const glyphIds = []
     for (let i = 0; i < str.length; i++) {
       const cc = str.codePointAt(i)
@@ -130,32 +130,35 @@ function parserFactory(Typr, woff2otf) {
       glyphIds.push(Typr.U.codeToGlyph(font, cc))
     }
 
-    if (enableLigatures) {
-      const gsub = font['GSUB']
-      if (gsub) {
-        const {lookupList, featureList} = gsub
-        let joiningForms
-        const supportedFeatures = /^(rlig|liga|mset|isol|init|fina|medi|half|pres|blws|ccmp)$/
-        const usedLookups = []
-        featureList.forEach(feature => {
-          if (supportedFeatures.test(feature.tag)) {
-            for (let ti = 0; ti < feature.tab.length; ti++) {
-              if (usedLookups[feature.tab[ti]]) continue
-              usedLookups[feature.tab[ti]] = true
-              const tab = lookupList[feature.tab[ti]]
-              const isJoiningFeature = /^(isol|init|fina|medi)$/.test(feature.tag)
-              if (isJoiningFeature && !joiningForms) { //lazy
-                joiningForms = detectJoiningForms(str)
-              }
-              for (let ci = 0; ci < glyphIds.length; ci++) {
-                if (!joiningForms || !isJoiningFeature || formsToFeatures[joiningForms[ci]] === feature.tag) {
-                  Typr.U._applySubs(glyphIds, ci, tab, lookupList)
-                }
-              }
+    if (!enableLigatures) return glyphIds
+
+    const gsub = font['GSUB']
+    if (gsub) {
+      const { lookupList, featureList } = gsub
+      let joiningForms
+      const supportedFeatures = /^(rlig|liga|mset|isol|init|fina|medi|half|pres|blws|ccmp)$/
+      // These features are ignored when non-zero letter spacing is applied
+      const ignoreLetterSpacingFeatures = /^(liga|dlig|clig)$/
+      const usedLookups = []
+      featureList.forEach(feature => {
+        if (!supportedFeatures.test(feature.tag)) return
+        if (letterSpacing !== 0 && ignoreLetterSpacingFeatures.test(feature.tag)) return
+
+        for (let ti = 0; ti < feature.tab.length; ti++) {
+          if (usedLookups[feature.tab[ti]]) continue
+          usedLookups[feature.tab[ti]] = true
+          const tab = lookupList[feature.tab[ti]]
+          const isJoiningFeature = /^(isol|init|fina|medi)$/.test(feature.tag)
+          if (isJoiningFeature && !joiningForms) { //lazy
+            joiningForms = detectJoiningForms(str)
+          }
+          for (let ci = 0; ci < glyphIds.length; ci++) {
+            if (!joiningForms || !isJoiningFeature || formsToFeatures[joiningForms[ci]] === feature.tag) {
+              Typr.U._applySubs(glyphIds, ci, tab, lookupList)
             }
           }
-        })
-      }
+        }
+      })
     }
 
     return glyphIds
@@ -327,7 +330,7 @@ function parserFactory(Typr, woff2otf) {
         let penX = 0
         const fontScale = 1 / fontObj.unitsPerEm * fontSize
 
-        const glyphIds = stringToGlyphs(typrFont, text, enableLigatures && letterSpacing === 0)
+        const glyphIds = stringToGlyphs(typrFont, text, letterSpacing, enableLigatures)
         let charIndex = 0
         const positions = calcGlyphPositions(typrFont, glyphIds)
 
