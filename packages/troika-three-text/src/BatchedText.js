@@ -1,8 +1,8 @@
 import { Text } from "./Text.js";
 import { DataTexture, FloatType, RGBAFormat, Vector2, Box3, Color, DynamicDrawUsage } from "three";
-import { glyphBoundsAttrName, glyphIndexAttrName } from "./GlyphsGeometry";
+import { glyphBoundsAttrName, glyphIndexAttrName } from "./GlyphsGeometry.js";
 import { createDerivedMaterial } from "troika-three-utils";
-import { createTextDerivedMaterial } from "./TextDerivedMaterial";
+import { createTextDerivedMaterial } from "./TextDerivedMaterial.js";
 
 const syncStartEvent = { type: "syncstart" };
 const syncCompleteEvent = { type: "synccomplete" };
