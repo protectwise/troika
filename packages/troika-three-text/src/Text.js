@@ -589,8 +589,14 @@ class Text extends Mesh {
   get customDepthMaterial() {
     return first(this.material).getDepthMaterial()
   }
+  set customDepthMaterial(m) {
+    // future: let the user override with their own?
+  }
   get customDistanceMaterial() {
     return first(this.material).getDistanceMaterial()
+  }
+  set customDistanceMaterial(m) {
+    // future: let the user override with their own?
   }
 
   _prepareForRender(material) {
