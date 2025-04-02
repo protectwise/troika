@@ -114,6 +114,22 @@ const atlases = Object.create(null)
  * @param {TroikaTextRenderInfo} textRenderInfo
  */
 
+function _createOffscreen() {
+  if (typeof OffscreenCanvas === 'undefined') {
+    // inside of worker
+    throw new Error('troika-three-text/TextBuilder.js Attempted to create an OffscreenCanvas, but ' +
+      '`typeof OffscreenCanvas === undefined`')
+  }
+  return new OffscreenCanvas()
+}
+
+function createCanvas() {
+  if (typeof self.WorkerGlobalScope !== 'undefined') {
+    return _createOffscreen()
+  }
+  return document.createElement('canvas')
+}
+
 /**
  * Main entry point for requesting the data needed to render a text string with given font parameters.
  * This is an asynchronous call, performing most of the logic in a web worker thread.
@@ -130,10 +146,10 @@ function getTextRenderInfo(args, callback) {
   const { defaultFontURL } = CONFIG
   const fonts = [];
   if (defaultFontURL) {
-    fonts.push({label: 'default', src: toAbsoluteURL(defaultFontURL)})
+    fonts.push({ label: 'default', src: toAbsoluteURL(defaultFontURL) })
   }
   if (args.font) {
-    fonts.push({label: 'user', src: toAbsoluteURL(args.font)})
+    fonts.push({ label: 'user', src: toAbsoluteURL(args.font) })
   }
   args.font = fonts
 
@@ -161,12 +177,12 @@ function getTextRenderInfo(args, callback) {
   Object.freeze(args)
 
   // Init the atlas if needed
-  const {textureWidth, sdfExponent} = CONFIG
-  const {sdfGlyphSize} = args
+  const { textureWidth, sdfExponent } = CONFIG
+  const { sdfGlyphSize } = args
   const glyphsPerRow = (textureWidth / sdfGlyphSize * 4)
   let atlas = atlases[sdfGlyphSize]
   if (!atlas) {
-    const canvas = document.createElement('canvas')
+    const canvas = createCanvas();
     canvas.width = textureWidth
     canvas.height = sdfGlyphSize * 256 / glyphsPerRow // start tall enough to fit 256 glyphs
     atlas = atlases[sdfGlyphSize] = {
@@ -188,12 +204,12 @@ function getTextRenderInfo(args, callback) {
     initContextLossHandling(atlas)
   }
 
-  const {sdfTexture, sdfCanvas} = atlas
+  const { sdfTexture, sdfCanvas } = atlas
 
   // Issue request to the typesetting engine in the worker
   const typeset = CONFIG.useWorker ? typesetInWorker : typesetOnMainThread
   typeset(args).then(result => {
-    const {glyphIds, glyphFontIndices, fontData, glyphPositions, fontSize, timings} = result
+    const { glyphIds, glyphFontIndices, fontData, glyphPositions, fontSize, timings } = result
     const neededSDFs = []
     const glyphBounds = new Float32Array(glyphIds.length * 4)
     let boundsIdx = 0
@@ -210,12 +226,12 @@ function getTextRenderInfo(args, callback) {
 
     glyphIds.forEach((glyphId, i) => {
       const fontIndex = glyphFontIndices[i]
-      const {src: fontSrc, unitsPerEm} = fontData[fontIndex]
+      const { src: fontSrc, unitsPerEm } = fontData[fontIndex]
       let glyphInfo = fontGlyphMaps[fontIndex].get(glyphId)
 
       // If this is a glyphId not seen before, add it to the atlas
       if (!glyphInfo) {
-        const {path, pathBounds} = result.glyphData[fontSrc][glyphId]
+        const { path, pathBounds } = result.glyphData[fontSrc][glyphId]
 
         // Margin around path edges in SDF, based on a percentage of the glyph's max dimension.
         // Note we add an extra 0.5 px over the configured value because the outer 0.5 doesn't contain
@@ -238,7 +254,7 @@ function getTextRenderInfo(args, callback) {
 
       // Calculate bounds for renderable quads
       // TODO can we get this back off the main thread?
-      const {sdfViewBox} = glyphInfo
+      const { sdfViewBox } = glyphInfo
       const posX = glyphPositions[positionsIdx++]
       const posY = glyphPositions[positionsIdx++]
       const fontSizeMult = fontSize / unitsPerEm
@@ -268,7 +284,7 @@ function getTextRenderInfo(args, callback) {
     }
 
     Promise.all(neededSDFs.map(glyphInfo =>
-      generateGlyphSDF(glyphInfo, atlas, args.gpuAccelerateSDF).then(({timing}) => {
+      generateGlyphSDF(glyphInfo, atlas, args.gpuAccelerateSDF).then(({ timing }) => {
         timings.sdf[glyphInfo.atlasIndex] = timing
       })
     )).then(() => {
@@ -314,13 +330,13 @@ function getTextRenderInfo(args, callback) {
   })
 }
 
-function generateGlyphSDF({path, atlasIndex, sdfViewBox}, {sdfGlyphSize, sdfCanvas, contextLost}, useGPU) {
+function generateGlyphSDF({ path, atlasIndex, sdfViewBox }, { sdfGlyphSize, sdfCanvas, contextLost }, useGPU) {
   if (contextLost) {
     // If the context is lost there's nothing we can do, just quit silently and let it
     // get regenerated when the context is restored
-    return Promise.resolve({timing: -1})
+    return Promise.resolve({ timing: -1 })
   }
-  const {textureWidth, sdfExponent} = CONFIG
+  const { textureWidth, sdfExponent } = CONFIG
   const maxDist = Math.max(sdfViewBox[2] - sdfViewBox[0], sdfViewBox[3] - sdfViewBox[1])
   const squareIndex = Math.floor(atlasIndex / 4)
   const x = squareIndex % (textureWidth / sdfGlyphSize) * sdfGlyphSize
@@ -393,7 +409,7 @@ function initContextLossHandling(atlas) {
  *        specified `characters`.
  * @param {function} callback - A function that will be called when the preloading is complete.
  */
-function preloadFont({font, characters, sdfGlyphSize}, callback) {
+function preloadFont({ font, characters, sdfGlyphSize }, callback) {
   let text = Array.isArray(characters) ? characters.join('\n') : '' + characters
   getTextRenderInfo({ font, sdfGlyphSize, text }, callback)
 }
@@ -429,13 +445,13 @@ function safariPre15Workaround(atlas) {
   // have supported it for a long while so any false positives should be minimal.
   if (typeof createImageBitmap !== 'function') {
     console.info('Safari<15: applying SDF canvas workaround')
-    const {sdfCanvas, sdfTexture} = atlas
-    const {width, height} = sdfCanvas
+    const { sdfCanvas, sdfTexture } = atlas
+    const { width, height } = sdfCanvas
     const gl = atlas.sdfCanvas.getContext('webgl')
     let pixels = sdfTexture.image.data
     if (!pixels || pixels.length !== width * height * 4) {
       pixels = new Uint8Array(width * height * 4)
-      sdfTexture.image = {width, height, data: pixels}
+      sdfTexture.image = { width, height, data: pixels }
       sdfTexture.flipY = false
       sdfTexture.isDataTexture = true
     }
@@ -484,7 +500,7 @@ const typesetOnMainThread = typesetInWorker.onMainThread
 function dumpSDFTextures() {
   Object.keys(atlases).forEach(size => {
     const canvas = atlases[size].sdfCanvas
-    const {width, height} = canvas
+    const { width, height } = canvas
     console.log("%c.", `
       background: url(${canvas.toDataURL()});
       background-size: ${width}px ${height}px;
