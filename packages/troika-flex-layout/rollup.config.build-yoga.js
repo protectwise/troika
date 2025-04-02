@@ -3,7 +3,7 @@
 // easily be marshalled into a web worker.
 
 import nodeResolve from 'rollup-plugin-node-resolve'
-import commonjs from 'rollup-plugin-commonjs'
+import commonjs from '@rollup/plugin-commonjs'
 import {minify} from 'terser'
 
 const {LERNA_ROOT_PATH} = process.env
