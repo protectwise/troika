@@ -36,7 +36,12 @@ export const FONTS = {
   'Snowburst One': 'https://fonts.gstatic.com/s/snowburstone/v5/MQpS-WezKdujBsXY3B7I-UT7SZieOA.woff',
   'Syncopate': 'https://fonts.gstatic.com/s/syncopate/v9/pe0sMIuPIYBCpEV5eFdCBfe5.woff',
   'Wallpoet': 'https://fonts.gstatic.com/s/wallpoet/v9/f0X10em2_8RnXVVdUObp58I.woff',
-  'Sirin Stencil': 'https://fonts.gstatic.com/s/sirinstencil/v6/mem4YaWwznmLx-lzGfN7MdRyRc9MAQ.woff'
+  'Sirin Stencil': 'https://fonts.gstatic.com/s/sirinstencil/v6/mem4YaWwznmLx-lzGfN7MdRyRc9MAQ.woff',
+  // https://www.cdnfonts.com/caxton-bk-bt.font
+  'Caxton': 'https://fonts.cdnfonts.com/s/13390/CAXTON~2.woff',
+  'Caxton Bold': 'https://fonts.cdnfonts.com/s/13390/CAXTON~7.woff',
+  'Caxton Italic': 'https://fonts.cdnfonts.com/s/13390/CAXTON~3.woff',
+  'Caxton Bold Italic': 'https://fonts.cdnfonts.com/s/13390/CAXTON~6.woff'
 }
 
 const CUSTOM_LBL = '(Custom...)'
@@ -70,6 +75,8 @@ November 19, 1863`,
   'Thai': `ห้องน้ำ\nห้องนํ้า\nห้องน้ํา\nพื้นที่รับแขก\nตู้เสื้อผ้า\nและชั้นวางของ`,
 
   'Emoji': 'Examples of emoji are 😂, 😃, 🧘🏻‍♂️, 🌍, 🌦️, 🥖, 🚗, 📱, 🎉, ❤️, ✅, and 🏁.',
+
+  'Rich Text': 'This is a Rich Text example with Bold and Italic text in Caxton font family. Font fallbacks still work 😃',
 
   // TODO fix in XR:
   [CUSTOM_LBL]: 'Edit me!'
@@ -132,6 +139,7 @@ class TextExample extends React.Component {
       outlineOpacity: 1,
       outlineBlur: 0,
       curveRadius: 0,
+      styleRanges: {},
       fog: false,
       animTextColor: true,
       animTilt: true,
@@ -150,6 +158,18 @@ class TextExample extends React.Component {
         newState.textScale = 0.5
         newState.maxWidth = 2.5
       }
+      if (newState.text === 'Rich Text' && newState.text !== this.state.text) {
+        newState.font = 'Caxton';
+        newState.fontSize = 0.2;
+        // EXAMPLE: 'This is a Rich Text example with Bold and Italic text in Caxton font family. Font fallbacks still work 😃'
+        newState.styleRanges = {
+          10: { length: 9, color: 0x997700, font: FONTS['Caxton Bold Italic'] },
+          33: { length: 4, font: FONTS['Caxton Bold'] },
+          42: { length: 6, font: FONTS['Caxton Italic'] },
+          103: { length: 1, color: 0x997700 },
+        }
+      }
+
       this.setState(newState)
     }
   }
@@ -232,6 +252,7 @@ class TextExample extends React.Component {
               strokeWidth: state.strokeWidth,
               strokeColor: state.strokeColor,
               curveRadius: state.curveRadius,
+              styleRanges: state.styleRanges,
               material: material,
               color: 0xffffff,
               scaleX: state.textScale || 1,

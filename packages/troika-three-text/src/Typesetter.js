@@ -30,6 +30,7 @@
  * @property {boolean} [includeCaretPositions=false]
  * @property {number} [chunkedBoundsSize=8192]
  * @property {{[rangeStartIndex]: number}} [colorRanges]
+ * @property {{[rangeStartIndex]: {[index]: any}}} [styleRanges]
  */
 
 /**
@@ -109,7 +110,7 @@ export function createTypesetter(resolveFonts, bidi) {
    * Load and parse all the necessary fonts to render a given string of text, then group
    * them into consecutive runs of characters sharing a font.
    */
-  function calculateFontRuns({text, lang, fonts, style, weight, preResolvedFonts, unicodeFontsURL}, onDone) {
+  function calculateFontRuns({text, lang, fonts, style, weight, preResolvedFonts, unicodeFontsURL, styleRanges}, onDone) {
     const onResolved = ({chars, fonts: parsedFonts}) => {
       let curRun, prevVal;
       const runs = []
@@ -129,7 +130,7 @@ export function createTypesetter(resolveFonts, bidi) {
       resolveFonts(
         text,
         onResolved,
-        { lang, fonts, style, weight, unicodeFontsURL }
+        { lang, fonts, style, weight, styleRanges, unicodeFontsURL }
       )
     }
   }
@@ -164,7 +165,8 @@ export function createTypesetter(resolveFonts, bidi) {
       preResolvedFonts=null,
       includeCaretPositions=false,
       chunkedBoundsSize=8192,
-      colorRanges=null
+      colorRanges=null,
+      styleRanges=null
     },
     callback
   ) {
@@ -191,7 +193,8 @@ export function createTypesetter(resolveFonts, bidi) {
       weight: fontWeight,
       fonts: typeof font === 'string' ? [{src: font}] : font,
       unicodeFontsURL,
-      preResolvedFonts
+      preResolvedFonts,
+      styleRanges
     }, runs => {
       timings.fontLoad = now() - mainStart
       const hasMaxWidth = isFinite(maxWidth)
