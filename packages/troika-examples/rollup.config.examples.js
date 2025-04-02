@@ -47,12 +47,6 @@ export default {
           'Component',
           'cloneElement'
         ],
-        'react-color/lib/components/common': [
-          'EditableInput',
-          'ColorWrap',
-          'Saturation',
-          'Hue'
-        ]
       }
     }),
     nodeResolve({
