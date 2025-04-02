@@ -31,6 +31,8 @@ The `<Canvas3D>` React component is your starting point. This component creates 
 
 - `outputEncoding` - Sets the Three.js renderer's [`outputEncoding`](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.outputEncoding)
 
+- `outputColorSpace` - Sets the Three.js v153+ renderer's [`outputColorSpace`](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.outputColorSpace)
+
 - `pixelRatio` - Sets the pixel ratio for the canvas. Defaults to the current screen's reported `window.devicePixelRatio`.
 
 - `rendererClass` - Lets you override the Three.js `WebGLRenderer` class with a custom subclass of your own.
