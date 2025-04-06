@@ -1,5 +1,5 @@
 import { WorldBaseFacade, utils } from 'troika-core'
-import { WebGLRenderer, Raycaster, Color, Vector2, Vector3, LinearEncoding, NoToneMapping } from 'three'
+import { WebGLRenderer, Raycaster, Color, Vector2, Vector3, NoToneMapping } from 'three'
 import Scene3DFacade from './Scene3DFacade.js'
 import {PerspectiveCamera3DFacade} from './Camera3DFacade.js'
 import {BoundingSphereOctree} from '../BoundingSphereOctree.js'
@@ -53,7 +53,15 @@ class World3DFacade extends WorldBaseFacade {
       this._bgColor = backgroundColor
     }
 
-    renderer.outputEncoding = this.outputEncoding || LinearEncoding
+
+    //backwards compatibility support for output encoding and color space
+    //set colorspace to SRGBColorSpace or LinearSRGBColorSpace
+    if ('outputColorSpace' in renderer && this.outputColorSpace) {
+      renderer.outputColorSpace = this.outputColorSpace;
+    } else {
+      renderer.outputEncoding = this.outputEncoding || 3000
+    }
+
     renderer.toneMapping = this.toneMapping || NoToneMapping
 
     // Update render canvas size
