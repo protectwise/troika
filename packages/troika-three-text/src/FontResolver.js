@@ -140,8 +140,7 @@ export function createFontResolver(fontParser, unicodeFontResolverClient) {
       const UNKNOWN = 0
       const RESOLVED = 1
       const NEEDS_FALLBACK = 2
-      let prevCharResult = UNKNOWN,
-        returnIndex, returnFontIndex;
+      let prevCharResult = UNKNOWN;
 
       ;(function resolveUserFonts (startIndex = 0) {
         for (let i = startIndex, iLen = text.length; i < iLen; i++) {
@@ -151,30 +150,20 @@ export function createFontResolver(fontParser, unicodeFontResolverClient) {
           // - this character is whitespace
           // - there is no styleRanges[].font instruction for this character index
           if (
-            ((prevCharResult === RESOLVED &&
-              fontResolutions[charResolutions[i - 1]].supportsCodePoint(codePoint)
-            ) ||
-            (i > 0 && /\s/.test(text[i])))
-            && !(styleRanges && styleRanges[i] && !!styleRanges[i].font)
+            (
+              (prevCharResult === RESOLVED && fontResolutions[charResolutions[i - 1]].supportsCodePoint(codePoint)) ||
+              (i > 0 && /\s/.test(text[i]))
+            ) &&
+            !(styleRanges && styleRanges[i] && !!styleRanges[i].font)
           ) {
-            // Support styleRanges[].length
-            if (returnIndex && i === returnIndex) {
-              // Return to previous fontIndex
-              charResolutions[i] = returnFontIndex;
-            } else {
-              // Carry resolved font forward
-              charResolutions[i] = charResolutions[i - 1];
-            }
+            // Carry resolved font forward
+            charResolutions[i] = charResolutions[i - 1];
             if (prevCharResult === NEEDS_FALLBACK) {
               fallbackRanges[fallbackRanges.length - 1][1] = i
             }
           } else {
             // Support styleRanges[].font at this index
             if ((!!styleRanges && !!styleRanges[i] && !!styleRanges[i].font)) {
-              if (styleRanges[i].length) {
-                returnIndex = i + parseFloat(styleRanges[i].length);
-                returnFontIndex = charResolutions[i - 1];
-              }
               const fontObj = parsedFonts[styleRanges[i].font];
               if (!fontObj) {
                 loadFont(styleRanges[i].font, () => {

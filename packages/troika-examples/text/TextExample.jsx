@@ -76,7 +76,7 @@ November 19, 1863`,
 
   'Emoji': 'Examples of emoji are 😂, 😃, 🧘🏻‍♂️, 🌍, 🌦️, 🥖, 🚗, 📱, 🎉, ❤️, ✅, and 🏁.',
 
-  'Rich Text': 'This is a Rich Text example with Bold and Italic text in Caxton font family. Font fallbacks still work 😃',
+  'Rich Text': 'This is a Rich Text example with Bold and Italic text in Caxton font family. Font fallbacks still work! 😃',
 
   // TODO fix in XR:
   [CUSTOM_LBL]: 'Edit me!'
@@ -161,12 +161,23 @@ class TextExample extends React.Component {
       if (newState.text === 'Rich Text' && newState.text !== this.state.text) {
         newState.font = 'Caxton';
         newState.fontSize = 0.2;
-        // EXAMPLE: 'This is a Rich Text example with Bold and Italic text in Caxton font family. Font fallbacks still work 😃'
+        newState.color = 0x775500;
+        // EXAMPLE: 'This is a Rich Text example with Bold and Italic text in Caxton font family. Font fallbacks still work! 😃'
         newState.styleRanges = {
-          10: { length: 9, color: 0x997700, font: FONTS['Caxton Bold Italic'] },
-          33: { length: 4, font: FONTS['Caxton Bold'] },
-          42: { length: 6, font: FONTS['Caxton Italic'] },
-          103: { length: 1, color: 0x997700 },
+          // Test scenarios:
+          0: { color: 0x775500, font: FONTS['Caxton'] },
+
+          10: { color: 0x997700, font: FONTS['Caxton Bold Italic'] },
+          19: { color: 0x775500, font: FONTS['Caxton'] },
+
+          33: { font: FONTS['Caxton Bold'] },
+          37: { font: FONTS['Caxton'] },
+
+          42: { font: FONTS['Caxton Italic'] },
+          48: { font: FONTS['Caxton'] },
+
+          104: { color: 0x997700 },
+          105: { color: 0x775500 },
         }
       }
 
@@ -254,7 +265,7 @@ class TextExample extends React.Component {
               curveRadius: state.curveRadius,
               styleRanges: state.styleRanges,
               material: material,
-              color: 0xffffff,
+              color: state.color || 0xffffff,
               scaleX: state.textScale || 1,
               scaleY: state.textScale || 1,
               scaleZ: state.textScale || 1,

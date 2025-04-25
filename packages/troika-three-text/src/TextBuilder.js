@@ -148,7 +148,6 @@ function getTextRenderInfo(args, callback) {
   args.unicodeFontsURL = args.unicodeFontsURL || CONFIG.unicodeFontsURL
 
   // Normalize colors
-  let prevColor; // Support styleRange[].length
   if (args.colorRanges != null) {
     let colors = {}
     for (let key in args.colorRanges) {
@@ -158,13 +157,11 @@ function getTextRenderInfo(args, callback) {
           val = tempColor.set(val).getHex()
         }
         colors[key] = val;
-        prevColor = val; // Support styleRange[].length from colorRange
       }
     }
     // set default color if 0 index not set
     if (!colors[0]) {
       colors[0] = tempColor.set(args.color).getHex();
-      prevColor = colors[0]; // Support styleRange[].length from default color
     }
     args.colorRanges = colors
   }
@@ -180,7 +177,6 @@ function getTextRenderInfo(args, callback) {
     // Set default color if 0 index not set
     if (!args.colorRanges[0]) {
       args.colorRanges[0] = tempColor.set(args.color).getHex();
-      prevColor = args.colorRanges[0]; // Support styleRange length from default color
     }
 
     for (const [start, styles] of Object.entries(args.styleRanges)) {
@@ -190,11 +186,6 @@ function getTextRenderInfo(args, callback) {
           val = tempColor.set(val).getHex()
         }
         args.colorRanges[start] = val;
-        // Support styleRange length
-        if (styles.length) {
-          args.colorRanges[parseFloat(start)+parseFloat(styles.length)] = prevColor;
-        }
-        prevColor = val;
       }
 
       // Push new font if styles font is not found

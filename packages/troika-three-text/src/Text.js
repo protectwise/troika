@@ -263,7 +263,7 @@ class Text extends Mesh {
      * WARNING: This API is experimental and may change.
      * This allows more fine-grained control of text runs; rich text rendering!
      * define a starting character index for a range, and whose values are the STYLES for each
-     * range. Supported keys are: 'font', 'color', TBD. 'length' will end the run
+     * range. Supported keys are: 'font', 'color'
      */
     this.styleRanges = null
 
