@@ -4,7 +4,7 @@ import { defineWorkerModule } from "troika-worker-utils";
 
 /**
  * @typedef {string | {src:string, label?:string, unicodeRange?:string, lang?:string}} UserFont
- * @typedef {{[start]: {length: number, font: UserFont, color: number|string}}} UserStyle
+ * @typedef {{[start]: {font: UserFont, color: number|string}}} UserStyle
  */
 
 /**
