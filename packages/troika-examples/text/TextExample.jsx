@@ -161,7 +161,6 @@ class TextExample extends React.Component {
       if (newState.text === 'Rich Text' && newState.text !== this.state.text) {
         newState.font = 'Caxton';
         newState.fontSize = 0.2;
-        newState.color = 0x775500;
         // EXAMPLE styleRanges for TEXTS['Rich Text']
         newState.styleRanges = {
           10: { font: FONTS['Caxton Bold Italic'] },
@@ -176,6 +175,8 @@ class TextExample extends React.Component {
           104: { color: 0x997700 },
           105: { color: false },
         }
+      } else {
+        newState.styleRanges = {};
       }
 
       this.setState(newState)
