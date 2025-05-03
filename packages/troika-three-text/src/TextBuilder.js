@@ -156,7 +156,7 @@ function getTextRenderInfo(args, callback) {
         if (typeof val !== 'number') {
           val = tempColor.set(val).getHex()
         }
-        colors[key] = val;
+        colors[key] = val
       }
     }
     // set default color if 0 index not set
@@ -187,6 +187,10 @@ function getTextRenderInfo(args, callback) {
         }
         args.colorRanges[start] = val;
       }
+      // support returning to default color
+      else if (styles.color === false) {
+        args.colorRanges[start] = args.color;
+      }
 
       // Push new font if styles font is not found
       if (styles.font) {
@@ -195,6 +199,10 @@ function getTextRenderInfo(args, callback) {
         if (fonts.map(f => f.src).indexOf(toAbsoluteURL(args.styleRanges[start].font)) === -1) {
           fonts.push({label: 'style', src: toAbsoluteURL(args.styleRanges[start].font)})
         }
+      }
+      // support returning to default font
+      else if (styles.font === false) {
+        args.styleRanges[start].font = toAbsoluteURL(args.font);
       }
     }
   }

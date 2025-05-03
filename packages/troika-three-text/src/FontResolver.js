@@ -140,7 +140,7 @@ export function createFontResolver(fontParser, unicodeFontResolverClient) {
       const UNKNOWN = 0
       const RESOLVED = 1
       const NEEDS_FALLBACK = 2
-      let prevCharResult = UNKNOWN;
+      let prevCharResult = UNKNOWN
 
       ;(function resolveUserFonts (startIndex = 0) {
         for (let i = startIndex, iLen = text.length; i < iLen; i++) {
