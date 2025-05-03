@@ -22,6 +22,7 @@ export const TEXT_MESH_PROPS = [
   'material',
   'color',
   'colorRanges',
+  'styleRanges',
   'fillOpacity',
   'outlineOpacity',
   'outlineColor',

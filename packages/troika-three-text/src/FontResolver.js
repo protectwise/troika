@@ -4,11 +4,13 @@ import { defineWorkerModule } from "troika-worker-utils";
 
 /**
  * @typedef {string | {src:string, label?:string, unicodeRange?:string, lang?:string}} UserFont
+ * @typedef {{[start]: {font: UserFont, color: number|string}}} UserStyle
  */
 
 /**
  * @typedef {ClientOptions} FontResolverOptions
  * @property {Array<UserFont>|UserFont} [fonts]
+ * @property {UserStyles} [styleRanges]
  * @property {'normal'|'italic'} [style]
  * @property {'normal'|'bold'|number} [style]
  * @property {string} [unicodeFontsURL]
@@ -109,6 +111,7 @@ export function createFontResolver(fontParser, unicodeFontResolverClient) {
     fonts: userFonts = [],
     style = 'normal',
     weight = 'normal',
+    styleRanges,
     unicodeFontsURL
   } = {}) {
     const charResolutions = new Uint8Array(text.length);
@@ -145,47 +148,79 @@ export function createFontResolver(fontParser, unicodeFontResolverClient) {
           // Carry previous character's result forward if:
           // - it resolved to a font that also covers this character
           // - this character is whitespace
+          // - there is no styleRanges[].font instruction for this character index
           if (
-            (prevCharResult === RESOLVED && fontResolutions[charResolutions[i - 1]].supportsCodePoint(codePoint)) ||
-            (i > 0 && /\s/.test(text[i]))
+            (
+              (prevCharResult === RESOLVED && fontResolutions[charResolutions[i - 1]].supportsCodePoint(codePoint)) ||
+              (i > 0 && /\s/.test(text[i]))
+            ) &&
+            !(styleRanges && styleRanges[i] && !!styleRanges[i].font)
           ) {
-            charResolutions[i] = charResolutions[i - 1]
+            // Carry resolved font forward
+            charResolutions[i] = charResolutions[i - 1];
             if (prevCharResult === NEEDS_FALLBACK) {
               fallbackRanges[fallbackRanges.length - 1][1] = i
             }
           } else {
-            for (let j = charResolutions[i], jLen = userFonts.length; j <= jLen; j++) {
-              if (j === jLen) {
-                // none of the user fonts matched; needs fallback
-                const range = prevCharResult === NEEDS_FALLBACK ?
-                  fallbackRanges[fallbackRanges.length - 1] :
-                  (fallbackRanges[fallbackRanges.length] = [i, i])
-                range[1] = i;
-                prevCharResult = NEEDS_FALLBACK;
-              } else {
-                charResolutions[i] = j;
-                const { src, unicodeRange } = userFonts[j];
-                // filter by optional explicit unicode ranges
-                if (!unicodeRange || isCodeInRanges(codePoint, unicodeRange)) {
-                  const fontObj = parsedFonts[src];
-                  // font not yet loaded, load it and resume
-                  if (!fontObj) {
-                    loadFont(src, () => {
-                      resolveUserFonts(i);
-                    });
-                    return;
-                  }
-                  // if the font actually contains a glyph for this char, lock it in
-                  if (fontObj.supportsCodePoint(codePoint)) {
-                    let fontIndex = fontIndices.get(fontObj);
-                    if (typeof fontIndex !== 'number') {
-                      fontIndex = fontResolutions.length;
-                      fontResolutions.push(fontObj);
-                      fontIndices.set(fontObj, fontIndex);
+            // Support styleRanges[].font at this index
+            if ((!!styleRanges && !!styleRanges[i] && !!styleRanges[i].font)) {
+              const fontObj = parsedFonts[styleRanges[i].font];
+              if (!fontObj) {
+                loadFont(styleRanges[i].font, () => {
+                  resolveUserFonts(i);
+                });
+                return;
+              }
+              if (fontObj.supportsCodePoint(codePoint)) {
+                let fontIndex = fontIndices.get(fontObj);
+                if (typeof fontIndex !== 'number') {
+                  fontIndex = fontResolutions.length;
+                  fontResolutions.push(fontObj);
+                  fontIndices.set(fontObj, fontIndex);
+                }
+                // Set this character font index
+                charResolutions[i] = fontIndex;
+                prevCharResult = RESOLVED;
+              }
+            } else {
+              // Support fallback font
+              for (let j = charResolutions[i], jLen = userFonts.length; j <= jLen; j++) {
+                if (j === jLen) {
+                  // none of the user fonts matched; needs fallback
+                  const range = prevCharResult === NEEDS_FALLBACK ?
+                    fallbackRanges[(fallbackRanges.length || 1) - 1]:
+                    (fallbackRanges[fallbackRanges.length] = [i, i])
+                  range[1] = i;
+                  prevCharResult = NEEDS_FALLBACK;
+                } else {
+                  // Check each character to see if this userFont supports it
+                  charResolutions[i] = j;
+                  // Find default font
+                  const { src, unicodeRange } = userFonts.find(f => f.label === 'default');
+                  // Filter by optional explicit unicode ranges
+                  if (src && (!unicodeRange || isCodeInRanges(codePoint, unicodeRange))) {
+                    const fontObj = parsedFonts[src];
+                    // font not yet loaded, load it and resume
+                    if (!fontObj) {
+                      loadFont(src, () => {
+                        resolveUserFonts(i);
+                      });
+                      return;
                     }
-                    charResolutions[i] = fontIndex;
-                    prevCharResult = RESOLVED;
-                    break;
+                    // if the font actually contains a glyph for this char, lock it in
+                    if (fontObj.supportsCodePoint(codePoint)) {
+                      let fontIndex = fontIndices.get(fontObj);
+                      // Set new font index
+                      if (typeof fontIndex !== 'number') {
+                        fontIndex = fontResolutions.length;
+                        fontResolutions.push(fontObj);
+                        fontIndices.set(fontObj, fontIndex);
+                      }
+                      // set this character font index
+                      charResolutions[i] = fontIndex;
+                      prevCharResult = RESOLVED;
+                      break;
+                    }
                   }
                 }
               }

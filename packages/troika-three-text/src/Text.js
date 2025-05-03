@@ -69,6 +69,7 @@ const SYNCABLE_PROPS = [
   'anchorX',
   'anchorY',
   'colorRanges',
+  'styleRanges',
   'sdfGlyphSize'
 ]
 
@@ -258,6 +259,15 @@ class Text extends Mesh {
     this.colorRanges = null
 
     /**
+     * @member {object|null} styleRanges
+     * WARNING: This API is experimental and may change.
+     * This allows more fine-grained control of text runs; rich text rendering!
+     * define a starting character index for a range, and whose values are the STYLES for each
+     * range. Supported keys are: 'font', 'color'
+     */
+    this.styleRanges = null
+
+    /**
      * @member {number|string} outlineWidth
      * WARNING: This API is experimental and may change.
      * The width of an outline/halo to be drawn around each text glyph using the `outlineColor` and `outlineOpacity`.
@@ -417,7 +427,6 @@ class Text extends Mesh {
       } else {
         this._isSyncing = true
         this.dispatchEvent(syncStartEvent)
-
         getTextRenderInfo({
           text: this.text,
           font: this.font,
@@ -435,7 +444,9 @@ class Text extends Mesh {
           overflowWrap: this.overflowWrap,
           anchorX: this.anchorX,
           anchorY: this.anchorY,
+          color: this.color,
           colorRanges: this.colorRanges,
+          styleRanges: this.styleRanges, // TODO sanitize
           includeCaretPositions: true, //TODO parameterize
           sdfGlyphSize: this.sdfGlyphSize,
           gpuAccelerateSDF: this.gpuAccelerateSDF,
