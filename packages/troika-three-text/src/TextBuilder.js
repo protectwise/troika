@@ -391,11 +391,13 @@ function initContextLossHandling(atlas) {
  *        possible glyphs, e.g. `["t", "h", "th"]` to get the "t" and "h" glyphs plus the "th" ligature.
  * @param {number} options.sdfGlyphSize - The size at which to prerender the SDF textures for the
  *        specified `characters`.
+ * @param {string} options.lang - The language code of this text; can be used for explicitly selecting
+ *        certain CJK fonts.
  * @param {function} callback - A function that will be called when the preloading is complete.
  */
-function preloadFont({font, characters, sdfGlyphSize}, callback) {
+function preloadFont({font, characters, sdfGlyphSize, lang}, callback) {
   let text = Array.isArray(characters) ? characters.join('\n') : '' + characters
-  getTextRenderInfo({ font, sdfGlyphSize, text }, callback)
+  getTextRenderInfo({ font, sdfGlyphSize, text, lang }, callback)
 }
 
 
