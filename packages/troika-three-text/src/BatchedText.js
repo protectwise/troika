@@ -1,5 +1,5 @@
 import { Text } from "./Text.js";
-import { DataTexture, FloatType, RGBAFormat, Vector2, Box3, Color, DynamicDrawUsage } from "three";
+import { ColorManagement, DataTexture, FloatType, RGBAFormat, Vector2, Box3, Color, DynamicDrawUsage } from "three";
 import { glyphBoundsAttrName, glyphIndexAttrName } from "./GlyphsGeometry.js";
 import { createDerivedMaterial } from "troika-three-utils";
 import { createTextDerivedMaterial } from "./TextDerivedMaterial.js";
@@ -425,8 +425,14 @@ function createBatchedTextMaterial (baseMaterial) {
     // language=GLSL
     vertexDefs: `
       uniform bool uTroikaIsOutline;
+      // sRGB->Linear conversion function, from Three.js https://github.com/mrdoob/three.js/blob/dev/src/renderers/shaders/ShaderChunk/colorspace_pars_fragment.glsl.js
+      vec4 sRGBTransferEOTF( in vec4 value ) {
+        return vec4( mix( pow( value.rgb * 0.9478672986 + vec3( 0.0521327014 ), vec3( 2.4 ) ), value.rgb * 0.0773993808, vec3( lessThanEqual( value.rgb, vec3( 0.04045 ) ) ) ), value.a );
+      }
       vec3 troikaFloatToColor(float v) {
-        return mod(floor(vec3(v / 65536.0, v / 256.0, v)), 256.0) / 256.0;
+        vec3 srgbColor = mod(floor(vec3(v / 65536.0, v / 256.0, v)), 256.0) / 255.0;
+        
+        return ${ColorManagement.enabled ? 'sRGBTransferEOTF(vec4(srgbColor, 1.0)).rgb' : 'srgbColor'};
       }
     `,
     // language=GLSL prefix="void main() {" suffix="}"
