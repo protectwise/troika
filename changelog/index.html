@@ -1,0 +1,1953 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+        <meta name="author" content="Jason Johnston">
+      
+      
+        <link rel="canonical" href="https://protectwise.github.io/troika/changelog/">
+      
+      
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../getting-started/setup/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.2, mkdocs-material-9.3.2">
+    
+    
+      
+        <title>Changelog - Troika JS</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.30068a00.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.85d0ee34.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function n(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],n("js",new Date),n("config","G-91Z6LQXXFX"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){this.value&&n("event","search",{search_term:this.value})}),document$.subscribe(function(){var a=document.forms.feedback;if(void 0!==a)for(var e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");n("event","feedback",{page:t,data:e}),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}),location$.subscribe(function(e){n("config","G-91Z6LQXXFX",{page_path:e.pathname})})});var e=document.createElement("script");e.async=!0,e.src="https://www.googletagmanager.com/gtag/js?id=G-91Z6LQXXFX",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="indigo">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#change-log" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Troika JS" class="md-header__button md-logo" aria-label="Troika JS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M320 464c8.8 0 16-7.2 16-16V160h-80c-17.7 0-32-14.3-32-32V48H64c-8.8 0-16 7.2-16 16v384c0 8.8 7.2 16 16 16h256zM0 64C0 28.7 28.7 0 64 0h165.5c17 0 33.3 6.7 45.3 18.7l90.5 90.5c12 12 18.7 28.3 18.7 45.3V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V64z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Troika JS
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Changelog
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/protectwise/troika" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Troika JS" class="md-nav__button md-logo" aria-label="Troika JS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M320 464c8.8 0 16-7.2 16-16V160h-80c-17.7 0-32-14.3-32-32V48H64c-8.8 0-16 7.2-16 16v384c0 8.8 7.2 16 16 16h256zM0 64C0 28.7 28.7 0 64 0h165.5c17 0 33.3 6.7 45.3 18.7l90.5 90.5c12 12 18.7 28.3 18.7 45.3V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V64z"/></svg>
+
+    </a>
+    Troika JS
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/protectwise/troika" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Changelog
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Changelog
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#0524-2025-04-02" class="md-nav__link">
+    0.52.4 (2025-04-02)
+  </a>
+  
+    <nav class="md-nav" aria-label="0.52.4 (2025-04-02)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes" class="md-nav__link">
+    Bug Fixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0523-2024-12-19" class="md-nav__link">
+    0.52.3 (2024-12-19)
+  </a>
+  
+    <nav class="md-nav" aria-label="0.52.3 (2024-12-19)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_1" class="md-nav__link">
+    Bug Fixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0522-2024-11-21" class="md-nav__link">
+    0.52.2 (2024-11-21)
+  </a>
+  
+    <nav class="md-nav" aria-label="0.52.2 (2024-11-21)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_2" class="md-nav__link">
+    Bug Fixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0521-2024-11-21" class="md-nav__link">
+    0.52.1 (2024-11-21)
+  </a>
+  
+    <nav class="md-nav" aria-label="0.52.1 (2024-11-21)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_3" class="md-nav__link">
+    Bug Fixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Troika Framework
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Troika Framework
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
+        
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Getting Started
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/setup/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Setup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/examples/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Examples
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Core Concepts
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Core Concepts
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-core/facades/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Facades
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-core/scene-descriptors/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scene Descriptors
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-core/interactivity-and-events/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Interactivity and Events
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-core/animations-and-transitions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Animations and Transitions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Troika 3D
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            Troika 3D
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-3d/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Troika 3D - Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-3d/scenes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Creating a 3D Scene
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-3d/objects/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Adding 3D Objects
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-3d/interactivity-and-events/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Interactivity and Events in 3D
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-3d/performance/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Performance Optimization
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-3d/instancing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    GPU Instancing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-3d/html-overlays/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    HTML Overlays
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-3d/text/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    3D Text
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-3d-ui/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    3D User Interfaces
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-xr/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WebXR
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Troika 2D
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            Troika 2D
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-2d/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Troika 2D - Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-2d/objects/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Interactivity in 2D
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-2d/html-overlays/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    HTML Overlays
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Troika Tools for Three.js
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Troika Tools for Three.js
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-three-text/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Troika 3D Text
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-three-utils/createDerivedMaterial/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Derived Materials
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-three-utils/BezierMesh/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    BezierMesh
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../three-instanced-uniforms-mesh/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    InstancedUniformsMesh
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Other Tools
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Other Tools
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-worker-utils/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Worker Modules
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#0524-2025-04-02" class="md-nav__link">
+    0.52.4 (2025-04-02)
+  </a>
+  
+    <nav class="md-nav" aria-label="0.52.4 (2025-04-02)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes" class="md-nav__link">
+    Bug Fixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0523-2024-12-19" class="md-nav__link">
+    0.52.3 (2024-12-19)
+  </a>
+  
+    <nav class="md-nav" aria-label="0.52.3 (2024-12-19)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_1" class="md-nav__link">
+    Bug Fixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0522-2024-11-21" class="md-nav__link">
+    0.52.2 (2024-11-21)
+  </a>
+  
+    <nav class="md-nav" aria-label="0.52.2 (2024-11-21)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_2" class="md-nav__link">
+    Bug Fixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0521-2024-11-21" class="md-nav__link">
+    0.52.1 (2024-11-21)
+  </a>
+  
+    <nav class="md-nav" aria-label="0.52.1 (2024-11-21)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_3" class="md-nav__link">
+    Bug Fixes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="change-log">Change Log<a class="headerlink" href="#change-log" title="Permanent link">&para;</a></h1>
+<p>All notable changes to this project will be documented in this file.
+See <a href="https://conventionalcommits.org">Conventional Commits</a> for commit guidelines.</p>
+<h2 id="0524-2025-04-02"><a href="https://github.com/protectwise/troika/compare/v0.52.3...v0.52.4">0.52.4</a> (2025-04-02)<a class="headerlink" href="#0524-2025-04-02" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes">Bug Fixes<a class="headerlink" href="#bug-fixes" title="Permanent link">&para;</a></h3>
+<ul>
+<li>error in Three r175 with custom(Depth|Distance)Material not having setters (<a href="https://github.com/protectwise/troika/commit/78e00b512eb9618623d248070ba75ea0c55803ee">78e00b5</a>), closes <a href="https://github.com/protectwise/troika/issues/357">#357</a></li>
+</ul>
+<h2 id="0523-2024-12-19"><a href="https://github.com/protectwise/troika/compare/v0.52.2...v0.52.3">0.52.3</a> (2024-12-19)<a class="headerlink" href="#0523-2024-12-19" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_1">Bug Fixes<a class="headerlink" href="#bug-fixes_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> Fix error in Safari in BatchedText (<a href="https://github.com/protectwise/troika/commit/2260ba0c92b582928402c57d721bfe8b3fa41855">2260ba0</a>)</li>
+</ul>
+<h2 id="0522-2024-11-21"><a href="https://github.com/protectwise/troika/compare/v0.52.1...v0.52.2">0.52.2</a> (2024-11-21)<a class="headerlink" href="#0522-2024-11-21" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_2">Bug Fixes<a class="headerlink" href="#bug-fixes_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>BatchedText:</strong> Fix removing text instances (<a href="https://github.com/protectwise/troika/commit/8bf4bca24e0aa05c681f183edfaaca7620e2eefd">8bf4bca</a>)</li>
+<li><strong>BatchedText:</strong> Fix texture memory leak (<a href="https://github.com/protectwise/troika/commit/908fe314233db7201aa72710b9ec2697158fee79">908fe31</a>)</li>
+</ul>
+<h2 id="0521-2024-11-21"><a href="https://github.com/protectwise/troika/compare/v0.52.0...v0.52.1">0.52.1</a> (2024-11-21)<a class="headerlink" href="#0521-2024-11-21" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_3">Bug Fixes<a class="headerlink" href="#bug-fixes_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>BatchedText:</strong> Fix removing text instances via .remove() (<a href="https://github.com/protectwise/troika/commit/d99549fa39ce05d04f1d3636e0ef0a1e954341ce">d99549f</a>)</li>
+</ul>
+<h1 id="0520-2024-11-11"><a href="https://github.com/protectwise/troika/compare/v0.51.1...v0.52.0">0.52.0</a> (2024-11-11)<a class="headerlink" href="#0520-2024-11-11" title="Permanent link">&para;</a></h1>
+<h3 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>BatchedText:</strong> Support remaining visual properties (<a href="https://github.com/protectwise/troika/commit/60c5e93ae5068f153240c5cfa1a109c01e4a4f51">60c5e93</a>)</li>
+</ul>
+<h2 id="0511-2024-11-11"><a href="https://github.com/protectwise/troika/compare/v0.51.0...v0.51.1">0.51.1</a> (2024-11-11)<a class="headerlink" href="#0511-2024-11-11" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_4">Bug Fixes<a class="headerlink" href="#bug-fixes_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-worker-utils:</strong> Avoid no-workers log errors when forcing main thread (<a href="https://github.com/protectwise/troika/commit/d396e51708d151d9cee04394d3cd8ac87c1a7dc0">d396e51</a>), closes <a href="https://github.com/protectwise/troika/issues/337">#337</a></li>
+</ul>
+<h1 id="0510-2024-11-10"><a href="https://github.com/protectwise/troika/compare/v0.50.3...v0.51.0">0.51.0</a> (2024-11-10)<a class="headerlink" href="#0510-2024-11-10" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_5">Bug Fixes<a class="headerlink" href="#bug-fixes_5" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>BatchedText:</strong> Fix texel read for taller data texture (<a href="https://github.com/protectwise/troika/commit/57f3b0bfa6f13d7311d51e1cb4c3b0e1caf17458">57f3b0b</a>)</li>
+<li><strong>troika-three-text:</strong> Fix error when first character is whitespace <a href="https://github.com/protectwise/troika/issues/313">#313</a> (<a href="https://github.com/protectwise/troika/commit/f71679e97a3850057ff85054d10326c8100c5328">f71679e</a>)</li>
+</ul>
+<h3 id="features_1">Features<a class="headerlink" href="#features_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>BatchedText:</strong> support fillOpacity, and color now sets the <code>diffuse</code> uniform (<a href="https://github.com/protectwise/troika/commit/8f8342447f3fe4a31420cf46fdb191ddc0afb929">8f83424</a>)</li>
+<li><strong>troika-three-text:</strong> Add config to disable web worker (<a href="https://github.com/protectwise/troika/commit/86023ecd1ce00cebc3094088f935de5c129d5201">86023ec</a>), closes <a href="https://github.com/protectwise/troika/issues/337">#337</a></li>
+<li><strong>troika-worker-utils:</strong> Add a handle to force running worker modules on main thread (<a href="https://github.com/protectwise/troika/commit/4f8bc13cf32a1665e2177ab2f62f60f2fe17ad66">4f8bc13</a>)</li>
+</ul>
+<h2 id="0503-2024-11-01"><a href="https://github.com/protectwise/troika/compare/v0.50.2...v0.50.3">0.50.3</a> (2024-11-01)<a class="headerlink" href="#0503-2024-11-01" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_6">Bug Fixes<a class="headerlink" href="#bug-fixes_6" title="Permanent link">&para;</a></h3>
+<ul>
+<li>ensure high precision sampling of batched text data texture (<a href="https://github.com/protectwise/troika/commit/f8bd3076a08136ad8be29eb7ea0292bbf80ceab9">f8bd307</a>)</li>
+<li>Error in derived materials in Three r170 (<a href="https://github.com/protectwise/troika/commit/240202662447040c0255f39e6c296207ba9a5457">2402026</a>)</li>
+</ul>
+<h2 id="0502-2024-10-21"><a href="https://github.com/protectwise/troika/compare/v0.50.1...v0.50.2">0.50.2</a> (2024-10-21)<a class="headerlink" href="#0502-2024-10-21" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_7">Bug Fixes<a class="headerlink" href="#bug-fixes_7" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> BatchedText: increase number of batch members (<a href="https://github.com/protectwise/troika/commit/449957dfed3adbcb64cd71d181a82ce4ff8ed822">449957d</a>)</li>
+<li>BatchedText3DFacade: child texts now trigger renders on update (<a href="https://github.com/protectwise/troika/commit/f2c6e0d6c9292a87930948f84d3fd99de3363096">f2c6e0d</a>)</li>
+</ul>
+<h2 id="0501-2024-10-12"><a href="https://github.com/protectwise/troika/compare/v0.50.0...v0.50.1">0.50.1</a> (2024-10-12)<a class="headerlink" href="#0501-2024-10-12" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_8">Bug Fixes<a class="headerlink" href="#bug-fixes_8" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> fix error when using BatchedText material color (<a href="https://github.com/protectwise/troika/commit/7f8c845d02496c076bfcce7413bfd98a7c993d04">7f8c845</a>)</li>
+<li><strong>troika-three-text:</strong> remove DoubleSide double draw hack in favor of forceSinglePass flag (<a href="https://github.com/protectwise/troika/commit/7818d05745f5ca44530aae774df13deafb35588a">7818d05</a>)</li>
+</ul>
+<h1 id="0500-2024-10-11"><a href="https://github.com/protectwise/troika/compare/v0.49.1...v0.50.0">0.50.0</a> (2024-10-11)<a class="headerlink" href="#0500-2024-10-11" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_9">Bug Fixes<a class="headerlink" href="#bug-fixes_9" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-utils:</strong> add <code>colorspace_fragment</code> (introduced in Three r154) to the list of fragment shaders to process in <code>upgradeShaders()</code> (<a href="https://github.com/protectwise/troika/issues/325">#325</a>) (<a href="https://github.com/protectwise/troika/commit/9169ebf0773f9ad6cd10ab74456b68d1eebbe243">9169ebf</a>)</li>
+<li>change JSDoc for createDerivedMaterial params to be optional (<a href="https://github.com/protectwise/troika/issues/307">#307</a>) (<a href="https://github.com/protectwise/troika/commit/6969e855608803d20c6634a415d2a78218222d79">6969e85</a>)</li>
+</ul>
+<h3 id="features_2">Features<a class="headerlink" href="#features_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> allow overriding text material derivation (<a href="https://github.com/protectwise/troika/commit/9a48e0c5d0c3b632359fc56ced67b1466efb65cc">9a48e0c</a>)</li>
+<li><strong>troika-three-text:</strong> ALPHA: BatchedText for batching many Text instances in a single draw call (<a href="https://github.com/protectwise/troika/commit/79c9c50d0f8fec1e1d64e316d47fbb71fd164857">79c9c50</a>)</li>
+<li><strong>troika-three-utils:</strong> add isDerivedFrom method to derived materials (<a href="https://github.com/protectwise/troika/commit/a4a2fcd18ddf03cf6f9b6b72df2e2fbdfa700c51">a4a2fcd</a>)</li>
+</ul>
+<h2 id="0491-2024-04-09"><a href="https://github.com/protectwise/troika/compare/v0.49.0...v0.49.1">0.49.1</a> (2024-04-09)<a class="headerlink" href="#0491-2024-04-09" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_10">Bug Fixes<a class="headerlink" href="#bug-fixes_10" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>instanced-uniforms-mesh:</strong> remove listener on dispose (<a href="https://github.com/protectwise/troika/issues/284">#284</a>) (<a href="https://github.com/protectwise/troika/commit/336075de027e21ed1a9286c34185c9a0568053fe">336075d</a>)</li>
+<li><strong>troika-three-text:</strong> Fix anchorY bottom-baseline. Closes <a href="https://github.com/protectwise/troika/issues/309">#309</a> (<a href="https://github.com/protectwise/troika/commit/3457b03af5220886b4fd0534a1d44bdc5f837851">3457b03</a>)</li>
+</ul>
+<h1 id="0490-2023-10-08"><a href="https://github.com/protectwise/troika/compare/v0.48.1...v0.49.0">0.49.0</a> (2023-10-08)<a class="headerlink" href="#0490-2023-10-08" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_11">Bug Fixes<a class="headerlink" href="#bug-fixes_11" title="Permanent link">&para;</a></h3>
+<ul>
+<li>support opentype ccmp substitutions (glyph compositions) (<a href="https://github.com/protectwise/troika/commit/1e358b23971914cd1a4d55e936dfe035dced57c1">1e358b2</a>)</li>
+</ul>
+<h3 id="features_3">Features<a class="headerlink" href="#features_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li>add support for positioning of diacritic marks (e.g. Thai) (<a href="https://github.com/protectwise/troika/commit/301c34c3341b83eb95afc308bd796bcccb2f5ccd">301c34c</a>)</li>
+</ul>
+<h2 id="0481-2023-10-02"><a href="https://github.com/protectwise/troika/compare/v0.48.0...v0.48.1">0.48.1</a> (2023-10-02)<a class="headerlink" href="#0481-2023-10-02" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_12">Bug Fixes<a class="headerlink" href="#bug-fixes_12" title="Permanent link">&para;</a></h3>
+<ul>
+<li>improve font resolution in CJK (<a href="https://github.com/protectwise/troika/commit/8d9ac641215c198cdaf1f55185814e061f8d0d6e">8d9ac64</a>)</li>
+<li>korean/japanese fonts now resolve correctly (<a href="https://github.com/protectwise/troika/commit/207a5e03d8881ce26e71827b77baea6c2e39aa04">207a5e0</a>)</li>
+</ul>
+<h1 id="0480-2023-09-09"><a href="https://github.com/protectwise/troika/compare/v0.47.2...v0.48.0">0.48.0</a> (2023-09-09)<a class="headerlink" href="#0480-2023-09-09" title="Permanent link">&para;</a></h1>
+<h3 id="features_4">Features<a class="headerlink" href="#features_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> add fallback font loading for full Unicode support (<a href="https://github.com/protectwise/troika/issues/279">#279</a>) (<a href="https://github.com/protectwise/troika/commit/6fb806145f79d7a36e79a35a006b4601535b3827">6fb8061</a>), closes <a href="https://github.com/protectwise/troika/issues/13">#13</a> <a href="https://github.com/protectwise/troika/issues/65">#65</a></li>
+</ul>
+<h2 id="0472-2023-05-15"><a href="https://github.com/protectwise/troika/compare/v0.47.1...v0.47.2">0.47.2</a> (2023-05-15)<a class="headerlink" href="#0472-2023-05-15" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_13">Bug Fixes<a class="headerlink" href="#bug-fixes_13" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-utils:</strong> pass renderer argument to base material's onBeforeCompile (<a href="https://github.com/protectwise/troika/commit/3a23a8eb72275e37d42085cb6a2fd4e704224e9d">3a23a8e</a>)</li>
+<li><strong>troika-three-utils:</strong> vertexTransform now handles MAP_UV token introduced in Three r152 (<a href="https://github.com/protectwise/troika/commit/d8c32ed93920633455e078283b0c3dbc058fb7c1">d8c32ed</a>)</li>
+</ul>
+<h2 id="0471-2022-12-15"><a href="https://github.com/protectwise/troika/compare/v0.47.0...v0.47.1">0.47.1</a> (2022-12-15)<a class="headerlink" href="#0471-2022-12-15" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_14">Bug Fixes<a class="headerlink" href="#bug-fixes_14" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> update Typr.ts to get kerning fix (<a href="https://github.com/protectwise/troika/issues/228">#228</a>) (<a href="https://github.com/protectwise/troika/commit/a45db5ddddcba35c9358c3014aff79fd80b30ae1">a45db5d</a>)</li>
+</ul>
+<h1 id="0470-2022-12-15"><a href="https://github.com/protectwise/troika/compare/v0.46.3...v0.47.0">0.47.0</a> (2022-12-15)<a class="headerlink" href="#0470-2022-12-15" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_15">Bug Fixes<a class="headerlink" href="#bug-fixes_15" title="Permanent link">&para;</a></h3>
+<ul>
+<li>add compatibility up to ThreeJS r127 (<a href="https://github.com/protectwise/troika/commit/03640a093e1b56049229420ff421317528bb583d">03640a0</a>)</li>
+<li><strong>troika-three-text:</strong> remove IIFEs for tree-shaking (<a href="https://github.com/protectwise/troika/issues/224">#224</a>) (<a href="https://github.com/protectwise/troika/commit/2e688f0248296fee46e16f58a5de7b963a4cb73b">2e688f0</a>)</li>
+<li>Remove incomplete ShaderFloatArray utility to fix build (<a href="https://github.com/protectwise/troika/commit/ddf712af8e9ae164527dfe9cabcb2698eb809dc5">ddf712a</a>)</li>
+<li><strong>troika-three-text:</strong> include lineGap value from the font in 'normal' line-height calculation (<a href="https://github.com/protectwise/troika/commit/c2781182ad897a444f9502031a9626b703e85050">c278118</a>)</li>
+<li><strong>troika-three-text:</strong> update Typr to fix doubled kerning in some fonts (<a href="https://github.com/protectwise/troika/issues/196">#196</a>) (<a href="https://github.com/protectwise/troika/commit/1fab9a2ce739a1f26c36b737a499075a439f8980">1fab9a2</a>)</li>
+<li><strong>troika-three-text:</strong> use sTypoAscender/Descender from OS/2 font table if available (<a href="https://github.com/protectwise/troika/commit/f5c244c92f9ede541b1206744aa1c7e1ff6711fc">f5c244c</a>)</li>
+<li><strong>troika-three-text:</strong> work around Safari&lt;15 bug using SDF canvas as a texture (<a href="https://github.com/protectwise/troika/issues/199">#199</a>) (<a href="https://github.com/protectwise/troika/commit/fca9aae20e7b67cbd7ac3669dd91257ec84f1997">fca9aae</a>)</li>
+</ul>
+<h3 id="features_5">Features<a class="headerlink" href="#features_5" title="Permanent link">&para;</a></h3>
+<ul>
+<li>raise three min version to r125 and fix BufferGeometry references (<a href="https://github.com/protectwise/troika/issues/225">#225</a>) (<a href="https://github.com/protectwise/troika/commit/f2ef803db7ab3d9d03de2719a2781c1c3f5122cf">f2ef803</a>)</li>
+<li><strong>three-instanced-uniforms-mesh:</strong> add typescript definition file (<a href="https://github.com/protectwise/troika/issues/217">#217</a>) (<a href="https://github.com/protectwise/troika/commit/cef3564441f86a79433b35124ac6063980295ab0">cef3564</a>)</li>
+<li><strong>troika-three-text:</strong> add 'top-cap' and 'top-ex' as keywords for anchorY (<a href="https://github.com/protectwise/troika/issues/193">#193</a>) (<a href="https://github.com/protectwise/troika/commit/c6a10ae30837d26505d5614b8e15ab49f2ad4625">c6a10ae</a>)</li>
+<li><strong>troika-three-text:</strong> include capHeight and xHeight font metrics in textRenderInfo (<a href="https://github.com/protectwise/troika/commit/3459fd540925d7aebad48c70c28e1e0a9b4195f0">3459fd5</a>)</li>
+<li><strong>troika-three-text:</strong> remove deprecated totalBounds/totalBlockSize properties from textRenderInfo (<a href="https://github.com/protectwise/troika/commit/2b87308f8fd02552fb86fdcc81a8e949de8e5989">2b87308</a>)</li>
+<li>remove custom Thenable polyfill in favor of native promises (<a href="https://github.com/protectwise/troika/commit/7af402e254675ca2fc182467a65d2d4f860845e4">7af402e</a>)</li>
+<li><strong>troika-three-text:</strong> remove long-deprecated <code>anchor</code> array property (<a href="https://github.com/protectwise/troika/commit/752e3025cec4176aadaab2a3ca475b3fd49d572e">752e302</a>)</li>
+</ul>
+<h2 id="0463-2022-03-11"><a href="https://github.com/protectwise/troika/compare/v0.46.2...v0.46.3">0.46.3</a> (2022-03-11)<a class="headerlink" href="#0463-2022-03-11" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_16">Bug Fixes<a class="headerlink" href="#bug-fixes_16" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> update Typr to fix doubled kerning in some fonts (<a href="https://github.com/protectwise/troika/issues/196">#196</a>) (<a href="https://github.com/protectwise/troika/commit/080119a10797024f3bc82cb37f614c1c90027be6">080119a</a>)</li>
+</ul>
+<h2 id="0462-2022-03-06"><a href="https://github.com/protectwise/troika/compare/v0.46.1...v0.46.2">0.46.2</a> (2022-03-06)<a class="headerlink" href="#0462-2022-03-06" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_17">Bug Fixes<a class="headerlink" href="#bug-fixes_17" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> fix SDF texture resizing in Three r136+ (<a href="https://github.com/protectwise/troika/commit/0fab679b0d547a67fff10cb0a84c17e856cf4349">0fab679</a>)</li>
+</ul>
+<h2 id="0461-2022-03-05"><a href="https://github.com/protectwise/troika/compare/v0.46.0...v0.46.1">0.46.1</a> (2022-03-05)<a class="headerlink" href="#0461-2022-03-05" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_18">Bug Fixes<a class="headerlink" href="#bug-fixes_18" title="Permanent link">&para;</a></h3>
+<ul>
+<li>remove console.log (<a href="https://github.com/protectwise/troika/commit/3518689f97f7d02236248cc547b703cdbc97a1e2">3518689</a>)</li>
+</ul>
+<h1 id="0460-2022-03-05"><a href="https://github.com/protectwise/troika/compare/v0.45.0...v0.46.0">0.46.0</a> (2022-03-05)<a class="headerlink" href="#0460-2022-03-05" title="Permanent link">&para;</a></h1>
+<h3 id="features_6">Features<a class="headerlink" href="#features_6" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> add a <code>gpuAccelerateSDF</code> property for opting out of webgl sdf generation (<a href="https://github.com/protectwise/troika/commit/d436ffd5063747e2e4d453240b702b174f91268d">d436ffd</a>)</li>
+<li><strong>troika-three-text:</strong> integrate webgl-sdf-generator for GPU-accelerated SDF generation (<a href="https://github.com/protectwise/troika/commit/b5c913882daf480d18def77927e0dc70add082df">b5c9138</a>)</li>
+</ul>
+<h1 id="0450-2022-01-02"><a href="https://github.com/protectwise/troika/compare/v0.44.0...v0.45.0">0.45.0</a> (2022-01-02)<a class="headerlink" href="#0450-2022-01-02" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_19">Bug Fixes<a class="headerlink" href="#bug-fixes_19" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>createDerivedMaterial:</strong> propagate the base material's customProgramCacheKey (<a href="https://github.com/protectwise/troika/commit/9c8c6b1e472f4068a8c6b0f1a6f3e32c935f8077">9c8c6b1</a>)</li>
+</ul>
+<h3 id="features_7">Features<a class="headerlink" href="#features_7" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> SDFs for all fonts are now stored in the same texture (<a href="https://github.com/protectwise/troika/commit/7e871f77c17dbbb68ca5c2240f569d4b102031f0">7e871f7</a>)</li>
+</ul>
+<h3 id="performance-improvements">Performance Improvements<a class="headerlink" href="#performance-improvements" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> avoid extra draw call on double sided materials as of Three r130 (<a href="https://github.com/protectwise/troika/commit/6222ef300ac364dcb0bb099a7469622e9287651e">6222ef3</a>)</li>
+<li><strong>troika-three-text:</strong> make the glyphColors buffer transferable (<a href="https://github.com/protectwise/troika/commit/c8c92faa70a8ad0fa08cadf38f8e4d4d2e933c10">c8c92fa</a>)</li>
+</ul>
+<h1 id="0440-2021-11-14"><a href="https://github.com/protectwise/troika/compare/v0.43.1-alpha.0...v0.44.0">0.44.0</a> (2021-11-14)<a class="headerlink" href="#0440-2021-11-14" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_20">Bug Fixes<a class="headerlink" href="#bug-fixes_20" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> fill in missing caret positions when the final glyph is a ligature - <a href="https://github.com/protectwise/troika/issues/165">#165</a> (<a href="https://github.com/protectwise/troika/commit/ad2eda657a65fc01511daf52c1cfb7ccac2a03b0">ad2eda6</a>)</li>
+</ul>
+<h2 id="0431-alpha0-2021-10-24"><a href="https://github.com/protectwise/troika/compare/v0.43.0...v0.43.1-alpha.0">0.43.1-alpha.0</a> (2021-10-24)<a class="headerlink" href="#0431-alpha0-2021-10-24" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_21">Bug Fixes<a class="headerlink" href="#bug-fixes_21" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> fix font parsing failures in iOS Safari (<a href="https://github.com/protectwise/troika/commit/a542b42f0cc198fe2e9d46e4840fb8984279034b">a542b42</a>)</li>
+</ul>
+<h1 id="0430-2021-09-20"><a href="https://github.com/protectwise/troika/compare/v0.42.0...v0.43.0">0.43.0</a> (2021-09-20)<a class="headerlink" href="#0430-2021-09-20" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_22">Bug Fixes<a class="headerlink" href="#bug-fixes_22" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>InstancedUniformsMesh:</strong> reuse same derived material instance when uniform names change (<a href="https://github.com/protectwise/troika/commit/bd7cea6116556f9fb4ba3e6710ed07f871739e93">bd7cea6</a>), closes <a href="https://github.com/protectwise/troika/issues/154">#154</a></li>
+<li>remove warnings about many open worker module requests (<a href="https://github.com/protectwise/troika/commit/164fb8fe836b95fffe7ca94fcf96d536c7281f7e">164fb8f</a>), closes <a href="https://github.com/protectwise/troika/issues/156">#156</a></li>
+</ul>
+<h3 id="features_8">Features<a class="headerlink" href="#features_8" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> allow line wrapping after some common non-whitespace chars like hyphens (<a href="https://github.com/protectwise/troika/commit/1b20e34e13fd6de7aa8257b8e50f0db671e4c964">1b20e34</a>), closes <a href="https://github.com/protectwise/troika/issues/136">#136</a></li>
+<li><strong>troika-worker-utils:</strong> add a terminateWorker function (<a href="https://github.com/protectwise/troika/commit/33b8455c3794e13a342a7910d6c2c4beddd295da">33b8455</a>)</li>
+<li>don't transpile UMD build files, fixing usage with Three.js r128 (<a href="https://github.com/protectwise/troika/commit/e380b0d582c1edd2a024a8d3201ecf498579d2b7">e380b0d</a>), closes <a href="https://github.com/protectwise/troika/issues/130">#130</a></li>
+</ul>
+<h3 id="performance-improvements_1">Performance Improvements<a class="headerlink" href="#performance-improvements_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> parallelize SDF generation with multiple worker threads (<a href="https://github.com/protectwise/troika/commit/c2bf886f280ca1c587bc3ae80a41d30ce8cb6dce">c2bf886</a>)</li>
+</ul>
+<h1 id="0420-2021-05-17"><a href="https://github.com/protectwise/troika/compare/v0.41.2...v0.42.0">0.42.0</a> (2021-05-17)<a class="headerlink" href="#0420-2021-05-17" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_23">Bug Fixes<a class="headerlink" href="#bug-fixes_23" title="Permanent link">&para;</a></h3>
+<ul>
+<li>add three to peerDependencies in all leaf packages (<a href="https://github.com/protectwise/troika/commit/0a11ab6ddff13b3ebd0f1f2463e0cfed17b3f5fa">0a11ab6</a>)</li>
+</ul>
+<h3 id="features_9">Features<a class="headerlink" href="#features_9" title="Permanent link">&para;</a></h3>
+<ul>
+<li>open up 'three' peer dependency to include future versions (<a href="https://github.com/protectwise/troika/commit/d4a5b2376fffb3681750761f757b684ab798315a">d4a5b23</a>)</li>
+</ul>
+<h2 id="0412-2021-05-05"><a href="https://github.com/protectwise/troika/compare/v0.41.1...v0.41.2">0.41.2</a> (2021-05-05)<a class="headerlink" href="#0412-2021-05-05" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_24">Bug Fixes<a class="headerlink" href="#bug-fixes_24" title="Permanent link">&para;</a></h3>
+<ul>
+<li>update bidi-js for its ES5 build files (<a href="https://github.com/protectwise/troika/commit/49ce5f2244e8a108f1c07fe32b9e8ce77f4afebb">49ce5f2</a>)</li>
+</ul>
+<h2 id="0411-2021-04-26"><a href="https://github.com/protectwise/troika/compare/v0.41.0...v0.41.1">0.41.1</a> (2021-04-26)<a class="headerlink" href="#0411-2021-04-26" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_25">Bug Fixes<a class="headerlink" href="#bug-fixes_25" title="Permanent link">&para;</a></h3>
+<ul>
+<li>update bidi-js for fix removing type:module from package.json (<a href="https://github.com/protectwise/troika/commit/394c37117042c28f6245aa3d1aa9a180ff8250bf">394c371</a>)</li>
+</ul>
+<h1 id="0410-2021-04-19"><a href="https://github.com/protectwise/troika/compare/v0.40.0...v0.41.0">0.41.0</a> (2021-04-19)<a class="headerlink" href="#0410-2021-04-19" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_26">Bug Fixes<a class="headerlink" href="#bug-fixes_26" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-core:</strong> set animation/transition first when using .update() (<a href="https://github.com/protectwise/troika/commit/8ebf59dc9e933400f8302c0e5d99d15411b248c0">8ebf59d</a>)</li>
+<li><strong>troika-three-text:</strong> fix Arabic word position letter forms (<a href="https://github.com/protectwise/troika/commit/480ee97426c219195d80733b04092018f9bbca86">480ee97</a>)</li>
+<li><strong>troika-three-text:</strong> formatting characters no longer produce visible glyphs (<a href="https://github.com/protectwise/troika/commit/c0d28e8c05a2482c06f67a6d6fe9ea45fff39cd4">c0d28e8</a>)</li>
+<li><strong>troika-three-text:</strong> more correct impl for character joining types (<a href="https://github.com/protectwise/troika/commit/2ce519aa9b8f502f3f4af5cdd5447456958d036b">2ce519a</a>)</li>
+<li><strong>troika-three-text:</strong> prevent mutation of input to worldPositionToTextCoords method (<a href="https://github.com/protectwise/troika/commit/d487b8aeaf3ca6831192587ee4d4c1bee978f90f">d487b8a</a>)</li>
+</ul>
+<h3 id="features_10">Features<a class="headerlink" href="#features_10" title="Permanent link">&para;</a></h3>
+<ul>
+<li>update support up to threejs r127 (<a href="https://github.com/protectwise/troika/commit/5b512f04843f15bdaadd7297d6ab1d964c67333b">5b512f0</a>)</li>
+<li><strong>troika-three-text:</strong> add full bidi text support (<a href="https://github.com/protectwise/troika/commit/3fde850d28524393538e2bac8920f7a4ee0e1fb4">3fde850</a>)</li>
+<li><strong>troika-three-text:</strong> simple bidi layout support, using explicit LRO/RLO/PDF chars only (<a href="https://github.com/protectwise/troika/commit/d511655926f53262abb4b6c990c5102180f23f64">d511655</a>)</li>
+<li><strong>troika-three-text:</strong> very basic support for right-to-left text layout (<a href="https://github.com/protectwise/troika/commit/ce887beed7976ec23fa0590d5199457182c6e6bf">ce887be</a>)</li>
+</ul>
+<h3 id="performance-improvements_2">Performance Improvements<a class="headerlink" href="#performance-improvements_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>prune some unused functions out of the Typr build (<a href="https://github.com/protectwise/troika/commit/26e669f5382fd8a160d1f9814e4329620ae2879b">26e669f</a>)</li>
+</ul>
+<h1 id="0400-2021-02-28"><a href="https://github.com/protectwise/troika/compare/v0.39.2...v0.40.0">0.40.0</a> (2021-02-28)<a class="headerlink" href="#0400-2021-02-28" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_27">Bug Fixes<a class="headerlink" href="#bug-fixes_27" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> fix boundingBox, boundingSphere, and raycasting with curveRadius (<a href="https://github.com/protectwise/troika/commit/7cc7c821eca8f7ae63170d9a484e806bc8814a94">7cc7c82</a>), closes <a href="https://github.com/protectwise/troika/issues/103">#103</a></li>
+</ul>
+<h3 id="features_11">Features<a class="headerlink" href="#features_11" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d:</strong> add <code>initThreeObject</code> lifecycle method to Object3DFacade (<a href="https://github.com/protectwise/troika/commit/230a87df38c392ac54732561d67fb4eb46634dd8">230a87d</a>)</li>
+<li><strong>troika-3d:</strong> remove need for manually defining material.instanceUniforms (<a href="https://github.com/protectwise/troika/commit/a234f8c354b5fb5f54d13c58355887f02b7f32d8">a234f8c</a>)</li>
+</ul>
+<h2 id="0392-2021-02-18"><a href="https://github.com/protectwise/troika/compare/v0.39.1...v0.39.2">0.39.2</a> (2021-02-18)<a class="headerlink" href="#0392-2021-02-18" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_28">Bug Fixes<a class="headerlink" href="#bug-fixes_28" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> fix shader error in WebGL1 (<a href="https://github.com/protectwise/troika/commit/cdbc7dc0cac980a0317219a4736cb48ae4bc18eb">cdbc7dc</a>), closes <a href="https://github.com/protectwise/troika/issues/108">#108</a></li>
+</ul>
+<h2 id="0391-2021-02-17"><a href="https://github.com/protectwise/troika/compare/v0.39.0...v0.39.1">0.39.1</a> (2021-02-17)<a class="headerlink" href="#0391-2021-02-17" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_29">Bug Fixes<a class="headerlink" href="#bug-fixes_29" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> selection rects no longer clip off trailing whitespace (<a href="https://github.com/protectwise/troika/commit/158305c9f3f83aa3729b2d32c1ae2d9112540348">158305c</a>), closes <a href="https://github.com/protectwise/troika/issues/78">#78</a></li>
+</ul>
+<h1 id="0390-2021-02-15"><a href="https://github.com/protectwise/troika/compare/v0.38.1...v0.39.0">0.39.0</a> (2021-02-15)<a class="headerlink" href="#0390-2021-02-15" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_30">Bug Fixes<a class="headerlink" href="#bug-fixes_30" title="Permanent link">&para;</a></h3>
+<ul>
+<li>restore compatibility with three versions &lt;0.113.0 by copying MathUtils.generateUUID (<a href="https://github.com/protectwise/troika/commit/35856b555919278b1addad0d2625faaaeb379757">35856b5</a>)</li>
+</ul>
+<h3 id="features_12">Features<a class="headerlink" href="#features_12" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-core:</strong> add requestRender method as nicer shortcut (<a href="https://github.com/protectwise/troika/commit/c79254c8be44f70f34b6c9cb9306a45892c3f4e9">c79254c</a>)</li>
+<li><strong>troika-three-text:</strong> add curveRadius for applying cylindrical curvature (<a href="https://github.com/protectwise/troika/commit/6fdfbbfcc0cdae0143555c9cb6569ba9e70150c5">6fdfbbf</a>)</li>
+<li><strong>troika-three-text:</strong> export a function for debugging SDF textures (<a href="https://github.com/protectwise/troika/commit/3fb0c23bae22b3812839c0639f8278d68120fc8c">3fb0c23</a>)</li>
+<li><strong>troika-three-text:</strong> pack SDFs using all 4 color channels, to increase max glyphs in a texture (<a href="https://github.com/protectwise/troika/commit/d236caf9526b5b05bb14980f54f3d73a207ed874">d236caf</a>)</li>
+<li><strong>troika-xr:</strong> add basic TeleportControls (<a href="https://github.com/protectwise/troika/commit/319ed2935a63fb8781410b47a6ffe3ad338f4a2b">319ed29</a>)</li>
+</ul>
+<h2 id="0381-2021-02-03"><a href="https://github.com/protectwise/troika/compare/v0.38.0...v0.38.1">0.38.1</a> (2021-02-03)<a class="headerlink" href="#0381-2021-02-03" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_31">Bug Fixes<a class="headerlink" href="#bug-fixes_31" title="Permanent link">&para;</a></h3>
+<ul>
+<li>hoist vertexTransform defs to top of the shader to prevent errors in chained derivations (<a href="https://github.com/protectwise/troika/commit/889ed38fcfb30edc630865b6e95f59c3f6322646">889ed38</a>)</li>
+<li>update to support up to Three r125 (<a href="https://github.com/protectwise/troika/commit/4edff042d13dec49377d18baf4f958de285a3f2a">4edff04</a>)</li>
+<li><strong>three-instanced-uniforms-mesh:</strong> prevent creation of multiple derived geometries (<a href="https://github.com/protectwise/troika/commit/94a7f67967cd72e152d7942fbcce13ed0d5078cf">94a7f67</a>)</li>
+<li><strong>three-instanced-uniforms-mesh:</strong> the derived material is now prototype-chained to its base (<a href="https://github.com/protectwise/troika/commit/bf45d01a56dac1ce3f873756109702da9a641e62">bf45d01</a>)</li>
+<li><strong>troika-worker-utils:</strong> properly track open requests count (<a href="https://github.com/protectwise/troika/commit/a01d903245eee3b9798bcfac7397108fb3bb03e7">a01d903</a>)</li>
+<li>make derived material's customProgramCacheKey function writable (<a href="https://github.com/protectwise/troika/commit/10289dd1fc700facff9ab79fb6e1cc04109fc0ff">10289dd</a>)</li>
+<li><strong>troika-three-text:</strong> prevent copy() from sharing geometry between instances (<a href="https://github.com/protectwise/troika/commit/8c3ba2d8f610c045dadee17a6221ea61ab8d26d4">8c3ba2d</a>)</li>
+<li>add new text props to UI blocks (<a href="https://github.com/protectwise/troika/commit/a2d631f3921263bf602282e22211bf869556f8a4">a2d631f</a>)</li>
+</ul>
+<h1 id="0380-2021-01-24"><a href="https://github.com/protectwise/troika/compare/v0.37.0...v0.38.0">0.38.0</a> (2021-01-24)<a class="headerlink" href="#0380-2021-01-24" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_32">Bug Fixes<a class="headerlink" href="#bug-fixes_32" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> allow negative percentages for outlineOffsetX/Y (<a href="https://github.com/protectwise/troika/commit/3a274f070b30e5312e2f546f66db2ab9352962ca">3a274f0</a>), closes <a href="https://github.com/protectwise/troika/issues/100">#100</a></li>
+</ul>
+<h3 id="features_13">Features<a class="headerlink" href="#features_13" title="Permanent link">&para;</a></h3>
+<ul>
+<li>move InstancedUniformsMesh to its own three-instanced-uniforms-mesh package (<a href="https://github.com/protectwise/troika/commit/f623b1f2307b0db094912246ee4cf4bef54ffd85">f623b1f</a>)</li>
+</ul>
+<h1 id="0370-2021-01-18"><a href="https://github.com/protectwise/troika/compare/v0.36.1...v0.37.0">0.37.0</a> (2021-01-18)<a class="headerlink" href="#0370-2021-01-18" title="Permanent link">&para;</a></h1>
+<h3 id="features_14">Features<a class="headerlink" href="#features_14" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> added inner stroke and outline blur capabilities (<a href="https://github.com/protectwise/troika/commit/e004b9d2f7e2ef9e841e61156b68958076533a62">e004b9d</a>)</li>
+<li>add InstancedUniformsMesh class for setting shader uniforms per instance (<a href="https://github.com/protectwise/troika/commit/5fd4d797740096dc66a4da73f49961158e5bda2f">5fd4d79</a>)</li>
+</ul>
+<h3 id="performance-improvements_3">Performance Improvements<a class="headerlink" href="#performance-improvements_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> swap tiny-inflate to fflate for minor speed boost on woff fonts (<a href="https://github.com/protectwise/troika/commit/2ae29faffcec2302453ce9dabac633ade8181127">2ae29fa</a>)</li>
+</ul>
+<h2 id="0361-2020-12-16"><a href="https://github.com/protectwise/troika/compare/v0.36.0...v0.36.1">0.36.1</a> (2020-12-16)<a class="headerlink" href="#0361-2020-12-16" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_33">Bug Fixes<a class="headerlink" href="#bug-fixes_33" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> soften Typr.ts console warnings to debug level (<a href="https://github.com/protectwise/troika/commit/50d951fd06108194ef0a485af1fcce58c2710cde">50d951f</a>)</li>
+<li><strong>troika-xr:</strong> destroy WristMountedUI contents when hidden (<a href="https://github.com/protectwise/troika/commit/5589ee2edac6e36f707eb4cd833d39a0e36be875">5589ee2</a>)</li>
+</ul>
+<h1 id="0360-2020-12-04"><a href="https://github.com/protectwise/troika/compare/v0.35.0...v0.36.0">0.36.0</a> (2020-12-04)<a class="headerlink" href="#0360-2020-12-04" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_34">Bug Fixes<a class="headerlink" href="#bug-fixes_34" title="Permanent link">&para;</a></h3>
+<ul>
+<li>fix font parser build scripts (<a href="https://github.com/protectwise/troika/commit/e2d88fa0b838d9e0f67c133e046dbba999ff6bb0">e2d88fa</a>)</li>
+<li>prevent error in WristMountedUI when gripPose is null (<a href="https://github.com/protectwise/troika/commit/755d560a0b7824e5b1acfecd0fbc89b5ad27c853">755d560</a>)</li>
+<li>use combined frustum for XR camera, using setProjectionFromUnion from three.js (<a href="https://github.com/protectwise/troika/commit/ff1b9ae46e466e9dca2138f7ee47d96f466a548d">ff1b9ae</a>)</li>
+<li><strong>troika-three-text:</strong> fix wrong caret position for collapsed ligature characters (<a href="https://github.com/protectwise/troika/commit/f220035430787b3d178ad8cfe4b067fe9793de97">f220035</a>)</li>
+</ul>
+<h3 id="features_15">Features<a class="headerlink" href="#features_15" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> fix kerning by updating from Typr.js to Typr.ts (<a href="https://github.com/protectwise/troika/commit/43144cfbb8f553d552a5bef179a7e5cfc8179fe3">43144cf</a>), closes <a href="https://github.com/protectwise/troika/issues/70">#70</a></li>
+</ul>
+<h1 id="0350-2020-11-16"><a href="https://github.com/protectwise/troika/compare/v0.34.2...v0.35.0">0.35.0</a> (2020-11-16)<a class="headerlink" href="#0350-2020-11-16" title="Permanent link">&para;</a></h1>
+<h3 id="features_16">Features<a class="headerlink" href="#features_16" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-xr:</strong> allow configuring framebufferScaleFactor, incl. ratios based on native (<a href="https://github.com/protectwise/troika/commit/f63c160cd4f57f195fc12b32a0c2e6227e7414ea">f63c160</a>)</li>
+<li>initial support for spring physics-based transitions (<a href="https://github.com/protectwise/troika/commit/5e05bc8b0f2d0dd7af1f5f59f41c60929ac45ae2">5e05bc8</a>)</li>
+</ul>
+<h2 id="0342-2020-11-09"><a href="https://github.com/protectwise/troika/compare/v0.34.1...v0.34.2">0.34.2</a> (2020-11-09)<a class="headerlink" href="#0342-2020-11-09" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_35">Bug Fixes<a class="headerlink" href="#bug-fixes_35" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d:</strong> prevent tree getting in bad state due to removal of orphanable children (<a href="https://github.com/protectwise/troika/commit/81214255cba846c4e832ac3ada3225e1688c59bd">8121425</a>)</li>
+<li><strong>troika-three-text:</strong> dispose the outline material when the base material is disposed (<a href="https://github.com/protectwise/troika/commit/68bd2c867f9ccbb53a41b2a3c3aedcf886354d38">68bd2c8</a>)</li>
+<li><strong>troika-three-text:</strong> fix error when disposing the base material with outlines enabled (<a href="https://github.com/protectwise/troika/commit/73a51f5ef87676727667becc0e6bbc6495bff751">73a51f5</a>)</li>
+</ul>
+<h2 id="0341-2020-10-20"><a href="https://github.com/protectwise/troika/compare/v0.34.0...v0.34.1">0.34.1</a> (2020-10-20)<a class="headerlink" href="#0341-2020-10-20" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_36">Bug Fixes<a class="headerlink" href="#bug-fixes_36" title="Permanent link">&para;</a></h3>
+<ul>
+<li>check for process env 'test' (<a href="https://github.com/protectwise/troika/commit/4f7f8f24a9d4f4b655b61e1e16e19061c1911b02">4f7f8f2</a>)</li>
+<li>check if process is undefined (<a href="https://github.com/protectwise/troika/commit/2b6d56af78e175a74fb03442efdc0a10d18fa4c8">2b6d56a</a>)</li>
+</ul>
+<h1 id="0340-2020-10-19"><a href="https://github.com/protectwise/troika/compare/v0.33.1...v0.34.0">0.34.0</a> (2020-10-19)<a class="headerlink" href="#0340-2020-10-19" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_37">Bug Fixes<a class="headerlink" href="#bug-fixes_37" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> clipRect is no longer clamped to the text block's bounds (<a href="https://github.com/protectwise/troika/commit/15edbd95c0ec525c4a268ff3781e6e516981da02">15edbd9</a>)</li>
+<li><strong>troika-three-text:</strong> fix text baseline being positioned too low (<a href="https://github.com/protectwise/troika/commit/596d8ca1e6ba35f9e68bcbda74329823a3b1b1ad">596d8ca</a>)</li>
+<li><strong>troika-worker-utils:</strong> pre-transpile the .esm build - issue <a href="https://github.com/protectwise/troika/issues/84">#84</a> (<a href="https://github.com/protectwise/troika/commit/98248b6f7eff3090f0202e3e4507bb0d227510ba">98248b6</a>)</li>
+</ul>
+<h3 id="features_17">Features<a class="headerlink" href="#features_17" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> expose blockBounds and visibleBounds in textRenderInfo (<a href="https://github.com/protectwise/troika/commit/f3340ec1efac6a6b00f596d9ef898ed7c2a6568a">f3340ec</a>)</li>
+<li><strong>troika-three-text:</strong> text outline and better antialiasing at small sizes (<a href="https://github.com/protectwise/troika/commit/3836809cc919b57b5eb357e66e35a15903bd54f7">3836809</a>)</li>
+</ul>
+<h3 id="performance-improvements_4">Performance Improvements<a class="headerlink" href="#performance-improvements_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li>micro-optimization of sdf texture insertion loop (<a href="https://github.com/protectwise/troika/commit/995c2a6652181f26677b8da4207f18c32455e59c">995c2a6</a>)</li>
+</ul>
+<h2 id="0331-2020-10-02"><a href="https://github.com/protectwise/troika/compare/v0.33.0...v0.33.1">0.33.1</a> (2020-10-02)<a class="headerlink" href="#0331-2020-10-02" title="Permanent link">&para;</a></h2>
+<p><strong>Note:</strong> Version bump only for package troika</p>
+<h1 id="0330-2020-10-02"><a href="https://github.com/protectwise/troika/compare/v0.32.0...v0.33.0">0.33.0</a> (2020-10-02)<a class="headerlink" href="#0330-2020-10-02" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_38">Bug Fixes<a class="headerlink" href="#bug-fixes_38" title="Permanent link">&para;</a></h3>
+<ul>
+<li>add "sideEffects":false to package.json files to assist treeshaking (<a href="https://github.com/protectwise/troika/commit/61109b2e3d21dc794ef66b3f28cf63bbdd34150e">61109b2</a>)</li>
+<li>add PURE annotations to make troika-three-text treeshakeable (<a href="https://github.com/protectwise/troika/commit/8e76b5c31a3cbda86595654ba9d66d8d635e44a1">8e76b5c</a>)</li>
+<li>remove redundant "browser" and defunct "jsnext:main" fields from package.json files (<a href="https://github.com/protectwise/troika/commit/0abec40e3af06d3ae4d990bf198d871b46730f1f">0abec40</a>)</li>
+<li><strong>troika-three-text:</strong> make <code>color</code> prop only apply to that instance when sharing a base material (<a href="https://github.com/protectwise/troika/commit/da0f995be3b7594bafc6f24dd6981ee787ff4ee1">da0f995</a>)</li>
+</ul>
+<h3 id="features_18">Features<a class="headerlink" href="#features_18" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> modifications to the base material are now picked up automatically (<a href="https://github.com/protectwise/troika/commit/fc81d3a13ef84a8358bfbdcac066cb13a161c7f6">fc81d3a</a>)</li>
+<li><strong>troika-three-utils:</strong> add <code>chained</code> option to createDerivedMaterial (<a href="https://github.com/protectwise/troika/commit/2bfaa9cd5a9ab9b936388e3c4f11e5d44e175eb7">2bfaa9c</a>)</li>
+</ul>
+<h1 id="0320-2020-09-16"><a href="https://github.com/protectwise/troika/compare/v0.31.0...v0.32.0">0.32.0</a> (2020-09-16)<a class="headerlink" href="#0320-2020-09-16" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_39">Bug Fixes<a class="headerlink" href="#bug-fixes_39" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-utils:</strong> make derived material methods writable+configurable (<a href="https://github.com/protectwise/troika/commit/4d4bfbc5d4d730eb0098d33beb1c3c562037fddf">4d4bfbc</a>), closes <a href="https://github.com/react-spring/drei/issues/121">react-spring/drei#121</a></li>
+<li>mutate boundingBox and set depth to 0 (<a href="https://github.com/protectwise/troika/commit/1f9b6bef083c26c9de9ac0ce169544ed3f99cf89">1f9b6be</a>)</li>
+</ul>
+<h3 id="features_19">Features<a class="headerlink" href="#features_19" title="Permanent link">&para;</a></h3>
+<ul>
+<li>added boundingBox calculation (<a href="https://github.com/protectwise/troika/commit/140e9e8bf2865c54f21877ca03834bbde4e9ab52">140e9e8</a>)</li>
+</ul>
+<h1 id="0310-2020-08-11"><a href="https://github.com/protectwise/troika/compare/v0.30.2...v0.31.0">0.31.0</a> (2020-08-11)<a class="headerlink" href="#0310-2020-08-11" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_40">Bug Fixes<a class="headerlink" href="#bug-fixes_40" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d-ui:</strong> remove stray circular import (<a href="https://github.com/protectwise/troika/commit/06be56308e592f6d99df39128227f8e8b6f05bd4">06be563</a>)</li>
+<li>move Three.js peerDependency from troika-3d to troika-three-utils (<a href="https://github.com/protectwise/troika/commit/96b6fc8c9d80ddce358b74d6bb80a063500476ac">96b6fc8</a>)</li>
+</ul>
+<h3 id="features_20">Features<a class="headerlink" href="#features_20" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d:</strong> expose some new props for scene background and color management (<a href="https://github.com/protectwise/troika/commit/5209f66f67f37036a659b0b660e5b343d682c64f">5209f66</a>)</li>
+</ul>
+<h2 id="0302-2020-07-22"><a href="https://github.com/protectwise/troika/compare/v0.30.1...v0.30.2">0.30.2</a> (2020-07-22)<a class="headerlink" href="#0302-2020-07-22" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_41">Bug Fixes<a class="headerlink" href="#bug-fixes_41" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> prevent unbound buffer errors when disposing a GlyphsGeometry (<a href="https://github.com/protectwise/troika/commit/e860eacd04404a328cc758af9103f5d2f55201ba">e860eac</a>), closes <a href="https://github.com/protectwise/troika/issues/69">#69</a> <a href="https://github.com/react-spring/drei/issues/62">react-spring/drei#62</a></li>
+</ul>
+<h2 id="0301-2020-07-19"><a href="https://github.com/protectwise/troika/compare/v0.30.0...v0.30.1">0.30.1</a> (2020-07-19)<a class="headerlink" href="#0301-2020-07-19" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_42">Bug Fixes<a class="headerlink" href="#bug-fixes_42" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d-ui:</strong> fix inheritable props on text nodes, and add textIndent (<a href="https://github.com/protectwise/troika/commit/0650c594319bea46df8c1308a1bfcb4b51d14faa">0650c59</a>)</li>
+<li><strong>troika-three-text:</strong> fix changing text length in ThreeJS r117+ (<a href="https://github.com/protectwise/troika/commit/a7ef945119649b4c3b451783000dd5c40ad3f3ba">a7ef945</a>), closes <a href="https://github.com/protectwise/troika/issues/69">#69</a></li>
+</ul>
+<h1 id="0300-2020-07-16"><a href="https://github.com/protectwise/troika/compare/v0.29.0...v0.30.0">0.30.0</a> (2020-07-16)<a class="headerlink" href="#0300-2020-07-16" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_43">Bug Fixes<a class="headerlink" href="#bug-fixes_43" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-worker-utils:</strong> decrease main thread message level from warn to log (<a href="https://github.com/protectwise/troika/commit/d7cee6d534c6a01f9c3bc984015f7f824f0b458f">d7cee6d</a>)</li>
+</ul>
+<h3 id="features_21">Features<a class="headerlink" href="#features_21" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-text:</strong> add support for textIndent (<a href="https://github.com/protectwise/troika/commit/b689c0c1b1d9de437eeea9390cfcf9be6c10eae9">b689c0c</a>)</li>
+<li>extract flexbox layout logic to a new <code>troika-flex-layout</code> package (<a href="https://github.com/protectwise/troika/commit/1b52fc9a9a5a3ae03c27d0d12a0f62c3d73fe599">1b52fc9</a>), closes <a href="https://github.com/protectwise/troika/issues/53">#53</a></li>
+</ul>
+<h1 id="0290-2020-07-06"><a href="https://github.com/protectwise/troika/compare/v0.28.1...v0.29.0">0.29.0</a> (2020-07-06)<a class="headerlink" href="#0290-2020-07-06" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_44">Bug Fixes<a class="headerlink" href="#bug-fixes_44" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-utils:</strong> fix program switching when double-deriving materials (<a href="https://github.com/protectwise/troika/commit/89ed2f8eab6dfccba3aab95ea667642d13976bfc">89ed2f8</a>)</li>
+<li><strong>troika-xr:</strong> ensure correct initial transform of gltf objects on load (<a href="https://github.com/protectwise/troika/commit/49287f328dd89b595e9a4305603bad661decb756">49287f3</a>)</li>
+</ul>
+<h3 id="features_22">Features<a class="headerlink" href="#features_22" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d-text:</strong> add sdfGlyphSize option on TextMesh (<a href="https://github.com/protectwise/troika/commit/978ef534442ec159353c8aa4c0ebe45ac21b4189">978ef53</a>), closes <a href="https://github.com/protectwise/troika/issues/58">#58</a></li>
+<li><strong>troika-three-text:</strong> promote standalone text to a new <code>troika-three-text</code> package (<a href="https://github.com/protectwise/troika/commit/995f2eb7202789a83671878209c65d240082ade7">995f2eb</a>), closes <a href="https://github.com/protectwise/troika/issues/47">#47</a></li>
+</ul>
+<h2 id="0281-2020-06-17"><a href="https://github.com/protectwise/troika/compare/v0.28.0...v0.28.1">0.28.1</a> (2020-06-17)<a class="headerlink" href="#0281-2020-06-17" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_45">Bug Fixes<a class="headerlink" href="#bug-fixes_45" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d-text:</strong> don't dispose derived materials on base material switch (<a href="https://github.com/protectwise/troika/commit/3d88475d2f3ead6bec92694ff0720d4ab643e872">3d88475</a>), closes <a href="https://github.com/protectwise/troika/issues/59">#59</a></li>
+<li><strong>troika-3d-text:</strong> set correct <code>object</code> in TextMesh raycast intersections (<a href="https://github.com/protectwise/troika/commit/9f3eaa713d759996aea274d33a0443541482453a">9f3eaa7</a>), closes <a href="https://github.com/protectwise/troika/issues/62">#62</a></li>
+</ul>
+<h3 id="performance-improvements_5">Performance Improvements<a class="headerlink" href="#performance-improvements_5" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-three-utils:</strong> increase chance of program reuse in createDerivedMaterial (<a href="https://github.com/protectwise/troika/commit/56daf6535a7bd8fec30d86a713feb5b8f26fa6a5">56daf65</a>), closes <a href="https://github.com/protectwise/troika/issues/59">#59</a></li>
+</ul>
+<h1 id="0280-2020-06-09"><a href="https://github.com/protectwise/troika/compare/v0.27.1...v0.28.0">0.28.0</a> (2020-06-09)<a class="headerlink" href="#0280-2020-06-09" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_46">Bug Fixes<a class="headerlink" href="#bug-fixes_46" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d-text:</strong> fix cloning of TextMesh (<a href="https://github.com/protectwise/troika/commit/13df49b522abbd13a258b70f340779f940d3adfe">13df49b</a>), closes <a href="https://github.com/protectwise/troika/issues/60">#60</a></li>
+<li><strong>troika-3d-text:</strong> prevent double-derivation of text material (<a href="https://github.com/protectwise/troika/commit/ef8cffaa0eb1717ca73e8a04b8bfcf8f031d2e52">ef8cffa</a>), closes <a href="https://github.com/protectwise/troika/issues/59">#59</a></li>
+</ul>
+<h3 id="features_23">Features<a class="headerlink" href="#features_23" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d-text:</strong> add glyphGeometryDetail parameter (<a href="https://github.com/protectwise/troika/commit/1f7a11fed98d71d040b31035822215505e1c9f4d">1f7a11f</a>), closes <a href="https://github.com/protectwise/troika/issues/52">#52</a></li>
+</ul>
+<h2 id="0271-2020-06-05"><a href="https://github.com/protectwise/troika/compare/v0.27.0...v0.27.1">0.27.1</a> (2020-06-05)<a class="headerlink" href="#0271-2020-06-05" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_47">Bug Fixes<a class="headerlink" href="#bug-fixes_47" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d-text:</strong> fix shader error when casting shadows from text (<a href="https://github.com/protectwise/troika/commit/0c9277d3b53b8becb4bcab7f8f3b66ebfbc48963">0c9277d</a>)</li>
+</ul>
+<h1 id="0270-2020-06-02"><a href="https://github.com/protectwise/troika/compare/v0.26.1...v0.27.0">0.27.0</a> (2020-06-02)<a class="headerlink" href="#0270-2020-06-02" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_48">Bug Fixes<a class="headerlink" href="#bug-fixes_48" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d-text:</strong> prevent error when transpiling down to es5 (<a href="https://github.com/protectwise/troika/commit/7264b0cee7aa5fc5df08102a77fbfc8f6be5ba3e">7264b0c</a>), closes <a href="https://github.com/protectwise/troika/issues/51">#51</a></li>
+</ul>
+<h3 id="features_24">Features<a class="headerlink" href="#features_24" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d:</strong> add three.js r117 to supported version range (<a href="https://github.com/protectwise/troika/commit/2761f39c272ecacd1dc0ce4f4cab8f166d373e90">2761f39</a>)</li>
+<li><strong>troika-core:</strong> add <code>update</code> convenience method to all facades (<a href="https://github.com/protectwise/troika/commit/7403be11df184a0c47e6ae84fb5b91418cb74a8b">7403be1</a>)</li>
+<li><strong>troika-examples:</strong> flexbox example: globe pokes through bg, add scrollable lists (<a href="https://github.com/protectwise/troika/commit/074c62066924ceb55317b9d51a755d63044758ad">074c620</a>)</li>
+</ul>
+<h2 id="0261-2020-05-26"><a href="https://github.com/protectwise/troika/compare/v0.26.0...v0.26.1">0.26.1</a> (2020-05-26)<a class="headerlink" href="#0261-2020-05-26" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_49">Bug Fixes<a class="headerlink" href="#bug-fixes_49" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-worker-modules:</strong> silence fallback warning in non-browser environments (<a href="https://github.com/protectwise/troika/commit/3dedb8f2b338e9345c107831863152b115ca50d2">3dedb8f</a>)</li>
+</ul>
+<h1 id="0260-2020-05-24"><a href="https://github.com/protectwise/troika/compare/v0.25.0...v0.26.0">0.26.0</a> (2020-05-24)<a class="headerlink" href="#0260-2020-05-24" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_50">Bug Fixes<a class="headerlink" href="#bug-fixes_50" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d-text:</strong> <a href="https://github.com/protectwise/troika/issues/46">#46</a> fix error on script load when <code>document</code> not present (<a href="https://github.com/protectwise/troika/commit/1b005ec0b4fb45b0b96cbb3270627de569f51b0e">1b005ec</a>)</li>
+</ul>
+<h3 id="features_25">Features<a class="headerlink" href="#features_25" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>examples:</strong> add example showing a resizable flexbox layout (<a href="https://github.com/protectwise/troika/commit/8f4d50d9e4dfbbdd83ce528bc636738ea1677262">8f4d50d</a>)</li>
+<li><strong>troika-3d-text:</strong> experimental <code>colorRanges</code> feature (<a href="https://github.com/protectwise/troika/commit/c4971c3b10dff597fb071b2039a6874df99c70a9">c4971c3</a>)</li>
+<li><strong>troika-worker-utils:</strong> add main thread fallback when web workers are not allowed (<a href="https://github.com/protectwise/troika/commit/c754d0b2e716eadb2e478bb12fb2880d8a4ad63f">c754d0b</a>)</li>
+</ul>
+<h1 id="0250-2020-05-19"><a href="https://github.com/protectwise/troika/compare/v0.24.1...v0.25.0">0.25.0</a> (2020-05-19)<a class="headerlink" href="#0250-2020-05-19" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_51">Bug Fixes<a class="headerlink" href="#bug-fixes_51" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d:</strong> fix error in InstancingManager on uniforms with default value of 0 (<a href="https://github.com/protectwise/troika/commit/8d2cc8339de34abd904c5e2e9fbd9ed449a57144">8d2cc83</a>)</li>
+<li><strong>troika-3d:</strong> fix errors due to excessively deep BoundingSphereOctrees (<a href="https://github.com/protectwise/troika/commit/a4b5797811ef0e15e9ee0c029e4c8dc1c5e58542">a4b5797</a>), closes <a href="https://github.com/protectwise/troika/issues/42">#42</a></li>
+<li><strong>troika-3d-text:</strong> avoid error if something tries to set textMaterial.shadowSide (<a href="https://github.com/protectwise/troika/commit/c09a3c19dd7a452e631587f35ed4ecfaf6777bf1">c09a3c1</a>)</li>
+</ul>
+<h3 id="features_26">Features<a class="headerlink" href="#features_26" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d-text:</strong> add events fired on text sync start and completion (<a href="https://github.com/protectwise/troika/commit/3e7d4e0d278fc28fe897aa574aad329746e451a0">3e7d4e0</a>)</li>
+<li><strong>troika-3d-text:</strong> add original input parameters to textRenderInfo object (<a href="https://github.com/protectwise/troika/commit/e1ef9637bf592f577c32e65c15b728f8229817ad">e1ef963</a>)</li>
+<li><strong>troika-3d-text:</strong> publicly expose getCaretAtPoint and getSelectionRects functions (<a href="https://github.com/protectwise/troika/commit/669b256ecbc8131bf96db363f9ec8919bd65959a">669b256</a>)</li>
+</ul>
+<h3 id="performance-improvements_6">Performance Improvements<a class="headerlink" href="#performance-improvements_6" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d-text:</strong> improve speed of glyph SDF generation by ~15-20% (<a href="https://github.com/protectwise/troika/commit/3718997809efce1db9874a9c2cc0c8b03652eb29">3718997</a>)</li>
+</ul>
+<h2 id="0241-2020-05-04"><a href="https://github.com/protectwise/troika/compare/v0.24.0...v0.24.1">0.24.1</a> (2020-05-04)<a class="headerlink" href="#0241-2020-05-04" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_52">Bug Fixes<a class="headerlink" href="#bug-fixes_52" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d-text:</strong> fix error parsing fonts with CFF glyph outlines; fixes <a href="https://github.com/protectwise/troika/issues/40">#40</a> (<a href="https://github.com/protectwise/troika/commit/0114ea6c596c9fee19e75872e9462128863a2046">0114ea6</a>)</li>
+</ul>
+<h1 id="0240-2020-04-27"><a href="https://github.com/protectwise/troika/compare/v0.23.0...v0.24.0">0.24.0</a> (2020-04-27)<a class="headerlink" href="#0240-2020-04-27" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_53">Bug Fixes<a class="headerlink" href="#bug-fixes_53" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d:</strong> default Plane and Circle primitives' side and shadowSide to DoubleSide (<a href="https://github.com/protectwise/troika/commit/7704b0aea544231315880352e0ddc263d7092625">7704b0a</a>)</li>
+<li><strong>troika-3d-text:</strong> change GlyphSegmentsQuadtree to not use  <code>class</code> (<a href="https://github.com/protectwise/troika/commit/7e4db6c56f81f48de80ba9e6cc48affae067678e">7e4db6c</a>)</li>
+<li><strong>troika-three-utils:</strong> allow use of the timeUniform within glsl functions (<a href="https://github.com/protectwise/troika/commit/7354b9ea03d7ffedd869ccc4bb496811a572deba">7354b9e</a>)</li>
+</ul>
+<h3 id="features_27">Features<a class="headerlink" href="#features_27" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d-text:</strong> add <code>preloadFont</code> utility (<a href="https://github.com/protectwise/troika/commit/acedd3c0799ccdaa9e583479b88441587f4b2db5">acedd3c</a>), closes <a href="https://github.com/protectwise/troika/issues/39">#39</a></li>
+<li><strong>troika-3d-text:</strong> add enhanced <code>anchorX</code> and <code>anchorY</code> config properties (<a href="https://github.com/protectwise/troika/commit/b58f7b933853bac6a5c6d53d1fa3668886573161">b58f7b9</a>), closes <a href="https://github.com/protectwise/troika/issues/38">#38</a></li>
+<li><strong>troika-3d-text:</strong> add some useful font metrics to textRenderInfo result (<a href="https://github.com/protectwise/troika/commit/c7b14b8ab77e7b4ecbd080e4b94d5f257dd86c1a">c7b14b8</a>)</li>
+</ul>
+<h3 id="performance-improvements_7">Performance Improvements<a class="headerlink" href="#performance-improvements_7" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d-text:</strong> major speed/memory improvement in text layout (<a href="https://github.com/protectwise/troika/commit/1b65b3355c05086bec2726771dabf9b21ed2e4a2">1b65b33</a>)</li>
+<li><strong>troika-3d-text:</strong> micro optimizations in text layout (<a href="https://github.com/protectwise/troika/commit/c7863971609d9ffd9f9fc6a13a3f594262112b5c">c786397</a>)</li>
+<li><strong>troika-3d-text:</strong> optimize rendering of very long clipped text blocks (<a href="https://github.com/protectwise/troika/commit/c66fbec228e45715c0b62586775b2f71c280ddc0">c66fbec</a>)</li>
+</ul>
+<h1 id="0230-2020-04-16"><a href="https://github.com/protectwise/troika/compare/v0.22.0...v0.23.0">0.23.0</a> (2020-04-16)<a class="headerlink" href="#0230-2020-04-16" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_54">Bug Fixes<a class="headerlink" href="#bug-fixes_54" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d-text:</strong> selection range rects now honor clipRect, and are instanced (<a href="https://github.com/protectwise/troika/commit/ba860049c46d104fb755a192de56e8e397bb4862">ba86004</a>)</li>
+<li><strong>troika-3d-ui:</strong> allow canceling drag-scroll behavior with e.preventDefault() (<a href="https://github.com/protectwise/troika/commit/eca5f15bb83c43d695e1674a6b265f208fb9a3cf">eca5f15</a>)</li>
+<li><strong>troika-3d-ui:</strong> prevent sync of text nodes before flex layout finishes (<a href="https://github.com/protectwise/troika/commit/4769cac2db7be7a925f1de5160e56ac95e4e97da">4769cac</a>)</li>
+<li><strong>troika-three-utils:</strong> fragmentColorTransform is now inserted prior to postprocessing chunks (<a href="https://github.com/protectwise/troika/commit/97cd9ac3276c353597a374f1c7d2c7f23993aa7f">97cd9ac</a>), closes <a href="https://github.com/protectwise/troika/issues/20">#20</a></li>
+</ul>
+<h3 id="features_28">Features<a class="headerlink" href="#features_28" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d-ui:</strong> add onAfterFlexLayoutApplied hook for <code>FlexNode</code>s (<a href="https://github.com/protectwise/troika/commit/912f95c9a0817b51cbfaef5872f3c5321c65d1fb">912f95c</a>)</li>
+<li><strong>troika-3d-ui:</strong> allow overriding DatSelect dropdown styles/config (<a href="https://github.com/protectwise/troika/commit/bf78e79951d836e159534c7c545c8a2e7126b996">bf78e79</a>)</li>
+<li><strong>troika-worker-modules:</strong> improve rehydration of functions in worker (<a href="https://github.com/protectwise/troika/commit/8f63090a5ad4fa3569faeade8e5c532ebfb065c5">8f63090</a>), closes <a href="https://github.com/protectwise/troika/issues/31">#31</a></li>
+</ul>
+<h3 id="performance-improvements_8">Performance Improvements<a class="headerlink" href="#performance-improvements_8" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d-ui:</strong> make bg/border layers instanced, and move clipping to vertex shader (<a href="https://github.com/protectwise/troika/commit/f7526f42f5ad02397aca656eadac80fa0ac13c90">f7526f4</a>)</li>
+</ul>
+<h1 id="0220-2020-04-02"><a href="https://github.com/protectwise/troika/compare/v0.21.0...v0.22.0">0.22.0</a> (2020-04-02)<a class="headerlink" href="#0220-2020-04-02" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_55">Bug Fixes<a class="headerlink" href="#bug-fixes_55" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>examples:</strong> fix transparency of globe (<a href="https://github.com/protectwise/troika/commit/8886bc1540920a8fff39e97f8824d818a55bb8b5">8886bc1</a>)</li>
+<li><strong>examples:</strong> make bezier material doublesided (<a href="https://github.com/protectwise/troika/commit/163b3e0de1ffcc4dc3f0020f1eb9b54ba9d95ece">163b3e0</a>)</li>
+<li><strong>troika-3d-text:</strong> letterSpacing no longer applied after newlines (<a href="https://github.com/protectwise/troika/commit/61cb4f8b9a56cf14fb6ccc07c73449c721adbf4e">61cb4f8</a>), closes <a href="https://github.com/protectwise/troika/issues/33">#33</a></li>
+<li><strong>troika-xr:</strong> fix TargetRay transparency by rendering last w/o depth testing (<a href="https://github.com/protectwise/troika/commit/045ec27abe9c8946f245ee22e4502ccdf133c4ef">045ec27</a>)</li>
+</ul>
+<h3 id="features_29">Features<a class="headerlink" href="#features_29" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d-text:</strong> add 'orientation' parameter for defining default layout plane (<a href="https://github.com/protectwise/troika/commit/f2c0c763d4b92be84b26f878597cfa85724f7cc3">f2c0c76</a>), closes <a href="https://github.com/protectwise/troika/issues/34">#34</a></li>
+</ul>
+<h3 id="performance-improvements_9">Performance Improvements<a class="headerlink" href="#performance-improvements_9" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d-text:</strong> move clipping logic from fragment to vertex shader (<a href="https://github.com/protectwise/troika/commit/1accf781546bd41dd19dd177eefefd6d8f56bdbd">1accf78</a>)</li>
+<li><strong>troika-xr:</strong> avoid full update pass every frame in WristMountedUI (<a href="https://github.com/protectwise/troika/commit/4a4cd16680d2c63a05e94dac8820d2a1cd3a0eab">4a4cd16</a>)</li>
+<li><strong>troika-xr:</strong> avoid setting grip material colors every frame (<a href="https://github.com/protectwise/troika/commit/d3f12463b70a46c9a883289f022fa9a6b95f3ccc">d3f1246</a>)</li>
+</ul>
+<h1 id="0210-2020-03-27"><a href="https://github.com/protectwise/troika/compare/v0.20.0...v0.21.0">0.21.0</a> (2020-03-27)<a class="headerlink" href="#0210-2020-03-27" title="Permanent link">&para;</a></h1>
+<h3 id="features_30">Features<a class="headerlink" href="#features_30" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>examples:</strong> beziers: add instanceable version of the beziers, and add point light option (<a href="https://github.com/protectwise/troika/commit/0739f4d6ebcdd13be46b6371c95504b290c86359">0739f4d</a>)</li>
+<li><strong>troika-3d:</strong> instancing now supports custom derived materials (<a href="https://github.com/protectwise/troika/commit/bad5e022e29e0b656258017f8697d1611eb9d2e9">bad5e02</a>)</li>
+<li><strong>troika-3d:</strong> reduce instancing batch size to 128 (<a href="https://github.com/protectwise/troika/commit/dc4bd8aadd5826b4fe8247f981a03f43624a7bd7">dc4bd8a</a>)</li>
+<li><strong>troika-3d:</strong> update ThreeJS support up to r115 (<a href="https://github.com/protectwise/troika/commit/531ff6a175b41d6fd273b1ca0fa91c5826360b22">531ff6a</a>)</li>
+<li><strong>troika-three-utils:</strong> added new options for createDerivedMaterial (<a href="https://github.com/protectwise/troika/commit/d67bb4a569e151efad87a047e845607226f02027">d67bb4a</a>)</li>
+<li><strong>troika-three-utils:</strong> derived shadow material uniforms are now synced automatically (<a href="https://github.com/protectwise/troika/commit/7843f2314caf9463262a16b15de948931b4b6511">7843f23</a>)</li>
+</ul>
+<h1 id="0200-2020-03-16"><a href="https://github.com/protectwise/troika/compare/v0.19.0...v0.20.0">0.20.0</a> (2020-03-16)<a class="headerlink" href="#0200-2020-03-16" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_56">Bug Fixes<a class="headerlink" href="#bug-fixes_56" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d-ui:</strong> fix scrollbars sometimes appearing inappropriately (<a href="https://github.com/protectwise/troika/commit/010be47962f1f275d99c751bcf50f3e111667299">010be47</a>)</li>
+<li><strong>troika-3d-ui:</strong> update children when first exiting clip rect (<a href="https://github.com/protectwise/troika/commit/294f34121e1d20a2152fea354767150abc4e3b1d">294f341</a>)</li>
+</ul>
+<h3 id="features_31">Features<a class="headerlink" href="#features_31" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-3d-ui:</strong> allow dat-gui items to declare their own onUpdate (<a href="https://github.com/protectwise/troika/commit/a707fd5988c4f664a5cfe3ee72747d13b65535e3">a707fd5</a>)</li>
+<li><strong>troika-3d-ui:</strong> enable shadow casting by UI block bg/border layers (<a href="https://github.com/protectwise/troika/commit/d2c056cb2d599021f61d6de4ff7223f6b7ca52e6">d2c056c</a>)</li>
+<li><strong>troika-worker-utils:</strong> export function for stringifying functions (<a href="https://github.com/protectwise/troika/commit/977634b5eecb41e4e7aa61addf5b7bfd721ab9e2">977634b</a>)</li>
+</ul>
+<h3 id="performance-improvements_10">Performance Improvements<a class="headerlink" href="#performance-improvements_10" title="Permanent link">&para;</a></h3>
+<ul>
+<li>skip updating children of inactive wrist-mounted ui (<a href="https://github.com/protectwise/troika/commit/c1b93f18228e1c051a3941d15f6bd31a3a682e2d">c1b93f1</a>)</li>
+</ul>
+<h1 id="0190-2020-02-28"><a href="https://github.com/protectwise/troika/compare/v0.19.0-alpha.0...v0.19.0">0.19.0</a> (2020-02-28)<a class="headerlink" href="#0190-2020-02-28" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_57">Bug Fixes<a class="headerlink" href="#bug-fixes_57" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>troika-xr:</strong> disable buggy experimental clickOnPoke feature (<a href="https://github.com/protectwise/troika/commit/46cff535f24e661e727714e12e05326c830d1a90">46cff53</a>)</li>
+</ul>
+<h3 id="features_32">Features<a class="headerlink" href="#features_32" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>examples:</strong> example configurators are standardized and work in XR (<a href="https://github.com/protectwise/troika/commit/cec6f63a2c45ad4a4b38e1826cec852d756e016d">cec6f63</a>)</li>
+<li><strong>troika-xr:</strong> improved default target ray appearance (<a href="https://github.com/protectwise/troika/commit/3798d9e9451763c12d0273bb7d6f027c4ae79621">3798d9e</a>)</li>
+</ul>
+<h1 id="0190-alpha0-2020-02-22"><a href="https://github.com/protectwise/troika/compare/v0.18.0...v0.19.0-alpha.0">0.19.0-alpha.0</a> (2020-02-22)<a class="headerlink" href="#0190-alpha0-2020-02-22" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_58">Bug Fixes<a class="headerlink" href="#bug-fixes_58" title="Permanent link">&para;</a></h3>
+<ul>
+<li>honor MeshFacade.autoDispose* when geometry or material changes (<a href="https://github.com/protectwise/troika/commit/f478a47da138007a73804cf6af9b81f8d2234770">f478a47</a>)</li>
+</ul>
+<h3 id="features_33">Features<a class="headerlink" href="#features_33" title="Permanent link">&para;</a></h3>
+<ul>
+<li>add a CircleFacade primitive (<a href="https://github.com/protectwise/troika/commit/d73ae872c8838181801b226adc7c02f3fcbb14bf">d73ae87</a>)</li>
+<li><strong>troika-3d-ui:</strong> add DatGuiFacade and supporting widgets (<a href="https://github.com/protectwise/troika/commit/c463198c9b06eaa42c281318e82ff79fbbf31193">c463198</a>)</li>
+<li><strong>troika-xr:</strong> add WristMountedUI component (<a href="https://github.com/protectwise/troika/commit/74f5b108931c7bcee0c55de1e2fa3a4c26559a5b">74f5b10</a>)</li>
+</ul>
+<h1 id="0180-2020-02-21"><a href="https://github.com/protectwise/troika/compare/v0.17.1...v0.18.0">0.18.0</a> (2020-02-21)<a class="headerlink" href="#0180-2020-02-21" title="Permanent link">&para;</a></h1>
+<h3 id="bug-fixes_59">Bug Fixes<a class="headerlink" href="#bug-fixes_59" title="Permanent link">&para;</a></h3>
+<ul>
+<li>the PlaneFacade's geometry now faces up (<a href="https://github.com/protectwise/troika/commit/cb1bb1b4b26f2f09fab4e433e2449ca2f3d2aa1a">cb1bb1b</a>)</li>
+</ul>
+<h3 id="features_34">Features<a class="headerlink" href="#features_34" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Add a set of facades for common primitive meshes, using shared geometries and with setters for builtin material properties. (<a href="https://github.com/protectwise/troika/commit/d4b309b179edba4b59ca87d13100a38be1b374a7">d4b309b</a>)</li>
+<li>Add memoize function in utils (<a href="https://github.com/protectwise/troika/commit/16efb013eb62bb3630b0375ad7a054820aa2382c">16efb01</a>)</li>
+<li><strong>troika-3d:</strong> allow passing a Vector3 instance to getCameraPosition (<a href="https://github.com/protectwise/troika/commit/f6864835649b00cef4b53d3a9bd5d3d880d57d8d">f686483</a>)</li>
+</ul>
+
+  <hr>
+<div class="md-source-file">
+  <small>
+    
+      Last update:
+      2025-09-10
+    
+  </small>
+</div>
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections"], "search": "../assets/javascripts/workers/search.dfff1995.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.dff1b7c8.min.js"></script>
+      
+    
+  </body>
+</html>

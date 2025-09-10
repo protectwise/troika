@@ -1,0 +1,1543 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+        <meta name="author" content="Jason Johnston">
+      
+      
+        <link rel="canonical" href="https://protectwise.github.io/troika/troika-3d/objects/">
+      
+      
+        <link rel="prev" href="../scenes/">
+      
+      
+        <link rel="next" href="../interactivity-and-events/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.2, mkdocs-material-9.3.2">
+    
+    
+      
+        <title>Adding 3D Objects - Troika JS</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.30068a00.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.85d0ee34.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function n(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],n("js",new Date),n("config","G-91Z6LQXXFX"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){this.value&&n("event","search",{search_term:this.value})}),document$.subscribe(function(){var a=document.forms.feedback;if(void 0!==a)for(var e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");n("event","feedback",{page:t,data:e}),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}),location$.subscribe(function(e){n("config","G-91Z6LQXXFX",{page_path:e.pathname})})});var e=document.createElement("script");e.async=!0,e.src="https://www.googletagmanager.com/gtag/js?id=G-91Z6LQXXFX",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="indigo">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#object3dfacade" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Troika JS" class="md-header__button md-logo" aria-label="Troika JS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M320 464c8.8 0 16-7.2 16-16V160h-80c-17.7 0-32-14.3-32-32V48H64c-8.8 0-16 7.2-16 16v384c0 8.8 7.2 16 16 16h256zM0 64C0 28.7 28.7 0 64 0h165.5c17 0 33.3 6.7 45.3 18.7l90.5 90.5c12 12 18.7 28.3 18.7 45.3V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V64z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Troika JS
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Adding 3D Objects
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/protectwise/troika" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Troika JS" class="md-nav__button md-logo" aria-label="Troika JS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M320 464c8.8 0 16-7.2 16-16V160h-80c-17.7 0-32-14.3-32-32V48H64c-8.8 0-16 7.2-16 16v384c0 8.8 7.2 16 16 16h256zM0 64C0 28.7 28.7 0 64 0h165.5c17 0 33.3 6.7 45.3 18.7l90.5 90.5c12 12 18.7 28.3 18.7 45.3V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V64z"/></svg>
+
+    </a>
+    Troika JS
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/protectwise/troika" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Changelog
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+    
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Troika Framework
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Troika Framework
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
+        
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Getting Started
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/setup/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Setup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/examples/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Examples
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Core Concepts
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Core Concepts
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troika-core/facades/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Facades
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troika-core/scene-descriptors/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scene Descriptors
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troika-core/interactivity-and-events/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Interactivity and Events
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troika-core/animations-and-transitions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Animations and Transitions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" checked>
+        
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Troika 3D
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            Troika 3D
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Troika 3D - Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Creating a 3D Scene
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Adding 3D Objects
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Adding 3D Objects
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#object3dfacade" class="md-nav__link">
+    Object3DFacade
+  </a>
+  
+    <nav class="md-nav" aria-label="Object3DFacade">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#construction" class="md-nav__link">
+    Construction
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#properties" class="md-nav__link">
+    Properties
+  </a>
+  
+    <nav class="md-nav" aria-label="Properties">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#local-transform-properties" class="md-nav__link">
+    Local Transform Properties
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#methods" class="md-nav__link">
+    Methods
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#meshfacade" class="md-nav__link">
+    MeshFacade
+  </a>
+  
+    <nav class="md-nav" aria-label="MeshFacade">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#properties_1" class="md-nav__link">
+    Properties
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#group3dfacade" class="md-nav__link">
+    Group3DFacade
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#instanceable3dfacade" class="md-nav__link">
+    Instanceable3DFacade
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../interactivity-and-events/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Interactivity and Events in 3D
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../performance/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Performance Optimization
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../instancing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    GPU Instancing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../html-overlays/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    HTML Overlays
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../text/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    3D Text
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troika-3d-ui/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    3D User Interfaces
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troika-xr/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WebXR
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Troika 2D
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            Troika 2D
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troika-2d/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Troika 2D - Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troika-2d/objects/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Interactivity in 2D
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troika-2d/html-overlays/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    HTML Overlays
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Troika Tools for Three.js
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Troika Tools for Three.js
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troika-three-text/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Troika 3D Text
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troika-three-utils/createDerivedMaterial/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Derived Materials
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troika-three-utils/BezierMesh/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    BezierMesh
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../three-instanced-uniforms-mesh/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    InstancedUniformsMesh
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Other Tools
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Other Tools
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troika-worker-utils/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Worker Modules
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#object3dfacade" class="md-nav__link">
+    Object3DFacade
+  </a>
+  
+    <nav class="md-nav" aria-label="Object3DFacade">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#construction" class="md-nav__link">
+    Construction
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#properties" class="md-nav__link">
+    Properties
+  </a>
+  
+    <nav class="md-nav" aria-label="Properties">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#local-transform-properties" class="md-nav__link">
+    Local Transform Properties
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#methods" class="md-nav__link">
+    Methods
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#meshfacade" class="md-nav__link">
+    MeshFacade
+  </a>
+  
+    <nav class="md-nav" aria-label="MeshFacade">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#properties_1" class="md-nav__link">
+    Properties
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#group3dfacade" class="md-nav__link">
+    Group3DFacade
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#instanceable3dfacade" class="md-nav__link">
+    Instanceable3DFacade
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+  <h1>Adding 3D Objects</h1>
+
+<p>So you've got a <a href="../scenes/">3D scene</a> with a camera and now you want to add some 3D objects to it, naturally!</p>
+<p>Like every other object in Troika, 3D object types are defined by <a href="../../troika-core/facades/">Facades</a>, and configured by <a href="../../troika-core/scene-descriptors/">scene descriptors</a>. To help you out, The <code>troika-3d</code> package provides some Facade types that know how to manage and optimize a tree of Three.js objects. They all use <code>Object3DFacade</code> as their foundation:</p>
+<h2 id="object3dfacade">Object3DFacade<a class="headerlink" href="#object3dfacade" title="Permanent link">&para;</a></h2>
+<p>Any Three.js <a href="https://threejs.org/docs/#api/en/core/Object3D"><code>Object3D</code></a> in your scene will, naturally, be represented by an <code>Object3DFacade</code>. This is a specialized Facade base class which knows some things about dealing with <code>Object3D</code>, such as:</p>
+<ul>
+<li>Properties for positioning/rotation/scaling, with automatic optimized matrix updates</li>
+<li>Raycasting methods, with related optimizations</li>
+<li>Methods for querying world positions, camera position, etc.</li>
+<li>Various shortcut passthrough properties</li>
+</ul>
+<p>This is just a base class, so in most cases it will be more convenient for you to use a <a href="#meshfacade"><code>MeshFacade</code></a> or a <a href="#group3dfacade"><code>Group3DFacade</code></a>, but all the properties and methods described here will apply to those as well.</p>
+<h3 id="construction">Construction<a class="headerlink" href="#construction" title="Permanent link">&para;</a></h3>
+<p>Every concrete subclass of <code>Object3DFacade</code> must create a Three.js <code>Object3D</code> instance (a <code>Mesh</code>, <code>Line</code>, <code>Group</code>, etc.) that will become the backing implementation for that facade. It will be stored as <code>this.threeObject</code> for use later on, and will be guaranteed to never change during the lifetime of the facade instance. This strict contract makes it easier to reason about in other logic, and allows Troika to apply certain optimizations it couldn't otherwise.</p>
+<p>To create the <code>Object3D</code>, you can either:</p>
+<p>1) Implement the <code>initThreeObject()</code> method and return the <code>Object3D</code> instance, or
+2) Override the <code>constructor</code> and pass the <code>Object3D</code> as a second argument to <code>super(parent, obj3D)</code></p>
+<p>Generally the first method is preferred, though if you're already overriding the constructor for other purposes then the second method can be easier.</p>
+<p>An example using <code>initThreeObject()</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Object3DFacade</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;troika-3d&#39;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Mesh</span><span class="p">,</span><span class="w"> </span><span class="nx">BoxGeometry</span><span class="p">,</span><span class="w"> </span><span class="nx">MeshStandardMaterial</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;three&#39;</span>
+
+<span class="c1">// It&#39;s often to define a singleton geometry instance that can be used</span>
+<span class="c1">// across all instances of this object type:</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">geometry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">BoxGeometry</span><span class="p">()</span>
+
+<span class="kd">class</span><span class="w"> </span><span class="nx">MyObject</span><span class="w"> </span><span class="k">extends</span><span class="w"> </span><span class="nx">Object3DFacade</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">initThreeObject</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Mesh</span><span class="p">(</span><span class="nx">geometry</span><span class="p">,</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">MeshStandardMaterial</span><span class="p">())</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="nx">afterUpdate</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// The Mesh created above can be referenced as `threeObject`:</span>
+<span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">threeObject</span><span class="p">.</span><span class="nx">material</span><span class="p">.</span><span class="nx">color</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">color</span><span class="p">)</span>
+<span class="w">    </span><span class="k">super</span><span class="p">.</span><span class="nx">afterUpdate</span><span class="p">()</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Or an example <code>constructor</code> override:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">//...</span>
+
+<span class="kd">class</span><span class="w"> </span><span class="nx">MyObject</span><span class="w"> </span><span class="k">extends</span><span class="w"> </span><span class="nx">Object3DFacade</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kr">constructor</span><span class="p">(</span><span class="nx">parent</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">threeObj</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Mesh</span><span class="p">(</span><span class="nx">geometry</span><span class="p">,</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">MeshStandardMaterial</span><span class="p">())</span>
+<span class="w">    </span><span class="k">super</span><span class="p">(</span><span class="nx">parent</span><span class="p">,</span><span class="w"> </span><span class="nx">threeObj</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="c1">// ...</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="properties">Properties<a class="headerlink" href="#properties" title="Permanent link">&para;</a></h3>
+<p>The following properties are supported by all <code>Object3DFacade</code> subclasses:</p>
+<ul>
+<li>
+<p><code>threeObject</code> - This is a reference to the Three.js <code>Object3D</code> instance that was created in the <code>initThreeObject</code> method or the constructor. This will be a stable reference, never changing during the facade instance's lifetime. It will be deleted upon destruction, however.</p>
+</li>
+<li>
+<p><code>parent</code> - This is a reference to the parent <em>Facade</em> instance. This will be a stable reference, never changing during the facade instance's lifetime. It will be deleted upon destruction, however.</p>
+<p>To access the nearest parent <em>Object3D</em>, use <code>this.threeObject.parent</code> instead.</p>
+</li>
+<li>
+<p><code>castShadow</code>, <code>receiveShadow</code> - Shortcuts to setting these shadow-related properties on the threeObject.</p>
+</li>
+<li><code>renderOrder</code> - Shortcut to the <code>renderOrder</code> property on the threeObject.</li>
+<li><code>visible</code> - Shortcut to the <code>visible</code> property on the threeObject.</li>
+<li><code>raycastSide</code> - Lets you force a different <a href="https://threejs.org/docs/#api/en/materials/Material.side"><code>side</code></a> than that of the material during mesh raycasting. Should be set to <code>FrontSide</code>|<code>BackSide</code>|<code>DoubleSide</code>, or <code>null</code> to use the material's <code>side</code>.</li>
+</ul>
+<h4 id="local-transform-properties">Local Transform Properties<a class="headerlink" href="#local-transform-properties" title="Permanent link">&para;</a></h4>
+<p>These properties expose the Three object's <code>position</code>, <code>scale</code>, <code>quaternion</code>, and <code>rotation</code> objects' values. They are synced to those objects, but exposing them as flat Facade properties makes it easy to <a href="../../troika-core/animations-and-transitions/">animate them</a> and to track their changes for optimized matrix updating.</p>
+<ul>
+<li>
+<p><code>x</code>, <code>y</code>, <code>z</code> - These set the object's position transform in local space.</p>
+</li>
+<li>
+<p><code>scale</code>, <code>scaleX</code>, <code>scaleY</code>, <code>scaleZ</code> - These set the object's scale transform in local space. The <code>scale</code> shortcut sets all the directional scales to the same value.</p>
+</li>
+<li>
+<p><code>rotateX</code>, <code>rotateY</code>, <code>rotateZ</code>, <code>rotateOrder</code> - These set the object's <a href="https://threejs.org/docs/#api/en/math/Euler">Euler</a> rotation transform in local space.</p>
+</li>
+<li>
+<p><code>quaternionX</code>, <code>quaternionY</code>, <code>quaternionZ</code>, <code>quaternionW</code> - These set the object's <a href="https://threejs.org/docs/#api/en/math/Quaternion">Quaternion</a> rotation transform in local space.</p>
+</li>
+</ul>
+<h3 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p><code>getWorldPosition(Vector3?)</code> - Gets the world position of this object's origin. If a Vector3 is passed, the position will be written into that object, otherwise it will return a new Vector3. Assuming this is called in the facade's <a href="../../troika-core/facades/#updates">update phase</a>, the world matrix will be up-to-date.</p>
+</li>
+<li>
+<p><code>getProjectedPosition(x, y, z)</code> - Given x/y/z coordinates in <em>local</em> space, calculates the projected <em>view</em> space coordinates. Returns a Vector3 where <code>x</code> and <code>y</code> are the view position in screen pixels, and <code>z</code> is the worldspace distance from the camera.</p>
+</li>
+<li>
+<p><code>getCameraPosition(Vector3?)</code> - Gets the current world position of the camera. If a Vector3 is passed, the position will be written into that object, otherwise it will return a new Vector3.</p>
+</li>
+<li>
+<p><code>getCameraDistance()</code> - Returns the current distance in world units between this object's origin and the camera.</p>
+</li>
+<li>
+<p><code>getCameraFacade()</code> - Returns a reference to the <code>CameraFacade</code> instance. This can be used to access low-level info about the camera such as its various matrices and projection attributes, but be careful not to make modifications to the camera as that can lead to things getting out of sync.</p>
+</li>
+<li>
+<p><code>getSceneFacade()</code> - Returns a reference to the <code>SceneFacade</code> instance. This can be useful in a pinch, but it's usually better to pass any required scene-level values to each facade.</p>
+</li>
+<li>
+<p><code>updateMatrices()</code> - Updates the underlying threeObject's <code>matrix</code> and <code>matrixWorld</code> to the current state of this object's transform and those of its ancestors, if necessary. This bypasses the <code>updateMatrix</code> and <code>updateMatrixWorld</code> methods of the Three.js objects with a more efficient approach that doesn't require traversing the entire tree prior to every render. As long as this is called from the <code>afterUpdate</code> lifecycle method or later, it can be safely assumed that the world matrices of all ancestors have already been similarly updated, so the result should always be accurate.</p>
+</li>
+<li>
+<p><code>markWorldMatrixDirty()</code> - If the <code>threeObject.matrixWorld</code> is modified manually instead of via the <a href="#local-transform-properties">local transform properties</a>, as is sometimes required for more complex transformations, you should call this to update the internal caches and signal that child objects should update their own matrices to match.</p>
+</li>
+</ul>
+<h2 id="meshfacade">MeshFacade<a class="headerlink" href="#meshfacade" title="Permanent link">&para;</a></h2>
+<p>You will likely most often want to use <code>MeshFacade</code> instead of creating your own <code>Object3DFacade</code> subclass. This prevents you from having to implement your own constructor override, creating a <code>Mesh</code> instance automatically, and adds some additional helpful facade properties for you.</p>
+<h3 id="properties_1">Properties<a class="headerlink" href="#properties_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p><code>geometry</code> - Lets you set the mesh's <code>geometry</code>. You'll usually only do this once, but you can also change it on the fly, e.g. for choosing an LOD based on camera distance.</p>
+</li>
+<li>
+<p><code>material</code> - Lets you change the mesh's <code>material</code>. In addition to accepting Three.js Material instances, it also supports the following string aliases for common built-in Three.js materials: "basic", "depth", "distance", "lambert", "matcap", "normal", "phong", "physical", "standard", and "toon". Defaults to "standard" for creating a <code>MeshStandardMaterial</code>.</p>
+</li>
+<li>
+<p><code>material.xyz</code> - For all of the above built-in material types, MeshFacade automatically creates setters for the properties of those materials. For example in a scene descriptor object:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nx">facade</span><span class="o">:</span><span class="w"> </span><span class="nx">MeshFacade</span><span class="p">,</span>
+<span class="w">  </span><span class="c1">//...</span>
+<span class="w">  </span><span class="nx">material</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;standard&#39;</span><span class="p">,</span>
+<span class="w">  </span><span class="s1">&#39;material.color&#39;</span><span class="o">:</span><span class="w"> </span><span class="mh">0x3366cc</span><span class="p">,</span>
+<span class="w">  </span><span class="s1">&#39;material.metalness&#39;</span><span class="o">:</span><span class="w"> </span><span class="mf">0.8</span><span class="p">,</span>
+<span class="w">  </span><span class="s1">&#39;material.roughness&#39;</span><span class="o">:</span><span class="w"> </span><span class="mf">0.5</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Notice how you must include quotes around the material properties since they include dots in them.</p>
+</li>
+<li>
+<p><code>autoDisposeGeometry</code> - If set to <code>true</code>, the geometry's <a href="https://threejs.org/docs/#api/en/core/BufferGeometry.dispose"><code>dispose</code></a> method will automatically be called when the facade is destroyed, and when swapping it out with another geometry. </p>
+<p>This can be useful for freeing resources for large geometries that only appear once, but can hurt performance if there are multiple instances of that geometry in the scene or if it is removed and re-added later. In many cases, especially for simpler geometries, it's better to avoid disposal; therefore this defaults to <code>false</code>.</p>
+</li>
+<li>
+<p><code>autoDisposeMaterial</code> - If set to <code>true</code>, the material's <a href="https://threejs.org/docs/#api/en/materials/Material.dispose"><code>dispose</code></a> method will automatically be called when the facade is destroyed, and when swapping it out with another material. This is almost never needed, so it defaults to <code>false</code>.</p>
+<p>If your material uses a <code>Texture</code> that needs to be disposed, you will need to do that yourself, e.g. in a subclass that overrides the <code>destructor</code> method.</p>
+</li>
+</ul>
+<h2 id="group3dfacade">Group3DFacade<a class="headerlink" href="#group3dfacade" title="Permanent link">&para;</a></h2>
+<p>This is a specialized <code>Object3DFacade</code> for Three.js <a href="https://threejs.org/docs/#api/en/objects/Group"><code>Group</code></a> objects.</p>
+<p>It's basically just an <code>Object3DFacade</code> that already creates a <code>Group</code> object in its constructor, though it also applies some additional optimizations. You can use it directly in scene descriptors, with any child objects as its <code>children</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Group3DFacade</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;troika-3d&#39;</span>
+
+<span class="c1">//...descriptor in scene:</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="nx">facade</span><span class="o">:</span><span class="w"> </span><span class="nx">Group3DFacade</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">z</span><span class="o">:</span><span class="w"> </span><span class="o">-</span><span class="mf">1</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">scale</span><span class="o">:</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">children</span><span class="o">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">facade</span><span class="o">:</span><span class="w"> </span><span class="nx">DonutFacade</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">x</span><span class="o">:</span><span class="w"> </span><span class="o">-</span><span class="mf">1</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">facade</span><span class="o">:</span><span class="w"> </span><span class="nx">PyramidFacade</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">x</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>It can also be useful to <em>extend</em> a custom Facade class from <code>Group3DFacade</code>, for example to implement some controller logic or to manage a collection of rendered objects as a single component.</p>
+<div class="highlight"><pre><span></span><code><span class="kd">class</span><span class="w"> </span><span class="nx">GaugeFacade</span><span class="w"> </span><span class="k">extends</span><span class="w"> </span><span class="nx">Group3DFacade</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="cm">/** @type number - from 0 to 100 */</span>
+<span class="w">  </span><span class="nx">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0</span>
+
+<span class="w">  </span><span class="nx">describeChildren</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">key</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;ring&#39;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">facade</span><span class="o">:</span><span class="w"> </span><span class="nx">GaugeRing</span><span class="p">,</span><span class="w"> </span><span class="c1">//another custom facade</span>
+<span class="w">        </span><span class="nx">percent</span><span class="o">:</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">value</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">color</span><span class="o">:</span><span class="w"> </span><span class="nx">valueToColor</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">value</span><span class="p">),</span>
+<span class="w">        </span><span class="nx">radius</span><span class="o">:</span><span class="w"> </span><span class="mf">0.1</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">transition</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="nx">percent</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="p">}</span><span class="w"> </span><span class="c1">//animate ring changes</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">key</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;label&#39;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">facade</span><span class="o">:</span><span class="w"> </span><span class="nx">Text3DFacade</span><span class="p">,</span><span class="w"> </span><span class="c1">//see troika-3d-text package</span>
+<span class="w">        </span><span class="nx">anchorX</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;center&#39;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">anchorY</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;middle&#39;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">fontSize</span><span class="o">:</span><span class="w"> </span><span class="mf">0.05</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">text</span><span class="o">:</span><span class="w"> </span><span class="sb">`</span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">value</span><span class="si">}</span><span class="sb">%`</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Also, since <a href="../../troika-core/interactivity-and-events/#pointer-events">pointer events bubble</a>, you can add listeners on a Group3DFacade to respond to raycasting events on any of its descendant objects. Just remember that you may need to set <code>pointerEvents: true</code> on those objects to trigger raycasting for them.</p>
+<h2 id="instanceable3dfacade">Instanceable3DFacade<a class="headerlink" href="#instanceable3dfacade" title="Permanent link">&para;</a></h2>
+<p>This is a special kind of <code>Object3DFacade</code> that renders its underlying object using GPU instancing along with all other <code>Instanceable3DFacade</code> instances of the same type, but behaves as its own component instance in terms of how it's configured and handles events. See the <a href="../instancing/">page on instancing</a> for details.</p>
+
+  <hr>
+<div class="md-source-file">
+  <small>
+    
+      Last update:
+      2025-09-10
+    
+  </small>
+</div>
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections"], "search": "../../assets/javascripts/workers/search.dfff1995.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.dff1b7c8.min.js"></script>
+      
+    
+  </body>
+</html>

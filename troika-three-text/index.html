@@ -1,0 +1,2163 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+        <meta name="author" content="Jason Johnston">
+      
+      
+        <link rel="canonical" href="https://protectwise.github.io/troika/troika-three-text/">
+      
+      
+        <link rel="prev" href="../troika-2d/html-overlays/">
+      
+      
+        <link rel="next" href="../troika-three-utils/createDerivedMaterial/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.2, mkdocs-material-9.3.2">
+    
+    
+      
+        <title>Troika 3D Text - Troika JS</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.30068a00.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.85d0ee34.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function n(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],n("js",new Date),n("config","G-91Z6LQXXFX"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){this.value&&n("event","search",{search_term:this.value})}),document$.subscribe(function(){var a=document.forms.feedback;if(void 0!==a)for(var e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");n("event","feedback",{page:t,data:e}),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}),location$.subscribe(function(e){n("config","G-91Z6LQXXFX",{page_path:e.pathname})})});var e=document.createElement("script");e.async=!0,e.src="https://www.googletagmanager.com/gtag/js?id=G-91Z6LQXXFX",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="indigo">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#troika-text-for-threejs" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Troika JS" class="md-header__button md-logo" aria-label="Troika JS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M320 464c8.8 0 16-7.2 16-16V160h-80c-17.7 0-32-14.3-32-32V48H64c-8.8 0-16 7.2-16 16v384c0 8.8 7.2 16 16 16h256zM0 64C0 28.7 28.7 0 64 0h165.5c17 0 33.3 6.7 45.3 18.7l90.5 90.5c12 12 18.7 28.3 18.7 45.3V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V64z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Troika JS
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Troika 3D Text
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/protectwise/troika" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Troika JS" class="md-nav__button md-logo" aria-label="Troika JS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M320 464c8.8 0 16-7.2 16-16V160h-80c-17.7 0-32-14.3-32-32V48H64c-8.8 0-16 7.2-16 16v384c0 8.8 7.2 16 16 16h256zM0 64C0 28.7 28.7 0 64 0h165.5c17 0 33.3 6.7 45.3 18.7l90.5 90.5c12 12 18.7 28.3 18.7 45.3V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V64z"/></svg>
+
+    </a>
+    Troika JS
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/protectwise/troika" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Changelog
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Troika Framework
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Troika Framework
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
+        
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Getting Started
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/setup/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Setup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/examples/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Examples
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Core Concepts
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Core Concepts
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-core/facades/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Facades
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-core/scene-descriptors/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scene Descriptors
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-core/interactivity-and-events/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Interactivity and Events
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-core/animations-and-transitions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Animations and Transitions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Troika 3D
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            Troika 3D
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-3d/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Troika 3D - Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-3d/scenes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Creating a 3D Scene
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-3d/objects/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Adding 3D Objects
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-3d/interactivity-and-events/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Interactivity and Events in 3D
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-3d/performance/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Performance Optimization
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-3d/instancing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    GPU Instancing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-3d/html-overlays/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    HTML Overlays
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-3d/text/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    3D Text
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-3d-ui/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    3D User Interfaces
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-xr/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WebXR
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Troika 2D
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            Troika 2D
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-2d/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Troika 2D - Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-2d/objects/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Interactivity in 2D
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-2d/html-overlays/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    HTML Overlays
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+    
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Troika Tools for Three.js
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Troika Tools for Three.js
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Troika 3D Text
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Troika 3D Text
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#demos" class="md-nav__link">
+    Demos
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#with-other-frameworks" class="md-nav__link">
+    With Other Frameworks
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#screenshots" class="md-nav__link">
+    Screenshots
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    Installation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    Usage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-properties" class="md-nav__link">
+    Supported properties
+  </a>
+  
+    <nav class="md-nav" aria-label="Supported properties">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#text" class="md-nav__link">
+    text
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anchorx" class="md-nav__link">
+    anchorX
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anchory" class="md-nav__link">
+    anchorY
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cliprect" class="md-nav__link">
+    clipRect
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#color" class="md-nav__link">
+    color
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#curveradius" class="md-nav__link">
+    curveRadius
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#depthoffset" class="md-nav__link">
+    depthOffset
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#direction" class="md-nav__link">
+    direction
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fillopacity" class="md-nav__link">
+    fillOpacity
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#font" class="md-nav__link">
+    font
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fontsize" class="md-nav__link">
+    fontSize
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fontstyle" class="md-nav__link">
+    fontStyle
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fontweight" class="md-nav__link">
+    fontWeight
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#glyphgeometrydetail" class="md-nav__link">
+    glyphGeometryDetail
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gpuacceleratesdf" class="md-nav__link">
+    gpuAccelerateSDF
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#letterspacing" class="md-nav__link">
+    letterSpacing
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lineheight" class="md-nav__link">
+    lineHeight
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#material" class="md-nav__link">
+    material
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxwidth" class="md-nav__link">
+    maxWidth
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outlineblur" class="md-nav__link">
+    outlineBlur
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outlinecolor" class="md-nav__link">
+    outlineColor
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outlineoffsetx-outlineoffsety" class="md-nav__link">
+    outlineOffsetX, outlineOffsetY
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outlineopacity" class="md-nav__link">
+    outlineOpacity
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outlinewidth" class="md-nav__link">
+    outlineWidth
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overflowwrap" class="md-nav__link">
+    overflowWrap
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sdfglyphsize" class="md-nav__link">
+    sdfGlyphSize
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strokecolor" class="md-nav__link">
+    strokeColor
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strokeopacity" class="md-nav__link">
+    strokeOpacity
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strokewidth" class="md-nav__link">
+    strokeWidth
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#textalign" class="md-nav__link">
+    textAlign
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#textindent" class="md-nav__link">
+    textIndent
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unicodefontsurl" class="md-nav__link">
+    unicodeFontsUrl
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#whitespace" class="md-nav__link">
+    whiteSpace
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unicode-fallback-fonts" class="md-nav__link">
+    Unicode Fallback Fonts
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#handling-asynchronous-updates" class="md-nav__link">
+    Handling Asynchronous Updates
+  </a>
+  
+    <nav class="md-nav" aria-label="Handling Asynchronous Updates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#disabling-web-worker" class="md-nav__link">
+    Disabling web worker
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#preloading" class="md-nav__link">
+    Preloading
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#postprocessing" class="md-nav__link">
+    Postprocessing
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#carets-and-selection-ranges" class="md-nav__link">
+    Carets and Selection Ranges
+  </a>
+  
+    <nav class="md-nav" aria-label="Carets and Selection Ranges">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#getcaretatpointtextrenderinfo-x-y" class="md-nav__link">
+    getCaretAtPoint(textRenderInfo, x, y)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getselectionrectstextrenderinfo-start-end" class="md-nav__link">
+    getSelectionRects(textRenderInfo, start, end)
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-three-utils/createDerivedMaterial/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Derived Materials
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-three-utils/BezierMesh/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    BezierMesh
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../three-instanced-uniforms-mesh/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    InstancedUniformsMesh
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Other Tools
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Other Tools
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troika-worker-utils/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Worker Modules
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#demos" class="md-nav__link">
+    Demos
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#with-other-frameworks" class="md-nav__link">
+    With Other Frameworks
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#screenshots" class="md-nav__link">
+    Screenshots
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    Installation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    Usage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-properties" class="md-nav__link">
+    Supported properties
+  </a>
+  
+    <nav class="md-nav" aria-label="Supported properties">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#text" class="md-nav__link">
+    text
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anchorx" class="md-nav__link">
+    anchorX
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anchory" class="md-nav__link">
+    anchorY
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cliprect" class="md-nav__link">
+    clipRect
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#color" class="md-nav__link">
+    color
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#curveradius" class="md-nav__link">
+    curveRadius
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#depthoffset" class="md-nav__link">
+    depthOffset
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#direction" class="md-nav__link">
+    direction
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fillopacity" class="md-nav__link">
+    fillOpacity
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#font" class="md-nav__link">
+    font
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fontsize" class="md-nav__link">
+    fontSize
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fontstyle" class="md-nav__link">
+    fontStyle
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fontweight" class="md-nav__link">
+    fontWeight
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#glyphgeometrydetail" class="md-nav__link">
+    glyphGeometryDetail
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gpuacceleratesdf" class="md-nav__link">
+    gpuAccelerateSDF
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#letterspacing" class="md-nav__link">
+    letterSpacing
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lineheight" class="md-nav__link">
+    lineHeight
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#material" class="md-nav__link">
+    material
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maxwidth" class="md-nav__link">
+    maxWidth
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outlineblur" class="md-nav__link">
+    outlineBlur
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outlinecolor" class="md-nav__link">
+    outlineColor
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outlineoffsetx-outlineoffsety" class="md-nav__link">
+    outlineOffsetX, outlineOffsetY
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outlineopacity" class="md-nav__link">
+    outlineOpacity
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outlinewidth" class="md-nav__link">
+    outlineWidth
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overflowwrap" class="md-nav__link">
+    overflowWrap
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sdfglyphsize" class="md-nav__link">
+    sdfGlyphSize
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strokecolor" class="md-nav__link">
+    strokeColor
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strokeopacity" class="md-nav__link">
+    strokeOpacity
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strokewidth" class="md-nav__link">
+    strokeWidth
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#textalign" class="md-nav__link">
+    textAlign
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#textindent" class="md-nav__link">
+    textIndent
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unicodefontsurl" class="md-nav__link">
+    unicodeFontsUrl
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#whitespace" class="md-nav__link">
+    whiteSpace
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unicode-fallback-fonts" class="md-nav__link">
+    Unicode Fallback Fonts
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#handling-asynchronous-updates" class="md-nav__link">
+    Handling Asynchronous Updates
+  </a>
+  
+    <nav class="md-nav" aria-label="Handling Asynchronous Updates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#disabling-web-worker" class="md-nav__link">
+    Disabling web worker
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#preloading" class="md-nav__link">
+    Preloading
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#postprocessing" class="md-nav__link">
+    Postprocessing
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#carets-and-selection-ranges" class="md-nav__link">
+    Carets and Selection Ranges
+  </a>
+  
+    <nav class="md-nav" aria-label="Carets and Selection Ranges">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#getcaretatpointtextrenderinfo-x-y" class="md-nav__link">
+    getCaretAtPoint(textRenderInfo, x, y)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getselectionrectstextrenderinfo-start-end" class="md-nav__link">
+    getSelectionRects(textRenderInfo, start, end)
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="troika-text-for-threejs">Troika Text for Three.js<a class="headerlink" href="#troika-text-for-threejs" title="Permanent link">&para;</a></h1>
+<p>The <code>troika-three-text</code> package provides high quality text rendering in <a href="https://threejs.org">Three.js</a> scenes, using signed distance fields (SDF) and antialiasing using standard derivatives.</p>
+<p>Rather than relying on pre-generated SDF textures, this parses font files (.ttf, .otf, .woff) directly using <a href="https://github.com/fredli74/Typr.ts">Typr</a>, and generates the SDF atlas for glyphs on-the-fly as they are used. It also handles proper kerning, ligature glyph substitution, right-to-left/bidirectional layout, joined scripts like Arabic, and will automatically load fallback fonts for full unicode coverage. All font parsing, SDF generation, and glyph layout is performed in a web worker to prevent frame drops.</p>
+<p>Once the SDFs are generated, it assembles a geometry that positions all the glyphs, and <em>patches</em> any Three.js Material with the proper shader code for rendering the SDFs. This means you can still benefit from all the features of Three.js's built-in materials like lighting, physically-based rendering, shadows, and fog.</p>
+<h2 id="demos">Demos<a class="headerlink" href="#demos" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="https://troika-examples.netlify.com/#text">With the Troika scene management framework</a></li>
+<li><a href="https://codesandbox.io/embed/troika-3d-text-via-react-three-fiber-ntfx2?fontsize=14">With react-three-fiber</a></li>
+<li><a href="https://bfplr.csb.app/">With a video texture</a></li>
+<li><a href="https://codesandbox.io/s/material-icons-in-troika-three-text-t2mu7?file=/src/index.js">With the Material Icons font</a></li>
+<li><a href="https://stackblitz.com/edit/vitejs-vite-xq3mug?file=src%2Fmain.js">With in-place editing</a></li>
+</ul>
+<h2 id="with-other-frameworks">With Other Frameworks<a class="headerlink" href="#with-other-frameworks" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="https://github.com/pmndrs/drei#text">In the <code>drei</code> utilities for react-three-fiber</a></li>
+<li><a href="https://github.com/lojjic/aframe-troika-text">As an A-Frame component</a></li>
+<li><a href="https://www.npmjs.com/package/@three-elements/text">As a Web Component in three-elements</a></li>
+</ul>
+<h2 id="screenshots">Screenshots<a class="headerlink" href="#screenshots" title="Permanent link">&para;</a></h2>
+<p><img alt="Text Rendering" src="images/screenshot1.png" /></p>
+<p><img alt="Zoomed-in" src="images/screenshot2.png" /></p>
+<p><img alt="Font with ligatures" src="images/screenshot3.png" /></p>
+<p><img alt="Text with a texture" src="images/screenshot4.png" /></p>
+<p><img alt="Unicode coverage" src="images/screenshot5.png" /></p>
+<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
+<p>Get it from <a href="https://www.npmjs.com/package/troika-three-text">NPM</a>:</p>
+<div class="highlight"><pre><span></span><code>npm<span class="w"> </span>install<span class="w"> </span>troika-three-text
+</code></pre></div>
+<p>You will also need to install a compatible version of <a href="https://threejs.org">Three.js</a>; see the <a href="../getting-started/setup/#threejs">notes on Three.js versions in the Getting Started docs</a> for details.</p>
+<div class="highlight"><pre><span></span><code>npm<span class="w"> </span>install<span class="w"> </span>three
+</code></pre></div>
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="nx">Text</span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;troika-three-text&#39;</span>
+</code></pre></div>
+<p>You can then use the <code>Text</code> class like any other Three.js mesh:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Create:</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">myText</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Text</span><span class="p">()</span>
+<span class="nx">myScene</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="nx">myText</span><span class="p">)</span>
+
+<span class="c1">// Set properties to configure:</span>
+<span class="nx">myText</span><span class="p">.</span><span class="nx">text</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;Hello world!&#39;</span>
+<span class="nx">myText</span><span class="p">.</span><span class="nx">fontSize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.2</span>
+<span class="nx">myText</span><span class="p">.</span><span class="nx">position</span><span class="p">.</span><span class="nx">z</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="mf">2</span>
+<span class="nx">myText</span><span class="p">.</span><span class="nx">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0x9966FF</span>
+
+<span class="c1">// Update the rendering:</span>
+<span class="nx">myText</span><span class="p">.</span><span class="nx">sync</span><span class="p">()</span>
+</code></pre></div>
+<p>It's a good idea to call the <code>.sync()</code> method after changing any properties that would affect the text's layout. If you don't, it will be called automatically on the next render frame, but calling it yourself can get the result sooner.</p>
+<p>When you're done with the <code>Text</code> instance, be sure to call <code>dispose</code> on it to prevent a memory leak:</p>
+<div class="highlight"><pre><span></span><code><span class="nx">myScene</span><span class="p">.</span><span class="nx">remove</span><span class="p">(</span><span class="nx">myText</span><span class="p">)</span>
+<span class="nx">myText</span><span class="p">.</span><span class="nx">dispose</span><span class="p">()</span>
+</code></pre></div>
+<h2 id="supported-properties">Supported properties<a class="headerlink" href="#supported-properties" title="Permanent link">&para;</a></h2>
+<p>Instances of <code>Text</code> support the following configuration properties:</p>
+<h3 id="text"><code>text</code><a class="headerlink" href="#text" title="Permanent link">&para;</a></h3>
+<p>The string of text to be rendered. Newlines and repeating whitespace characters are honored.</p>
+<p>Default: <em>none</em></p>
+<h3 id="anchorx"><code>anchorX</code><a class="headerlink" href="#anchorx" title="Permanent link">&para;</a></h3>
+<p>Defines the horizontal position in the text block that should line up with the local origin. Can be specified as a numeric <code>x</code> position in local units, a string percentage of the total text block width e.g. <code>'25%'</code>, or one of the following keyword strings: <code>'left'</code>, <code>'center'</code>, or <code>'right'</code>.</p>
+<p>Default: <code>0</code></p>
+<h3 id="anchory"><code>anchorY</code><a class="headerlink" href="#anchory" title="Permanent link">&para;</a></h3>
+<p>Defines the vertical position in the text block that should line up with the local origin. Can be specified as a numeric <code>y</code> position in local units (note: down is negative y), a string percentage of the total text block height e.g. <code>'25%'</code>, or one of the following keyword strings: <code>'top'</code>, <code>'top-baseline'</code>, <code>'top-cap'</code>, <code>'top-ex'</code>, <code>'middle'</code>, <code>'bottom-baseline'</code>, or <code>'bottom'</code>.</p>
+<p>Default: <code>0</code></p>
+<h3 id="cliprect"><code>clipRect</code><a class="headerlink" href="#cliprect" title="Permanent link">&para;</a></h3>
+<p>If specified, defines the <code>[minX, minY, maxX, maxY]</code> of a rectangle outside of which all pixels will be discarded. This can be used for example to clip overflowing text when <code>whiteSpace='nowrap'</code>.</p>
+<p>Default: <em>none</em></p>
+<h3 id="color"><code>color</code><a class="headerlink" href="#color" title="Permanent link">&para;</a></h3>
+<p>This is a shortcut for setting the <code>color</code> of the text's <code>material</code>. You can use this if you don't want to specify a whole custom <code>material</code> and just want to change its color.</p>
+<p>Use the <code>material</code> property if you want to control aspects of the material other than its color.</p>
+<p>Default: <em>none</em> - uses the color of the <code>material</code></p>
+<h3 id="curveradius"><code>curveRadius</code><a class="headerlink" href="#curveradius" title="Permanent link">&para;</a></h3>
+<p>Defines a cylindrical radius along which the text's plane will be curved. Positive numbers put the cylinder's centerline (oriented vertically) that distance in front of the text, for a concave curvature, while negative numbers put it behind the text for a convex curvature. The centerline will be aligned with the text's local origin; you can use <code>anchorX</code> to offset it.</p>
+<p>Since each glyph is by default rendered with a simple quad, each glyph remains a flat plane internally. You can use <a href="#glyphgeometrydetail"><code>glyphGeometryDetail</code></a> to add more vertices for curvature inside glyphs.</p>
+<p>Default: <code>0</code></p>
+<h3 id="depthoffset"><code>depthOffset</code><a class="headerlink" href="#depthoffset" title="Permanent link">&para;</a></h3>
+<p>This is a shortcut for setting the material's <a href="https://threejs.org/docs/#api/en/materials/Material.polygonOffset"><code>polygonOffset</code> and related properties</a>, which can be useful in preventing z-fighting when this text is laid on top of another plane in the scene. Positive numbers are further from the camera, negatives closer.</p>
+<p>Be aware that while this can help with z-fighting, it does not affect the rendering order; if the text renders before the content behind it, you may see antialiasing pixels that appear too dark or light. You may need to also change the text mesh's <code>renderOrder</code>, or set its <code>z</code> position a fraction closer to the camera, to ensure the text renders after background objects.</p>
+<p>Default: <code>0</code></p>
+<h3 id="direction"><code>direction</code><a class="headerlink" href="#direction" title="Permanent link">&para;</a></h3>
+<p>Sets the base direction for the text. The default value of "auto" will choose a direction based on the text's content according to the bidi spec. A value of "ltr" or "rtl" will force the direction.</p>
+<p>Default: <code>'auto'</code></p>
+<h3 id="fillopacity"><code>fillOpacity</code><a class="headerlink" href="#fillopacity" title="Permanent link">&para;</a></h3>
+<p>Controls the opacity of just the glyph's fill area, separate from any configured <code>strokeOpacity</code>, <code>outlineOpacity</code>, and the material's <code>opacity</code>. A <code>fillOpacity</code> of <code>0</code> will make the fill invisible, leaving just the stroke and/or outline.</p>
+<p>Default: <code>1</code></p>
+<h3 id="font"><code>font</code><a class="headerlink" href="#font" title="Permanent link">&para;</a></h3>
+<p>The URL of a custom font file to be used. Supported font formats are:
+* .ttf
+* .otf
+* .woff (.woff2 is <em>not</em> supported)</p>
+<p>Default: The <em>Roboto</em> font loaded from Google Fonts CDN</p>
+<h3 id="fontsize"><code>fontSize</code><a class="headerlink" href="#fontsize" title="Permanent link">&para;</a></h3>
+<p>The em-height at which to render the font, in local world units.</p>
+<p>Default: <code>0.1</code></p>
+<h3 id="fontstyle"><code>fontStyle</code><a class="headerlink" href="#fontstyle" title="Permanent link">&para;</a></h3>
+<p>Either <code>"italic"</code> or <code>"normal"</code>. Currently only used to select the preferred style for the <a href="#unicode-fallback-fonts">fallback Unicode fonts</a>.</p>
+<p>Default: <code>"normal"</code></p>
+<h3 id="fontweight"><code>fontWeight</code><a class="headerlink" href="#fontweight" title="Permanent link">&para;</a></h3>
+<p>A numeric font weight, <code>"normal"</code>, or <code>"bold"</code>. Currently only used to select the preferred weight for the <a href="#unicode-fallback-fonts">fallback Unicode fonts</a>.</p>
+<p>Default: <code>"normal"</code></p>
+<h3 id="glyphgeometrydetail"><code>glyphGeometryDetail</code><a class="headerlink" href="#glyphgeometrydetail" title="Permanent link">&para;</a></h3>
+<p>The number of vertical/horizontal segments that make up each glyph's rectangular plane. This can be increased to provide more geometrical detail for custom vertex shader effects, for example.</p>
+<p>Default: <code>1</code></p>
+<h3 id="gpuacceleratesdf"><code>gpuAccelerateSDF</code><a class="headerlink" href="#gpuacceleratesdf" title="Permanent link">&para;</a></h3>
+<p>When <code>true</code>, the SDF generation process will be GPU-accelerated with WebGL when possible, making it much faster especially for complex glyphs, and falling back to a JavaScript version executed in web workers when support isn't available. It should automatically detect support, but it's still somewhat experimental, so you can set it to <code>false</code> to force it to use the JS version if you encounter issues with it.</p>
+<p>Default: <code>true</code></p>
+<h3 id="letterspacing"><code>letterSpacing</code><a class="headerlink" href="#letterspacing" title="Permanent link">&para;</a></h3>
+<p>Sets a uniform adjustment to spacing between letters after kerning is applied, in local world units. Positive numbers increase spacing and negative numbers decrease it.</p>
+<p>Default: <code>0</code></p>
+<h3 id="lineheight"><code>lineHeight</code><a class="headerlink" href="#lineheight" title="Permanent link">&para;</a></h3>
+<p>Sets the height of each line of text. Can either be <code>'normal'</code> which chooses a reasonable height based on the chosen font's ascender/descender metrics, or a number that is interpreted as a multiple of the <code>fontSize</code>.</p>
+<p>Default: <code>'normal'</code></p>
+<h3 id="material"><code>material</code><a class="headerlink" href="#material" title="Permanent link">&para;</a></h3>
+<p>Defines a Three.js Material <em>instance</em> to be used as a base when rendering the text. This material will be automatically replaced with a new material derived from it, that adds shader code to decrease the alpha for each fragment (pixel) outside the text glyphs, with antialiasing.</p>
+<p>By default it will derive from a simple white `MeshBasicMaterial, but you can use any of the other mesh materials to gain other features like lighting, texture maps, etc.</p>
+<p>Also see the <code>color</code> shortcut property.</p>
+<p>Note that because your material instance is <em>replaced</em> by a derived material instance, any changes you make to your original material will <em>not</em> be reflected in the derived version. If you need to modify properties of the material afterward, be sure you get a new reference to the derived version:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Bad:</span>
+<span class="nx">text</span><span class="p">.</span><span class="nx">material</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">myOrigMaterial</span>
+<span class="nx">myOrigMaterial</span><span class="p">.</span><span class="nx">opacity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.5</span>
+
+<span class="c1">// Good:</span>
+<span class="nx">text</span><span class="p">.</span><span class="nx">material</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">myOrigMaterial</span>
+<span class="nx">text</span><span class="p">.</span><span class="nx">material</span><span class="p">.</span><span class="nx">opacity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.5</span>
+</code></pre></div>
+<p>Default: a <code>MeshBasicMaterial</code> instance</p>
+<h3 id="maxwidth"><code>maxWidth</code><a class="headerlink" href="#maxwidth" title="Permanent link">&para;</a></h3>
+<p>The maximum width of the text block, above which text may start wrapping according to the <code>whiteSpace</code> and <code>overflowWrap</code> properties.</p>
+<p>Default: <code>Infinity</code>, meaning text will never wrap</p>
+<h3 id="outlineblur"><code>outlineBlur</code><a class="headerlink" href="#outlineblur" title="Permanent link">&para;</a></h3>
+<p>Specifies a blur radius applied to the outer edge of the text's <code>outlineWidth</code>. If the <code>outlineWidth</code> is zero, the blur will be applied at the glyph edge, like CSS's <code>text-shadow</code> blur radius. A blur plus a nonzero <code>outlineWidth</code> can give a solid outline with a fuzzy outer edge.</p>
+<p>The blur radius can be specified as either an absolute number in local units, or as a percentage string e.g. <code>"12%"</code> which is treated as a percentage of the <code>fontSize</code>.</p>
+<p>Default: <code>0</code></p>
+<h3 id="outlinecolor"><code>outlineColor</code><a class="headerlink" href="#outlinecolor" title="Permanent link">&para;</a></h3>
+<p>The color to use for the text outline when <code>outlineWidth</code>, <code>outlineBlur</code>, and/or <code>outlineOffsetX/Y</code> are set. Accepts a ThreeJS <code>Color</code> object, or a number/string accepted by <code>Color#set</code>.</p>
+<p>Default: black</p>
+<h3 id="outlineoffsetx-outlineoffsety"><code>outlineOffsetX</code>, <code>outlineOffsetY</code><a class="headerlink" href="#outlineoffsetx-outlineoffsety" title="Permanent link">&para;</a></h3>
+<p>These define a horizontal and vertical offset of the text outline. Using an offset with <code>outlineWidth: 0</code> creates a drop-shadow effect like CSS's <code>text-shadow</code>; also see <code>outlineBlur</code>. </p>
+<p>The offsets can be specified as either an absolute number in local units, or as a percentage string e.g. <code>"12%"</code> which is treated as a percentage of the <code>fontSize</code>.</p>
+<p>Default: <code>0</code></p>
+<h3 id="outlineopacity"><code>outlineOpacity</code><a class="headerlink" href="#outlineopacity" title="Permanent link">&para;</a></h3>
+<p>Sets the opacity of a configured text outline, in the range <code>0</code> to <code>1</code>.</p>
+<p>Default: <code>1</code></p>
+<h3 id="outlinewidth"><code>outlineWidth</code><a class="headerlink" href="#outlinewidth" title="Permanent link">&para;</a></h3>
+<p>The width of an outline/halo to be drawn around each text glyph using the <code>outlineColor</code> and <code>outlineOpacity</code>. This can help improve readability when the text is displayed against a background of low or varying contrast. </p>
+<p>The width can be specified as either an absolute number in local units, or as a percentage string e.g. <code>"10%"</code> which is interpreted as a percentage of the <code>fontSize</code>.</p>
+<p>Default: <code>0</code></p>
+<h3 id="overflowwrap"><code>overflowWrap</code><a class="headerlink" href="#overflowwrap" title="Permanent link">&para;</a></h3>
+<p>Defines how text wraps if the <code>whiteSpace</code> property is <code>'normal'</code>. Can be either <code>'normal'</code> to break at whitespace characters, or <code>'break-word'</code> to allow breaking within words.</p>
+<p>Default: <code>'normal'</code></p>
+<h3 id="sdfglyphsize"><code>sdfGlyphSize</code><a class="headerlink" href="#sdfglyphsize" title="Permanent link">&para;</a></h3>
+<p>Allows overriding the default size of each glyph's SDF (signed distance field) used when rendering this text instance. This must be a power-of-two number. Larger sizes can improve the quality of glyph rendering by increasing the sharpness of corners and preventing loss of very thin lines, at the expense of increased memory footprint and longer SDF generation time.</p>
+<p>Default: <code>64</code></p>
+<h3 id="strokecolor"><code>strokeColor</code><a class="headerlink" href="#strokecolor" title="Permanent link">&para;</a></h3>
+<p>The color of the text stroke, when <code>strokeWidth</code> is nonzero. Accepts a ThreeJS <code>Color</code> object, or a number/string accepted by <code>Color#set</code>.</p>
+<p>Default: grey</p>
+<h3 id="strokeopacity"><code>strokeOpacity</code><a class="headerlink" href="#strokeopacity" title="Permanent link">&para;</a></h3>
+<p>The opacity of the text stroke, when <code>strokeWidth</code> is nonzero. Accepts a number from <code>0</code> to <code>1</code>.</p>
+<p>Default: <code>1</code></p>
+<h3 id="strokewidth"><code>strokeWidth</code><a class="headerlink" href="#strokewidth" title="Permanent link">&para;</a></h3>
+<p>Sets the width of a stroke drawn inside the edge of each text glyph, using the <code>strokeColor</code> and <code>strokeOpacity</code>.</p>
+<p>The width can be specified as either an absolute number in local units, or as a percentage string e.g. <code>"10%"</code> which is interpreted as a percentage of the <code>fontSize</code>.</p>
+<p>Default: <code>0</code></p>
+<h3 id="textalign"><code>textAlign</code><a class="headerlink" href="#textalign" title="Permanent link">&para;</a></h3>
+<p>The horizontal alignment of each line of text within the overall text bounding box. Can be one of <code>'left'</code>, <code>'right'</code>, <code>'center'</code>, or <code>'justify'</code>.</p>
+<p>Default: <code>'left'</code></p>
+<h3 id="textindent"><code>textIndent</code><a class="headerlink" href="#textindent" title="Permanent link">&para;</a></h3>
+<p>An indentation applied to the first character of each <em>hard</em> newline. Behaves like CSS <code>text-indent</code>.</p>
+<p>Default: <code>0</code></p>
+<h3 id="unicodefontsurl"><code>unicodeFontsUrl</code><a class="headerlink" href="#unicodefontsurl" title="Permanent link">&para;</a></h3>
+<p>A custom hosting location for <a href="https://github.com/lojjic/unicode-font-resolver/">unicode-font-resolver</a> data index and font files, if you want to self-host them rather than using the default CDN. See <a href="#unicode-fallback-fonts">Unicode Fallback Fonts</a> below for details.</p>
+<h3 id="whitespace"><code>whiteSpace</code><a class="headerlink" href="#whitespace" title="Permanent link">&para;</a></h3>
+<p>Defines whether text should wrap when a line reaches the <code>maxWidth</code>. Can be either <code>'normal'</code>, to allow wrapping according to the <code>overflowWrap</code> property, or <code>'nowrap'</code> to prevent wrapping.</p>
+<p>Note that <code>'normal'</code> in this context <em>does</em> honor newline characters to manually break lines, making it behave more like <code>'pre-wrap'</code> does in CSS.</p>
+<p>Default: <code>'normal'</code></p>
+<h2 id="unicode-fallback-fonts">Unicode Fallback Fonts<a class="headerlink" href="#unicode-fallback-fonts" title="Permanent link">&para;</a></h2>
+<p>When a character is not covered by the configured <code>font</code> file, <a href="https://github.com/lojjic/unicode-font-resolver/">unicode-font-resolver</a> will be used to query for an appropriate fallback font. All Unicode character ranges supported by the <a href="https://fonts.google.com/noto">Google Noto Fonts</a> are covered this way.</p>
+<p>By default, the unicode-font-resolver data index and font files are loaded from the <a href="https://www.jsdelivr.com/">jsDelivr CDN</a>. If you wish to self-host those files you can do so; however be aware the full set of data and fonts is nearly 300MB.</p>
+<p>To self-host the files:</p>
+<ul>
+<li>Go to the <a href="https://github.com/lojjic/unicode-font-resolver/tags">unicode-font-resolver Github tags page</a></li>
+<li>Find the tag matching the version of <code>@unicode-font-resolver/client</code> declared in <code>troika-three-text/package.json</code>'s <code>devDependencies</code>.</li>
+<li>Download the source code .zip or .tar.gz for that release and unpack it.</li>
+<li>Copy the contents of the <code>packages/data/</code> directory to your server where you want to host it.</li>
+<li>Configure troika-three-text to load from that server URL:<ul>
+<li>Per Text instance:
+  <div class="highlight"><pre><span></span><code><span class="nx">text</span><span class="p">.</span><span class="nx">unicodeFontsURL</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;https://my.host/unicode-fonts-data&#39;</span>
+</code></pre></div></li>
+<li>Globally:
+  <div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="nx">configureTextBuilder</span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;troika-three-text&#39;</span>
+
+<span class="nx">configureTextBuilder</span><span class="p">({</span>
+<span class="w">  </span><span class="nx">unicodeFontsURL</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;https://my.host/unicode-fonts-data&#39;</span>
+<span class="p">})</span>
+</code></pre></div></li>
+</ul>
+</li>
+</ul>
+<h2 id="handling-asynchronous-updates">Handling Asynchronous Updates<a class="headerlink" href="#handling-asynchronous-updates" title="Permanent link">&para;</a></h2>
+<p>Since the text processing occurs in a web worker, it is by definition asynchronous. This means that you can't rely on the text being visible or having a complete geometry immediately. If you need to do things like access the geometry's <code>boundingSphere</code> or the <code>textRenderInfo</code>, you will have to listen for completion. You can do this two ways:</p>
+<ol>
+<li>
+<p>Pass a callback function when you call the <code>sync</code> method:</p>
+<div class="highlight"><pre><span></span><code><span class="nx">myText</span><span class="p">.</span><span class="nx">sync</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// code to execute after sync completes...</span>
+<span class="p">})</span>
+</code></pre></div>
+<p>This is best when you want to only react to <em>that specific</em> sync call. Keep in mind that the callback will not execute if the text is already fully synced.</p>
+</li>
+<li>
+<p>Add a listener for the <code>synccomplete</code> event:</p>
+<div class="highlight"><pre><span></span><code><span class="nx">myText</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">&#39;synccomplete&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// code to execute after sync completes...</span>
+<span class="p">})</span>
+</code></pre></div>
+<p>This will fire after <em>every</em> sync, no matter who invoked it. This is best if you need to react to all syncs, for example to trigger a manual canvas render.</p>
+<p>You can also listen for the <code>syncstart</code> event if you need to react to the initiation of a sync call, e.g. to set some sort of "waiting" state while the text is being processed.</p>
+</li>
+</ol>
+<h3 id="disabling-web-worker">Disabling web worker<a class="headerlink" href="#disabling-web-worker" title="Permanent link">&para;</a></h3>
+<p>Some environments don't allow evaluating JS strings for security reasons, like those with a restrictive <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP">CSP</a>, which blocks how troika-three-text creates its web worker. Or you may want to avoid using a worker for some other reason. You can force it to run on the main thread instead (although still asynchronously) by configuring it prior to creating any Text instances:</p>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="nx">configureTextBuilder</span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;troika-three-text&#39;</span>
+
+<span class="nx">configureTextBuilder</span><span class="p">({</span>
+<span class="w">  </span><span class="nx">useWorker</span><span class="o">:</span><span class="w"> </span><span class="kc">false</span>
+<span class="p">})</span>
+</code></pre></div>
+<h2 id="preloading">Preloading<a class="headerlink" href="#preloading" title="Permanent link">&para;</a></h2>
+<p>To avoid long pauses when first displaying a piece of text in your scene, you can preload fonts and optionally pre-generate the SDF textures for particular glyphs up front:</p>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="nx">preloadFont</span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;troika-three-text&#39;</span>
+
+<span class="nx">myApp</span><span class="p">.</span><span class="nx">showLoadingScreen</span><span class="p">()</span>
+
+<span class="nx">preloadFont</span><span class="p">(</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">font</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;path/to/myfontfile.woff&#39;</span><span class="p">,</span><span class="w"> </span>
+<span class="w">    </span><span class="nx">characters</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;abcdefghijklmnopqrstuvwxyz&#39;</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">myApp</span><span class="p">.</span><span class="nx">showScene</span><span class="p">()</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>The arguments are:</p>
+<ul>
+<li>
+<p><code>options</code></p>
+</li>
+<li>
+<p><code>options.font</code> - The URL of the font file to preload. If <code>null</code> is passed, this will preload the default font.</p>
+</li>
+<li>
+<p><code>options.characters</code> - A string or array of string character sequences for which to pre-generate glyph SDF textures. Note that this <em>will</em> honor ligature substitution, so you may need to specify ligature sequences in addition to their individual characters to get all possible glyphs, e.g. <code>["t", "h", "th"]</code> to get the "t" and "h" glyphs plus the "th" glyph.</p>
+</li>
+<li>
+<p><code>options.sdfGlyphSize</code> - The size at which to prerender the SDFs for the <code>characters</code> glyphs. See the <code>sdfGlyphSize</code> config property on <code>Text</code> for details about SDF sizes. If not specified, will use the default SDF size.</p>
+</li>
+<li>
+<p><code>callback</code> - A function that will be called when the preloading is complete.</p>
+</li>
+</ul>
+<h2 id="postprocessing">Postprocessing<a class="headerlink" href="#postprocessing" title="Permanent link">&para;</a></h2>
+<p>It is possible to use <code>Text</code> within scenes that utilize the <a href="https://github.com/vanruesc/postprocessing">postprocessing</a> library for applying image effects. However, you must enable a special mode in that library that allows <code>Text</code>'s custom material to be honored. Just do the following once somewhere in your code:</p>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">OverrideMaterialManager</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;postprocessing&#39;</span>
+
+<span class="nx">OverrideMaterialManager</span><span class="p">.</span><span class="nx">workaroundEnabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</code></pre></div>
+<h2 id="carets-and-selection-ranges">Carets and Selection Ranges<a class="headerlink" href="#carets-and-selection-ranges" title="Permanent link">&para;</a></h2>
+<p>In addition to rendering text, it is possible to access positioning information for caret placement and selection ranges. To access that info, use the <code>getCaretAtPoint</code> and <code>getSelectionRects</code> utility functions. Both of these functions take a <code>textRenderInfo</code> object as input, which you can get from the <code>Text</code> object's <code>textRenderInfo</code> property after sync has completed. See "Handling Asynchronous Updates" above for how to react to sync completion events.</p>
+<h3 id="getcaretatpointtextrenderinfo-x-y"><code>getCaretAtPoint(textRenderInfo, x, y)</code><a class="headerlink" href="#getcaretatpointtextrenderinfo-x-y" title="Permanent link">&para;</a></h3>
+<p>This returns the caret position nearest to a given x/y position in the local text plane. This is useful for placing an editing caret based on a click or ther raycasted event. The return value is an object with the following properties:</p>
+<ul>
+<li><code>x</code> - x position of the caret</li>
+<li><code>y</code> - y position of the caret's bottom</li>
+<li><code>height</code> - height of the caret, based on the current fontSize and lineHeight</li>
+<li><code>charIndex</code> - the index in the original input string of this caret's target character. The caret will be for the position <em>before</em> that character. For the final caret position, this will be equal to the string length. For ligature glyphs, this will be for the first character in the ligature sequence.</li>
+</ul>
+<h3 id="getselectionrectstextrenderinfo-start-end"><code>getSelectionRects(textRenderInfo, start, end)</code><a class="headerlink" href="#getselectionrectstextrenderinfo-start-end" title="Permanent link">&para;</a></h3>
+<p>This returns a list of rectangles covering all the characters within a given character range. This is useful for highlighting a selection range. The return value is an array of objects, each with <code>{left, top, right, bottom}</code> properties in the local text plane.</p>
+
+  <hr>
+<div class="md-source-file">
+  <small>
+    
+      Last update:
+      2025-09-10
+    
+  </small>
+</div>
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections"], "search": "../assets/javascripts/workers/search.dfff1995.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.dff1b7c8.min.js"></script>
+      
+    
+  </body>
+</html>
