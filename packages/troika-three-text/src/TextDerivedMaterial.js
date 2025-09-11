@@ -194,6 +194,11 @@ gl_FragColor = mix(fillRGBA, strokeRGBA, smoothstep(
   fragDistance
 ));
 gl_FragColor.a *= edgeAlpha;
+// if is outline pass
+if (uTroikaEdgeOffset > 0.0) {
+  float innerAlpha = 1.0 - troikaGetEdgeAlpha(fragDistance, 0.0, max(aaDist, uTroikaBlurRadius));
+  gl_FragColor.a *= innerAlpha;
+}
 #endif
 
 if (edgeAlpha == 0.0) {
