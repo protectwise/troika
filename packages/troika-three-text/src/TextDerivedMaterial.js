@@ -184,10 +184,10 @@ float edgeAlpha = uTroikaSDFDebug ?
   troikaGetEdgeAlpha(fragDistance, uTroikaEdgeOffset, max(aaDist, uTroikaBlurRadius));
 
 #if !defined(IS_DEPTH_MATERIAL) && !defined(IS_DISTANCE_MATERIAL)
-      vec4 fillRGBA = gl_FragColor;
-    fillRGBA.a *= uTroikaFillOpacity;
-    vec4 strokeRGBA = uTroikaStrokeWidth == 0.0 ? fillRGBA : vec4(uTroikaStrokeColor, uTroikaStrokeOpacity);
-    if (fillRGBA.a == 0.0) fillRGBA.rgb = strokeRGBA.rgb;
+vec4 fillRGBA = gl_FragColor;
+fillRGBA.a *= uTroikaFillOpacity;
+vec4 strokeRGBA = uTroikaStrokeWidth == 0.0 ? fillRGBA : vec4(uTroikaStrokeColor, uTroikaStrokeOpacity);
+if (fillRGBA.a == 0.0) fillRGBA.rgb = strokeRGBA.rgb;
 gl_FragColor = mix(fillRGBA, strokeRGBA, smoothstep(
   -uTroikaStrokeWidth - aaDist,
   -uTroikaStrokeWidth + aaDist,
