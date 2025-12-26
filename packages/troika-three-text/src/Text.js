@@ -66,6 +66,7 @@ const SYNCABLE_PROPS = [
   'textAlign',
   'textIndent',
   'whiteSpace',
+  'enableLigatures',
   'anchorX',
   'anchorY',
   'colorRanges',
@@ -221,6 +222,13 @@ class Text extends Mesh {
      * manually break lines, making it behave more like `'pre-wrap'` does in CSS.
      */
     this.whiteSpace = 'normal'
+
+    /**
+     * @member {boolean} enableLigatures
+     * Toggles ligature substitution.
+     * Defaults to true.
+     */
+    this.enableLigatures = true
 
 
     // === Presentation properties: === //
@@ -432,6 +440,7 @@ class Text extends Mesh {
           textAlign: this.textAlign,
           textIndent: this.textIndent,
           whiteSpace: this.whiteSpace,
+          enableLigatures: this.enableLigatures,
           overflowWrap: this.overflowWrap,
           anchorX: this.anchorX,
           anchorY: this.anchorY,

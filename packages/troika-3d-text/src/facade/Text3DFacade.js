@@ -19,6 +19,7 @@ export const TEXT_MESH_PROPS = [
   'textAlign',
   'textIndent',
   'whiteSpace',
+  'enableLigatures',
   'material',
   'color',
   'colorRanges',
