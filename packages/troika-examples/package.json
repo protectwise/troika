@@ -1,6 +1,7 @@
 {
   "name": "troika-examples",
   "version": "0.52.4",
+  "type": "module",
   "private": true,
   "description": "Troika Examples",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
@@ -17,11 +18,11 @@
   "dependencies": {
     "adaptive-bezier-curve": "^1.0.3",
     "d3-hierarchy": "^1.1.8",
-    "d3-voronoi": "^1.1.4",
-    "react": "^16.14.0",
+    "d3-delaunay": "^6.0.2",
+    "react": "^19.2.1",
     "react-dat-gui": "^4.0.0",
-    "react-dom": "^16.14.0",
-    "three": "^0.149.0",
+    "react-dom": "^19.2.1",
+    "three": "^0.182.0",
     "three-instanced-uniforms-mesh": "^0.52.4",
     "three-line-2d": "^1.1.6",
     "troika-2d": "^0.52.0",

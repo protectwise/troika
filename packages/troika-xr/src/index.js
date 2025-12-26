@@ -18,6 +18,21 @@ export * from './XRStandardGamepadMapping.js'
 export {default as BasicGrip} from './facade/grip-models/BasicGrip.js'
 export {default as OculusTouchGrip} from './facade/grip-models/OculusTouchGrip.js'
 
+//=== VisionOS & Spatial Web: ===//
+
+// VisionOS CSS and UI presets
+export {
+  injectVisionOSStyles,
+  getVisionOSStylesheet,
+  setCanvasCursorForVisionOS,
+  isVisionOS,
+  isiPadOS,
+  getOptimalFramebufferScale,
+  getSafeAreaInsets,
+  applyVisionOSPreset,
+  VisionOSPresets
+} from './utils/VisionOSPresets.js'
+
 // Wrist Mounted UI Container
 export {WristMountedUI} from './facade/wrist-mounted-ui/WristMountedUI.js'
 

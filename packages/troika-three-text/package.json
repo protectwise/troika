@@ -20,7 +20,7 @@
     "webgl-sdf-generator": "1.1.1"
   },
   "peerDependencies": {
-    "three": ">=0.125.0"
+    "three": ">=0.182.0"
   },
   "devDependencies": {
     "@lojjic/typr": "0.3.8-lojjic1",

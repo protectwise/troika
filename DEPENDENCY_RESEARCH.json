@@ -1,0 +1,253 @@
+{
+    "research_date": "2025-12-11",
+    "summary": "Latest library versions and features for Troika modernization with Vision Pro focus",
+    "libraries": {
+        "three": {
+            "current_latest": "r182",
+            "release_date": "2025-12-10",
+            "phase_1_baseline": "r180+",
+            "current_recommendation": "^0.182.0",
+            "breaking_changes": [
+                "r175: Material setter API changes (must use new property API)",
+                "r176: Removed Luminance/LuminanceAlpha formats",
+                "Ensure custom materials in troika-three-utils use createDerivedMaterial"
+            ],
+            "vision_pro_readiness": true,
+            "key_features": [
+                "Native WASM bindings for platform optimization",
+                "Material setter fixes for WebXR/Vision Pro",
+                "ArrayCamera support for stereoscopic rendering",
+                "Improved instancing and batching performance",
+                "Better material disposal and memory management"
+            ],
+            "migration_effort": "low"
+        },
+        "webxr_device_api": {
+            "status": "W3C Recommendation (stable)",
+            "vision_pro_support": {
+                "available": true,
+                "implementation_version": "visionOS 1.1+",
+                "enable_setting": "Settings > Apps > Safari > Advanced > Feature Flags > WebXR Device API",
+                "enable_programmatically": "navigator.xr.requestSession({ optionalFeatures: ['hand-tracking'] })"
+            },
+            "capabilities": [
+                "Eye gaze + pinch input (dual mode)",
+                "Full hand tracking (26-point joint tracking)",
+                "6DoF head tracking",
+                "Transient pointers for pinch gestures",
+                "Mixed reality pass-through video"
+            ],
+            "testing_support": {
+                "simulator": "visionOS simulator (macOS with Xcode)",
+                "hardware": "Apple Vision Pro (experimental in visionOS 1.1)"
+            },
+            "notes": [
+                "Hand tracking enabled: only pose data, no interaction events",
+                "No AR sessions yet on Vision Pro",
+                "Troika troika-xr package already supports all features"
+            ]
+        },
+        "babel": {
+            "current_latest": "7.27.0",
+            "release_date": "2025-04",
+            "phase_1_baseline": "7.24.0",
+            "current_recommendation": "^7.27.0",
+            "breaking_changes_from_phase_1": "none",
+            "migration_effort": "none (drop-in replacement)",
+            "upcoming": {
+                "babel_8_beta": "released 2025-05",
+                "expected_stable": "2025-Q3+",
+                "major_change": "ESM-only package (no CommonJS)",
+                "requires_node": "20.0.0+"
+            },
+            "key_features": {
+                "7.27.0": "Better ecosystem alignment",
+                "7.26.0": "Stage 4 features by default, inline RegExp modifiers",
+                "7.25.0": "Safari bugfixes, duplicate named capture groups",
+                "7.24.0": "Decorators updates, JSON module imports"
+            ]
+        },
+        "jest": {
+            "current_latest": "30.2.0",
+            "release_date": "2025-09-28",
+            "phase_1_baseline": "29.7.0",
+            "current_recommendation": "^30.2.0",
+            "breaking_changes_from_phase_1": "minor (snapshot format, API changes)",
+            "migration_effort": "medium (test in CI first)",
+            "key_improvements": [
+                "Faster test execution (10-20% improvement expected)",
+                "Leaner dependencies",
+                "Better error messages",
+                "Node.js 20+ optimized"
+            ],
+            "recommendation": "Test in CI/CD before production deployment; worth the speed gains"
+        },
+        "rollup": {
+            "current_latest": "4.53.3",
+            "release_date": "2025-11-19",
+            "phase_1_baseline": "4.9.0",
+            "current_recommendation": "^4.53.0",
+            "breaking_changes_from_phase_1": "none (only additive features)",
+            "migration_effort": "low",
+            "key_features": {
+                "native_bindings": "Automatic WASM/native binary for platform optimization",
+                "hash_improvement": "url-safe base64 (safer, max 21 chars)",
+                "shebang_support": "Automatic CLI app shebang preservation",
+                "plugin_api": "Better error handling, improved watch file management"
+            ],
+            "required_updates": [
+                "@rollup/plugin-commonjs >=25.0.0",
+                "@rollup/plugin-node-resolve >=15.0.0",
+                "@rollup/plugin-babel >=6.0.0"
+            ]
+        },
+        "eslint": {
+            "current_latest": "9.24.0+",
+            "release_date": "2025-04",
+            "phase_1_baseline": "9.x (flat config)",
+            "current_recommendation": "^9.24.0",
+            "breaking_changes_from_phase_1": "none (flat config already adopted in r182)",
+            "migration_effort": "low (if flat config already used)",
+            "key_features": {
+                "9.24.0": "Bulk suppressions, TypeScript syntax in core rules",
+                "9.23.0": "Extended TypeScript support",
+                "9.0.0": "Flat config system (breaking change from 8.x)"
+            },
+            "notes": [
+                "Three.js r182 migrated to ESLint 9 flat config",
+                "Verify Troika uses eslint.config.js not .eslintrc",
+                "Language plugins available: Markdown, JSON (CSS prototype)"
+            ]
+        },
+        "typescript": {
+            "current_latest": "5.7.2",
+            "release_date": "2024-11",
+            "relevance_to_troika": "low (Troika core is JavaScript, not TypeScript)",
+            "current_recommendation": "^5.7.0 (if used in examples)",
+            "breaking_changes": "none",
+            "key_features": {
+                "5.7.0": "ES2024 target support, isolated declarations for faster builds",
+                "5.6.0": "Various improvements"
+            }
+        }
+    },
+    "upgrade_matrix": {
+        "immediate_low_risk": [
+            {
+                "package": "three",
+                "from": "0.175.0+",
+                "to": "^0.182.0",
+                "risk": "low",
+                "test_focus": "custom materials in troika-three-utils, shader compilation"
+            },
+            {
+                "package": "@babel/core",
+                "from": "7.24.0",
+                "to": "^7.27.0",
+                "risk": "none",
+                "test_focus": "build output, no functional testing needed"
+            },
+            {
+                "package": "rollup",
+                "from": "4.9.0",
+                "to": "^4.53.0",
+                "risk": "low",
+                "test_focus": "build artifacts, bundle size, examples"
+            }
+        ],
+        "medium_risk_test_first": [
+            {
+                "package": "jest",
+                "from": "29.7.0",
+                "to": "^30.2.0",
+                "risk": "medium",
+                "test_focus": "full test suite in CI, snapshot validation"
+            }
+        ],
+        "future_planning": [
+            {
+                "package": "@babel/core",
+                "from": "7.27.0",
+                "to": "8.0+ (beta)",
+                "risk": "high",
+                "timeline": "2025-Q3+",
+                "notes": "Plan migration when stable; ESM-only is major breaking change"
+            }
+        ]
+    },
+    "vision_pro_specific": {
+        "three_js_readiness": {
+            "status": "ready",
+            "required_version": "r180+",
+            "current_version": "r182",
+            "critical_fix": "r175 material setter API (enables custom WebXR materials)"
+        },
+        "webxr_support": {
+            "status": "supported",
+            "hand_tracking": "native via XRInputSourceManager",
+            "input_modes": [
+                "eye-gaze",
+                "pinch",
+                "hand-tracking"
+            ],
+            "implementation": "troika-xr package (XRCameraFacade, WorldXRFacade)"
+        },
+        "testing_path": [
+            "1. Enable WebXR in Safari settings (visionOS or simulator)",
+            "2. Use visionOS simulator with Xcode for local testing",
+            "3. Test hand tracking + eye-gaze interactions",
+            "4. Verify framebuffer scaling for performance (adjust xrFramebufferScaleFactor)",
+            "5. Validate on actual Vision Pro hardware when available"
+        ],
+        "css_best_practices": [
+            "Safe area insets: env(safe-area-inset-*)",
+            "Overscroll prevention: overscroll-behavior: none",
+            "Text size lock: -webkit-text-size-adjust: 100%",
+            "Cursor feedback: cursor: crosshair on interactive areas"
+        ]
+    },
+    "action_items": {
+        "phase": "Phase 2 (Post-Modernization)",
+        "timeline": "Q1 2025",
+        "priority_1_safe": [
+            "Upgrade Three.js r180+ → r182",
+            "Upgrade Babel 7.24 → 7.27 (drop-in)",
+            "Upgrade Rollup 4.9 → 4.53 (drop-in)",
+            "Update @rollup/* plugins"
+        ],
+        "priority_2_test_first": [
+            "Upgrade Jest 29.7 → 30.2 (run full test suite)",
+            "Verify ESLint flat config usage",
+            "Update ESLint to 9.24.0+ (no breaking changes from 9.x)"
+        ],
+        "priority_3_planning": [
+            "Monitor Babel 8.0 beta for stability",
+            "Plan Babel 8 migration when stable (Q3 2025+)",
+            "Set up Vision Pro testing environment (visionOS simulator)"
+        ]
+    },
+    "notes": {
+        "three_js": "Critical: r175 introduced material setter API changes. r180+ is minimum for Vision Pro WebXR materials.",
+        "webxr": "Experimental in visionOS 1.1 (testing phase). Must be manually enabled in Safari settings.",
+        "babel_8": "ESM-only package; breaking change. Requires Node.js 20+. Watch beta releases.",
+        "jest_30": "Minor breaking changes in snapshot/API. Jump from 29→30 is safe but needs CI testing.",
+        "rollup": "Safe upgrade; native bindings are optional and improve build performance.",
+        "eslint_9": "Already adopted in Three.js r182. Flat config is standard; no action needed if already using it."
+    },
+    "version_matrix_recommended": {
+        "three": "^0.182.0",
+        "@babel/core": "^7.27.0",
+        "@babel/preset-env": "^7.27.0",
+        "@babel/preset-react": "^7.27.0",
+        "jest": "^30.2.0",
+        "jest-environment-jsdom": "^30.2.0",
+        "rollup": "^4.53.0",
+        "@rollup/plugin-commonjs": "^25.0.0",
+        "@rollup/plugin-node-resolve": "^15.3.0",
+        "@rollup/plugin-babel": "^6.0.0",
+        "eslint": "^9.24.0",
+        "typescript": "^5.7.0",
+        "lerna": "^4.0.0",
+        "babel-jest": "^30.2.0"
+    }
+}

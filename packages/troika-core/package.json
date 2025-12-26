@@ -18,8 +18,8 @@
     "troika-animation": "^0.52.0"
   },
   "peerDependencies": {
-    "react": "^16.5.2",
-    "react-dom": "^16.5.2"
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1"
   },
   "peerDependenciesMeta": {
     "react": {

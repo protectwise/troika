@@ -1,5 +1,5 @@
 import buble from 'rollup-plugin-buble'
-import closureCompiler from '@ampproject/rollup-plugin-closure-compiler'
+import terser from '@rollup/plugin-terser'
 import fs from 'fs'
 
 
@@ -10,10 +10,12 @@ subpackages. To build all packages, make sure you're in the repository root and 
 
   npm run build
 
+Configuration optimized for Rollup 4.x with improved tree-shaking and bundle sizes.
+
 */
 
 
-const { LERNA_PACKAGE_NAME, LERNA_ROOT_PATH } = process.env
+const { LERNA_PACKAGE_NAME, LERNA_ROOT_PATH, ROLLUP_WATCH } = process.env
 if (!LERNA_PACKAGE_NAME || !LERNA_ROOT_PATH) {
   throw new Error("The build must be run by Lerna; please use `npm run build` from the repository root.")
 }
@@ -54,6 +56,10 @@ const onwarn = (warning, warn) => {
   if (warning.code === 'EVAL' && /yoga\.factory\.js/.test(warning.id)) {
     return
   }
+  // Suppress circular dependency warnings in test/example environments
+  if (warning.code === 'CIRCULAR_DEPENDENCY' && ROLLUP_WATCH) {
+    return
+  }
   warn(warning)
 }
 
@@ -75,18 +81,20 @@ const builds = []
 for (let entry of Object.keys(entries)) {
   const outFilePrefix = entries[entry]
   builds.push(
-    // ES module file
+    // ES module file - optimized for tree-shaking
     {
       input: entry,
       output: {
         format: 'esm',
-        file: `dist/${outFilePrefix}.esm.js`
+        file: `dist/${outFilePrefix}.esm.js`,
+        preserveModules: false
       },
       external: Object.keys(EXTERNAL_GLOBALS),
       plugins: [
         TRANSPILE_PACKAGES.includes(LERNA_PACKAGE_NAME) ? buble() : null
       ],
-      onwarn
+      onwarn,
+      perf: true
     },
     // UMD file
     {
@@ -101,7 +109,8 @@ for (let entry of Object.keys(entries)) {
       plugins: [
         TRANSPILE_PACKAGES.includes(LERNA_PACKAGE_NAME) ? buble() : null
       ],
-      onwarn
+      onwarn,
+      perf: true
     },
     // UMD file, minified
     {
@@ -115,9 +124,10 @@ for (let entry of Object.keys(entries)) {
       external: Object.keys(EXTERNAL_GLOBALS),
       plugins: [
         TRANSPILE_PACKAGES.includes(LERNA_PACKAGE_NAME) ? buble() : null,
-        closureCompiler()
+        terser()
       ],
-      onwarn
+      onwarn,
+      perf: true
     }
   )
 }

@@ -1,12 +1,13 @@
 // Rollup plugins
 import buble from 'rollup-plugin-buble'
-import nodeResolve from 'rollup-plugin-node-resolve'
+import { nodeResolve } from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import replace from 'rollup-plugin-replace'
 import {string as importStrings} from 'rollup-plugin-string'
 import importJson from 'rollup-plugin-json'
 import css from 'rollup-plugin-postcss'
 import serve from 'rollup-plugin-serve'
+import terser from '@rollup/plugin-terser'
 
 
 const { LERNA_PACKAGE_NAME, LERNA_ROOT_PATH, START_SERVER, SERVER_HOST, SERVER_PORT } = process.env
@@ -40,14 +41,7 @@ export default {
       objectAssign: 'Object.assign'
     }),
     commonjs({
-      extensions: [ '.js', '.jsx' ],  // Default: [ '.js' ]
-      namedExports: {
-        // Help it resolve the exports from react
-        'react': [
-          'Component',
-          'cloneElement'
-        ],
-      }
+      extensions: [ '.js', '.jsx' ]  // Default: [ '.js' ]
     }),
     nodeResolve({
       // Favor local sources via our custom "module:src" field, and "browser" over "main" in resolution

@@ -1,5 +1,5 @@
 import {BufferGeometry, BufferAttribute} from 'three'
-import {voronoi} from 'd3-voronoi'
+import {Delaunay} from 'd3-delaunay'
 
 
 
@@ -26,7 +26,19 @@ function isTriangleInPoly(trianglePoints, polyPoints) {
   return isPointInPolygon2(x1 + (edgeX - x1) / 2, y1 + (edgeY - y1) / 2, polyPoints)
 }
 
-const voronoiInstance = voronoi()
+function getDelaunayTriangles(points) {
+  const delaunay = Delaunay.from(points, p => p[0], p => p[1])
+  const triangles = []
+  const indices = delaunay.triangles
+  for (let i = 0; i < indices.length; i += 3) {
+    triangles.push([
+      points[indices[i]],
+      points[indices[i + 1]],
+      points[indices[i + 2]]
+    ])
+  }
+  return triangles
+}
 
 export default class CountryBufferGeometry extends BufferGeometry {
   /**
@@ -72,8 +84,8 @@ export default class CountryBufferGeometry extends BufferGeometry {
         }
       }
 
-      // Compute Voronoi/Delaunay triangles, and discard those that fall outside the polygon
-      let triangles = voronoiInstance.triangles(allPoints)
+      // Compute Delaunay triangles, and discard those that fall outside the polygon
+      let triangles = getDelaunayTriangles(allPoints)
       for (let i = 0, len = triangles.length; i < len; i++) {
         if (isTriangleInPoly(triangles[i], mainPoly)) {
           if (!holePolys.some(holePoly => isTriangleInPoly(triangles[i], holePoly))) {

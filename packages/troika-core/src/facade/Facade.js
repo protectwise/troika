@@ -1,4 +1,4 @@
-import {assign} from '../utils.js'
+import { assign } from "../utils.js";
 
 /**
  * The base class for all Facade classes.
@@ -61,8 +61,8 @@ import {assign} from '../utils.js'
  */
 export default class Facade {
   constructor(parent) {
-    this.$facadeId = `facade${ idCounter++ }`
-    this.parent = parent
+    this.$facadeId = `facade${idCounter++}`;
+    this.parent = parent;
   }
 
   /**
@@ -73,18 +73,21 @@ export default class Facade {
    * @param {object} [props] - A set of properties to be copied to the facade
    */
   update(props) {
-    if (props && typeof props === 'object') {
+    if (props && typeof props === "object") {
       // Always assign transition and animation first
-      this.transition = props.transition
-      this.animation = props.animation
+      this.transition = props.transition;
+      this.animation = props.animation;
       for (let prop in props) {
-        if (props.hasOwnProperty(prop) && !Facade.isSpecialDescriptorProperty(prop)) {
-          this[prop] = props[prop]
+        if (
+          props.hasOwnProperty(prop) &&
+          !Facade.isSpecialDescriptorProperty(prop)
+        ) {
+          this[prop] = props[prop];
         }
       }
     }
-    this.afterUpdate()
-    this.requestRender()
+    this.afterUpdate();
+    this.requestRender();
   }
 
   /**
@@ -92,16 +95,16 @@ export default class Facade {
    */
   afterUpdate() {
     // Handle calling ref function
-    let ref = this.ref
+    let ref = this.ref;
     if (ref !== this._lastRef) {
-      if (typeof this._lastRef === 'function') {
-        this._lastRef.call(null, null)
+      if (typeof this._lastRef === "function") {
+        this._lastRef.call(null, null);
       }
-      if (typeof ref === 'function') {
-        ref.call(null, this)
-        this._lastRef = ref
+      if (typeof ref === "function") {
+        ref.call(null, this);
+        this._lastRef = ref;
       } else {
-        this._lastRef = null
+        this._lastRef = null;
       }
     }
   }
@@ -111,7 +114,7 @@ export default class Facade {
    */
   notifyWorld(message, data) {
     if (this.parent) {
-      this.parent.onNotifyWorld(this, message, data)
+      this.parent.onNotifyWorld(this, message, data);
     }
   }
 
@@ -119,22 +122,27 @@ export default class Facade {
    * Default onNotifyWorld handler just bubbles it up the parent chain.
    */
   onNotifyWorld(source, message, data) {
-    let notifiableParent = this._notifiableParent
+    let notifiableParent = this._notifiableParent;
     if (notifiableParent) {
-      notifiableParent.onNotifyWorld.call(notifiableParent, source, message, data)
+      notifiableParent.onNotifyWorld.call(
+        notifiableParent,
+        source,
+        message,
+        data
+      );
     } else {
       // Optimization: on first call, walk up the tree looking for the first ancestor with a
       // non-default onNotifyWorld implementation, and save a pointer to that ancestor
       // facade so we can just call it directly the next time without any tree walking.
-      notifiableParent = this.parent
-      let defaultImpl = Facade.prototype.onNotifyWorld
+      notifiableParent = this.parent;
+      let defaultImpl = Facade.prototype.onNotifyWorld;
       while (notifiableParent) {
         if (notifiableParent.onNotifyWorld !== defaultImpl) {
-          this._notifiableParent = notifiableParent
-          notifiableParent.onNotifyWorld(source, message, data)
-          break
+          this._notifiableParent = notifiableParent;
+          notifiableParent.onNotifyWorld(source, message, data);
+          break;
         }
-        notifiableParent = notifiableParent.parent
+        notifiableParent = notifiableParent.parent;
       }
     }
   }
@@ -144,15 +152,14 @@ export default class Facade {
    * visible rendering, so a rendering frame will be scheduled.
    */
   requestRender() {
-    this.notifyWorld('needsRender')
+    this.notifyWorld("needsRender");
   }
 
   traverse(fn) {
-    fn(this)
+    fn(this);
   }
 
-  forEachChild(fn) {
-  }
+  forEachChild(fn) {}
 
   /**
    * Add an event listener for the given event type.
@@ -160,7 +167,7 @@ export default class Facade {
    * @param {Function} handler
    */
   addEventListener(type, handler) {
-    this.notifyWorld('addEventListener', {type, handler})
+    this.notifyWorld("addEventListener", { type, handler });
   }
 
   /**
@@ -169,7 +176,7 @@ export default class Facade {
    * @param {Function} handler
    */
   removeEventListener(type, handler) {
-    this.notifyWorld('removeEventListener', {type, handler})
+    this.notifyWorld("removeEventListener", { type, handler });
   }
 
   /**
@@ -177,7 +184,7 @@ export default class Facade {
    * @param {Event} event
    */
   dispatchEvent(event) {
-    this.notifyWorld('dispatchEvent', event)
+    this.notifyWorld("dispatchEvent", event);
   }
 
   /**
@@ -187,34 +194,41 @@ export default class Facade {
   destructor() {
     // Unregister all event listeners from the world
     if (this.parent) {
-      this.notifyWorld('removeAllEventListeners')
+      this.notifyWorld("removeAllEventListeners");
     }
 
     // Teardown refs
-    if (typeof this.ref === 'function') {
-      this.ref.call(null, null)
+    if (typeof this.ref === "function") {
+      this.ref.call(null, null);
     }
-    this.parent = this._notifiableParent = null
+    this.parent = this._notifiableParent = null;
   }
 }
 
 assign(Facade.prototype, {
   ref: null,
   _lastRef: null,
-  _notifiableParent: null
-})
+  _notifiableParent: null,
+});
 
-
-let idCounter = 0
-const DEF_SPECIAL_PROPS = {key:1, facade:1, transition:1, animation:1}
+let idCounter = 0;
+const DEF_SPECIAL_PROPS = {
+  key: 1,
+  facade: 1,
+  transition: 1,
+  animation: 1,
+  ref: 1,
+  exitAnimation: 1,
+  pointerStates: 1,
+};
 
 /**
  * @static
  * Determine if a certain property name is one of the special descriptor properties
  */
-Facade.isSpecialDescriptorProperty = function(name) {
-  return DEF_SPECIAL_PROPS.hasOwnProperty(name)
-}
+Facade.isSpecialDescriptorProperty = function (name) {
+  return DEF_SPECIAL_PROPS.hasOwnProperty(name);
+};
 
 /**
  * @static
@@ -224,26 +238,25 @@ Facade.isSpecialDescriptorProperty = function(name) {
  * @param {String} propName - the name of the event handler property, e.g. 'onMouseOver'
  * @param {String} eventType - the type of the event that will trigger the handler, e.g. 'mouseover'
  */
-Facade.defineEventProperty = function(facadeClass, propName, eventType) {
-  let privateProp = `${propName}➤handler`
+Facade.defineEventProperty = function (facadeClass, propName, eventType) {
+  let privateProp = `${propName}➤handler`;
   Object.defineProperty(facadeClass.prototype, propName, {
     get() {
-      return this[privateProp]
+      return this[privateProp];
     },
     set(handler) {
-      const oldHandler = this[privateProp]
+      const oldHandler = this[privateProp];
       if ((handler || null) !== (oldHandler || null)) {
         // Remove old listener
-        if (typeof oldHandler === 'function') {
-          this.removeEventListener(eventType, oldHandler)
+        if (typeof oldHandler === "function") {
+          this.removeEventListener(eventType, oldHandler);
         }
         // Add new listener
-        if (typeof handler === 'function') {
-          this.addEventListener(eventType, handler)
+        if (typeof handler === "function") {
+          this.addEventListener(eventType, handler);
         }
-        this[privateProp] = handler
+        this[privateProp] = handler;
       }
-    }
-  })
-}
-
+    },
+  });
+};

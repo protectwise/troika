@@ -1,17 +1,13 @@
 {
-	// See https://go.microsoft.com/fwlink/?LinkId=759670
-	// for the documentation about the jsconfig.json format
-	"compilerOptions": {
-		"target": "es6",
-		"module": "es6",
-		"allowSyntheticDefaultImports": true,
-		"experimentalDecorators": true
-	},
-	"exclude": [
-    "build",
-		"node_modules",
-		"tmp",
-		"temp",
-    "dist"
-	]
+  // See https://go.microsoft.com/fwlink/?LinkId=759670
+  // for the documentation about the jsconfig.json format
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ES2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true
+  },
+  "exclude": ["build", "node_modules", "tmp", "temp", "dist"]
 }

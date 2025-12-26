@@ -1,5 +1,5 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
+import ReactDOM from 'react-dom/client'
 import { ReactXRAware } from 'troika-xr'
 import CityGrid from './citygrid/CityGrid'
 import ShaderAnim from './shader-anim/ShaderAnim'
@@ -20,8 +20,9 @@ import InstanceableExample from './instanceable/InstanceableExample'
 import InstancedUniformsMeshExample from './instanced-uniforms-mesh/InstancedUniformsMeshExample.jsx'
 import InceptionExample from './inception/InceptionExample'
 import Bezier3DExample from './bezier-3d/Bezier3DExample'
+import VisionProUIExample from './vision-pro-ui/VisionProUIExample'
 
-import 'react-dat-gui/dist/index.css'
+import './_shared/react-dat-gui.css'
 import './index.css'
 
 
@@ -44,7 +45,8 @@ const EXAMPLES = [
   {id: 'easings', name: 'Animation Easings', component: EasingsExample, disableXR:true},
   {id: 'instanceable', name: 'Instanceable Objects', component: InstanceableExample},
   {id: 'instancedUniformsMesh', name: 'InstancedUniformsMesh', component: InstancedUniformsMeshExample},
-  {id: 'inception', name: 'Inception', component: InceptionExample}
+  {id: 'inception', name: 'Inception', component: InceptionExample},
+  {id: 'visionProUI', name: 'Vision Pro UI', component: VisionProUIExample}
 ]
 
 class ExamplesApp extends React.Component {
@@ -158,4 +160,5 @@ ExamplesApp = ReactXRAware(ExamplesApp, {
   referenceSpaces: ['local']
 })
 
-ReactDOM.render(<ExamplesApp />, document.getElementById('app'))
+const root = ReactDOM.createRoot(document.getElementById('app'))
+root.render(<ExamplesApp />)

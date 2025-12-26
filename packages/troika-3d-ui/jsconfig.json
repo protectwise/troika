@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ES2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "paths": {
+      "*": ["./*"],
+      "troika-core": ["../troika-core/src"],
+      "troika-3d": ["../troika-3d/src"],
+      "troika-3d-text": ["../troika-3d-text/src"],
+      "troika-flex-layout": ["../troika-flex-layout/src"],
+      "troika-*": ["../*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

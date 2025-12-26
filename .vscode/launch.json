@@ -1,0 +1,115 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Jest Tests",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": [
+        "--inspect-brk",
+        "${workspaceFolder}/node_modules/.bin/jest",
+        "--runInBand",
+        "--no-cache"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Debug Current Jest Test File",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": [
+        "--inspect-brk",
+        "${workspaceFolder}/node_modules/.bin/jest",
+        "--runInBand",
+        "--no-cache",
+        "${relativeFile}"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Debug Examples in Chrome",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:10001",
+      "webRoot": "${workspaceFolder}/packages/troika-examples",
+      "sourceMaps": true,
+      "preLaunchTask": "Run Examples Dev Server"
+    },
+    {
+      "name": "Debug XR Example in Chrome",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:10001?scene=xr-basic",
+      "webRoot": "${workspaceFolder}/packages/troika-examples",
+      "sourceMaps": true,
+      "preLaunchTask": "Run Examples Dev Server"
+    },
+    {
+      "name": "Attach to Chrome (for Vision Pro Simulator)",
+      "type": "chrome",
+      "request": "attach",
+      "port": 9222,
+      "webRoot": "${workspaceFolder}/packages/troika-examples"
+    },
+    {
+      "name": "Debug troika-xr Package",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": [
+        "--inspect-brk",
+        "${workspaceFolder}/node_modules/.bin/jest",
+        "--runInBand",
+        "--no-cache",
+        "packages/troika-xr"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Debug troika-three-text Package",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": [
+        "--inspect-brk",
+        "${workspaceFolder}/node_modules/.bin/jest",
+        "--runInBand",
+        "--no-cache",
+        "packages/troika-three-text"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Debug troika-3d Package",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": [
+        "--inspect-brk",
+        "${workspaceFolder}/node_modules/.bin/jest",
+        "--runInBand",
+        "--no-cache",
+        "packages/troika-3d"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Debug Rollup Build (Current Package)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/.bin/rollup",
+      "args": ["-c", "${workspaceFolder}/rollup.config.js"],
+      "cwd": "${fileDirname}",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full Stack Debug (Examples + Tests)",
+      "configurations": ["Debug Examples in Chrome", "Debug Jest Tests"]
+    }
+  ]
+}

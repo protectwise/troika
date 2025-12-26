@@ -1,0 +1,94 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-12-11T06:58:12.658Z",
+  "papers": [
+    {
+      "id": "commit/2402026",
+      "type": "arxiv",
+      "title": "",
+      "files": [
+        {
+          "path": "CHANGELOG.md",
+          "lineNumber": 98,
+          "context": "## Bug Fixes ensure high precision sampling of batched text data texture ([f8bd307](https://github.com/protectwise/troika/commit/f8bd3076a08136ad8be29eb7ea0292bbf80ceab9)) Error in derived materials in Three r170 ([2402026](https://github.com/protectwise/troika/commit/240202662447040c0255f39e6c296207ba9a5457))"
+        }
+      ],
+      "firstSeen": 1765430968491,
+      "lastSeen": 1765436292637
+    },
+    {
+      "id": "commit/3518689",
+      "type": "arxiv",
+      "title": "",
+      "files": [
+        {
+          "path": "CHANGELOG.md",
+          "lineNumber": 278,
+          "context": "## Bug Fixes remove console.log ([3518689](https://github.com/protectwise/troika/commit/3518689f97f7d02236248cc547b703cdbc97a1e2))"
+        }
+      ],
+      "firstSeen": 1765430968491,
+      "lastSeen": 1765436292637
+    },
+    {
+      "id": "commit/8121425",
+      "type": "arxiv",
+      "title": "",
+      "files": [
+        {
+          "path": "CHANGELOG.md",
+          "lineNumber": 590,
+          "context": "## Bug Fixes **troika-3d:** prevent tree getting in bad state due to removal of orphanable children ([8121425](https://github.com/protectwise/troika/commit/81214255cba846c4e832ac3ada3225e1688c59bd)) **troika-three-text:** dispose the outline material when the base material is disposed ([68bd2c8](https://github.com/protectwise/troika/commit/68bd2c867f9ccbb53a41b2a3c3aedcf886354d38)) **troika-three-text:** fix error when disposing the base material with outlines enabled ([73a51f5](https://github.c"
+        }
+      ],
+      "firstSeen": 1765430968491,
+      "lastSeen": 1765436292637
+    },
+    {
+      "id": "commit/3836809",
+      "type": "arxiv",
+      "title": "",
+      "files": [
+        {
+          "path": "CHANGELOG.md",
+          "lineNumber": 624,
+          "context": "## Features **troika-three-text:** expose blockBounds and visibleBounds in textRenderInfo ([f3340ec](https://github.com/protectwise/troika/commit/f3340ec1efac6a6b00f596d9ef898ed7c2a6568a)) **troika-three-text:** text outline and better antialiasing at small sizes ([3836809](https://github.com/protectwise/troika/commit/3836809cc919b57b5eb357e66e35a15903bd54f7))"
+        }
+      ],
+      "firstSeen": 1765430968491,
+      "lastSeen": 1765436292637
+    },
+    {
+      "id": "commit/3718997",
+      "type": "arxiv",
+      "title": "",
+      "files": [
+        {
+          "path": "CHANGELOG.md",
+          "lineNumber": 867,
+          "context": "## Performance Improvements **troika-3d-text:** improve speed of glyph SDF generation by ~15-20% ([3718997](https://github.com/protectwise/troika/commit/3718997809efce1db9874a9c2cc0c8b03652eb29))"
+        }
+      ],
+      "firstSeen": 1765430968491,
+      "lastSeen": 1765436292637
+    }
+  ],
+  "history": [
+    {
+      "commitHash": "b6565f436e09dc461633e885b36a2b81f5ee37e3",
+      "timestamp": 1765430968491,
+      "message": "fix(BatchedText): Correct color rendering with Three.js Color Management",
+      "papersAdded": [
+        "arxiv:commit/2402026",
+        "arxiv:commit/3518689",
+        "arxiv:commit/8121425",
+        "arxiv:commit/3836809",
+        "arxiv:commit/3718997"
+      ],
+      "papersRemoved": [],
+      "filesChanged": [
+        "CHANGELOG.md"
+      ]
+    }
+  ]
+}

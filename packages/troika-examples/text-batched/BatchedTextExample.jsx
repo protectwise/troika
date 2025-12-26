@@ -2,7 +2,7 @@ import React from "react";
 import { Canvas3D } from "troika-3d";
 import { Text3DFacade, BatchedText3DFacade } from "troika-3d-text";
 import { FONTS } from '../text/TextExample'
-import { Color } from "three/src/math/Color";
+import { Color } from "three";
 
 export default function BatchedTextExample ({ stats, width, height }) {
   const [texts, setTexts] = React.useState(randomizeText());

@@ -1,0 +1,86 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/.git": true,
+      "**/coverage": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/coverage": true,
+      "**/*.umd.js": true,
+      "**/*.umd.min.js": true,
+      "**/*.esm.js": true
+    },
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    },
+    "eslint.workingDirectories": [{ "mode": "auto" }],
+    "javascript.preferences.importModuleSpecifier": "relative",
+    "typescript.preferences.importModuleSpecifier": "relative",
+    "npm.packageManager": "npm",
+    "jest.autoRun": "off",
+    "jest.showCoverageOnLoad": false,
+    "debug.javascript.autoAttachFilter": "onlyWithFlag",
+    "[markdown]": {
+      "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
+    },
+    "[javascript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[json]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "DavidAnson.vscode-markdownlint",
+      "nrwl.angular-console",
+      "orta.vscode-jest",
+      "stkb.rewrap",
+      "streetsidesoftware.code-spell-checker"
+    ]
+  },
+
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "type": "node",
+        "request": "launch",
+        "name": "Jest All",
+        "program": "${workspaceFolder:🏠 Root}/node_modules/.bin/jest",
+        "args": ["--runInBand", "--no-coverage"],
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen"
+      },
+      {
+        "type": "node",
+        "request": "launch",
+        "name": "Jest Current File",
+        "program": "${workspaceFolder:🏠 Root}/node_modules/.bin/jest",
+        "args": ["${fileBasename}", "--runInBand", "--no-coverage"],
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen"
+      },
+      {
+        "type": "chrome",
+        "request": "launch",
+        "name": "Launch Examples in Chrome",
+        "url": "http://localhost:10001",
+        "webRoot": "${workspaceFolder:🎬 Examples}",
+        "preLaunchTask": "Run Examples Dev Server"
+      }
+    ]
+  }
+}
