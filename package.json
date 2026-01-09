@@ -5,7 +5,7 @@
   "author": "Jason Johnston <jason@lojjic.com>",
   "license": "MIT",
   "devDependencies": {
-    "@ampproject/rollup-plugin-closure-compiler": "^0.26.0",
+    "@ampproject/rollup-plugin-closure-compiler": "^0.27.0",
     "@babel/core": "^7.12.16",
     "@babel/preset-env": "^7.12.16",
     "@babel/preset-react": "^7.12.13",
