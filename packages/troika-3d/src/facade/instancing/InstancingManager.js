@@ -297,6 +297,9 @@ class InstancingManager extends Group3DFacade {
             depthMaterial.uniformsGroups = depthMaterial.uniformsGroups || [];
           }
           return depthMaterial
+        },
+        set(m) {
+          // future: let the user override with their own?
         }
       },
       customDistanceMaterial: {
@@ -322,6 +325,9 @@ class InstancingManager extends Group3DFacade {
             }, distanceMaterial.uniforms)
           }
           return distanceMaterial
+        },
+        set(m) {
+          // future: let the user override with their own?
         }
       },
       // (*!) Hack for updating viewMatrix uniform on the distance material - see explanation above.

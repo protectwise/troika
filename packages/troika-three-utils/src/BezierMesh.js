@@ -82,8 +82,14 @@ class BezierMesh extends Mesh {
   get customDepthMaterial() {
     return this.material.getDepthMaterial()
   }
+  set customDepthMaterial(m) {
+    // future: let the user override with their own?
+  }
   get customDistanceMaterial() {
     return this.material.getDistanceMaterial()
+  }
+  set customDistanceMaterial(m) {
+    // future: let the user override with their own?
   }
 
   onBeforeRender() {

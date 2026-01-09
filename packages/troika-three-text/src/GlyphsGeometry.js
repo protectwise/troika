@@ -67,6 +67,10 @@ class GlyphsGeometry extends InstancedBufferGeometry {
     // Preallocate empty bounding objects
     this.boundingSphere = new Sphere()
     this.boundingBox = new Box3()
+
+    // Prevent rendering while we don't have any glyphs
+    this.instanceCount = 0
+    this.setDrawRange(0, 0)
   }
 
   computeBoundingSphere () {
@@ -124,6 +128,7 @@ class GlyphsGeometry extends InstancedBufferGeometry {
     this._blockBounds = blockBounds
     this._chunkedBounds = chunkedBounds
     this.instanceCount = glyphAtlasIndices.length
+    this.setDrawRange(0, Infinity)
     this._updateBounds()
   }
 

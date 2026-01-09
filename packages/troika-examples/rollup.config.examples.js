@@ -1,7 +1,7 @@
 // Rollup plugins
 import buble from 'rollup-plugin-buble'
 import nodeResolve from 'rollup-plugin-node-resolve'
-import commonjs from 'rollup-plugin-commonjs'
+import commonjs from '@rollup/plugin-commonjs'
 import replace from 'rollup-plugin-replace'
 import {string as importStrings} from 'rollup-plugin-string'
 import importJson from 'rollup-plugin-json'
@@ -47,12 +47,6 @@ export default {
           'Component',
           'cloneElement'
         ],
-        'react-color/lib/components/common': [
-          'EditableInput',
-          'ColorWrap',
-          'Saturation',
-          'Hue'
-        ]
       }
     }),
     nodeResolve({

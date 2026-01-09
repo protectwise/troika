@@ -12,12 +12,14 @@ const shadowMaterialPropDefs = {
   customDepthMaterial: {
     get() {
       return this.material.getDepthMaterial()
-    }
+    },
+    set(m) {}
   },
   customDistanceMaterial: {
     get() {
       return this.material.getDistanceMaterial()
-    }
+    },
+    set(m) {}
   }
 }
 
