@@ -160,7 +160,7 @@ function getTextRenderInfo(args, callback) {
       }
     }
     // set default color if 0 index not set
-    if (!colors[0]) {
+    if (colors[0] === undefined) {
       colors[0] = tempColor.set(args.color).getHex();
     }
     args.colorRanges = colors
@@ -175,12 +175,12 @@ function getTextRenderInfo(args, callback) {
       args.colorRanges = {};
     }
     // Set default color if 0 index not set
-    if (!args.colorRanges[0]) {
+    if (args.colorRanges[0] === undefined) {
       args.colorRanges[0] = tempColor.set(args.color).getHex();
     }
 
     for (const [start, styles] of Object.entries(args.styleRanges)) {
-      if (styles.color) {
+      if (styles.color !== undefined && styles.color !== false) {
         let val = styles.color
         if (typeof val !== 'number') {
           val = tempColor.set(val).getHex()
@@ -189,19 +189,20 @@ function getTextRenderInfo(args, callback) {
       }
       // support returning to default color
       else if (styles.color === false) {
-        args.colorRanges[start] = args.color;
+        args.colorRanges[start] = tempColor.set(args.color).getHex();
       }
 
       // Push new font if styles font is not found
       if (styles.font) {
         // Update styleRanges[].font with absolute path, for fontResolver
-        args.styleRanges[start].font = toAbsoluteURL(styles.font);
-        if (fonts.map(f => f.src).indexOf(toAbsoluteURL(args.styleRanges[start].font)) === -1) {
-          fonts.push({label: 'style', src: toAbsoluteURL(args.styleRanges[start].font)})
+        const absoluteFont = toAbsoluteURL(styles.font);
+        args.styleRanges[start].font = absoluteFont;
+        if (fonts.map(f => f.src).indexOf(absoluteFont) === -1) {
+          fonts.push({label: 'style', src: absoluteFont})
         }
       }
       // support returning to default font
-      else if (styles.font === false) {
+      else if (styles.font === false && args.font) {
         args.styleRanges[start].font = toAbsoluteURL(args.font);
       }
     }
