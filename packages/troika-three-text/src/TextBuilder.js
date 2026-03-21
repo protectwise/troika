@@ -205,6 +205,19 @@ function getTextRenderInfo(args, callback) {
       else if (styles.font === false && args.font) {
         args.styleRanges[start].font = toAbsoluteURL(args.font);
       }
+
+      // Extract per-character font size overrides into sizeRanges for the Typesetter.
+      // false resets to the global fontSize at that index.
+      if (styles.size !== undefined && styles.size !== false) {
+        const sizeVal = +styles.size
+        if (!isNaN(sizeVal) && sizeVal > 0) {
+          if (!args.sizeRanges) args.sizeRanges = {}
+          args.sizeRanges[start] = sizeVal
+        }
+      } else if (styles.size === false) {
+        if (!args.sizeRanges) args.sizeRanges = {}
+        args.sizeRanges[start] = args.fontSize
+      }
     }
   }
 
@@ -246,7 +259,7 @@ function getTextRenderInfo(args, callback) {
   // Issue request to the typesetting engine in the worker
   const typeset = CONFIG.useWorker ? typesetInWorker : typesetOnMainThread
   typeset(args).then(result => {
-    const {glyphIds, glyphFontIndices, fontData, glyphPositions, fontSize, timings} = result
+    const {glyphIds, glyphFontIndices, fontData, glyphPositions, fontSize, glyphFontSizeMultipliers, timings} = result
     const neededSDFs = []
     const glyphBounds = new Float32Array(glyphIds.length * 4)
     let boundsIdx = 0
@@ -294,7 +307,8 @@ function getTextRenderInfo(args, callback) {
       const {sdfViewBox} = glyphInfo
       const posX = glyphPositions[positionsIdx++]
       const posY = glyphPositions[positionsIdx++]
-      const fontSizeMult = fontSize / unitsPerEm
+      // Use per-glyph fontSizeMult from sizeRanges when active, otherwise global fontSize / unitsPerEm.
+      const fontSizeMult = glyphFontSizeMultipliers ? glyphFontSizeMultipliers[i] : fontSize / unitsPerEm
       glyphBounds[boundsIdx++] = posX + sdfViewBox[0] * fontSizeMult
       glyphBounds[boundsIdx++] = posY + sdfViewBox[1] * fontSizeMult
       glyphBounds[boundsIdx++] = posX + sdfViewBox[2] * fontSizeMult

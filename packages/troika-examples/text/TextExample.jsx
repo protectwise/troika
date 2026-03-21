@@ -76,7 +76,7 @@ November 19, 1863`,
 
   'Emoji': 'Examples of emoji are 😂, 😃, 🧘🏻‍♂️, 🌍, 🌦️, 🥖, 🚗, 📱, 🎉, ❤️, ✅, and 🏁.',
 
-  'Rich Text': 'This is a Rich Text example with Bold and Italic text in Caxton font family. Font fallbacks still work! 😃',
+  'Rich Text': 'This is a Rich Text example with Bold, Italic and Font-size variation in Caxton font family. Font fallbacks still work! 😉',
 
   // TODO fix in XR:
   [CUSTOM_LBL]: 'Edit me!'
@@ -160,22 +160,37 @@ class TextExample extends React.Component {
       }
       if (newState.text === 'Rich Text' && newState.text !== this.state.text) {
         newState.font = 'Caxton';
-        newState.fontSize = 0.2;
+        newState.fontSize = 0.18;
+        newState.color = 0xbd7732;
         // EXAMPLE styleRanges for TEXTS['Rich Text']
+        // Style range test cases
         newState.styleRanges = {
-          10: { font: FONTS['Caxton Bold Italic'] },
-          19: { font: false },
+          // all styles: color + font + size
+          10: { color: 0x997700, font: FONTS['Caxton Bold Italic'], size: 0.25 },
+          19: { color: false, font: false, size: false },
 
-          33: { color: 0x997700, font: FONTS['Caxton Bold'] },
-          37: { color: false, font: false },
+          // font only
+          33: { font: FONTS['Caxton Bold'] },
+          37: { font: false },
 
-          42: { color: 0x997700, font: FONTS['Caxton Italic'] },
-          48: { color: false, font: false },
+          // font only
+          39: { font: FONTS['Caxton Italic'] },
+          45: { font: false },
 
-          104: { color: 0x997700 },
-          105: { color: false },
+          // overlapping range: color + size
+          32: { color: 0x997700, size: 0.25 },
+          46: { color: false, size: false },
+
+          // size only
+          50: { size: 0.25 },
+          69: { size: false },
+
+          // color only
+          120: { color: 0x997700 },
+          122: { color: false },
         }
-      } else {
+      } else if (newState.text && newState.text !== 'Rich Text') {
+        // switching away from Rich Text — clear style ranges
         newState.styleRanges = {};
       }
 

@@ -31,6 +31,7 @@
  * @property {number} [chunkedBoundsSize=8192]
  * @property {{[rangeStartIndex]: number}} [colorRanges]
  * @property {{[rangeStartIndex]: {[index]: any}}} [styleRanges]
+ * @property {{[rangeStartIndex]: number}} [sizeRanges] per-character fontSize overrides extracted from styleRanges
  */
 
 /**
@@ -42,6 +43,7 @@
  * @property {TypesetFontData[]} fontData data about each font used in the text
  * @property {Float32Array} [caretPositions] startX,endX,bottomY caret positions for each char
  * @property {Uint8Array} [glyphColors] color for each glyph, if color ranges supplied
+ * @property {Float32Array} [glyphFontSizeMultipliers] fontSizeMult per glyph derived from sizeRanges, null if unused
  *         chunkedBounds, //total rects per (n=chunkedBoundsSize) consecutive glyphs
  *         fontSize, //calculated em height
  *         topBaseline: anchorYOffset + lines[0].baseline, //y coordinate of the top line's baseline
@@ -107,6 +109,43 @@ export function createTypesetter(resolveFonts, bidi) {
   const BREAK_AFTER_CHARS = new RegExp(`${lineBreakingWhiteSpace}|[\\-\\u007C\\u00AD\\u2010\\u2012-\\u2014\\u2027\\u2056\\u2E17\\u2E40]`)
 
   /**
+   * Given a sizeRanges map and a character index, return the fontSize that is active
+   * at that position (the value of the highest key <= charIndex, or globalFontSize).
+   */
+  function getEffectiveFontSizeForChar(charIndex, sizeRanges, globalFontSize) {
+    let result = globalFontSize
+    const keys = Object.keys(sizeRanges).map(Number).sort((a, b) => a - b)
+    for (let k = 0; k < keys.length; k++) {
+      if (keys[k] <= charIndex) {
+        result = sizeRanges[keys[k]]
+      } else {
+        break
+      }
+    }
+    return result
+  }
+
+  /**
+   * Split font runs at sizeRanges boundaries so every resulting run has a single
+   * effective fontSize throughout. Runs that span no boundary are returned unchanged.
+   */
+  function splitRunsAtSizeBoundaries(runs, sizeRanges) {
+    const boundaries = Object.keys(sizeRanges).map(Number).sort((a, b) => a - b)
+    const splitRuns = []
+    for (const run of runs) {
+      let start = run.start
+      for (const boundary of boundaries) {
+        if (boundary > start && boundary <= run.end) {
+          splitRuns.push({ start, end: boundary - 1, fontObj: run.fontObj })
+          start = boundary
+        }
+      }
+      splitRuns.push({ start, end: run.end, fontObj: run.fontObj })
+    }
+    return splitRuns
+  }
+
+  /**
    * Load and parse all the necessary fonts to render a given string of text, then group
    * them into consecutive runs of characters sharing a font.
    */
@@ -166,7 +205,8 @@ export function createTypesetter(resolveFonts, bidi) {
       includeCaretPositions=false,
       chunkedBoundsSize=8192,
       colorRanges=null,
-      styleRanges=null
+      styleRanges=null,
+      sizeRanges=null
     },
     callback
   ) {
@@ -203,13 +243,16 @@ export function createTypesetter(resolveFonts, bidi) {
       let glyphPositions = null
       let glyphData = null
       let glyphColors = null
+      let glyphFontSizeMultipliers = null
       let caretPositions = null
       let visibleBounds = null
       let chunkedBounds = null
       let maxLineWidth = 0
       let renderableGlyphCount = 0
       let canWrap = whiteSpace !== 'nowrap'
-      const metricsByFont = new Map() // fontObj -> metrics
+      // Keyed by fontObj when no sizeRanges, or by 'fontSrc:effectiveFontSize' when sizeRanges
+      // is active so the same font used at different sizes gets distinct scaled fontData entries.
+      const metricsByFont = new Map()
       const typesetStart = now()
 
       // Distribute glyphs into lines based on wrapping
@@ -217,20 +260,28 @@ export function createTypesetter(resolveFonts, bidi) {
       let prevRunEndX = 0
       let currentLine = new TextLine()
       const lines = [currentLine]
-      runs.forEach(run => {
+      // Sub-divide font runs at sizeRanges boundaries so every run has a single
+      // effectiveFontSize throughout its forEachGlyph call.
+      const layoutRuns = sizeRanges ? splitRunsAtSizeBoundaries(runs, sizeRanges) : runs
+      layoutRuns.forEach(run => {
         const { fontObj } = run
         const { ascender, descender, unitsPerEm, lineGap, capHeight, xHeight } = fontObj
 
-        // Calculate metrics for each font used
-        let fontData = metricsByFont.get(fontObj)
+        // Resolve the fontSize active at the start of this run.
+        const effectiveFontSize = sizeRanges
+          ? getEffectiveFontSizeForChar(run.start, sizeRanges, fontSize)
+          : fontSize
+
+        const metricsCacheKey = sizeRanges ? `${fontObj.src}:${effectiveFontSize}` : fontObj
+        let fontData = metricsByFont.get(metricsCacheKey)
         if (!fontData) {
-          // Find conversion between native font units and fontSize units
-          const fontSizeMult = fontSize / unitsPerEm
+          // Find conversion between native font units and effectiveFontSize units
+          const fontSizeMult = effectiveFontSize / unitsPerEm
 
           // Determine appropriate value for 'normal' line height based on the font's actual metrics
           // This does not guarantee individual glyphs won't exceed the line height, e.g. Roboto; should we use yMin/Max instead?
           const calcLineHeight = lineHeight === 'normal' ?
-            (ascender - descender + lineGap) * fontSizeMult : lineHeight * fontSize
+            (ascender - descender + lineGap) * fontSizeMult : lineHeight * effectiveFontSize
 
           // Determine line height and leading adjustments
           const halfLeading = (calcLineHeight - (ascender - descender) * fontSizeMult) / 2
@@ -253,13 +304,13 @@ export function createTypesetter(resolveFonts, bidi) {
             caretTop,
             caretBottom: caretTop - caretHeight
           }
-          metricsByFont.set(fontObj, fontData)
+          metricsByFont.set(metricsCacheKey, fontData)
         }
         const { fontSizeMult } = fontData
 
         const runText = text.slice(run.start, run.end + 1)
         let prevGlyphX, prevGlyphObj
-        fontObj.forEachGlyph(runText, fontSize, letterSpacing, (glyphObj, glyphX, glyphY, charIndex) => {
+        fontObj.forEachGlyph(runText, effectiveFontSize, letterSpacing, (glyphObj, glyphX, glyphY, charIndex) => {
           glyphX += prevRunEndX
           charIndex += run.start
           prevGlyphX = glyphX
@@ -326,11 +377,11 @@ export function createTypesetter(resolveFonts, bidi) {
           if (char === '\n') {
             currentLine = new TextLine()
             lines.push(currentLine)
-            lineXOffset = -(glyphX + glyphWidth + (letterSpacing * fontSize)) + textIndent
+            lineXOffset = -(glyphX + glyphWidth + (letterSpacing * effectiveFontSize)) + textIndent
           }
         })
         // At the end of a run we must capture the x position as the starting point for the next run
-        prevRunEndX = prevGlyphX + prevGlyphObj.advanceWidth * fontSizeMult + letterSpacing * fontSize
+        prevRunEndX = prevGlyphX + prevGlyphObj.advanceWidth * fontSizeMult + letterSpacing * effectiveFontSize
       })
 
       // Calculate width/height/baseline of each line (excluding trailing whitespace) and maximum block width
@@ -415,6 +466,9 @@ export function createTypesetter(resolveFonts, bidi) {
         }
         if (colorRanges) {
           glyphColors = new Uint8Array(renderableGlyphCount * 3)
+        }
+        if (sizeRanges) {
+          glyphFontSizeMultipliers = new Float32Array(renderableGlyphCount)
         }
         let renderableGlyphIndex = 0
         let prevCharIndex = -1
@@ -595,6 +649,11 @@ export function createTypesetter(resolveFonts, bidi) {
                   glyphColors[start + 1] = currentColor >> 8 & 255
                   glyphColors[start + 2] = currentColor & 255
                 }
+
+                // Per-glyph fontSizeMult for TextBuilder bounds calculation.
+                if (glyphFontSizeMultipliers) {
+                  glyphFontSizeMultipliers[idx] = glyphInfo.fontData.fontSizeMult
+                }
               }
             }
           }
@@ -627,6 +686,7 @@ export function createTypesetter(resolveFonts, bidi) {
         caretPositions, //startX,endX,bottomY caret positions for each char
         // caretHeight, //height of cursor from bottom to top - todo per glyph?
         glyphColors, //color for each glyph, if color ranges supplied
+        glyphFontSizeMultipliers, //per-glyph fontSizeMult derived from sizeRanges, null if unused
         chunkedBounds, //total rects per (n=chunkedBoundsSize) consecutive glyphs
         fontSize, //calculated em height
         topBaseline: anchorYOffset + lines[0].baseline, //y coordinate of the top line's baseline
