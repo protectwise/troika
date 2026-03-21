@@ -197,9 +197,19 @@ class GlyphsGeometry extends InstancedBufferGeometry {
       // If length isn't changing, just update the attribute's array data
       if (attr && attr.array.length === newArray.length) {
         attr.array.set(newArray)
+        // Compatibility shim: Three.js <r156 renderers expect updateRange (singular object),
+        // while newer Three.js BufferAttribute uses updateRanges (array). If this attribute
+        // was created by a newer Three.js but the renderer is older, add the legacy property.
+        if (attr.updateRange === undefined) {
+          attr.updateRange = { offset: 0, count: -1 }
+        }
         attr.needsUpdate = true
       } else {
-        this.setAttribute(attrName, new InstancedBufferAttribute(newArray, itemSize))
+        const newAttr = new InstancedBufferAttribute(newArray, itemSize)
+        if (newAttr.updateRange === undefined) {
+          newAttr.updateRange = { offset: 0, count: -1 }
+        }
+        this.setAttribute(attrName, newAttr)
         // If the new attribute has a different size, we also have to (as of r117) manually clear the
         // internal cached max instance count. See https://github.com/mrdoob/three.js/issues/19706
         // It's unclear if this is a threejs bug or a truly unsupported scenario; discussion in
