@@ -152,13 +152,20 @@ export function createTypesetter(resolveFonts, bidi) {
     const splitRuns = []
     for (const run of runs) {
       let start = run.start
+      // Find the effective font size at the start of this run
+      let currentFontSize
+      for (const b of boundaries) {
+        if (b <= start) currentFontSize = sizeRanges[b]
+        else break
+      }
       for (const boundary of boundaries) {
         if (boundary > start && boundary <= run.end) {
-          splitRuns.push({ start, end: boundary - 1, fontObj: run.fontObj })
+          splitRuns.push({ start, end: boundary - 1, fontObj: run.fontObj, fontSize: currentFontSize })
           start = boundary
+          currentFontSize = sizeRanges[boundary]
         }
       }
-      splitRuns.push({ start, end: run.end, fontObj: run.fontObj })
+      splitRuns.push({ start, end: run.end, fontObj: run.fontObj, fontSize: currentFontSize })
     }
     return splitRuns
   }
@@ -286,10 +293,7 @@ export function createTypesetter(resolveFonts, bidi) {
         const { fontObj } = run
         const { ascender, descender, unitsPerEm, lineGap, capHeight, xHeight } = fontObj
 
-        // Resolve the fontSize active at the start of this run.
-        const effectiveFontSize = sizeRanges
-          ? getEffectiveFontSizeForChar(run.start, sizeRanges, fontSize)
-          : fontSize
+        const effectiveFontSize = run.fontSize ?? fontSize
 
         const metricsCacheKey = sizeRanges ? `${fontObj.src}:${effectiveFontSize}` : fontObj
         let fontData = metricsByFont.get(metricsCacheKey)
