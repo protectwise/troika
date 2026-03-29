@@ -161,15 +161,13 @@ class TextExample extends React.Component {
         newState.font = 'Caxton';
         newState.fontSize = 0.17;
         newState.color = 0x997700;
-        // EXAMPLE styleRanges for TEXTS['Rich Text']
-        // Style range test cases
+        // EXAMPLE styleRanges test cases for TEXTS['Rich Text']
         newState.styleRanges = {
-          // all styles: color + font + size + valign
+          // All styles: Color + Font + Size + vAlign
           10: { color: 0xe0ce09, font: FONTS['Caxton Bold Italic'], size: 0.27, valign: .06 },
-          // 19: { color: null, font: null, size: null, valign: null }
           19: null, // reset all/any styles to default
 
-          // Color only
+          // Color
           33: { color: 0xEA3323 },
           34: { color: 0xEF8632 },
           35: { color: 0xFFFF54 },
@@ -177,28 +175,26 @@ class TextExample extends React.Component {
           37: { color: 0x2B66F6 },
           38: { color: null },
 
-          // font only
+          // Font
           40: { font: FONTS['Orbitron'] },
           45: { font: null},
           46: { font: FONTS['Caxton Bold'] },
           51: { font: FONTS['Caxton Italic'] },
           57: { font: null },
 
-          // size only
+          // Size
           60: { size: 0.28 },
           64: { size: null },
 
-          // valign
+          // vAlign
           69: { valign: -.03, size: 0.1 },
           77: { valign: null, size: null },
           78: { valign: .05, size: 0.1 },
           83: { valign: null, size: null },
 
-          // font on fallback character requiring fallback
+          // Font on character requiring fallback
           117: { color: 0xe0ce09, font: FONTS['Caxton Italic']  },
           118: { color: null, font: null },
-
-
         }
       } else if (newState.text && newState.text !== 'Rich Text') {
         // switching away from Rich Text — clear style ranges
