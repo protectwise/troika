@@ -163,6 +163,7 @@ export function createFontResolver(fontParser, unicodeFontResolverClient) {
             }
           } else {
             // Support styleRanges[].font at this index
+            let resolvedByStyleFont = false;
             if ((!!styleRanges && !!styleRanges[i] && !!styleRanges[i].font)) {
               const fontObj = parsedFonts[styleRanges[i].font];
               if (!fontObj) {
@@ -181,8 +182,11 @@ export function createFontResolver(fontParser, unicodeFontResolverClient) {
                 // Set this character font index
                 charResolutions[i] = fontIndex;
                 prevCharResult = RESOLVED;
+                resolvedByStyleFont = true;
               }
-            } else {
+              // if the styleRanges[].font doesn't cover this character, fall through to fallback
+            }
+            if (!resolvedByStyleFont) {
               // Support fallback font
               for (let j = charResolutions[i], jLen = userFonts.length; j <= jLen; j++) {
                 if (j === jLen) {
@@ -264,14 +268,18 @@ export function createFontResolver(fontParser, unicodeFontResolverClient) {
 
           // Load and parse the fallback fonts - avoiding Promise here to prevent polyfills in the worker
           let loadedCount = 0;
-          fontUrls.forEach((url, i) => {
-            loadFont(url, fontObj => {
-              fontResolutions[i + fontIndexOffset] = fontObj
-              if (++loadedCount === fontUrls.length) {
-                allDone();
-              }
+          if (!fontUrls.length) {
+            allDone();
+          } else {
+            fontUrls.forEach((url, i) => {
+              loadFont(url, fontObj => {
+                fontResolutions[i + fontIndexOffset] = fontObj
+                if (++loadedCount === fontUrls.length) {
+                  allDone();
+                }
+              })
             })
-          })
+          }
         });
       } else {
         allDone();

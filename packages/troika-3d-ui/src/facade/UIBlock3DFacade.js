@@ -204,7 +204,6 @@ class UIBlock3DFacadeBase extends Group3DFacade {
         textChild.whiteSpace = getInheritable(this, 'whiteSpace')
         textChild.overflowWrap = getInheritable(this, 'overflowWrap')
         textChild.color = getInheritable(this, 'color')
-        textChild.colorRanges = this.colorRanges
         textChild.outlineWidth = this.textOutlineWidth || 0
         textChild.outlineColor = this.textOutlineColor
         textChild.outlineOpacity = this.textOutlineOpacity

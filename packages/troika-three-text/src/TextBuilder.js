@@ -147,40 +147,21 @@ function getTextRenderInfo(args, callback) {
   args.sdfGlyphSize = args.sdfGlyphSize || CONFIG.sdfGlyphSize
   args.unicodeFontsURL = args.unicodeFontsURL || CONFIG.unicodeFontsURL
 
-  // Normalize colors
-  if (args.colorRanges != null) {
-    let colors = {}
-    for (let key in args.colorRanges) {
-      if (args.colorRanges.hasOwnProperty(key)) {
-        let val = args.colorRanges[key]
-        if (typeof val !== 'number') {
-          val = tempColor.set(val).getHex()
-        }
-        colors[key] = val
-      }
-    }
-    // set default color if 0 index not set
-    if (colors[0] === undefined) {
-      colors[0] = tempColor.set(args.color).getHex();
-    }
-    args.colorRanges = colors
-  }
-
   // Handle styleRanges colors, fonts,
   // Consolidated logic into one args.styleRanges[] loop, for preformance
   if (args.styleRanges) {
 
-    // Set colorRange defaults when using styleRanges
-    if (!args.colorRanges) {
-      args.colorRanges = {};
-    }
-    // Set default color if 0 index not set
-    if (args.colorRanges[0] === undefined) {
-      args.colorRanges[0] = tempColor.set(args.color).getHex();
-    }
+    // Build internal colorRanges from styleRanges[].color entries
+    args.colorRanges = { 0: tempColor.set(args.color).getHex() };
 
-    for (const [start, styles] of Object.entries(args.styleRanges)) {
-      if (styles.color !== undefined && styles.color !== false) {
+    for (let [start, styles] of Object.entries(args.styleRanges)) {
+      // A null entry (e.g. `10: null`) resets all style properties at that index
+      // NOTE maintain full list of style properties to ensure null resets properly
+      if (styles === null) {
+        styles = { color: null, font: null, size: null, valign: null }
+        args.styleRanges[start] = styles;
+      }
+      if (styles.color !== undefined && styles.color !== null) {
         let val = styles.color
         if (typeof val !== 'number') {
           val = tempColor.set(val).getHex()
@@ -188,7 +169,7 @@ function getTextRenderInfo(args, callback) {
         args.colorRanges[start] = val;
       }
       // support returning to default color
-      else if (styles.color === false) {
+      else if (styles.color === null) {
         args.colorRanges[start] = tempColor.set(args.color).getHex();
       }
 
@@ -202,21 +183,28 @@ function getTextRenderInfo(args, callback) {
         }
       }
       // support returning to default font
-      else if (styles.font === false && args.font) {
+      else if (styles.font === null && args.font) {
         args.styleRanges[start].font = toAbsoluteURL(args.font);
       }
 
       // Extract per-character font size overrides into sizeRanges for the Typesetter.
-      // false resets to the global fontSize at that index.
-      if (styles.size !== undefined && styles.size !== false) {
+      // null resets to the global fontSize at that index.
+      if (styles.size !== undefined && styles.size !== null) {
         const sizeVal = +styles.size
         if (!isNaN(sizeVal) && sizeVal > 0) {
           if (!args.sizeRanges) args.sizeRanges = {}
           args.sizeRanges[start] = sizeVal
         }
-      } else if (styles.size === false) {
+      } else if (styles.size === null) {
         if (!args.sizeRanges) args.sizeRanges = {}
         args.sizeRanges[start] = args.fontSize
+      }
+
+      // Extract per-character vertical alignment overrides into valignRanges.
+      // Accepts numeric world-unit Y offsets; null resets to no offset at that index.
+      if (styles.valign !== undefined) {
+        if (!args.valignRanges) args.valignRanges = {}
+        args.valignRanges[start] = styles.valign
       }
     }
   }

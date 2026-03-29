@@ -68,7 +68,6 @@ const SYNCABLE_PROPS = [
   'whiteSpace',
   'anchorX',
   'anchorY',
-  'colorRanges',
   'styleRanges',
   'sdfGlyphSize'
 ]
@@ -248,22 +247,12 @@ class Text extends Mesh {
     this.color = null
 
     /**
-     * @member {object|null} colorRanges
-     * WARNING: This API is experimental and may change.
-     * This allows more fine-grained control of colors for individual or ranges of characters,
-     * taking precedence over the material's `color`. Its format is an Object whose keys each
-     * define a starting character index for a range, and whose values are the color for each
-     * range. The color value can be a numeric hex color value, a `THREE.Color` object, or
-     * any of the strings accepted by `THREE.Color`.
-     */
-    this.colorRanges = null
-
-    /**
      * @member {object|null} styleRanges
-     * WARNING: This API is experimental and may change.
-     * This allows more fine-grained control of text runs; rich text rendering!
-     * define a starting character index for a range, and whose values are the STYLES for each
-     * range. Supported keys are: 'font', 'color'
+     * Enables rich-text rendering: keys are starting character indices; values are style objects
+     * applied from that index until the next key override. Supported style properties: `font`
+     * (URL string), `color` (hex/Color/string), `size` (world-unit font size), `valign` (numeric
+     * world-unit Y offset from baseline). Set any property to `null` to
+     * reset it to the text-level default at that character index.
      */
     this.styleRanges = null
 
@@ -445,7 +434,6 @@ class Text extends Mesh {
           anchorX: this.anchorX,
           anchorY: this.anchorY,
           color: this.color,
-          colorRanges: this.colorRanges,
           styleRanges: this.styleRanges, // TODO sanitize
           includeCaretPositions: true, //TODO parameterize
           sdfGlyphSize: this.sdfGlyphSize,

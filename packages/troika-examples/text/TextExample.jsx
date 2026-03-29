@@ -76,7 +76,7 @@ November 19, 1863`,
 
   'Emoji': 'Examples of emoji are 😂, 😃, 🧘🏻‍♂️, 🌍, 🌦️, 🥖, 🚗, 📱, 🎉, ❤️, ✅, and 🏁.',
 
-  'Rich Text': 'This is a Rich Text example with Bold, Italic and Font-size variation in Caxton font family. Font fallbacks still work! 😉',
+  'Rich Text': 'This is a Rich Text example with color, font (Bold Italic), size and vertical-align variations. Font fallbacks work! 😉',
 
   // TODO fix in XR:
   [CUSTOM_LBL]: 'Edit me!'
@@ -148,7 +148,6 @@ class TextExample extends React.Component {
       useTexture: false,
       shadows: false,
       selectable: false,
-      colorRanges: false,
       sdfGlyphSize: 6,
       debugSDF: false
     }
@@ -160,34 +159,46 @@ class TextExample extends React.Component {
       }
       if (newState.text === 'Rich Text' && newState.text !== this.state.text) {
         newState.font = 'Caxton';
-        newState.fontSize = 0.18;
-        newState.color = 0xbd7732;
+        newState.fontSize = 0.17;
+        newState.color = 0x997700;
         // EXAMPLE styleRanges for TEXTS['Rich Text']
         // Style range test cases
         newState.styleRanges = {
-          // all styles: color + font + size
-          10: { color: 0x997700, font: FONTS['Caxton Bold Italic'], size: 0.25 },
-          19: { color: false, font: false, size: false },
+          // all styles: color + font + size + valign
+          10: { color: 0xe0ce09, font: FONTS['Caxton Bold Italic'], size: 0.27, valign: .06 },
+          // 19: { color: null, font: null, size: null, valign: null }
+          19: null, // reset all/any styles to default
+
+          // Color only
+          33: { color: 0xEA3323 },
+          34: { color: 0xEF8632 },
+          35: { color: 0xFFFF54 },
+          36: { color: 0x54B951 },
+          37: { color: 0x2B66F6 },
+          38: { color: null },
 
           // font only
-          33: { font: FONTS['Caxton Bold'] },
-          37: { font: false },
-
-          // font only
-          39: { font: FONTS['Caxton Italic'] },
-          45: { font: false },
-
-          // overlapping range: color + size
-          32: { color: 0x997700, size: 0.25 },
-          46: { color: false, size: false },
+          40: { font: FONTS['Orbitron'] },
+          45: { font: null},
+          46: { font: FONTS['Caxton Bold'] },
+          51: { font: FONTS['Caxton Italic'] },
+          57: { font: null },
 
           // size only
-          50: { size: 0.25 },
-          69: { size: false },
+          60: { size: 0.28 },
+          64: { size: null },
 
-          // color only
-          120: { color: 0x997700 },
-          122: { color: false },
+          // valign
+          69: { valign: -.03, size: 0.1 },
+          77: { valign: null, size: null },
+          78: { valign: .05, size: 0.1 },
+          83: { valign: null, size: null },
+
+          // font on fallback character requiring fallback
+          117: { color: 0xe0ce09, font: FONTS['Caxton Italic']  },
+          118: { color: null, font: null },
+
+
         }
       } else if (newState.text && newState.text !== 'Rich Text') {
         // switching away from Rich Text — clear style ranges
@@ -292,15 +303,6 @@ class TextExample extends React.Component {
               // onMouseMove: e => {
               //   this.setState({hoverPoint: e.intersection.point})
               // },
-              colorRanges: state.colorRanges ? TEXTS[state.text].split('').reduce((out, char, i) => {
-                if (i === 0 || /\s/.test(char)) {
-                  out[i] = (Math.floor(Math.pow(Math.sin(i), 2) * 256) << 16)
-                    | (Math.floor(Math.pow(Math.sin(i + 1), 2) * 256) << 8)
-                    | (Math.floor(Math.pow(Math.sin(i + 2), 2) * 256))
-                  //out[i] = '#' + new Color(out[i]).getHexString()
-                }
-                return out
-              }, {}) : null,
               transition: {
                 scaleX: true,
                 scaleY: true,
@@ -379,7 +381,6 @@ class TextExample extends React.Component {
                 {type: 'boolean', path: "animRotate", label: "Rotate"},
                 {type: 'boolean', path: "fog", label: "Fog"},
                 {type: 'boolean', path: "shadows", label: "Shadows"},
-                {type: 'boolean', path: "colorRanges", label: "colorRanges (WIP)"},
                 {type: 'boolean', path: "selectable", label: "Selectable (WIP)"},
                 {type: 'number', path: "fontSize", label: "fontSize", min: 0.01, max: 0.2, step: 0.01},
                 {type: 'number', path: "textScale", label: "scale", min: 0.1, max: 10, step: 0.1},

@@ -32,6 +32,7 @@
  * @property {{[rangeStartIndex]: number}} [colorRanges]
  * @property {{[rangeStartIndex]: {[index]: any}}} [styleRanges]
  * @property {{[rangeStartIndex]: number}} [sizeRanges] per-character fontSize overrides extracted from styleRanges
+ * @property {{[rangeStartIndex]: number|null}} [valignRanges] per-character vertical alignment overrides extracted from styleRanges
  */
 
 /**
@@ -126,6 +127,23 @@ export function createTypesetter(resolveFonts, bidi) {
   }
 
   /**
+   * Given a valignRanges map and a character index, return the valign value active
+   * at that position (the value of the highest key <= charIndex, or null).
+   */
+  function getEffectiveValignForChar(charIndex, valignRanges) {
+    let result = null
+    const keys = Object.keys(valignRanges).map(Number).sort((a, b) => a - b)
+    for (let k = 0; k < keys.length; k++) {
+      if (keys[k] <= charIndex) {
+        result = valignRanges[keys[k]]
+      } else {
+        break
+      }
+    }
+    return result
+  }
+
+  /**
    * Split font runs at sizeRanges boundaries so every resulting run has a single
    * effective fontSize throughout. Runs that span no boundary are returned unchanged.
    */
@@ -206,7 +224,8 @@ export function createTypesetter(resolveFonts, bidi) {
       chunkedBoundsSize=8192,
       colorRanges=null,
       styleRanges=null,
-      sizeRanges=null
+      sizeRanges=null,
+      valignRanges=null
     },
     callback
   ) {
@@ -399,7 +418,7 @@ export function createTypesetter(resolveFonts, bidi) {
             isTrailingWhitespace = false
           }
           // use the tallest line height, lowest baseline, and highest cap/ex
-          let {lineHeight, capHeight, xHeight, baseline} = glyphInfo.fontData
+          let {lineHeight, capHeight, xHeight, baseline, ascender, descender} = glyphInfo.fontData
           if (lineHeight > line.lineHeight) line.lineHeight = lineHeight
           const baselineDiff = baseline - line.baseline
           if (baselineDiff < 0) { //shift all metrics down
@@ -410,6 +429,9 @@ export function createTypesetter(resolveFonts, bidi) {
           // compare cap/ex based on new lowest baseline
           line.cap = Math.max(line.cap, line.baseline + capHeight)
           line.ex = Math.max(line.ex, line.baseline + xHeight)
+          // track max ascender and min descender for CSS vertical-align top/bottom
+          if (ascender > line.ascender) line.ascender = ascender
+          if (descender < line.descender) line.descender = descender
         }
         line.baseline -= totalHeight
         line.cap -= totalHeight
@@ -612,7 +634,14 @@ export function createTypesetter(resolveFonts, bidi) {
 
                 // Determine final glyph position and add to glyphPositions array
                 const glyphX = glyphInfo.x + anchorXOffset
-                const glyphY = glyphInfo.y + line.baseline + anchorYOffset
+                let glyphY = glyphInfo.y + line.baseline + anchorYOffset
+                // Apply per-character vertical alignment from valignRanges.
+                if (valignRanges) {
+                  const valign = getEffectiveValignForChar(glyphInfo.charIndex, valignRanges)
+                  if (typeof valign === 'number') {
+                    glyphY += valign
+                  }
+                }
                 glyphPositions[idx * 2] = glyphX
                 glyphPositions[idx * 2 + 1] = glyphY
 
@@ -755,6 +784,8 @@ export function createTypesetter(resolveFonts, bidi) {
     baseline: 0,
     cap: 0,
     ex: 0,
+    ascender: 0,
+    descender: 0,
     isSoftWrapped: false,
     get count() {
       return Math.ceil(this.data.length / textLineProps.length)
