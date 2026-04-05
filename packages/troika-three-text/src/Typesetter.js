@@ -293,7 +293,7 @@ export function createTypesetter(resolveFonts, bidi) {
         const { fontObj } = run
         const { ascender, descender, unitsPerEm, lineGap, capHeight, xHeight } = fontObj
 
-        const effectiveFontSize = run.fontSize ?? fontSize
+        const effectiveFontSize = run.fontSize || fontSize
 
         const metricsCacheKey = sizeRanges ? `${fontObj.src}:${effectiveFontSize}` : fontObj
         let fontData = metricsByFont.get(metricsCacheKey)
