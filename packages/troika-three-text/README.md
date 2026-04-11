@@ -32,6 +32,8 @@ Once the SDFs are generated, it assembles a geometry that positions all the glyp
 
 ![Unicode coverage](../../docs/troika-three-text/images/screenshot5.png)
 
+![Rich text](../../docs/troika-three-text/images/screenshot6.png)
+
 ## Installation
 
 Get it from [NPM](https://www.npmjs.com/package/troika-three-text):
@@ -288,6 +290,44 @@ Sets the width of a stroke drawn inside the edge of each text glyph, using the `
 The width can be specified as either an absolute number in local units, or as a percentage string e.g. `"10%"` which is interpreted as a percentage of the `fontSize`.
 
 Default: `0`
+
+### `styleRanges`
+
+Enables rich-text rendering by applying per-character style overrides to a range of characters. Each key in `styleRanges` `Array` is the starting character index in the `text` string at which a set of styles becomes active; those styles remain active until the next key. The value of the keys is a style range object.
+
+Supported style properties in each style range object are: `{ color, font, size, valign }`
+* `color: number | string` - Overrides the text `color` for this range. Accepts any [`THREE.Color#set`](https://threejs.org/docs/#api/en/math/Color.set).
+* `font: string` - URL of a font file to use for this range. If the font does not contain a glyph for a character, the system falls back to the global `font` or unicode fallback fonts.
+* `size: number` - Overrides `fontSize` for this range, in the same local world units.
+* `valign: number` - Vertical offset applied to glyphs in this range, in local world units. Positive moves glyphs up; negative moves them down. Useful for superscripts and subscripts.
+
+Setting a property to `null` resets it to the global default at that character index. Setting the entire value to `null` resets all style properties at once.
+
+```js
+myText.text = 'Hello rich-text world!'
+myText.fontSize = 0.1
+myText.color = 0xffffff
+myText.styleRanges = {
+  // At character 6 (start of 'rich-text'), apply a color and size
+  6: { color: 0xff6600, size: 0.15 },
+  // At character 15 (end of 'rich-text'), reset color size
+  15: { color: null, size: null },
+  // At character 16 (start of 'world'), apply font, size and valign
+  16: { font: '/fonts/MyBoldFont.woff', valign: 0.04, size: 0.07 },
+  // At character 15 (end of 'world'), reset all styles to the defaults
+  21: null,
+}
+myText.sync()
+```
+
+To clear all style ranges, set styleRanges to `null` or `{}`:
+
+```js
+myText.styleRanges = null
+myText.sync()
+```
+
+Default: `null`
 
 ### `textAlign`
 

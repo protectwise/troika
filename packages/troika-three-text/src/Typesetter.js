@@ -127,23 +127,6 @@ export function createTypesetter(resolveFonts, bidi) {
   }
 
   /**
-   * Given a valignRanges map and a character index, return the valign value active
-   * at that position (the value of the highest key <= charIndex, or null).
-   */
-  function getEffectiveValignForChar(charIndex, valignRanges) {
-    let result = null
-    const keys = Object.keys(valignRanges).map(Number).sort((a, b) => a - b)
-    for (let k = 0; k < keys.length; k++) {
-      if (keys[k] <= charIndex) {
-        result = valignRanges[keys[k]]
-      } else {
-        break
-      }
-    }
-    return result
-  }
-
-  /**
    * Split font runs at sizeRanges boundaries so every resulting run has a single
    * effective fontSize throughout. Runs that span no boundary are returned unchanged.
    */
@@ -286,6 +269,21 @@ export function createTypesetter(resolveFonts, bidi) {
       let prevRunEndX = 0
       let currentLine = new TextLine()
       const lines = [currentLine]
+      // Pre-compute character valign offsets
+      let valignByChar = null
+      if (valignRanges) {
+        const valignKeys = Object.keys(valignRanges).map(Number).sort((a, b) => a - b)
+        valignByChar = new Array(text.length).fill(null)
+        let currentValign = null
+        let valignIndex = 0
+        for (let ci = 0; ci < text.length; ci++) {
+          while (valignIndex < valignKeys.length && valignKeys[valignIndex] <= ci) {
+            currentValign = valignRanges[valignKeys[valignIndex++]]
+          }
+          valignByChar[ci] = currentValign
+        }
+      }
+
       // Sub-divide font runs at sizeRanges boundaries so every run has a single
       // effectiveFontSize throughout its forEachGlyph call.
       const layoutRuns = sizeRanges ? splitRunsAtSizeBoundaries(runs, sizeRanges) : runs
@@ -391,7 +389,8 @@ export function createTypesetter(resolveFonts, bidi) {
           let fly = currentLine.glyphAt(currentLine.count)
           fly.glyphObj = glyphObj
           fly.x = glyphX + lineXOffset
-          fly.y = glyphY
+          const _valign = valignByChar && valignByChar[charIndex]
+          fly.y = glyphY + (typeof _valign === 'number' ? _valign : 0)
           fly.width = glyphWidth
           fly.charIndex = charIndex
           fly.fontData = fontData
@@ -638,14 +637,7 @@ export function createTypesetter(resolveFonts, bidi) {
 
                 // Determine final glyph position and add to glyphPositions array
                 const glyphX = glyphInfo.x + anchorXOffset
-                let glyphY = glyphInfo.y + line.baseline + anchorYOffset
-                // Apply per-character vertical alignment from valignRanges.
-                if (valignRanges) {
-                  const valign = getEffectiveValignForChar(glyphInfo.charIndex, valignRanges)
-                  if (typeof valign === 'number') {
-                    glyphY += valign
-                  }
-                }
+                const glyphY = glyphInfo.y + line.baseline + anchorYOffset
                 glyphPositions[idx * 2] = glyphX
                 glyphPositions[idx * 2 + 1] = glyphY
 
