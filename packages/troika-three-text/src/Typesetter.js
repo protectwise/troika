@@ -110,23 +110,6 @@ export function createTypesetter(resolveFonts, bidi) {
   const BREAK_AFTER_CHARS = new RegExp(`${lineBreakingWhiteSpace}|[\\-\\u007C\\u00AD\\u2010\\u2012-\\u2014\\u2027\\u2056\\u2E17\\u2E40]`)
 
   /**
-   * Given a sizeRanges map and a character index, return the fontSize that is active
-   * at that position (the value of the highest key <= charIndex, or globalFontSize).
-   */
-  function getEffectiveFontSizeForChar(charIndex, sizeRanges, globalFontSize) {
-    let result = globalFontSize
-    const keys = Object.keys(sizeRanges).map(Number).sort((a, b) => a - b)
-    for (let k = 0; k < keys.length; k++) {
-      if (keys[k] <= charIndex) {
-        result = sizeRanges[keys[k]]
-      } else {
-        break
-      }
-    }
-    return result
-  }
-
-  /**
    * Split font runs at sizeRanges boundaries so every resulting run has a single
    * effective fontSize throughout. Runs that span no boundary are returned unchanged.
    */
