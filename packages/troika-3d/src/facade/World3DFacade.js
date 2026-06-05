@@ -5,6 +5,8 @@ import {
   Color,
   Vector2,
   Vector3,
+  SRGBColorSpace,
+  LinearSRGBColorSpace,
   NoToneMapping,
 } from 'three';
 import Scene3DFacade from './Scene3DFacade.js';
@@ -18,8 +20,6 @@ const raycaster = new Raycaster();
 
 const LinearEncoding = 3000;
 const sRGBEncoding = 3001;
-const SRGBColorSpace = 'srgb';
-const LinearSRGBColorSpace = 'srgb-linear';
 
 class World3DFacade extends WorldBaseFacade {
   constructor(canvas) {
