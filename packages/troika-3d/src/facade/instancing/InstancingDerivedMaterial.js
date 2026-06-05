@@ -114,6 +114,14 @@ export function upgradeShaders(vertexShader, fragmentShader, instanceUniforms) {
   if (usesNormalMatrix) {
     vertexShader = vertexShader.replace(normalMatrixRefRE, attrRefReplacer)
     vertexAssignments.push(normalMatrixVarAssignment)
+    
+    //Deprecated shader method. Use WebGL 2 Native method instead if missing
+    if (!/\btransposeMat3\s*\(/.test(vertexShader)) {
+      normalMatrixVarAssignment = normalMatrixVarAssignment.replace(
+        'transposeMat3',
+        'transpose',
+      );
+    }
     // Add the inverse() glsl polyfill if there isn't already one defined
     if (!/\binverse\s*\(/.test(vertexShader)) {
       vertexDeclarations.push(inverseFunction)
