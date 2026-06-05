@@ -45,7 +45,7 @@ const modelViewMatrixVarAssignment = `
 troika_modelViewMatrix = viewMatrix * troika_modelMatrix;
 `
 
-const normalMatrixVarAssignment = `
+let normalMatrixVarAssignment = `
 troika_normalMatrix = transposeMat3(inverse(mat3(troika_modelViewMatrix)));
 `
 
@@ -113,7 +113,7 @@ export function upgradeShaders(vertexShader, fragmentShader, instanceUniforms) {
   }
   if (usesNormalMatrix) {
     vertexShader = vertexShader.replace(normalMatrixRefRE, attrRefReplacer)
-    vertexAssignments.push(normalMatrixVarAssignment)
+    
     
     //Deprecated shader method. Use WebGL 2 Native method instead if missing
     if (!/\btransposeMat3\s*\(/.test(vertexShader)) {
@@ -122,6 +122,10 @@ export function upgradeShaders(vertexShader, fragmentShader, instanceUniforms) {
         'transpose',
       );
     }
+
+    vertexAssignments.push(normalMatrixVarAssignment)
+
+    
     // Add the inverse() glsl polyfill if there isn't already one defined
     if (!/\binverse\s*\(/.test(vertexShader)) {
       vertexDeclarations.push(inverseFunction)
