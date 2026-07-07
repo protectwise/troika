@@ -120,12 +120,17 @@ function generateSDF_JS_Worker(width, height, path, viewBox, distance, exponent,
       // webglcontextlost event has flipped atlas.contextLost), in which case this GL write would
       // throw from deep inside webgl-sdf-generator as an unhandled rejection, one per in-flight
       // glyph, and strand the typeset callback. Dropping the write is safe: the TextBuilder's
-      // webglcontextrestored handler regenerates every known glyph into the restored atlas.
+      // webglcontextrestored handler regenerates every known glyph into the restored atlas. A null
+      // probe means context creation was refused under the same GPU pressure - equally benign to
+      // drop, and no restore event will ever fire for a context that never existed. The probe
+      // passes the generator's context attributes so a probe that succeeds can't stick a
+      // wrong-attribute context onto the atlas. Rethrow only when a healthy context proves the
+      // error was unrelated.
       try {
         mainThreadGenerator.webglUtils.renderImageData(canvas, imageData, x, y, width, height, 1 << (3 - channel))
       } catch (err) {
-        const gl = typeof canvas.getContext === 'function' ? canvas.getContext('webgl') : null
-        if (!gl || !gl.isContextLost()) throw err
+        const gl = typeof canvas.getContext === 'function' ? canvas.getContext('webgl', { premultipliedAlpha: false, preserveDrawingBuffer: true, antialias: false, depth: false }) : null
+        if (gl && !gl.isContextLost()) throw err
       }
       timing += now() - start
 

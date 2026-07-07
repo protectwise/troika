@@ -324,8 +324,8 @@ function getTextRenderInfo(args, callback) {
       try {
         resizeWebGLCanvasWithoutClearing(sdfCanvas, textureWidth, neededHeight)
       } catch (err) {
-        const gl = sdfCanvas.getContext('webgl')
-        if (!gl || !gl.isContextLost()) throw err
+        const gl = sdfCanvas.getContext('webgl', { premultipliedAlpha: false, preserveDrawingBuffer: true, antialias: false, depth: false })
+        if (gl && !gl.isContextLost()) throw err
       }
       // As of Three r136 textures cannot be resized once they're allocated on the GPU, we must dispose to reallocate it
       sdfTexture.dispose()
