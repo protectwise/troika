@@ -116,7 +116,17 @@ function generateSDF_JS_Worker(width, height, path, viewBox, distance, exponent,
       for (let i = 0; i < textureData.length; i++) {
         imageData[i * 4 + channel] = textureData[i]
       }
-      mainThreadGenerator.webglUtils.renderImageData(canvas, imageData, x, y, width, height, 1 << (3 - channel))
+      // The atlas context may have been lost while the worker was generating (before the async
+      // webglcontextlost event has flipped atlas.contextLost), in which case this GL write would
+      // throw from deep inside webgl-sdf-generator as an unhandled rejection, one per in-flight
+      // glyph, and strand the typeset callback. Dropping the write is safe: the TextBuilder's
+      // webglcontextrestored handler regenerates every known glyph into the restored atlas.
+      try {
+        mainThreadGenerator.webglUtils.renderImageData(canvas, imageData, x, y, width, height, 1 << (3 - channel))
+      } catch (err) {
+        const gl = typeof canvas.getContext === 'function' ? canvas.getContext('webgl') : null
+        if (!gl || !gl.isContextLost()) throw err
+      }
       timing += now() - start
 
       // clean up workers after a while
