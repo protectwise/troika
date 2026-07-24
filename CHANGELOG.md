@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.52.5](https://github.com/protectwise/troika/compare/v0.52.4...v0.52.5) (2026-07-24)
+
+
+### Bug Fixes
+
+* Add .js to imports in BatchedText ([#356](https://github.com/protectwise/troika/issues/356)) ([ba88402](https://github.com/protectwise/troika/commit/ba88402e26e7654e939bb24bb540a5311c14f276))
+* avoid inout params in vertex transform for Safari/ANGLE Metal ([446c3de](https://github.com/protectwise/troika/commit/446c3de0698ecf73b49e82d300737c77d0ca9cf7)), closes [#390](https://github.com/protectwise/troika/issues/390)
+
+
+
+
+
 ## [0.52.4](https://github.com/protectwise/troika/compare/v0.52.3...v0.52.4) (2025-04-02)
 
 

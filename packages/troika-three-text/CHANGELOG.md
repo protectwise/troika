@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.52.5](https://github.com/protectwise/troika/compare/v0.52.4...v0.52.5) (2026-07-24)
+
+
+### Bug Fixes
+
+* Add .js to imports in BatchedText ([#356](https://github.com/protectwise/troika/issues/356)) ([ba88402](https://github.com/protectwise/troika/commit/ba88402e26e7654e939bb24bb540a5311c14f276))
+
+
+
+
+
 ## [0.52.4](https://github.com/protectwise/troika/compare/v0.52.3...v0.52.4) (2025-04-02)
 
 
