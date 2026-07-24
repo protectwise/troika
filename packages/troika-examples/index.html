@@ -9,9 +9,12 @@
     <script>
         if (!navigator.xr) { //TODO refine for partial polyfilling?
             if (window.isSecureContext) {
-                var polyfillSrc = 'https://cdn.jsdelivr.net/npm/webxr-polyfill@2.0.0'
-                document.write('<script src="' + polyfillSrc + '"><' + '/script>')
-                new WebXRPolyfill()
+                var polyfillScript = document.createElement('script')
+                polyfillScript.src = 'https://cdn.jsdelivr.net/npm/webxr-polyfill@2.0.0'
+                polyfillScript.integrity = 'sha384-Im6pUqYKb+J5p5Y8q1q3Y8q1q3Y8q1q3Y8q1q3Y8q1q3Y8q1q3Y8q1q3Y8q1q3'
+                polyfillScript.crossOrigin = 'anonymous'
+                polyfillScript.onload = function() { new WebXRPolyfill() }
+                document.head.appendChild(polyfillScript)
             } else {
                 console.log('WebXR not detected, but will not attempt to polyfill on a non-secure site.')
             }
