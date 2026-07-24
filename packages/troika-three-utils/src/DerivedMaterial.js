@@ -361,15 +361,21 @@ vec2 troika_uv_${key};
 ${vertexShader}
 `
     vertexDefs = `${vertexDefs}
-void troikaVertexTransform${key}(inout vec3 position, inout vec3 normal, inout vec2 uv) {
+void troikaVertexTransform${key}() {
+  vec3 position = troika_position_${key};
+  vec3 normal = troika_normal_${key};
+  vec2 uv = troika_uv_${key};
   ${vertexTransform}
+  troika_position_${key} = position;
+  troika_normal_${key} = normal;
+  troika_uv_${key} = uv;
 }
 `
     vertexMainIntro = `
 troika_position_${key} = vec3(position);
 troika_normal_${key} = vec3(normal);
 troika_uv_${key} = vec2(uv);
-troikaVertexTransform${key}(troika_position_${key}, troika_normal_${key}, troika_uv_${key});
+troikaVertexTransform${key}();
 ${vertexMainIntro}
 `
     vertexShader = vertexShader.replace(/\b(position|normal|uv)\b/g, (match, match1, index, fullStr) => {
