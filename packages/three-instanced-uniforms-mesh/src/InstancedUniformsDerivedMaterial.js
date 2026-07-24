@@ -1,7 +1,7 @@
 import { createDerivedMaterial, getShaderUniformTypes, voidMainRegExp } from 'troika-three-utils'
 
-export function createInstancedUniformsDerivedMaterial (baseMaterial) {
-  let _uniformNames = []
+export function createInstancedUniformsDerivedMaterial(baseMaterial) {
+  let _uniforms = new Map()
   let _uniformNamesKey = ''
 
   const derived = createDerivedMaterial(baseMaterial, {
@@ -17,7 +17,7 @@ export function createInstancedUniformsDerivedMaterial (baseMaterial) {
       let fragmentUniforms = getShaderUniformTypes(fragmentShader)
 
       // Add attributes and varyings for, and rewrite references to, the instanced uniforms
-      _uniformNames.forEach((name) => {
+      _uniforms.entries().forEach(([name, options]) => {
         let vertType = vertexUniforms[name]
         let fragType = fragmentUniforms[name]
         const type = vertType || fragType
@@ -34,7 +34,7 @@ export function createInstancedUniformsDerivedMaterial (baseMaterial) {
           if (fragType) {
             fragmentShader = fragmentShader.replace(declarationFinder, '')
             fragmentShader = fragmentShader.replace(referenceFinder, varyingName)
-            let varyingDecl = `varying ${fragType} ${varyingName};`
+            let varyingDecl = `${ (options.interpolate === false) ? 'flat' : '' } varying ${fragType} ${varyingName};`
             vertexDeclarations.push(varyingDecl)
             fragmentDeclarations.push(varyingDecl)
             vertexAssignments.push(`${varyingName} = ${attrName};`)
@@ -55,13 +55,13 @@ export function createInstancedUniformsDerivedMaterial (baseMaterial) {
   })
 
   /**
-   * Update the set of uniform names that will be enabled for per-instance values. This
+   * Update the set of uniforms that will be enabled for per-instance values. This
    * can be changed dynamically after instantiation.
-   * @param {string[]} uniformNames
+   * @param {Map<string, { interpolate: boolean }>} uniforms
    */
-  derived.setUniformNames = function(uniformNames) {
-    _uniformNames = uniformNames || []
-    const key = _uniformNames.sort().join('|')
+  derived.setUniforms = function(uniforms) {
+    _uniforms = uniforms || new Map()
+    const key = [..._uniforms.keys()].sort().join('|')
     if (key !== _uniformNamesKey) {
       _uniformNamesKey = key
       this.needsUpdate = true
@@ -77,3 +77,4 @@ export function createInstancedUniformsDerivedMaterial (baseMaterial) {
   derived.isInstancedUniformsMaterial = true
   return derived
 }
+
