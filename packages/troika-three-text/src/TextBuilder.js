@@ -317,7 +317,16 @@ function getTextRenderInfo(args, callback) {
     if (neededHeight > currentHeight) {
       // Since resizing the canvas clears its render buffer, it needs special handling to copy the old contents over
       console.info(`Increasing SDF texture size ${currentHeight}->${neededHeight}`)
-      resizeWebGLCanvasWithoutClearing(sdfCanvas, textureWidth, neededHeight)
+      // If the context was lost, the canvas dimensions are still applied before the GL copy-over
+      // throws; drop the copy in that case - the webglcontextrestored handler regenerates every
+      // glyph into the resized atlas. The dispose below must still run either way so the texture
+      // reallocates at the new canvas size.
+      try {
+        resizeWebGLCanvasWithoutClearing(sdfCanvas, textureWidth, neededHeight)
+      } catch (err) {
+        const gl = sdfCanvas.getContext('webgl', { premultipliedAlpha: false, preserveDrawingBuffer: true, antialias: false, depth: false })
+        if (gl && !gl.isContextLost()) throw err
+      }
       // As of Three r136 textures cannot be resized once they're allocated on the GPU, we must dispose to reallocate it
       sdfTexture.dispose()
     }
