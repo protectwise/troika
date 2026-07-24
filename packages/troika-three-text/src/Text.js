@@ -397,6 +397,14 @@ class Text extends Mesh {
      */
     this.gpuAccelerateSDF = true
 
+    /**
+     * @member {boolean} fillOutline
+     * When `true`, the outline is drawn under the fill as well as around it. When `false`, the outline
+     * is only drawn where there is no fill, like a halo. Defaults to `true`.
+     * Setting this to `false` will produce cleaner edges and more readable text when the text appears small on screen.
+     */
+    this.fillOutline = true
+
     this.debugSDF = false
   }
 
@@ -662,6 +670,7 @@ class Text extends Mesh {
       this.geometry.applyClipRect(uniforms.uTroikaClipRect.value)
     }
     uniforms.uTroikaSDFDebug.value = !!this.debugSDF
+    uniforms.uTroikaFillOutline.value = this.fillOutline ? 1 : 0
     material.polygonOffset = !!this.depthOffset
     material.polygonOffsetFactor = material.polygonOffsetUnits = this.depthOffset || 0
 
