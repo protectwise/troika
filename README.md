@@ -9,11 +9,11 @@ The provided tools fall into two main categories:
 
 The Troika project's main goal is to take aspects of developing interactive graphics that you almost always need, but are difficult to manage yourself, and make them as easy as possible.
 
-[![3D Bar Chart Example](./docs/images/city-thumbnail.png)](https://troika-examples.netlify.com/#citygrid)
+[![3D Bar Chart Example](./docs/images/city-thumbnail.png)](https://troika-examples.netlify.app/#citygrid)
 [![Layered Timeline](./docs/images/globe-connections-thumbnail.png)](https://troika-examples.netlify.app/#globeConnections)
 [![ProtectWise: Protocol Threat Graph](./docs/images/pw-protocol-threats-thumbnail.png)](https://twitter.com/lojjic/status/1360290173427322883)
-[![3D Text Rendering](./docs/images/text-thumbnail.png)](https://troika-examples.netlify.com/#text)
-[![GPU Instancing](./docs/images/instancing-thumbnail.png)](https://troika-examples.netlify.com/#instanceable)
+[![3D Text Rendering](./docs/images/text-thumbnail.png)](https://troika-examples.netlify.app/#text)
+[![GPU Instancing](./docs/images/instancing-thumbnail.png)](https://troika-examples.netlify.app/#instanceable)
 [![Layered Timeline](./docs/images/layered-timeline-thumbnail.png)](https://twitter.com/lojjic/status/1357102689210019844)
 
 
