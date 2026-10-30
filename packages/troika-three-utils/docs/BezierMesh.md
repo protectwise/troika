@@ -8,7 +8,7 @@ It can also have any `material` assigned to it, so it can have lighting, texture
 
 - _[Source code with JSDoc](https://github.com/protectwise/troika/blob/master/packages/troika-three-utils/src/BezierMesh.js)_
 
-- _[Online example](https://troika-examples.netlify.com/#bezier3d)_
+- _[Online example](https://troika-examples.netlify.app/#bezier3d)_
 
   ![Example 1](../../../docs/troika-three-utils/images/beziers1.png)
 

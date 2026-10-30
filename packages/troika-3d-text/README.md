@@ -15,7 +15,7 @@ This package provides high quality text rendering in the Troika scene management
 
 ## Demo
 
-Here's [an online demo](https://troika-examples.netlify.com/#text).
+Here's [an online demo](https://troika-examples.netlify.app/#text).
 
 ## Installation
 

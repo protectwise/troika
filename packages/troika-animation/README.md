@@ -106,7 +106,7 @@ When constructing a Tween, the `easing` parameter controls the rate of change ov
 
 The built-in named easings can be found in [Easings.js](./src/Easings.js). These may be familiar, as they mostly match the ones provided by the popular [jQuery Easing Plugin](https://github.com/danro/jquery-easing/blob/master/jquery.easing.js) and [easings.net](https://easings.net).
 
-There is also an online [demo of troika-animation easings](https://troika-examples.netlify.com/#easings) that shows the curve for each.
+There is also an online [demo of troika-animation easings](https://troika-examples.netlify.app/#easings) that shows the curve for each.
 
 #### Custom easing functions
 

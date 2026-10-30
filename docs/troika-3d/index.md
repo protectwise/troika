@@ -13,9 +13,9 @@ It does very little to abstract away from Three's API, and you will need to know
 - make them interactive with pointer events
 - optimize for the best frame rate
 
-[![3D Bar Chart Example](../images/city-thumbnail.png)](https://troika-examples.netlify.com/#citygrid)
+[![3D Bar Chart Example](../images/city-thumbnail.png)](https://troika-examples.netlify.app/#citygrid)
 [![Layered Timeline](../images/globe-connections-thumbnail.png)](https://troika-examples.netlify.app/#globeConnections)
-[![GPU Instancing](../images/instancing-thumbnail.png)](https://troika-examples.netlify.com/#instanceable)
+[![GPU Instancing](../images/instancing-thumbnail.png)](https://troika-examples.netlify.app/#instanceable)
 [![Layered Timeline](../images/layered-timeline-thumbnail.png)](https://twitter.com/lojjic/status/1357102689210019844)
 
 

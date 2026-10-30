@@ -8,7 +8,7 @@ Once the SDFs are generated, it assembles a geometry that positions all the glyp
 
 ## Demos
 
-* [With the Troika scene management framework](https://troika-examples.netlify.com/#text)
+* [With the Troika scene management framework](https://troika-examples.netlify.app/#text)
 * [With react-three-fiber](https://codesandbox.io/embed/troika-3d-text-via-react-three-fiber-ntfx2?fontsize=14)
 * [With a video texture](https://bfplr.csb.app/)
 * [With the Material Icons font](https://codesandbox.io/s/material-icons-in-troika-three-text-t2mu7?file=/src/index.js)
