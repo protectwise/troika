@@ -186,6 +186,8 @@ export class BatchedText extends Text {
         texture.needsUpdate = true;
       }
     }
+    // Resolved on first use, not per member: the material getter calls hasOutline(), which loops over all members
+    let fallbackColor;
     this._members.forEach(({ index, dirty }, text) => {
       if (index > -1) {
         const startIndex = index * floatsPerMember
@@ -224,8 +226,13 @@ export class BatchedText extends Text {
 
         // Color
         let color = isOutline ? (text.outlineColor || 0) : text.color;
-        if (color == null) color = this.color;
-        if (color == null) color = this.material.color;
+        if (color == null) {
+          if (fallbackColor === undefined) {
+            fallbackColor = this.color != null ? this.color : this.material.color;
+            if (fallbackColor === undefined) fallbackColor = null;
+          }
+          color = fallbackColor;
+        }
         if (color == null) color = 0xffffff;
         setTexData(startIndex + 24, tempColor.set(color).getHex());
 
