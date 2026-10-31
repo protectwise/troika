@@ -55,6 +55,8 @@ export class BatchedText extends Text {
      * @typedef {Object} PackingInfo
      * @property {number} index - the packing order index when last packed, or -1
      * @property {boolean} dirty - whether it has synced since last pack
+     * @property {boolean} staleMain - whether its main data texture slot needs rewriting
+     * @property {boolean} staleOutline - whether its outline data texture slot needs rewriting
      */
 
     /**
@@ -63,8 +65,20 @@ export class BatchedText extends Text {
     this._members = new Map();
     this._dataTextures = {}
 
+    /**
+     * When `false`, members are not re-read every frame: a render only rewrites members
+     * passed to `invalidateMember()` since the last render, plus members that re-synced.
+     * Call it after changing anything on a member other than its text content (transform,
+     * color, opacity, stroke, outline), and for every member after changing the batch's
+     * own `color`.
+     * @type {boolean}
+     */
+    this.autoUpdateMembers = true;
+    this._boundsNeedUpdate = true;
+
     this._onMemberSynced = (e) => {
       this._members.get(e.target).dirty = true;
+      this.invalidateMember(e.target);
     };
   }
 
@@ -105,7 +119,9 @@ export class BatchedText extends Text {
       this._members.set(text, {
         index: -1,
         glyphCount: -1,
-        dirty: true
+        dirty: true,
+        staleMain: true,
+        staleOutline: true
       });
       text.addEventListener("synccomplete", this._onMemberSynced);
     }
@@ -121,6 +137,19 @@ export class BatchedText extends Text {
   }
 
   /**
+   * Mark a member as changed, so it is rewritten on the next render when
+   * `autoUpdateMembers` is `false`.
+   * @param {Text} text
+   */
+  invalidateMember (text) {
+    const packingInfo = this._members.get(text);
+    if (packingInfo) {
+      packingInfo.staleMain = packingInfo.staleOutline = true;
+    }
+    this._boundsNeedUpdate = true;
+  }
+
+  /**
    * Use the custom derivation with extra batching logic
    */
   createDerivedMaterial (baseMaterial) {
@@ -129,7 +158,10 @@ export class BatchedText extends Text {
 
   updateMatrixWorld (force) {
     super.updateMatrixWorld(force);
-    this.updateBounds();
+    if (this.autoUpdateMembers || this._boundsNeedUpdate) {
+      this._boundsNeedUpdate = false;
+      this.updateBounds();
+    }
   }
 
   /**
@@ -166,7 +198,8 @@ export class BatchedText extends Text {
     // Resize the texture to fit in powers of 2
     let texture = this._dataTextures[isOutline ? 'outline' : 'main'];
     const dataLength = Math.pow(2, Math.ceil(Math.log2(this._members.size * floatsPerMember)));
-    if (!texture || dataLength !== texture.image.data.length) {
+    const isNewTexture = !texture || dataLength !== texture.image.data.length;
+    if (isNewTexture) {
       // console.log(`resizing: ${dataLength}`);
       if (texture) texture.dispose();
       const width = Math.min(dataLength / 4, 1024);
@@ -188,11 +221,16 @@ export class BatchedText extends Text {
     }
     // Resolved on first use, not per member: the material getter calls hasOutline(), which loops over all members
     let fallbackColor;
-    this._members.forEach(({ index, dirty }, text) => {
+    const staleKey = isOutline ? 'staleOutline' : 'staleMain';
+    this._members.forEach((packingInfo, text) => {
+      if (!this.autoUpdateMembers && !isNewTexture && !packingInfo[staleKey]) return;
+      packingInfo[staleKey] = false;
+      const { index } = packingInfo;
       if (index > -1) {
         const startIndex = index * floatsPerMember
 
-        // Matrix
+        // Matrix (updateBounds may have run before the member changed)
+        if (!this.autoUpdateMembers && text.matrixAutoUpdate) text.updateMatrix();
         const matrix = text.matrix.elements;
         for (let i = 0; i < 16; i++) {
           setTexData(startIndex + i, matrix[i])
@@ -320,6 +358,7 @@ export class BatchedText extends Text {
 
             glyphIndex += glyphCount;
             packingInfo.index = memberIndex++;
+            packingInfo.staleMain = packingInfo.staleOutline = true;
           }
         });
 
