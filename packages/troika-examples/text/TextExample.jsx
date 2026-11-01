@@ -149,6 +149,7 @@ class TextExample extends React.Component {
       shadows: false,
       selectable: false,
       sdfGlyphSize: 6,
+      fillOutline: true,
       debugSDF: false
     }
 
@@ -272,6 +273,7 @@ class TextExample extends React.Component {
               anchorY: state.anchorY,
               selectable: state.selectable,
               debugSDF: state.debugSDF,
+              fillOutline: state.fillOutline,
               fillOpacity: state.fillOpacity,
               outlineWidth: state.outlineWidth,
               outlineOffsetX: state.outlineOffsetX,
@@ -397,6 +399,7 @@ class TextExample extends React.Component {
                 {type: 'number', path: "strokeWidth", min: 0, max: 0.01, step: 0.0001},
 
                 {type: 'number', path: "sdfGlyphSize", label: 'SDF size (2^n):', min: 3, max: 8},
+                {type: 'boolean', path: "fillOutline", label: "Fill Outline"},
                 {type: 'boolean', path: "debugSDF", label: "Show SDF"},
               ]
             }

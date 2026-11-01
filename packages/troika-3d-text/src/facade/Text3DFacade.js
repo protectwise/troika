@@ -40,6 +40,7 @@ export const TEXT_MESH_PROPS = [
   'sdfGlyphSize',
   'unicodeFontsURL',
   'gpuAccelerateSDF',
+  'fillOutline',
   'debugSDF'
 ]
 
