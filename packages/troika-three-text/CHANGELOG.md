@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.53.1](https://github.com/protectwise/troika/compare/v0.53.0...v0.53.1) (2026-11-02)
+
+
+### Bug Fixes
+
+* broken links to examples site ([7c3739d](https://github.com/protectwise/troika/commit/7c3739d66e49ceb166bda9d13ebcf809db4bc4c0))
+
+
+### Performance Improvements
+
+* **BatchedText:** resolve the fallback color once per render ([dadf3e6](https://github.com/protectwise/troika/commit/dadf3e6557498c49ace017903766f732901b6d61)), closes [#362](https://github.com/protectwise/troika/issues/362)
+
+
+
+
+
 # [0.53.0](https://github.com/protectwise/troika/compare/v0.52.4...v0.53.0) (2026-07-24)
 
 
