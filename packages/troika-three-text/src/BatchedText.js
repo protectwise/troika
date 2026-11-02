@@ -219,9 +219,9 @@ export class BatchedText extends Text {
           setTexData(startIndex + 16 + i, uTroikaTotalBounds.value.getComponent(i));
         }
 
-        // Clip rect
+        // Clip rect; a hidden member gets a zero-sized one, which collapses its glyphs
         for (let i = 0; i < 4; i++) {
-          setTexData(startIndex + 20 + i, uTroikaClipRect.value.getComponent(i));
+          setTexData(startIndex + 20 + i, text.visible ? uTroikaClipRect.value.getComponent(i) : 0);
         }
 
         // Color
