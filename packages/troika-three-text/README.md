@@ -80,6 +80,28 @@ myScene.remove(myText)
 myText.dispose()
 ```
 
+## WebGPU
+
+If you render with Three.js's [`WebGPURenderer`](https://threejs.org/docs/#api/en/renderers/webgpu/WebGPURenderer), import from `troika-three-text/webgpu` instead:
+
+```js
+import {Text} from 'troika-three-text/webgpu'
+```
+
+Everything else stays the same: its `Text` (also exported as `WebGPUText`) takes the same properties, and renders with a TSL node material instead of a patched GLSL shader. It works on both of `WebGPURenderer`'s backends, WebGPU and its WebGL 2 fallback. It needs a version of Three.js that provides `three/webgpu` and `three/tsl`.
+
+Import any helpers you use, such as `preloadFont` or `configureTextBuilder`, from the same entry:
+
+```js
+import {Text, preloadFont, configureTextBuilder} from 'troika-three-text/webgpu'
+```
+
+The WebGPU build carries its own copy of the text builder, so helpers imported from `troika-three-text` would configure a copy that the WebGPU `Text` doesn't use, and silently have no effect.
+
+If you set a custom [`material`](#material), use a node material such as `MeshStandardNodeMaterial`; the default is a `MeshBasicNodeMaterial`. `BatchedText` isn't available in the WebGPU build yet.
+
+See [`packages/troika-examples/text-webgpu`](../troika-examples/text-webgpu/) for a runnable example.
+
 ## Supported properties
 
 Instances of `Text` support the following configuration properties:

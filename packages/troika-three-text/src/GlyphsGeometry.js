@@ -4,6 +4,7 @@ import {
   InstancedBufferAttribute,
   Sphere,
   Box3,
+  FloatType,
 } from 'three'
 
 const templateGeometries = {}
@@ -68,6 +69,12 @@ class GlyphsGeometry extends InstancedBufferGeometry {
     this.boundingSphere = new Sphere()
     this.boundingBox = new Box3()
 
+    // How the GPU reads the glyph index. Float for Text: its GLSL declares a float attribute,
+    // and an integer binding makes WebGLRenderer fail every draw with INVALID_OPERATION.
+    // WebGPUText switches this to IntType, which its TSL shader expects.
+    this.glyphIndexGpuType = FloatType
+    this.updateGlyphs(new Float32Array(), new Uint16Array(), [], [], new Uint8Array())
+
     // Prevent rendering while we don't have any glyphs
     this.instanceCount = 0
     this.setDrawRange(0, 0)
@@ -112,7 +119,7 @@ class GlyphsGeometry extends InstancedBufferGeometry {
    * Update the geometry for a new set of glyphs.
    * @param {Float32Array} glyphBounds - An array holding the planar bounds for all glyphs
    *        to be rendered, 4 entries for each glyph: x1,x2,y1,y1
-   * @param {Float32Array} glyphAtlasIndices - An array holding the index of each glyph within
+   * @param {Uint16Array} glyphAtlasIndices - An array holding the index of each glyph within
    *        the SDF atlas texture.
    * @param {Array} blockBounds - An array holding the [minX, minY, maxX, maxY] across all glyphs
    * @param {Array} [chunkedBounds] - An array of objects describing bounds for each chunk of N
@@ -123,8 +130,8 @@ class GlyphsGeometry extends InstancedBufferGeometry {
   updateGlyphs(glyphBounds, glyphAtlasIndices, blockBounds, chunkedBounds, glyphColors) {
     // Update the instance attributes
     this.updateAttributeData(glyphBoundsAttrName, glyphBounds, 4)
-    this.updateAttributeData(glyphIndexAttrName, glyphAtlasIndices, 1)
-    this.updateAttributeData(glyphColorAttrName, glyphColors, 3)
+    this.updateAttributeData(glyphIndexAttrName, glyphAtlasIndices, 1, this.glyphIndexGpuType)
+    this.updateAttributeData(glyphColorAttrName, glyphColors || new Uint8Array(glyphAtlasIndices.length*3), 3)
     this._blockBounds = blockBounds
     this._chunkedBounds = chunkedBounds
     this.instanceCount = glyphAtlasIndices.length
@@ -191,11 +198,11 @@ class GlyphsGeometry extends InstancedBufferGeometry {
   /**
    * Utility for updating instance attributes with automatic resizing
    */
-  updateAttributeData(attrName, newArray, itemSize) {
+  updateAttributeData(attrName, newArray, itemSize, gpuType = FloatType) {
     const attr = this.getAttribute(attrName)
     if (newArray) {
       // If length isn't changing, just update the attribute's array data
-      if (attr && attr.array.length === newArray.length) {
+      if (attr && attr.array.length === newArray.length && attr.gpuType === gpuType) {
         attr.array.set(newArray)
         // Compatibility shim: Three.js <r156 renderers expect updateRange (singular object),
         // while newer Three.js BufferAttribute uses updateRanges (array). If this attribute
@@ -209,6 +216,7 @@ class GlyphsGeometry extends InstancedBufferGeometry {
         if (newAttr.updateRange === undefined) {
           newAttr.updateRange = { offset: 0, count: -1 }
         }
+        newAttr.gpuType = gpuType
         this.setAttribute(attrName, newAttr)
         // If the new attribute has a different size, we also have to (as of r117) manually clear the
         // internal cached max instance count. See https://github.com/mrdoob/three.js/issues/19706

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Troika Text - WebGPU</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #111418; }
+    #info {
+      position: fixed; left: 12px; bottom: 10px;
+      font: 12px/1.5 system-ui, sans-serif; color: #8a96a6;
+    }
+    #info a { color: #b8c4d4; }
+  </style>
+  <!--
+    Standalone, outside the examples bundle: troika-examples is on a version of Three.js
+    that predates three/webgpu. Three.js comes from a CDN; troika from this repo's sources.
+    "three" maps to the full build because troika-three-utils imports WebGL parts of it;
+    both builds share three.core.js, so there is only one copy of Three.js.
+  -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js",
+      "three/webgpu": "https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.webgpu.js",
+      "three/tsl": "https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.tsl.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/",
+      "troika-three-text/webgpu": "../../troika-three-text/src/webgpu/index.js",
+      "troika-three-utils": "../../troika-three-utils/src/index.js",
+      "troika-worker-utils": "../../troika-worker-utils/src/index.js",
+      "bidi-js": "../../../node_modules/bidi-js/dist/bidi.mjs",
+      "webgl-sdf-generator": "../../../node_modules/webgl-sdf-generator/dist/webgl-sdf-generator.mjs"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="info"></div>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

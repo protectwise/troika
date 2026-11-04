@@ -642,7 +642,7 @@ class Text extends Mesh {
       uniforms.uTroikaPositionOffset.value.set(offsetX, offsetY)
       uniforms.uTroikaBlurRadius.value = blurRadius
       uniforms.uTroikaStrokeWidth.value = strokeWidth
-      uniforms.uTroikaStrokeOpacity.value = strokeOpacity
+      uniforms.uTroikaStrokeOpacity.value = strokeOpacity || 0
       uniforms.uTroikaFillOpacity.value = fillOpacity == null ? 1 : fillOpacity
       uniforms.uTroikaCurveRadius.value = this.curveRadius || 0
 
