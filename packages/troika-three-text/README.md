@@ -392,6 +392,16 @@ Since the text processing occurs in a web worker, it is by definition asynchrono
     ```
    
     This is best when you want to only react to _that specific_ sync call. Keep in mind that the callback will not execute if the text is already fully synced.
+
+    If the sync fails, for example because a font could not be loaded or parsed, the callback receives the `Error` as its first argument and the text keeps its previous rendering:
+
+    ```js
+    myText.sync((error) => {
+      if (error) {
+        console.error('Text sync failed', error)
+      }
+    })
+    ```
    
 2. Add a listener for the `synccomplete` event:
 
@@ -401,7 +411,7 @@ Since the text processing occurs in a web worker, it is by definition asynchrono
     })
     ```
 
-    This will fire after _every_ sync, no matter who invoked it. This is best if you need to react to all syncs, for example to trigger a manual canvas render.
+    This will fire after _every_ successful sync, no matter who invoked it. This is best if you need to react to all syncs, for example to trigger a manual canvas render. A failed sync fires a `syncerror` event instead, with the failure in `event.error`.
     
     You can also listen for the `syncstart` event if you need to react to the initiation of a sync call, e.g. to set some sort of "waiting" state while the text is being processed.
 

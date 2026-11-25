@@ -403,8 +403,9 @@ class Text extends Mesh {
   /**
    * Updates the text rendering according to the current text-related configuration properties.
    * This is an async process, so you can pass in a callback function to be executed when it
-   * finishes.
-   * @param {function} [callback]
+   * finishes. If the sync fails, the callback receives the `Error` as its first argument,
+   * and a `syncerror` event is dispatched instead of `synccomplete`
+   * @param {function(Error=)} [callback]
    */
   sync(callback) {
     if (this._needsSync) {
@@ -439,34 +440,40 @@ class Text extends Mesh {
           sdfGlyphSize: this.sdfGlyphSize,
           gpuAccelerateSDF: this.gpuAccelerateSDF,
           unicodeFontsURL: this.unicodeFontsURL,
-        }, textRenderInfo => {
+        }, (textRenderInfo, error) => {
           this._isSyncing = false
 
-          // Save result for later use in onBeforeRender
-          this._textRenderInfo = textRenderInfo
+          if (!error) {
+            // Save result for later use in onBeforeRender
+            this._textRenderInfo = textRenderInfo
 
-          // Update the geometry attributes
-          this.geometry.updateGlyphs(
-            textRenderInfo.glyphBounds,
-            textRenderInfo.glyphAtlasIndices,
-            textRenderInfo.blockBounds,
-            textRenderInfo.chunkedBounds,
-            textRenderInfo.glyphColors
-          )
+            // Update the geometry attributes
+            this.geometry.updateGlyphs(
+              textRenderInfo.glyphBounds,
+              textRenderInfo.glyphAtlasIndices,
+              textRenderInfo.blockBounds,
+              textRenderInfo.chunkedBounds,
+              textRenderInfo.glyphColors
+            )
+          }
 
           // If we had extra sync requests queued up, kick it off
           const queued = this._queuedSyncs
           if (queued) {
             this._queuedSyncs = null
             this._needsSync = true
-            this.sync(() => {
-              queued.forEach(fn => fn && fn())
+            this.sync(err => {
+              queued.forEach(fn => fn && fn(err))
             })
           }
 
-          this.dispatchEvent(syncCompleteEvent)
+          if (error) {
+            this.dispatchEvent({type: 'syncerror', error})
+          } else {
+            this.dispatchEvent(syncCompleteEvent)
+          }
           if (callback) {
-            callback()
+            callback(error)
           }
         })
       }

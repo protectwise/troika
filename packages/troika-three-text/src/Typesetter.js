@@ -140,7 +140,7 @@ export function createTypesetter(resolveFonts, bidi) {
    * Load and parse all the necessary fonts to render a given string of text, then group
    * them into consecutive runs of characters sharing a font.
    */
-  function calculateFontRuns({text, lang, fonts, style, weight, preResolvedFonts, unicodeFontsURL, styleRanges}, onDone) {
+  function calculateFontRuns({text, lang, fonts, style, weight, preResolvedFonts, unicodeFontsURL, styleRanges}, onDone, onError) {
     const onResolved = ({chars, fonts: parsedFonts}) => {
       let curRun, prevVal;
       const runs = []
@@ -160,7 +160,8 @@ export function createTypesetter(resolveFonts, bidi) {
       resolveFonts(
         text,
         onResolved,
-        { lang, fonts, style, weight, styleRanges, unicodeFontsURL }
+        { lang, fonts, style, weight, styleRanges, unicodeFontsURL },
+        onError
       )
     }
   }
@@ -200,7 +201,8 @@ export function createTypesetter(resolveFonts, bidi) {
       sizeRanges=null,
       valignRanges=null
     },
-    callback
+    callback,
+    onError
   ) {
     const mainStart = now()
     const timings = {fontLoad: 0, typesetting: 0}
@@ -707,7 +709,7 @@ export function createTypesetter(resolveFonts, bidi) {
         visibleBounds, //total bounds of visible text paths, may be larger or smaller than blockBounds
         timings
       })
-    })
+    }, onError)
   }
 
 
@@ -717,14 +719,14 @@ export function createTypesetter(resolveFonts, bidi) {
    * @param args
    * @param callback
    */
-  function measure(args, callback) {
+  function measure(args, callback, onError) {
     typeset({...args, metricsOnly: true}, (result) => {
       const [x0, y0, x1, y1] = result.blockBounds
       callback({
         width: x1 - x0,
         height: y1 - y0
       })
-    })
+    }, onError)
   }
 
   function parsePercent(str) {

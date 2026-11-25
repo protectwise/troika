@@ -27,6 +27,7 @@ import { defineWorkerModule } from "troika-worker-utils";
  * @param {string} text
  * @param {(FontResolverResult) => void} callback
  * @param {FontResolverOptions} [options]
+ * @param {(Error) => void} [onError]
  */
 
 /**
@@ -42,62 +43,74 @@ export function createFontResolver(fontParser, unicodeFontResolverClient) {
   const parsedFonts = Object.create(null)
 
   /**
-   * @type {Record<string, Array<(ParsedFont) => void>>}
+   * @type {Record<string, Array<{onLoad: (ParsedFont) => void, onError: (Error) => void}>>}
    */
   const loadingFonts = Object.create(null)
 
   /**
    * Load a given font url
    */
-  function doLoadFont(url, callback) {
-    const onError = err => {
-      console.error(`Failure loading font ${url}`, err)
+  function doLoadFont(url, callback, onError) {
+    const fail = err => {
+      const errMessage = err instanceof Error ? err.message : String(err)
+      err = new Error(`Failure loading font ${url}: ${errMessage}`)
+      console.error(err)
+      onError(err)
     }
     try {
       const request = new XMLHttpRequest()
       request.open('get', url, true)
       request.responseType = 'arraybuffer'
       request.onload = function () {
-        if (request.status >= 400) {
-          onError(new Error(request.statusText))
-        }
-        else if (request.status > 0) {
+        if (request.status >= 400 || request.status === 0) {
+          fail(new Error(`HTTP ${request.status} ${request.statusText}`.trim()))
+        } else {
+          let fontObj
           try {
-            const fontObj = fontParser(request.response)
+            fontObj = fontParser(request.response)
             fontObj.src = url;
-            callback(fontObj)
           } catch (e) {
-            onError(e)
+            fail(e)
+            return
           }
+          callback(fontObj)
         }
       }
-      request.onerror = onError
+      request.onerror = () => fail(new Error('Network error'))
       request.send()
     } catch(err) {
-      onError(err)
+      fail(err)
     }
   }
 
 
   /**
    * Load a given font url if needed, invoking a callback when it's loaded. If already
-   * loaded, the callback will be called synchronously.
+   * loaded, the callback will be called synchronously. If loading fails, onError is
+   * invoked instead
    * @param {string} fontUrl
    * @param {(font: ParsedFont) => void} callback
+   * @param {(err: Error) => void} onError
    */
-  function loadFont(fontUrl, callback) {
+  function loadFont(fontUrl, callback, onError) {
     let font = parsedFonts[fontUrl]
+    const waiter = {onLoad: callback, onError}
     if (font) {
       callback(font)
     } else if (loadingFonts[fontUrl]) {
-      loadingFonts[fontUrl].push(callback)
+      loadingFonts[fontUrl].push(waiter)
     } else {
-      loadingFonts[fontUrl] = [callback]
+      loadingFonts[fontUrl] = [waiter]
       doLoadFont(fontUrl, fontObj => {
         fontObj.src = fontUrl
         parsedFonts[fontUrl] = fontObj
-        loadingFonts[fontUrl].forEach(cb => cb(fontObj))
+        const waiters = loadingFonts[fontUrl]
         delete loadingFonts[fontUrl];
+        waiters.forEach(w => w.onLoad(fontObj))
+      }, err => {
+        const waiters = loadingFonts[fontUrl]
+        delete loadingFonts[fontUrl];
+        waiters.forEach(w => w.onError(err))
       })
     }
   }
@@ -113,7 +126,16 @@ export function createFontResolver(fontParser, unicodeFontResolverClient) {
     weight = 'normal',
     styleRanges,
     unicodeFontsURL
-  } = {}) {
+  } = {}, onError) {
+    let returned = false
+    function fail(err) {
+      if (returned) return
+      returned = true
+      if (onError) {
+        onError(err instanceof Error ? err : new Error('' + err))
+      }
+    }
+
     const charResolutions = new Uint8Array(text.length);
     const fontResolutions = [];
     if (!text.length) {
@@ -169,7 +191,7 @@ export function createFontResolver(fontParser, unicodeFontResolverClient) {
               if (!fontObj) {
                 loadFont(styleRanges[i].font, () => {
                   resolveUserFonts(i);
-                });
+                }, fail);
                 return;
               }
               if (fontObj.supportsCodePoint(codePoint)) {
@@ -208,7 +230,7 @@ export function createFontResolver(fontParser, unicodeFontResolverClient) {
                     if (!fontObj) {
                       loadFont(src, () => {
                         resolveUserFonts(i);
-                      });
+                      }, fail);
                       return;
                     }
                     // if the font actually contains a glyph for this char, lock it in
@@ -277,16 +299,18 @@ export function createFontResolver(fontParser, unicodeFontResolverClient) {
                 if (++loadedCount === fontUrls.length) {
                   allDone();
                 }
-              })
+              }, fail)
             })
           }
-        });
+        }, fail);
       } else {
         allDone();
       }
     }
 
     function allDone() {
+      if (returned) return
+      returned = true
       callback({
         chars: charResolutions,
         fonts: fontResolutions
