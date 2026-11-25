@@ -111,7 +111,8 @@ const atlases = Object.create(null)
 
 /**
  * @callback getTextRenderInfo~callback
- * @param {TroikaTextRenderInfo} textRenderInfo
+ * @param {TroikaTextRenderInfo|null} textRenderInfo - null if the request failed
+ * @param {Error} [error] - present if the request failed
  */
 
 /**
@@ -356,8 +357,12 @@ function getTextRenderInfo(args, callback) {
         visibleBounds: result.visibleBounds,
         timings: result.timings,
       }))
-    })
-  })
+    }, onError)
+  }, onError)
+
+  function onError(err) {
+    callback(null, err)
+  }
 
   // While the typesetting request is being handled, go ahead and make sure the atlas canvas context is
   // "warmed up"; the first request will be the longest due to shader program compilation so this gets
@@ -449,9 +454,11 @@ function initContextLossHandling(atlas) {
  * @param {string} options.lang - The language code of this text; can be used for explicitly selecting
  *        certain CJK fonts.
  * @param {function} callback - A function that will be called when the preloading is complete.
+ *        receives (textRenderInfo, error) as arguments. If preloading failed, textRenderInfo is null
+ *        and error is present instead
  */
 function preloadFont({font, characters, sdfGlyphSize, lang}, callback) {
-  let text = Array.isArray(characters) ? characters.join('\n') : '' + 
+  let text = Array.isArray(characters) ? characters.join('\n') : '' +
     (typeof characters === 'undefined' ? '': characters );
   getTextRenderInfo({ font, sdfGlyphSize, text, lang }, callback)
 }
@@ -520,8 +527,8 @@ const typesetInWorker = /*#__PURE__*/defineWorkerModule({
   ],
   init(typesetter) {
     return function(args) {
-      return new Promise(resolve => {
-        typesetter.typeset(args, resolve)
+      return new Promise((resolve, reject) => {
+        typesetter.typeset(args, resolve, reject)
       })
     }
   },

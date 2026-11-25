@@ -285,7 +285,7 @@ export class BatchedText extends Text {
     if (syncPromises) {
       this.dispatchEvent(syncStartEvent);
 
-      Promise.all(syncPromises).then(() => {
+      Promise.all(syncPromises).then((results) => {
         const { geometry } = this;
         const batchedAttributes = geometry.attributes;
         let memberIndexes = batchedAttributes[memberIndexAttrName] && batchedAttributes[memberIndexAttrName].array || new Uint16Array(0);
@@ -333,9 +333,14 @@ export class BatchedText extends Text {
 
         this.updateBounds();
 
-        this.dispatchEvent(syncCompleteEvent);
+        const error = results.find(result => result !== undefined);
+        if (error) {
+          this.dispatchEvent({ type: 'syncerror', error });
+        } else {
+          this.dispatchEvent(syncCompleteEvent);
+        }
         if (callback) {
-          callback();
+          callback(error);
         }
       });
     }
