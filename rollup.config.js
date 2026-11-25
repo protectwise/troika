@@ -36,7 +36,9 @@ const EXTERNAL_GLOBALS = SIBLING_PACKAGES.reduce((out, sib) => {
   'webgl-sdf-generator': 'webgl_sdf_generator',
   'three/examples/jsm/loaders/GLTFLoader.js': 'THREE.GLTFLoader',
   'prop-types': 'PropTypes',
-  'object-path': 'objectPath'
+  'object-path': 'objectPath',
+  'three/webgpu': 'three/webgpu',
+  'three/tsl': 'three/tsl'
 })
 
 // Some packages (e.g. those with worker code) we want to transpile in the ESM
