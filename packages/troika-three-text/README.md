@@ -183,6 +183,12 @@ When `true`, the SDF generation process will be GPU-accelerated with WebGL when 
 
 Default: `true`
 
+### `fillOutline`
+    
+When `true`, the outline is drawn under the fill as well as around it. When `false`, the outline is only drawn where there is no fill, like a halo. Defaults to `true`. Setting this to `false` will produce cleaner edges and more readable text when the text appears small on screen.
+
+Default: `true`
+
 ### `letterSpacing`
 
 Sets a uniform adjustment to spacing between letters after kerning is applied, in local world units. Positive numbers increase spacing and negative numbers decrease it.
