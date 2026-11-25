@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.54.0](https://github.com/protectwise/troika/compare/v0.53.1...v0.54.0) (2026-11-25)
+
+
+### Features
+
+* **BatchedText:** hide members whose visible is false ([9ddc9f8](https://github.com/protectwise/troika/commit/9ddc9f86e99f8ee936e0d9dd694e9e027270ad2d))
+* **troika-three-text:** Expose font loading errors, prevent Text sync status getting stuck ([23db758](https://github.com/protectwise/troika/commit/23db7586a76a2019bdd134883a7c7e6f225169a7))
+
+
+
+
+
 ## [0.53.1](https://github.com/protectwise/troika/compare/v0.53.0...v0.53.1) (2026-11-02)
 
 

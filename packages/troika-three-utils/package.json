@@ -1,6 +1,6 @@
 {
   "name": "troika-three-utils",
-  "version": "0.53.1",
+  "version": "0.54.0",
   "description": "Various utilities related to Three.js",
   "author": "Jason Johnston <jason.johnston@protectwise.com>",
   "repository": {
