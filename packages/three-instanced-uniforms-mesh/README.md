@@ -3,7 +3,7 @@
 This package provides a `InstancedUniformsMesh` class which extends Three.js's [`InstancedMesh`](https://threejs.org/docs/#api/en/objects/InstancedMesh) to allow its material's shader uniforms to be set individually per instance. It behaves just like `InstancedMesh` but exposes a new method:
 
 ```js
-mesh.setUniformAt(uniformName, instanceIndex, value)
+mesh.setUniformAt(uniformName, instanceIndex, value, uniformOptions?)
 ```
 
 When you call `setUniformAt`, the geometry and the material's shaders will be automatically upgraded behind the scenes to turn that uniform into an instanced buffer attribute, filling in the other indices with the uniform's default value. You can do this for any uniform of type `float`, `vec2`, `vec3`, or `vec4`. It works both for built-in Three.js materials and also for any custom ShaderMaterial.
@@ -31,6 +31,13 @@ While this is obviously useful for Three.js's built in materials, it _really_ sh
 
 > Note: Calling `setUniformAt` automatically marks the underlying buffer attributes for upload, so unlike [`setMatrixAt`](https://threejs.org/docs/#api/en/objects/InstancedMesh.setMatrixAt) or [`setColorAt`](https://threejs.org/docs/#api/en/objects/InstancedMesh.setColorAt) you don't need to set `needsUpdate` manually.
 
+
+### Uniform options
+
+You can specify uniform options when call `setUniformAt` for the first time. You don't need to pass them everytime. 
+Default options are:
+* `interpolate: true`
+  should attribute be interpolated. If `false`, value will not be interpolated in fragment shader by marking it as `flat`.
 
 ### Value Types
 
