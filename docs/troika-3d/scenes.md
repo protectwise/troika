@@ -29,7 +29,9 @@ The `<Canvas3D>` React component is your starting point. This component creates 
 
 - `onBackgroundClick` - A function that will be called when the user clicks the scene's background without hitting an object.
 
-- `outputEncoding` - Sets the Three.js renderer's [`outputEncoding`](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.outputEncoding)
+- `outputEncoding` - Deprecated use outputColorSpace instead. Sets the Three.js renderer's [`outputEncoding`](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.outputEncoding)
+
+- `outputColorSpace` - Sets the Three.js renderer's [`outputColorSpace`](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.outputColorSpace)
 
 - `pixelRatio` - Sets the pixel ratio for the canvas. Defaults to the current screen's reported `window.devicePixelRatio`.
 
