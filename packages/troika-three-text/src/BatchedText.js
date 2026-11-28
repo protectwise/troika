@@ -1,6 +1,6 @@
 import { Text } from "./Text.js";
 import { ColorManagement, DataTexture, FloatType, RGBAFormat, Vector2, Box3, Color, DynamicDrawUsage } from "three";
-import { glyphBoundsAttrName, glyphIndexAttrName } from "./GlyphsGeometry.js";
+import { glyphBoundsAttrName, glyphColorAttrName, glyphIndexAttrName } from "./GlyphsGeometry.js";
 import { createDerivedMaterial } from "troika-three-utils";
 import { createTextDerivedMaterial } from "./TextDerivedMaterial.js";
 
@@ -19,9 +19,9 @@ Data texture packing strategy:
 24: diffuse (color/outlineColor)
 25: uTroikaFillOpacity (fillOpacity/outlineOpacity)
 26: uTroikaCurveRadius
-27: <blank>
 
 # Main:
+27: uTroikaUseGlyphColors
 28: uTroikaStrokeWidth
 29: uTroikaStrokeColor
 30: uTroikaStrokeOpacity
@@ -241,7 +241,6 @@ export class BatchedText extends Text {
 
         // Curve radius
         setTexData(startIndex + 26, uTroikaCurveRadius.value)
-
         if (isOutline) {
           // Outline properties
           setTexData(startIndex + 28, uTroikaPositionOffset.value.x);
@@ -249,6 +248,7 @@ export class BatchedText extends Text {
           setTexData(startIndex + 30, uTroikaEdgeOffset.value);
           setTexData(startIndex + 31, uTroikaBlurRadius.value);
         } else {
+          setTexData(startIndex + 27, text.textRenderInfo.glyphColors ? 1 : 0)
           // Stroke properties
           setTexData(startIndex + 28, uTroikaStrokeWidth.value);
           setTexData(startIndex + 29, tempColor.set(uTroikaStrokeColor.value).getHex());
@@ -291,12 +291,15 @@ export class BatchedText extends Text {
         let memberIndexes = batchedAttributes[memberIndexAttrName] && batchedAttributes[memberIndexAttrName].array || new Uint16Array(0);
         let batchedGlyphIndexes = batchedAttributes[glyphIndexAttrName] && batchedAttributes[glyphIndexAttrName].array || new Float32Array(0);
         let batchedGlyphBounds = batchedAttributes[glyphBoundsAttrName] && batchedAttributes[glyphBoundsAttrName].array || new Float32Array(0);
+        let batchedGlyphColors = batchedAttributes[glyphColorAttrName] && batchedAttributes[glyphColorAttrName].array || new Uint8Array(0);
 
         // Initial pass to collect total glyph count and resize the arrays if needed
         let totalGlyphCount = 0;
+        let hasGlyphColors = false;
         this._members.forEach((packingInfo, { textRenderInfo }) => {
           if (textRenderInfo) {
             totalGlyphCount += textRenderInfo.glyphAtlasIndices.length;
+            hasGlyphColors = hasGlyphColors || !!textRenderInfo.glyphColors;
             this._textRenderInfo = textRenderInfo; // TODO - need this, but be smarter
           }
         });
@@ -304,6 +307,9 @@ export class BatchedText extends Text {
           memberIndexes = cloneAndResize(memberIndexes, totalGlyphCount);
           batchedGlyphIndexes = cloneAndResize(batchedGlyphIndexes, totalGlyphCount);
           batchedGlyphBounds = cloneAndResize(batchedGlyphBounds, totalGlyphCount * 4);
+        }
+        if (hasGlyphColors && batchedGlyphColors.length !== totalGlyphCount * 3) {
+          batchedGlyphColors = new Uint8Array(totalGlyphCount * 3);
         }
 
         // Populate batch arrays
@@ -317,6 +323,9 @@ export class BatchedText extends Text {
             // TODO can skip these for members that are not dirty or shifting overall position:
             batchedGlyphIndexes.set(textRenderInfo.glyphAtlasIndices, glyphIndex, glyphIndex + glyphCount);
             batchedGlyphBounds.set(textRenderInfo.glyphBounds, glyphIndex * 4, (glyphIndex + glyphCount) * 4);
+            if (textRenderInfo.glyphColors) {
+              batchedGlyphColors.set(textRenderInfo.glyphColors, glyphIndex * 3);
+            }
 
             glyphIndex += glyphCount;
             packingInfo.index = memberIndex++;
@@ -328,6 +337,7 @@ export class BatchedText extends Text {
         geometry.getAttribute(memberIndexAttrName).setUsage(DynamicDrawUsage);
         geometry.updateAttributeData(glyphIndexAttrName, batchedGlyphIndexes, 1);
         geometry.updateAttributeData(glyphBoundsAttrName, batchedGlyphBounds, 4);
+        geometry.updateAttributeData(glyphColorAttrName, hasGlyphColors ? batchedGlyphColors : null, 3);
         geometry.instanceCount = batchedGlyphIndexes.length;
         geometry.setDrawRange(0, Infinity);
 
@@ -429,6 +439,7 @@ function createBatchedTextMaterial (baseMaterial) {
         'uTroikaStrokeOpacity',
         'uTroikaFillOpacity',
         'uTroikaCurveRadius',
+        'uTroikaUseGlyphColors',
         'diffuse'
       ]
       varyingUniforms.forEach(uniformName => {
@@ -458,6 +469,7 @@ function createBatchedTextMaterial (baseMaterial) {
       diffuse = troikaFloatToColor(data.x);
       uTroikaFillOpacity = data.y;
       uTroikaCurveRadius = data.z;
+      uTroikaUseGlyphColors = !uTroikaIsOutline && data.w > 0.5;
       
       data = troikaBatchTexel(7.0);
       if (uTroikaIsOutline) {
